@@ -39,20 +39,3 @@ class Converter(Service):
 data = Converter()
 data.unzip_file()
 #data.parse_file()
-        
-        
-        
-
-
-            
-            
-
-
-            
-    
-
-        
-    
-
-    
-
