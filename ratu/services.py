@@ -1,10 +1,13 @@
 import codecs
 import io
+import ratu.config as config
+from ratu.models.ratu_models import Region, District, City, Citydistrict, Street
 import requests
+from service import Service
+import sys
 import xmltodict
 import zipfile
-from service import Service
-import config
+
 #pip freeze > requirements.txt - must run after add or change import modules
 
 class Converter(Service):
