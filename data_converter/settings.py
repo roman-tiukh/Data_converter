@@ -82,15 +82,8 @@ WSGI_APPLICATION = 'data_converter.wsgi.application'
 # }
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'gov_data',
-        'USER': 'postgre',
-        'PASSWORD': '555',
-        'HOST': 'localhost',
-        'PORT': '5432',
+    'default': config.DATABASE_CONFIG
     }
-}
 
 # Password validation
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators
