@@ -1,0 +1,1 @@
+from .ratu_models import Region, District, City, Citydistrict, Street
