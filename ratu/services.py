@@ -35,8 +35,8 @@ class Converter(Service):
             data = xmltodict.parse(file.read()) 
         return data
         
-     def process(self): #writing .xml data to db
-        
+    def process(self): #writing .xml data to db
+    
         #clearing all db tables        
         Region.objects.all().delete()
         District.objects.all().delete()
@@ -126,4 +126,4 @@ class Converter(Service):
                 street.save()
             except:
                 None
-    # -------------- end of process()
+            # -------------- end of process()
