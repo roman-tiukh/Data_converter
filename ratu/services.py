@@ -20,12 +20,12 @@ class Converter(Service):
         # getting zip file  from FILE_URL & extracting to LOCAL_FOLDER
         try:
             r = requests.get(self.FILE_URL)
-        except TimeoutError as err:
+        except TimeoutError as err:   
             print ("Error open zip file " + self.FILE_URL)
-            return
+            return 
         zip_file = zipfile.ZipFile(io.BytesIO(r.content))
         zip_file.extractall(self.LOCAL_FOLDER)
-        
+            
     def parse_file(self):
         # encoding & parsing LOCAL_FILE_NAME
         with codecs.open(self.LOCAL_FOLDER + self.LOCAL_FILE_NAME, encoding="cp1251") as file:
