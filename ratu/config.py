@@ -8,4 +8,4 @@ DATABASE_CONFIG = {
         'PASSWORD': '555',
         'HOST': 'localhost',
         'PORT': '5432',
-    }
+}
