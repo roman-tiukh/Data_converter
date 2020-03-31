@@ -7,7 +7,7 @@ import xml.etree.ElementTree
 from xml.etree.ElementTree import iterparse, XMLParser, tostring
 import xmltodict
 import zipfile
-#pip freeze > requirements.txt - must run after add or change import modules
+#pip3 freeze > requirements.txt - must run after add or change import modules
 
 class Converter:
 
