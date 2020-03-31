@@ -55,7 +55,10 @@ class Converter:
             if event == "end" and elem.tag == "RECORD":
                 for text in elem.iter():
                     print('\t\t', text.tag, '\t\t', text.text)
-                    record[text.tag].append(text.text)
+                    if type(record[text.tag]) == list: 
+                        record[text.tag].append(text.text)
+                    else:
+                        record[text.tag]=text.text
                 
                 #writing one record
                 self.save_to_db(record)
@@ -63,7 +66,10 @@ class Converter:
                 i=i+1
                 print(i, ' records\n\n................................................................................................')
                 for key in record:
-                    record[key].clear()
+                    if type(record[key]) == list:
+                        record[key].clear()
+                    else:
+                        record[key]=''
                 root.clear()
         print('All the records have rewrited.')
 
