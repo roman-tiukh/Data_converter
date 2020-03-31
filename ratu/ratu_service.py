@@ -20,12 +20,12 @@ class Ratu(Converter):
     
     #format record's data 
     record={
-        'RECORD': [],
-        'OBL_NAME': [],
-        'REGION_NAME': [],
-        'CITY_NAME': [],
-        'CITY_REGION_NAME': [],
-        'STREET_NAME': []
+        'RECORD': '',
+        'OBL_NAME': '',
+        'REGION_NAME': '',
+        'CITY_NAME': '',
+        'CITY_REGION_NAME': '',
+        'STREET_NAME': ''
     }
  
     #creating lists for registration items that had writed to db 
@@ -37,17 +37,17 @@ class Ratu(Converter):
     def save_to_db(self, record):
                
         #writing entry to region table
-        if not record['OBL_NAME'][0] in self.region_list:
+        if not record['OBL_NAME'] in self.region_list:
             global region
             region = Region(
-                name=record['OBL_NAME'][0]
+                name=record['OBL_NAME']
                 )
             region.save()
-            self.region_list.insert(0, record['OBL_NAME'][0])
-            region=Region.objects.get(name=record['OBL_NAME'][0])
+            self.region_list.insert(0, record['OBL_NAME'])
+            region=Region.objects.get(name=record['OBL_NAME'])
 
-        if record['REGION_NAME'][0]:
-            a=record['REGION_NAME'][0]
+        if record['REGION_NAME']:
+            a=record['REGION_NAME']
         else:
             a=District.EMPTY_FIELD
         #writing entry to district table
@@ -61,8 +61,8 @@ class Ratu(Converter):
             self.district_list.insert(0, [region, a])
             district=District.objects.get(name=a, region=district.region)
 
-        if record['CITY_NAME'][0]:
-            b=record['CITY_NAME'][0]
+        if record['CITY_NAME']:
+            b=record['CITY_NAME']
         else:
             b=City.EMPTY_FIELD
         #writing entry to city table
@@ -77,8 +77,8 @@ class Ratu(Converter):
             self.city_list.insert(0, [region, district, b])
             city=City.objects.get(name=b, region=district.region, district=city.district)
 
-        if record['CITY_REGION_NAME'][0]:
-            c=record['CITY_REGION_NAME'][0]
+        if record['CITY_REGION_NAME']:
+            c=record['CITY_REGION_NAME']
         else:
             c=Citydistrict.EMPTY_FIELD
         
@@ -101,7 +101,7 @@ class Ratu(Converter):
             district=district,
             city=city,
             citydistrict=citydistrict,
-            name=record['STREET_NAME'][0]
+            name=record['STREET_NAME']
             )
         try:
             street.save()
