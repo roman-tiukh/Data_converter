@@ -1,14 +1,15 @@
 import ratu.config as config
-from ratu.services import Converter
 from ratu.models.ratu_models import Region, District, City, Citydistrict, Street
+from ratu.services import Converter
 
 class Ratu(Converter):
-    print('1')
     
+    #paths for remote and local sours files
     FILE_URL = config.FILE_URL
     LOCAL_FILE_NAME = config.LOCAL_FILE_NAME
     LOCAL_FOLDER = config.LOCAL_FOLDER
 
+    #list of models for clearing DB
     tables=[
         Region,
         District,
@@ -17,6 +18,7 @@ class Ratu(Converter):
         Street
     ]
     
+    #format record's data 
     record={
         'RECORD': [],
         'OBL_NAME': [],
@@ -31,13 +33,12 @@ class Ratu(Converter):
     district_list = list()
     city_list = list()
     citydistrict_list = list()
-
+    
     def save_to_db(self, record):
                
-        print('.')
-        
         #writing entry to region table
         if not record['OBL_NAME'][0] in self.region_list:
+            global region
             region = Region(
                 name=record['OBL_NAME'][0]
                 )
@@ -51,6 +52,7 @@ class Ratu(Converter):
             a=District.EMPTY_FIELD
         #writing entry to district table
         if not [region, a] in self.district_list:
+            global district
             district = District(
                 region=region, 
                 name=a
@@ -65,6 +67,7 @@ class Ratu(Converter):
             b=City.EMPTY_FIELD
         #writing entry to city table
         if not [region, district, b] in self.city_list:
+            global city
             city = City(
                 region=region, 
                 district=district,
@@ -81,6 +84,7 @@ class Ratu(Converter):
         
         #writing entry to citydistrict table
         if not [region, district, city, c] in self.citydistrict_list:
+            global citydistrict
             citydistrict = Citydistrict(
                 region=region, 
                 district=district,
@@ -103,3 +107,5 @@ class Ratu(Converter):
             street.save()
         except:
             None
+        print('saved')
+    print('Ratu already imported. For start rewriting to the DB run > Ratu().process()')

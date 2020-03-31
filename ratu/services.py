@@ -3,16 +3,15 @@ import io
 from ratu.models.ratu_models import Region, District, City, Citydistrict, Street
 import requests
 import sys
-import xmltodict
-import zipfile
 import xml.etree.ElementTree
 from xml.etree.ElementTree import iterparse, XMLParser, tostring
-
+import xmltodict
+import zipfile
 #pip freeze > requirements.txt - must run after add or change import modules
 
 class Converter:
 
-    print('3')
+    
 
     def __init__(self):
         return 
@@ -38,9 +37,7 @@ class Converter:
             table.objects.all().delete()
 
     def process(self):
-        print('4')
-        i=0
-        record=self.record
+        # parsing sours file in flow
         # get an iterable
         context = iterparse(self.LOCAL_FOLDER + self.LOCAL_FILE_NAME, events=("start", "end"))
         # turn it into an iterator
@@ -48,29 +45,27 @@ class Converter:
         # get the root element
         event, root = context.__next__()
 
+        #clear old DB
         self.clear_db()
-
+        
+        i=0
+        record=self.record
+        #loop for creating one record
         for event, elem in context:
             if event == "end" and elem.tag == "RECORD":
-                i=i+1
-                print(i, '\n\n................................................................................................')
                 for text in elem.iter():
-                    print(text.tag, text.text)
+                    print('\t\t', text.tag, '\t\t', text.text)
                     record[text.tag].append(text.text)
                 
+                #writing one record
                 self.save_to_db(record)
                 
+                i=i+1
+                print(i, ' records\n\n................................................................................................')
                 for key in record:
                     record[key].clear()
                 root.clear()
+        print('All the records have rewrited.')
 
-                
-    # def process(self): #writing .xml data to db
-
-    #     print('4')
-
-    #     data=self.parse_file()
-    #     self.clear_db()
-    #     self.save_to_db(data)
-        
+    print('Converter has imported.')           
     # -------------- end of process()
