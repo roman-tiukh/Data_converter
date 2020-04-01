@@ -35,4 +35,4 @@ class Rfop_class(Converter):
         rfop.save()
     
         print('saved')
-    print('Ratu already imported. For start rewriting to the DB run > Rfop_class().process()')
+    print('Rfop_class already imported. For start rewriting to the DB run > Rfop_class().process()')

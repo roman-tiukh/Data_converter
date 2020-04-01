@@ -43,9 +43,8 @@ class Ruo(Converter):
             state=record['STAN']
             )
         company.save()
-        # company=Company.objects.get(edrpou=record['EDRPOU'])
-        
-        #writing entry to company table
+                
+        #writing entry to founder table
         for founder in record['FOUNDER']:
             founders = Founders(
                 company=company.id,
@@ -53,4 +52,4 @@ class Ruo(Converter):
             )
             founders.save()
         print('saved')
-    print('Ratu already imported. For start rewriting to the DB run > Ruo().process()')
+    print('Ruo already imported. For start rewriting to the DB run > Ruo().process()')
