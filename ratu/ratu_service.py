@@ -4,7 +4,7 @@ from ratu.services import Converter
 
 class Ratu(Converter):
     
-    #paths for remote and local sours files
+    #paths for remote and local source files
     FILE_URL = config.FILE_URL
     LOCAL_FILE_NAME = config.LOCAL_FILE_NAME
     LOCAL_FOLDER = config.LOCAL_FOLDER
@@ -34,9 +34,17 @@ class Ratu(Converter):
     city_list = list()
     citydistrict_list = list()
     
+    #writing entry to db
     def save_to_db(self, record):
-               
-        #writing entry to region table
+        self.save_to_region_table(record)
+        self.save_to_district_table(record)
+        self.save_to_city_table(record)
+        self.save_to_citydistrict_table(record)
+        self.save_to_street_table(record)
+        print('saved')
+    
+    #writing entry to region table           
+    def save_to_region_table(self, record):
         if not record['OBL_NAME'] in self.region_list:
             global region
             region = Region(
@@ -44,13 +52,16 @@ class Ratu(Converter):
                 )
             region.save()
             self.region_list.insert(0, record['OBL_NAME'])
-            region=Region.objects.get(name=record['OBL_NAME'])
-
+            region=Region.objects.get(
+                name=record['OBL_NAME']
+                )
+    
+    #writing entry to district table    
+    def save_to_district_table(self, record):
         if record['REGION_NAME']:
             a=record['REGION_NAME']
         else:
             a=District.EMPTY_FIELD
-        #writing entry to district table
         if not [region, a] in self.district_list:
             global district
             district = District(
@@ -59,13 +70,17 @@ class Ratu(Converter):
                 )
             district.save()
             self.district_list.insert(0, [region, a])
-            district=District.objects.get(name=a, region=district.region)
+            district=District.objects.get(
+                name=a,
+                region=district.region
+                )
 
+    #writing entry to city table    
+    def save_to_city_table(self, record):
         if record['CITY_NAME']:
             b=record['CITY_NAME']
         else:
-            b=City.EMPTY_FIELD
-        #writing entry to city table
+            b=City.EMPTY_FIELD 
         if not [region, district, b] in self.city_list:
             global city
             city = City(
@@ -75,14 +90,18 @@ class Ratu(Converter):
                 )
             city.save()
             self.city_list.insert(0, [region, district, b])
-            city=City.objects.get(name=b, region=district.region, district=city.district)
-
+            city=City.objects.get(
+                name=b,
+                region=district.region,
+                district=city.district
+            )
+    
+    #writing entry to citydistrict table
+    def save_to_citydistrict_table(self, record):
         if record['CITY_REGION_NAME']:
             c=record['CITY_REGION_NAME']
         else:
             c=Citydistrict.EMPTY_FIELD
-        
-        #writing entry to citydistrict table
         if not [region, district, city, c] in self.citydistrict_list:
             global citydistrict
             citydistrict = Citydistrict(
@@ -93,9 +112,15 @@ class Ratu(Converter):
                 )
             citydistrict.save()
             self.citydistrict_list.insert(0, [region, district, city, c])
-            citydistrict=Citydistrict.objects.get(name=c, region=district.region, district=city.district, city=citydistrict.city)
-        
-        #writing entry to street table
+            citydistrict=Citydistrict.objects.get(
+                name=c,
+                region=district.region,
+                district=city.district,
+                city=citydistrict.city
+                )
+    
+    #writing entry to street table
+    def save_to_street_table(self, record):    
         street = Street(
             region=region, 
             district=district,
@@ -107,5 +132,5 @@ class Ratu(Converter):
             street.save()
         except:
             None
-        print('saved')
+       
     print('Ratu already imported. For start rewriting to the DB run > Ratu().process()')
