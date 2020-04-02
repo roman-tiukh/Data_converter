@@ -29,10 +29,16 @@ class Ruo(Converter):
         'FOUNDERS': '',
         'FOUNDER': []
     }
-     
+
+    #writing entry to db
     def save_to_db(self, record):
-               
-        #writing entry to company table
+        self.save_to_company_table(record)
+        self.save_to_founders_table(record)
+        print('saved')
+    
+    #writing entry to company table
+    def save_to_company_table(self, record):           
+        global company
         company = Company(
             name=record['NAME'],
             short_name=record['SHORT_NAME'],
@@ -43,13 +49,17 @@ class Ruo(Converter):
             state=record['STAN']
             )
         company.save()
-                
-        #writing entry to founder table
+        company=Company.objects.get(
+            edrpou=company.edrpou,
+            state=company.state
+        )
+    #writing entry to founder table
+    def save_to_founders_table(self, record):            
         for founder in record['FOUNDER']:
             founders = Founders(
-                company=company.id,
+                company=company,
                 founder=founder
             )
-            founders.save()
-        print('saved')
+        founders.save()    
+        
     print('Ruo already imported. For start rewriting to the DB run > Ruo().process()')

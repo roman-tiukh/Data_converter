@@ -13,5 +13,5 @@ class Company(models.Model):
     state = models.CharField(max_length=500, null=True)
 
 class Founders(models.Model):
-    company = models.IntegerField()
-    founder = models.CharField(max_length=2000, null=True)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    founder = models.TextField(null=True)
