@@ -1,6 +1,6 @@
 import ratu.config as config
 from ratu.models.ruo_models import Company, Founders
-from ratu.services import Converter
+from ratu.services.main import Converter
 
 class Ruo(Converter):
     
@@ -50,9 +50,11 @@ class Ruo(Converter):
             )
         company.save()
         company=Company.objects.get(
+            name=company.name,
             edrpou=company.edrpou,
-            state=company.state
+            kved=company.kved,
         )
+
     #writing entry to founder table
     def save_to_founders_table(self, record):            
         for founder in record['FOUNDER']:
@@ -60,6 +62,9 @@ class Ruo(Converter):
                 company=company,
                 founder=founder
             )
-        founders.save()    
+            founders.save()    
         
-    print('Ruo already imported. For start rewriting to the DB run > Ruo().process()')
+    print(
+        'Ruo already imported. For start rewriting RUO to the DB run > Ruo().process()\n',
+        'For clear "Company" and "Founders" tables run > Ruo().clear_db()'
+        )

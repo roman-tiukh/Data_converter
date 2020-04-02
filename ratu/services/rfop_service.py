@@ -1,6 +1,6 @@
 import ratu.config as config
 from ratu.models.rfop_models import Rfop
-from ratu.services import Converter
+from ratu.services.main import Converter
 
 class Rfop_class(Converter):
     
@@ -35,4 +35,7 @@ class Rfop_class(Converter):
         rfop.save()
     
         print('saved')
-    print('Rfop_class already imported. For start rewriting to the DB run > Rfop_class().process()')
+    print(
+        'Rfop_class already imported. For start rewriting RFOP to the DB run > Rfop_class().process()\n',
+        'For clear RFOP table run > Rfop_class().clear_db()'
+        )

@@ -35,6 +35,7 @@ class Converter:
         # clearing data base
         for table in self.tables:
             table.objects.all().delete()
+            print('Old data have deleted.')
 
     def process(self):
         # parsing sours file in flow

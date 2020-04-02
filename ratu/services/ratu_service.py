@@ -1,6 +1,6 @@
 import ratu.config as config
 from ratu.models.ratu_models import Region, District, City, Citydistrict, Street
-from ratu.services import Converter
+from ratu.services.main import Converter
 
 class Ratu(Converter):
     
@@ -133,4 +133,7 @@ class Ratu(Converter):
         except:
             None
        
-    print('Ratu already imported. For start rewriting to the DB run > Ratu().process()')
+    print(
+        'Ratu already imported. For start rewriting RATU to the DB run > Ratu().process()\n',
+        'For clear all RATU tables run > Ratu().clear_db()'
+        )
