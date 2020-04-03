@@ -1,18 +1,13 @@
 import codecs
 import io
-from ratu.models.ratu_models import Region, District, City, Citydistrict, Street
 import requests
 import sys
-import xml.etree.ElementTree
 from xml.etree.ElementTree import iterparse, XMLParser, tostring
 import xmltodict
 import zipfile
-#pip3 freeze > requirements.txt - must run after add or change import modules
 
 class Converter:
-
     
-
     def __init__(self):
         return 
 
@@ -72,7 +67,6 @@ class Converter:
                     else:
                         record[key]=''
                 root.clear()
-        print('All the records have rewrited.')
+        print('All the records have been rewritten.')
 
-    print('Converter has imported.')           
-    # -------------- end of process()
+    print('Converter has imported.')

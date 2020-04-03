@@ -2,7 +2,7 @@ import ratu.config as config
 from ratu.models.ratu_models import Region, District, City, Citydistrict, Street
 from ratu.services.main import Converter
 
-class Ratu(Converter):
+class RatuConverter(Converter):
     
     #paths for remote and local source files
     FILE_URL = config.FILE_URL
@@ -36,91 +36,91 @@ class Ratu(Converter):
     
     #writing entry to db
     def save_to_db(self, record):
-        self.save_to_region_table(record)
-        self.save_to_district_table(record)
-        self.save_to_city_table(record)
-        self.save_to_citydistrict_table(record)
-        self.save_to_street_table(record)
+        region=self.save_to_region_table(record)
+        district=self.save_to_district_table(record, region)
+        city=self.save_to_city_table(record,region, district)
+        citydistrict=self.save_to_citydistrict_table(record, region, district, city)
+        self.save_to_street_table(record,region, district, city, citydistrict)
         print('saved')
     
     #writing entry to region table           
     def save_to_region_table(self, record):
         if not record['OBL_NAME'] in self.region_list:
-            global region
             region = Region(
                 name=record['OBL_NAME']
                 )
             region.save()
-            self.region_list.insert(0, record['OBL_NAME'])
-            region=Region.objects.get(
-                name=record['OBL_NAME']
-                )
+        self.region_list.insert(0, record['OBL_NAME'])
+        region=Region.objects.get(
+            name=record['OBL_NAME']
+            )
+        return region
     
     #writing entry to district table    
-    def save_to_district_table(self, record):
+    def save_to_district_table(self, record, region):
         if record['REGION_NAME']:
-            a=record['REGION_NAME']
+            district_name=record['REGION_NAME']
         else:
-            a=District.EMPTY_FIELD
-        if not [region, a] in self.district_list:
-            global district
+            district_name=District.EMPTY_FIELD
+        if not [region.id, district_name] in self.district_list:
             district = District(
                 region=region, 
-                name=a
+                name=district_name
                 )
             district.save()
-            self.district_list.insert(0, [region, a])
-            district=District.objects.get(
-                name=a,
-                region=district.region
-                )
+            self.district_list.insert(0, [region.id, district_name])
+        district=District.objects.get(
+            name=district_name,
+            region=region.id
+            )
+        return district
 
     #writing entry to city table    
-    def save_to_city_table(self, record):
+    def save_to_city_table(self, record, region, district):
         if record['CITY_NAME']:
-            b=record['CITY_NAME']
+            city_name=record['CITY_NAME']
         else:
-            b=City.EMPTY_FIELD 
-        if not [region, district, b] in self.city_list:
-            global city
+            city_name=City.EMPTY_FIELD 
+        if not [region.id, district.id, city_name] in self.city_list:
             city = City(
                 region=region, 
                 district=district,
-                name=b
+                name=city_name
                 )
             city.save()
-            self.city_list.insert(0, [region, district, b])
-            city=City.objects.get(
-                name=b,
-                region=district.region,
-                district=city.district
+            self.city_list.insert(0, [region.id, district.id, city_name])
+        city=City.objects.get(
+            name=city_name,
+            region=region.id,
+            district=district.id
             )
+        return city
     
     #writing entry to citydistrict table
-    def save_to_citydistrict_table(self, record):
+    def save_to_citydistrict_table(self, record, region, district, city):
         if record['CITY_REGION_NAME']:
-            c=record['CITY_REGION_NAME']
+            citydistrict_name=record['CITY_REGION_NAME']
         else:
-            c=Citydistrict.EMPTY_FIELD
-        if not [region, district, city, c] in self.citydistrict_list:
-            global citydistrict
+            citydistrict_name=Citydistrict.EMPTY_FIELD
+        if not [region.id, district.id, city.id, citydistrict_name] in self.citydistrict_list:
             citydistrict = Citydistrict(
                 region=region, 
                 district=district,
                 city=city,
-                name=c
+                name=citydistrict_name
                 )
             citydistrict.save()
-            self.citydistrict_list.insert(0, [region, district, city, c])
-            citydistrict=Citydistrict.objects.get(
-                name=c,
-                region=district.region,
-                district=city.district,
-                city=citydistrict.city
-                )
+            self.citydistrict_list.insert(0, [region.id, district.id, city.id, citydistrict_name])
+        citydistrict=Citydistrict.objects.get(
+            name=citydistrict_name,
+            region=region.id,
+            district=district.id,
+            city=city.id
+            )
+        return citydistrict
     
     #writing entry to street table
-    def save_to_street_table(self, record):    
+    def save_to_street_table(self, record, region, district, city, citydistrict):    
         street = Street(
             region=region, 
             district=district,
@@ -134,6 +134,6 @@ class Ratu(Converter):
             None
        
     print(
-        'Ratu already imported. For start rewriting RATU to the DB run > Ratu().process()\n',
-        'For clear all RATU tables run > Ratu().clear_db()'
+        'Ratu already imported. For start rewriting RATU to the DB run > RatuConverter().process()\n',
+        'For clear all RATU tables run > RatuConverter().clear_db()'
         )
