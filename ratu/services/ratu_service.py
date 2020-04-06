@@ -1,4 +1,4 @@
-import ratu.config as config
+import config
 from ratu.models.ratu_models import Region, District, City, Citydistrict, Street
 from ratu.services.main import Converter
 

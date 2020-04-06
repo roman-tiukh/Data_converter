@@ -7,6 +7,10 @@ import xmltodict
 import zipfile
 
 class Converter:
+
+    FILE_URL=None
+    LOCAL_FOLDER=None
+    LOCAL_FILE_NAME=None
     
     def __init__(self):
         return 

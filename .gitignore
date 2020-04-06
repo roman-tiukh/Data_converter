@@ -29,7 +29,7 @@ venv/
 # /web/docker_django/development
 # web/docker_django/system/cryptography/
 # web/docker_django/system/cryptography/EUSignCP.py
-ratu/config.py
+config.py
 ratu/sanding.py
 .vscode
 unzipped_xml

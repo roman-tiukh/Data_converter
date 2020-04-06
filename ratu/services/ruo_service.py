@@ -1,5 +1,5 @@
-import ratu.config as config
-from ratu.models.ruo_models import Founders, Ruo, State_Ruo
+import config
+from ratu.models.ruo_models import Founders, Kved, Ruo, Stateruo
 from ratu.services.main import Converter
 
 class RuoConverter(Converter):
@@ -12,8 +12,9 @@ class RuoConverter(Converter):
     #list of models for clearing DB
     tables=[
         Founders,
+        Kved,
         Ruo,
-        State_Ruo      
+        Stateruo      
     ]
     
     #format record's data
@@ -33,11 +34,13 @@ class RuoConverter(Converter):
 
     #creating list for registration items that had writed to db
     state_list=[]
+    kved_list=[]
     
     #writing entry to db 
     def save_to_db(self, record):
         state_ruo=self.save_to_state_ruo_table(record)
-        ruo=self.save_to_ruo_table(record, state_ruo)
+        kved=self.save_to_kved_table(record)
+        ruo=self.save_to_ruo_table(record, state_ruo, kved)
         self.save_to_founders_table(record, ruo)
         print('saved')
         
@@ -46,39 +49,56 @@ class RuoConverter(Converter):
         if record['STAN']:
             state_name=record['STAN']
         else:
-            state_name=State_Ruo.EMPTY_FIELD
+            state_name=Stateruo.EMPTY_FIELD
         if not state_name in self.state_list:
-            state_ruo = State_Ruo(
+            state_ruo = Stateruo(
                 name=state_name
                 )
             state_ruo.save()
             self.state_list.insert(0, state_name)
-        state_ruo=State_Ruo.objects.get(
+        state_ruo=Stateruo.objects.get(
             name=state_name
             )
         return state_ruo
     
+    #writing entry to kved table       
+    def save_to_kved_table(self, record):
+        if record['KVED']:
+            kved_name=record['KVED']
+        else:
+            kved_name=Kved.EMPTY_FIELD
+        if not kved_name in self.kved_list:
+            kved = Kved(
+                name=kved_name
+                )
+            kved.save()
+            self.kved_list.insert(0, kved_name)
+        kved=Kved.objects.get(
+            name=kved_name
+            )
+        return kved
+    
     #writing entry to ruo table
-    def save_to_ruo_table(self, record, state_ruo):
+    def save_to_ruo_table(self, record, state_ruo, kved):
         ruo = Ruo.objects.filter(
             state=state_ruo.id,
+            kved=kved.id,
             name=record['NAME'],
             short_name=record['SHORT_NAME'],
             edrpou=record['EDRPOU'],
             address=record['ADDRESS'],
-            boss=record['BOSS'],
-            kved=record['KVED']
+            boss=record['BOSS']  
         )
         if ruo.exists():  
             return ruo
         ruo = Ruo(
             state=state_ruo,
+            kved=kved,
             name=record['NAME'],
             short_name=record['SHORT_NAME'],
             edrpou=record['EDRPOU'],
             address=record['ADDRESS'],
-            boss=record['BOSS'],
-            kved=record['KVED']
+            boss=record['BOSS'] 
         )
         ruo.save()
        

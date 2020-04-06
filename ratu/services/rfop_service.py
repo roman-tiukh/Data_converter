@@ -1,5 +1,6 @@
-import ratu.config as config
-from ratu.models.rfop_models import Rfop, State_Rfop
+import config
+from ratu.models.rfop_models import Rfop, Staterfop
+from ratu.models.ruo_models import Kved
 from ratu.services.main import Converter
 
 class RfopConverter(Converter):
@@ -11,8 +12,9 @@ class RfopConverter(Converter):
 
     #list of models for clearing DB
     tables=[
-        State_Rfop,
-        Rfop
+        Kved,
+        Rfop,
+        Staterfop
     ]
     
     #format record's data
@@ -26,11 +28,13 @@ class RfopConverter(Converter):
     
     #creating list for registration items that had writed to db
     state_list=[]
+    kved_list=[]
     
     #writing entry to db 
     def save_to_db(self, record):
         state_rfop=self.save_to_state_rfop_table(record)
-        self.save_to_rfop_table(record, state_rfop)
+        kved=self.save_to_kved_table(record)
+        self.save_to_rfop_table(record, state_rfop, kved)
         print('saved')
         
     #writing entry to state_rfop table       
@@ -38,25 +42,42 @@ class RfopConverter(Converter):
         if record['STAN']:
             state_name=record['STAN']
         else:
-            state_name=State_Rfop.EMPTY_FIELD
+            state_name=Staterfop.EMPTY_FIELD
         if not state_name in self.state_list:
-            state_rfop = State_Rfop(
+            state_rfop = Staterfop(
                 name=state_name
                 )
             state_rfop.save()
             self.state_list.insert(0, state_name)
-        state_rfop=State_Rfop.objects.get(
+        state_rfop=Staterfop.objects.get(
             name=state_name
             )
         return state_rfop
     
+    #writing entry to kved table       
+    def save_to_kved_table(self, record):
+        if record['KVED']:
+            kved_name=record['KVED']
+        else:
+            kved_name=Kved.EMPTY_FIELD
+        if not kved_name in self.kved_list:
+            kved = Kved(
+                name=kved_name
+                )
+            kved.save()
+            self.kved_list.insert(0, kved_name)
+        kved=Kved.objects.get(
+            name=kved_name
+            )
+        return kved
+    
     #writing entry to rfop table
-    def save_to_rfop_table(self, record, state_rfop):
+    def save_to_rfop_table(self, record, state_rfop, kved):
         rfop = Rfop(
             state=state_rfop,
+            kved=kved,
             fullname=record['FIO'],
-            address=record['ADDRESS'],
-            kved=record['KVED']
+            address=record['ADDRESS']
             )
         rfop.save()
     
