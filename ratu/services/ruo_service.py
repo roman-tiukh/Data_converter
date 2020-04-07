@@ -12,7 +12,6 @@ class RuoConverter(Converter):
     #list of models for clearing DB
     tables=[
         Founders,
-#        Kved,
         Ruo,
         Stateruo      
     ]
