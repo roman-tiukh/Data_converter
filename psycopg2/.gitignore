@@ -1,0 +1,16 @@
+MANIFEST
+*~
+*.userprefs
+*.pidb
+*.pyc
+*.sw[po]
+*.egg-info/
+dist/*
+build/*
+env
+env?
+.idea
+.tox
+.vscode/
+/rel
+/wheels
