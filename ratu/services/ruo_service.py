@@ -12,7 +12,6 @@ class RuoConverter(Converter):
     #list of models for clearing DB
     tables=[
         Founders,
-        Kved,
         Ruo,
         Stateruo      
     ]
@@ -68,11 +67,12 @@ class RuoConverter(Converter):
         else:
             kved_name=Kved.EMPTY_FIELD
         if not kved_name in self.kved_list:
-            kved = Kved(
+            kved, created = Kved.objects.get_or_create(
                 name=kved_name
-                )
-            kved.save()
+            )
+            print (created)
             self.kved_list.insert(0, kved_name)
+            return kved
         kved=Kved.objects.get(
             name=kved_name
             )
