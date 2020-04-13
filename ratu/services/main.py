@@ -8,8 +8,6 @@ from xml.etree.ElementTree import iterparse, XMLParser, tostring
 import xmltodict
 import zipfile
 
-
-
 class Converter:
 
     FILE_URL=None

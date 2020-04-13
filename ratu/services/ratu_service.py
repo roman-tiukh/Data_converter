@@ -34,7 +34,7 @@ class RatuConverter(Converter):
     city_list = list()
     citydistrict_list = list()
 
-    bulk_mgr = BulkCreateManager(chunk_size=20)
+    bulk_mgr = BulkCreateManager(chunk_size=200)
     
     #writing entry to db
     def save_to_db(self, record):
