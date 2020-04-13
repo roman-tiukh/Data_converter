@@ -1,5 +1,5 @@
 import config
-from ratu.models.ruo_models import Founders, Kved, Ruo, Stateruo
+from ratu.models.ruo_models import Founders, Kved, Ruo, State
 from ratu.services.main import Converter
 
 class RuoConverter(Converter):
@@ -34,34 +34,34 @@ class RuoConverter(Converter):
     state_dict={}
     kved_dict={}
 
-    for state_ruo in Stateruo.objects.all():
-        state_dict[state_ruo.name]=state_ruo
+    for state in State.objects.all():
+        state_dict[state.name]=state
     for kved in Kved.objects.all():
         kved_dict[kved.name]=kved
     
     #writing entry to db 
     def save_to_db(self, record):
-        state_ruo=self.save_to_state_ruo_table(record)
+        state=self.save_to_state_table(record)
         kved=self.save_to_kved_table(record)
-        ruo=self.save_to_ruo_table(record, state_ruo, kved)
+        ruo=self.save_to_ruo_table(record, state, kved)
         self.save_to_founders_table(record, ruo)
         print('saved')
         
     #writing entry to state_ruo table       
-    def save_to_state_ruo_table(self, record):
+    def save_to_state_table(self, record):
         if record['STAN']:
             state_name=record['STAN']
         else:
-            state_name=Stateruo.EMPTY_FIELD
+            state_name=State.EMPTY_FIELD
         if not state_name in self.state_dict:
-            state_ruo = Stateruo(
+            state = State(
                 name=state_name
                 )
-            state_ruo.save()
-            self.state_dict[state_name]=state_ruo
-            return state_ruo
-        state_ruo=self.state_dict[state_name]
-        return state_ruo
+            state.save()
+            self.state_dict[state_name]=state
+            return state
+        state=self.state_dict[state_name]
+        return state
     
     #writing entry to kved table       
     def save_to_kved_table(self, record):
@@ -80,9 +80,9 @@ class RuoConverter(Converter):
         return kved
     
     #writing entry to ruo table
-    def save_to_ruo_table(self, record, state_ruo, kved):
+    def save_to_ruo_table(self, record, state, kved):
         ruo = Ruo.objects.filter(
-            state=state_ruo.id,
+            state=state.id,
             kved=kved.id,
             name=record['NAME'],
             short_name=record['SHORT_NAME'],
@@ -93,7 +93,7 @@ class RuoConverter(Converter):
         if ruo.exists():  
             return ruo
         ruo = Ruo(
-            state=state_ruo,
+            state=state,
             kved=kved,
             name=record['NAME'],
             short_name=record['SHORT_NAME'],

@@ -1,18 +1,18 @@
 import config
-from ratu.models.rfop_models import Rfop, Staterfop
-from ratu.models.ruo_models import Kved
+from ratu.models.rfop_models import Rfop
+from ratu.models.ruo_models import Kved, State
 from ratu.services.main import Converter, BulkCreateManager
 
 class RfopConverter(Converter):
     
     #paths for remote and local source files
-    FILE_URL = config.FILE_URL
+    FILE_URL = config.FILE_URL_RUO
     LOCAL_FILE_NAME = config.LOCAL_FILE_NAME_RFOP
     LOCAL_FOLDER = config.LOCAL_FOLDER
 
     #list of models for clearing DB
     tables=[
-        Rfop,
+        Rfop
     ]
     
     #format record's data
@@ -27,36 +27,36 @@ class RfopConverter(Converter):
     #creating list for registration items that had writed to db
     state_dict={}
     kved_dict={}
+
+    bulk_mgr = BulkCreateManager(chunk_size=200)
     
-    bulk_mgr = BulkCreateManager(chunk_size=20)
-    
-    for state_rfop in Staterfop.objects.all():
-        state_dict[state_rfop.name]=state_rfop
+    for state in State.objects.all():
+        state_dict[state.name]=state
     for kved in Kved.objects.all():
         kved_dict[kved.name]=kved
 
     #writing entry to db 
     def save_to_db(self, record):
-        state_rfop=self.save_to_state_rfop_table(record)
+        state=self.save_to_state_table(record)
         kved=self.save_to_kved_table(record)
-        self.save_to_rfop_table(record, state_rfop, kved)
+        self.save_to_rfop_table(record, state, kved)
         print('saved')
         
     #writing entry to state_ruo table       
-    def save_to_state_rfop_table(self, record):
+    def save_to_state_table(self, record):
         if record['STAN']:
             state_name=record['STAN']
         else:
-            state_name=Staterfop.EMPTY_FIELD
+            state_name=State.EMPTY_FIELD
         if not state_name in self.state_dict:
-            state_rfop = Staterfop(
+            state = State(
                 name=state_name
                 )
-            state_rfop.save()
-            self.state_dict[state_name]=state_rfop
-            return state_rfop
-        state_rfop=self.state_dict[state_name]
-        return state_rfop
+            state.save()
+            self.state_dict[state_name]=state
+            return state
+        state=self.state_dict[state_name]
+        return state
     
     #writing entry to kved table       
     def save_to_kved_table(self, record):
@@ -75,9 +75,9 @@ class RfopConverter(Converter):
         return kved
     
     #writing entry to rfop table
-    def save_to_rfop_table(self, record, state_rfop, kved):
+    def save_to_rfop_table(self, record, state, kved):
         rfop = Rfop(
-            state=state_rfop,
+            state=state,
             kved=kved,
             fullname=record['FIO'],
             address=record['ADDRESS']
