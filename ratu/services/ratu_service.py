@@ -1,6 +1,7 @@
 import config
 from ratu.models.ratu_models import Region, District, City, Citydistrict, Street
 from ratu.services.main import Converter
+import time
 
 class RatuConverter(Converter):
     
@@ -35,13 +36,23 @@ class RatuConverter(Converter):
     citydistrict_list = list()
     
     #writing entry to db
-    def save_to_db(self, record):
+    def save_to_db(self, record, parsing_time):
         region=self.save_to_region_table(record)
+        region_time=time.time()
+        print('saving in tables:\nregion \t\t\t', round((region_time-parsing_time)*1000))
         district=self.save_to_district_table(record, region)
+        district_time=time.time()
+        print('district \t\t', round((district_time-region_time)*1000))
         city=self.save_to_city_table(record,region, district)
+        city_time=time.time()
+        print('city \t\t\t', round((city_time-district_time)*1000))
         citydistrict=self.save_to_citydistrict_table(record, region, district, city)
+        citydistrict_time=time.time()
+        print('citydistrict \t\t', round((citydistrict_time-city_time)*1000))
         self.save_to_street_table(record,region, district, city, citydistrict)
-        print('saved')
+        street_time=time.time()
+        print('street \t\t\t', round((street_time-citydistrict_time)*1000))
+        # print('saved')
     
     #writing entry to region table           
     def save_to_region_table(self, record):

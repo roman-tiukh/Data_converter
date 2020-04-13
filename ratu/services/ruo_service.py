@@ -1,6 +1,7 @@
 import config
 from ratu.models.ruo_models import Founders, Kved, Ruo, Stateruo
 from ratu.services.main import Converter
+import time
 
 class RuoConverter(Converter):
     
@@ -13,7 +14,7 @@ class RuoConverter(Converter):
     tables=[
         Founders,
         Ruo,
-        Stateruo      
+        #Stateruo      
     ]
     
     #format record's data
@@ -32,16 +33,29 @@ class RuoConverter(Converter):
     }
 
     #creating list for registration items that had writed to db
-    state_list=[]
-    kved_list=[]
+    state_dict={}
+    kved_dict={}
+
+    for state_ruo in Stateruo.objects.all():
+        state_dict[state_ruo.name]=state_ruo
+    for kved in Kved.objects.all():
+        kved_dict[kved.name]=kved
     
     #writing entry to db 
-    def save_to_db(self, record):
+    def save_to_db(self, record, parsing_time):
         state_ruo=self.save_to_state_ruo_table(record)
+        state_ruo_time=time.time()
+        print('saving in tables:\nstateruo \t\t', round((state_ruo_time-parsing_time)*1000))
         kved=self.save_to_kved_table(record)
+        kved_time=time.time()
+        print('kved \t\t\t', round((kved_time-state_ruo_time)*1000))
         ruo=self.save_to_ruo_table(record, state_ruo, kved)
+        ruo_time=time.time()
+        print('ruo \t\t\t', round((ruo_time-kved_time)*1000))
         self.save_to_founders_table(record, ruo)
-        print('saved')
+        founders_time=time.time()
+        print('founders \t\t', round((founders_time-ruo_time)*1000))
+        # print('saved')
         
     #writing entry to state_ruo table       
     def save_to_state_ruo_table(self, record):
@@ -49,15 +63,14 @@ class RuoConverter(Converter):
             state_name=record['STAN']
         else:
             state_name=Stateruo.EMPTY_FIELD
-        if not state_name in self.state_list:
+        if not state_name in self.state_dict:
             state_ruo = Stateruo(
                 name=state_name
                 )
             state_ruo.save()
-            self.state_list.insert(0, state_name)
-        state_ruo=Stateruo.objects.get(
-            name=state_name
-            )
+            self.state_dict[state_name]=state_ruo
+            return state_ruo
+        state_ruo=self.state_dict[state_name]
         return state_ruo
     
     #writing entry to kved table       
@@ -66,16 +79,14 @@ class RuoConverter(Converter):
             kved_name=record['KVED']
         else:
             kved_name=Kved.EMPTY_FIELD
-        if not kved_name in self.kved_list:
-            kved, created = Kved.objects.get_or_create(
+        if not kved_name in self.kved_dict:
+            kved = Kved(
                 name=kved_name
-            )
-            print (created)
-            self.kved_list.insert(0, kved_name)
+                )
+            kved.save()
+            self.kved_dict[kved_name]=kved
             return kved
-        kved=Kved.objects.get(
-            name=kved_name
-            )
+        kved=self.kved_dict[kved_name]
         return kved
     
     #writing entry to ruo table
@@ -105,14 +116,16 @@ class RuoConverter(Converter):
         return ruo
 
     #writing entry to founder table
-    def save_to_founders_table(self, record, ruo):            
+    def save_to_founders_table(self, record, ruo):
+        _create_queues=list()          
         for founder in record['FOUNDER']:
             founders = Founders(
                 company=ruo,
                 founder=founder
             )
-            founders.save()    
-        
+            _create_queues.append(founders)
+            # founders.save()    
+        Founders.objects.bulk_create(_create_queues)
     print(
         'Ruo already imported. For start rewriting RUO to the DB run > RuoConverter().process()\n',
         'For clear RUO tables run > RuoConverter().clear_db()'

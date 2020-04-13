@@ -2,6 +2,7 @@ import codecs
 import io
 import requests
 import sys
+import time
 from xml.etree.ElementTree import iterparse, XMLParser, tostring
 import xmltodict
 import zipfile
@@ -47,8 +48,11 @@ class Converter:
 
         #clear old DB
         self.clear_db()
-        
+        a=0
+        b=0
         i=0
+        parsing_time=time.time()
+        saving_time=time.time()
         record=self.record
         #loop for creating one record
         for event, elem in context:
@@ -59,10 +63,18 @@ class Converter:
                         record[text.tag].append(text.text)
                     else:
                         record[text.tag]=text.text
+                parsing_time=time.time()
+                a=round((parsing_time-saving_time)*1000)
+                print('_________________________________')
+                print('Processing time, \tms\nparsing \t\t', a)
                 
                 #writing one record
-                self.save_to_db(record)
+                self.save_to_db(record, parsing_time)
                 
+                saving_time=time.time()
+                b=round((saving_time-parsing_time)*1000)
+                print('total saving \t\t', b)
+                print('total processing \t', a+b)
                 i=i+1
                 print(i, ' records\n\n................................................................................................')
                 for key in record:

@@ -2,6 +2,7 @@ import config
 from ratu.models.rfop_models import Rfop, Staterfop
 from ratu.models.ruo_models import Kved
 from ratu.services.main import Converter
+import time
 
 class RfopConverter(Converter):
     
@@ -12,9 +13,9 @@ class RfopConverter(Converter):
 
     #list of models for clearing DB
     tables=[
-        Kved,
+        #Kved,
         Rfop,
-        Staterfop
+        #Staterfop
     ]
     
     #format record's data
@@ -27,31 +28,43 @@ class RfopConverter(Converter):
     }
     
     #creating list for registration items that had writed to db
-    state_list=[]
-    kved_list=[]
+    state_dict={}
+    kved_dict={}
+    _create_queues=[]
     
+    for state_rfop in Staterfop.objects.all():
+        state_dict[state_rfop.name]=state_rfop
+    for kved in Kved.objects.all():
+        kved_dict[kved.name]=kved
+
     #writing entry to db 
-    def save_to_db(self, record):
+    def save_to_db(self, record, parsing_time):
         state_rfop=self.save_to_state_rfop_table(record)
+        state_rfop_time=time.time()
+        print('saving in tables:\nstaterfop \t\t', round((state_rfop_time-parsing_time)*1000))
         kved=self.save_to_kved_table(record)
+        kved_time=time.time()
+        print('kved \t\t\t', round((kved_time-state_rfop_time)*1000))
         self.save_to_rfop_table(record, state_rfop, kved)
-        print('saved')
+        rfop_time=time.time()
+        print('rfop \t\t\t', round((rfop_time-kved_time)*1000))
+        # print('saved')
         
-    #writing entry to state_rfop table       
+    #writing entry to state_ruo table       
     def save_to_state_rfop_table(self, record):
         if record['STAN']:
             state_name=record['STAN']
         else:
             state_name=Staterfop.EMPTY_FIELD
-        if not state_name in self.state_list:
+        if not state_name in self.state_dict:
             state_rfop = Staterfop(
                 name=state_name
                 )
             state_rfop.save()
-            self.state_list.insert(0, state_name)
-        state_rfop=Staterfop.objects.get(
-            name=state_name
-            )
+            #_create_queues.append(state_rfop)
+            self.state_dict[state_name]=state_rfop
+            return state_rfop
+        state_rfop=self.state_dict[state_name]
         return state_rfop
     
     #writing entry to kved table       
@@ -60,15 +73,15 @@ class RfopConverter(Converter):
             kved_name=record['KVED']
         else:
             kved_name=Kved.EMPTY_FIELD
-        if not kved_name in self.kved_list:
+        if not kved_name in self.kved_dict:
             kved = Kved(
                 name=kved_name
                 )
             kved.save()
-            self.kved_list.insert(0, kved_name)
-        kved=Kved.objects.get(
-            name=kved_name
-            )
+            #_create_queues.append(kved)
+            self.kved_dict[kved_name]=kved
+            return kved
+        kved=self.kved_dict[kved_name]
         return kved
     
     #writing entry to rfop table
@@ -79,7 +92,11 @@ class RfopConverter(Converter):
             fullname=record['FIO'],
             address=record['ADDRESS']
             )
-        rfop.save()
+        self._create_queues.append(rfop)
+        #rfop.save()
+        if len(self._create_queues) >= 200:
+            Rfop.objects.bulk_create(self._create_queues)
+            self._create_queues=[]
     
     print(
         'Rfop_class already imported. For start rewriting RFOP to the DB run > RfopConverter().process()\n',
