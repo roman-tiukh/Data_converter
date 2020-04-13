@@ -1,11 +1,14 @@
 import codecs
+from collections import defaultdict
+from django.apps import apps
 import io
 import requests
 import sys
-import time
 from xml.etree.ElementTree import iterparse, XMLParser, tostring
 import xmltodict
 import zipfile
+
+
 
 class Converter:
 
@@ -48,11 +51,8 @@ class Converter:
 
         #clear old DB
         self.clear_db()
-        a=0
-        b=0
+
         i=0
-        parsing_time=time.time()
-        saving_time=time.time()
         record=self.record
         #loop for creating one record
         for event, elem in context:
@@ -63,18 +63,10 @@ class Converter:
                         record[text.tag].append(text.text)
                     else:
                         record[text.tag]=text.text
-                parsing_time=time.time()
-                a=round((parsing_time-saving_time)*1000)
-                print('_________________________________')
-                print('Processing time, \tms\nparsing \t\t', a)
-                
+
                 #writing one record
-                self.save_to_db(record, parsing_time)
+                self.save_to_db(record)
                 
-                saving_time=time.time()
-                b=round((saving_time-parsing_time)*1000)
-                print('total saving \t\t', b)
-                print('total processing \t', a+b)
                 i=i+1
                 print(i, ' records\n\n................................................................................................')
                 for key in record:
@@ -83,6 +75,46 @@ class Converter:
                     else:
                         record[key]=''
                 root.clear()
+        self.bulk_mgr.done()
         print('All the records have been rewritten.')
 
     print('Converter has imported.')
+
+class BulkCreateManager(object):
+    """
+    This helper class keeps track of ORM objects to be created for multiple
+    model classes, and automatically creates those objects with `bulk_create`
+    when the number of objects accumulated for a given model class exceeds
+    `chunk_size`.
+    Upon completion of the loop that's `add()`ing objects, the developer must
+    call `done()` to ensure the final set of objects is created for all models.
+    """
+
+    def __init__(self, chunk_size=200):
+        self._create_queues = defaultdict(list)
+        self.chunk_size = chunk_size
+
+    def _commit(self, model_class):
+        model_key = model_class._meta.label
+        model_class.objects.bulk_create(self._create_queues[model_key])
+        self._create_queues[model_key] = []
+
+    def add(self, obj):
+        """
+        Add an object to the queue to be created, and call bulk_create if we
+        have enough objs.
+        """
+        model_class = type(obj)
+        model_key = model_class._meta.label
+        self._create_queues[model_key].append(obj)
+        if len(self._create_queues[model_key]) >= self.chunk_size:
+            self._commit(model_class)
+
+    def done(self):
+        """
+        Always call this upon completion to make sure the final partial chunk
+        is saved.
+        """
+        for model_name, objs in self._create_queues.items():
+            if len(objs) > 0:
+                self._commit(apps.get_model(model_name))

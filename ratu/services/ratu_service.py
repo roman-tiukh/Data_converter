@@ -1,7 +1,6 @@
 import config
 from ratu.models.ratu_models import Region, District, City, Citydistrict, Street
-from ratu.services.main import Converter
-import time
+from ratu.services.main import Converter, BulkCreateManager
 
 class RatuConverter(Converter):
     
@@ -30,41 +29,32 @@ class RatuConverter(Converter):
     }
  
     #creating lists for registration items that had writed to db 
-    region_list = []
+    region_dict = {}
     district_list = list()
     city_list = list()
     citydistrict_list = list()
+
+    bulk_mgr = BulkCreateManager(chunk_size=20)
     
     #writing entry to db
-    def save_to_db(self, record, parsing_time):
+    def save_to_db(self, record):
         region=self.save_to_region_table(record)
-        region_time=time.time()
-        print('saving in tables:\nregion \t\t\t', round((region_time-parsing_time)*1000))
         district=self.save_to_district_table(record, region)
-        district_time=time.time()
-        print('district \t\t', round((district_time-region_time)*1000))
         city=self.save_to_city_table(record,region, district)
-        city_time=time.time()
-        print('city \t\t\t', round((city_time-district_time)*1000))
         citydistrict=self.save_to_citydistrict_table(record, region, district, city)
-        citydistrict_time=time.time()
-        print('citydistrict \t\t', round((citydistrict_time-city_time)*1000))
         self.save_to_street_table(record,region, district, city, citydistrict)
-        street_time=time.time()
-        print('street \t\t\t', round((street_time-citydistrict_time)*1000))
-        # print('saved')
+        print('saved')
     
     #writing entry to region table           
     def save_to_region_table(self, record):
-        if not record['OBL_NAME'] in self.region_list:
+        if not record['OBL_NAME'] in self.region_dict:
             region = Region(
                 name=record['OBL_NAME']
                 )
             region.save()
-        self.region_list.insert(0, record['OBL_NAME'])
-        region=Region.objects.get(
-            name=record['OBL_NAME']
-            )
+            self.region_dict[record['OBL_NAME']]=region
+            return region
+        region=self.region_dict[record['OBL_NAME']]
         return region
     
     #writing entry to district table    
@@ -132,17 +122,15 @@ class RatuConverter(Converter):
     
     #writing entry to street table
     def save_to_street_table(self, record, region, district, city, citydistrict):    
-        street = Street(
-            region=region, 
-            district=district,
-            city=city,
-            citydistrict=citydistrict,
-            name=record['STREET_NAME']
-            )
-        try:
-            street.save()
-        except:
-            None
+        if record['STREET_NAME']:
+            street = Street(
+                region=region, 
+                district=district,
+                city=city,
+                citydistrict=citydistrict,
+                name=record['STREET_NAME']
+                )
+            self.bulk_mgr.add(street)
        
     print(
         'Ratu already imported. For start rewriting RATU to the DB run > RatuConverter().process()\n',
