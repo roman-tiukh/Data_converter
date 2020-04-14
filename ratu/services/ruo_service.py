@@ -47,7 +47,7 @@ class RuoConverter(Converter):
         self.save_to_founders_table(record, ruo)
         print('saved')
         
-    #writing entry to state_ruo table       
+    #writing entry to state table       
     def save_to_state_table(self, record):
         if record['STAN']:
             state_name=record['STAN']

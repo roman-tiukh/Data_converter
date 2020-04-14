@@ -9,6 +9,7 @@ class RfopConverter(Converter):
     FILE_URL = config.FILE_URL_RUO
     LOCAL_FILE_NAME = config.LOCAL_FILE_NAME_RFOP
     LOCAL_FOLDER = config.LOCAL_FOLDER
+    CHUNK_SIZE = 200
 
     #list of models for clearing DB
     tables=[
@@ -28,7 +29,7 @@ class RfopConverter(Converter):
     state_dict={} # dictionary uses for keeping whole model class objects
     kved_dict={}
 
-    bulk_manager = BulkCreateManager(chunk_size=200)
+    bulk_manager = BulkCreateManager(CHUNK_SIZE)
     
     for state in State.objects.all():
         state_dict[state.name]=state
@@ -42,7 +43,7 @@ class RfopConverter(Converter):
         self.save_to_rfop_table(record, state, kved)
         print('saved')
         
-    #writing entry to state_ruo table       
+    #writing entry to state table       
     def save_to_state_table(self, record):
         if record['STAN']:
             state_name=record['STAN']

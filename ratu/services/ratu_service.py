@@ -8,6 +8,7 @@ class RatuConverter(Converter):
     FILE_URL = config.FILE_URL
     LOCAL_FILE_NAME = config.LOCAL_FILE_NAME
     LOCAL_FOLDER = config.LOCAL_FOLDER
+    CHUNK_SIZE = 200
 
     #list of models for clearing DB
     tables=[
@@ -34,7 +35,7 @@ class RatuConverter(Converter):
     city_list = list()
     citydistrict_list = list()
 
-    bulk_manager = BulkCreateManager(chunk_size=200)
+    bulk_manager = BulkCreateManager(CHUNK_SIZE)
     
     #writing entry to db
     def save_to_db(self, record):
