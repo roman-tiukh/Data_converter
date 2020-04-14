@@ -1,6 +1,6 @@
 import config
 from ratu.models.ratu_models import Region, District, City, Citydistrict, Street
-from ratu.services.main import Converter
+from ratu.services.main import Converter, BulkCreateManager
 
 class RatuConverter(Converter):
     
@@ -8,6 +8,7 @@ class RatuConverter(Converter):
     FILE_URL = config.FILE_URL
     LOCAL_FILE_NAME = config.LOCAL_FILE_NAME
     LOCAL_FOLDER = config.LOCAL_FOLDER
+    CHUNK_SIZE = 200
 
     #list of models for clearing DB
     tables=[
@@ -28,11 +29,13 @@ class RatuConverter(Converter):
         'STREET_NAME': ''
     }
  
-    #creating lists for registration items that had writed to db 
-    region_list = []
-    district_list = list()
+    #creating dictionary & lists for registration items that had writed to db 
+    region_dict = {} # dictionary uses for keeping whole model class objects
+    district_list = list() # lists use for keeping cells content
     city_list = list()
     citydistrict_list = list()
+
+    bulk_manager = BulkCreateManager(CHUNK_SIZE)
     
     #writing entry to db
     def save_to_db(self, record):
@@ -45,15 +48,14 @@ class RatuConverter(Converter):
     
     #writing entry to region table           
     def save_to_region_table(self, record):
-        if not record['OBL_NAME'] in self.region_list:
+        if not record['OBL_NAME'] in self.region_dict:
             region = Region(
                 name=record['OBL_NAME']
                 )
             region.save()
-        self.region_list.insert(0, record['OBL_NAME'])
-        region=Region.objects.get(
-            name=record['OBL_NAME']
-            )
+            self.region_dict[record['OBL_NAME']]=region
+            return region
+        region=self.region_dict[record['OBL_NAME']]
         return region
     
     #writing entry to district table    
@@ -121,17 +123,15 @@ class RatuConverter(Converter):
     
     #writing entry to street table
     def save_to_street_table(self, record, region, district, city, citydistrict):    
-        street = Street(
-            region=region, 
-            district=district,
-            city=city,
-            citydistrict=citydistrict,
-            name=record['STREET_NAME']
-            )
-        try:
-            street.save()
-        except:
-            None
+        if record['STREET_NAME']:
+            street = Street(
+                region=region, 
+                district=district,
+                city=city,
+                citydistrict=citydistrict,
+                name=record['STREET_NAME']
+                )
+            self.bulk_manager.add(street)
        
     print(
         'Ratu already imported. For start rewriting RATU to the DB run > RatuConverter().process()\n',
