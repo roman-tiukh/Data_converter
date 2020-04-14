@@ -24,11 +24,11 @@ class RfopConverter(Converter):
         'STAN': ''
     }
     
-    #creating list for registration items that had writed to db
-    state_dict={}
+    #creating dictionaries for registration items that had writed to db
+    state_dict={} # dictionary uses for keeping whole model class objects
     kved_dict={}
 
-    bulk_mgr = BulkCreateManager(chunk_size=200)
+    bulk_manager = BulkCreateManager(chunk_size=200)
     
     for state in State.objects.all():
         state_dict[state.name]=state
@@ -82,7 +82,7 @@ class RfopConverter(Converter):
             fullname=record['FIO'],
             address=record['ADDRESS']
             )
-        self.bulk_mgr.add(rfop)
+        self.bulk_manager.add(rfop)
 
     print(
         'Rfop_class already imported. For start rewriting RFOP to the DB run > RfopConverter().process()\n',

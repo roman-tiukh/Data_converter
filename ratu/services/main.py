@@ -73,12 +73,12 @@ class Converter:
                     else:
                         record[key]=''
                 root.clear()
-        self.bulk_mgr.done()
+        self.bulk_manager.done()
         print('All the records have been rewritten.')
 
     print('Converter has imported.')
 
-class BulkCreateManager(object):
+class BulkCreateManager(object):    # https://www.caktusgroup.com/blog/2019/01/09/django-bulk-inserts/
     """
     This helper class keeps track of ORM objects to be created for multiple
     model classes, and automatically creates those objects with `bulk_create`

@@ -28,13 +28,13 @@ class RatuConverter(Converter):
         'STREET_NAME': ''
     }
  
-    #creating lists for registration items that had writed to db 
-    region_dict = {}
-    district_list = list()
+    #creating dictionary & lists for registration items that had writed to db 
+    region_dict = {} # dictionary uses for keeping whole model class objects
+    district_list = list() # lists use for keeping cells content
     city_list = list()
     citydistrict_list = list()
 
-    bulk_mgr = BulkCreateManager(chunk_size=200)
+    bulk_manager = BulkCreateManager(chunk_size=200)
     
     #writing entry to db
     def save_to_db(self, record):
@@ -130,7 +130,7 @@ class RatuConverter(Converter):
                 citydistrict=citydistrict,
                 name=record['STREET_NAME']
                 )
-            self.bulk_mgr.add(street)
+            self.bulk_manager.add(street)
        
     print(
         'Ratu already imported. For start rewriting RATU to the DB run > RatuConverter().process()\n',

@@ -30,8 +30,8 @@ class RuoConverter(Converter):
         'FOUNDER': []
     }
 
-    #creating list for registration items that had writed to db
-    state_dict={}
+    #creating dictionaries for registration items that had writed to db
+    state_dict={} # dictionary uses for keeping whole model class objects
     kved_dict={}
 
     for state in State.objects.all():
