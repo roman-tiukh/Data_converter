@@ -104,7 +104,6 @@ class BulkCreateManager(object):    # https://www.caktusgroup.com/blog/2019/01/0
         model_key = model_class._meta.label
         model_class.objects.bulk_create(self._create_queues[model_key])
         self.first = True
-        
 
     def add(self, obj):
         """
@@ -121,14 +120,6 @@ class BulkCreateManager(object):    # https://www.caktusgroup.com/blog/2019/01/0
         if len(self._create_queues[model_key]) >= self.chunk_size:
             self._commit(model_class)
 
-    def subadd(self, obj):
-        """
-        Add an object to the queue to be created.
-        """
-        model_class = type(obj)
-        model_key = model_class._meta.label
-        self._create_queues[model_key].append(obj)
-        
     def done(self):
         """
         Always call this upon completion to make sure the final partial chunk

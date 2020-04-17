@@ -126,8 +126,7 @@ class RuoConverter(Converter):
             self.index = 0
 
     #filling _create_queues['ratu.Founders'] list
-    def add_founders_to_queue(self, record, ruo):
-                  
+    def add_founders_to_queue(self, record, ruo):        
         for founder in record['FOUNDER']:
             founders = Founders(
                 id=self.index,
