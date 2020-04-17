@@ -73,7 +73,14 @@ class Converter:
                     else:
                         record[key]=''
                 root.clear()
-        self.bulk_manager.done()
+        try:
+            self.bulk_manager.done()
+        except:
+            None
+        try:
+            self.bulk_submanager.done()
+        except:
+            None
         print('All the records have been rewritten.')
 
     print('Converter has imported.')
@@ -91,11 +98,13 @@ class BulkCreateManager(object):    # https://www.caktusgroup.com/blog/2019/01/0
     def __init__(self, chunk_size=200):
         self._create_queues = defaultdict(list)
         self.chunk_size = chunk_size
+        self.first = False
 
     def _commit(self, model_class):
         model_key = model_class._meta.label
         model_class.objects.bulk_create(self._create_queues[model_key])
-        self._create_queues[model_key] = []
+        self.first = True
+        
 
     def add(self, obj):
         """
@@ -104,10 +113,22 @@ class BulkCreateManager(object):    # https://www.caktusgroup.com/blog/2019/01/0
         """
         model_class = type(obj)
         model_key = model_class._meta.label
+        
+        if self.first:
+            self._create_queues[model_key] = []
+            self.first = False  
         self._create_queues[model_key].append(obj)
         if len(self._create_queues[model_key]) >= self.chunk_size:
             self._commit(model_class)
 
+    def subadd(self, obj):
+        """
+        Add an object to the queue to be created.
+        """
+        model_class = type(obj)
+        model_key = model_class._meta.label
+        self._create_queues[model_key].append(obj)
+        
     def done(self):
         """
         Always call this upon completion to make sure the final partial chunk
