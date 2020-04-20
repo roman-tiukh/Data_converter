@@ -6,3 +6,6 @@ class Rfop(models.Model):
     kved = models.ForeignKey(Kved, on_delete=models.CASCADE)
     fullname = models.CharField(max_length=100, null=True)
     address = models.CharField(max_length=300, null=True)
+
+    def __str__(self):
+                return self.fullname
