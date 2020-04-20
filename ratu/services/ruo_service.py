@@ -45,7 +45,7 @@ class RuoConverter(Converter):
 
     #creating BulkCreateManager objects
     bulk_manager = BulkCreateManager(CHUNK_SIZE)
-    bulk_submanager = BulkCreateManager(100000)
+    bulk_submanager = BulkCreateManager(100000) #chunck size 100000 for never reach it
 
     #writing entry to db 
     def save_to_db(self, record):
