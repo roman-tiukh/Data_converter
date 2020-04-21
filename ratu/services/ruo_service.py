@@ -55,6 +55,7 @@ class RuoConverter(Converter):
     def save_to_db(self, record):
         state=self.save_to_state_table(record)
         kved=self.save_to_kved_table(record)
+        # kzed = self.get_kzed(record)
         ruo=self.save_to_ruo_table(record, state, kved)
         # self.save_to_founders_table(record, ruo)
         print('saved')
@@ -96,13 +97,14 @@ class RuoConverter(Converter):
         if record['KVED']:
             record_as_list = record['KVED'].split(" ")
             kved_code=record_as_list[0]
-            if kved_code not in kzed_dict:
-                print (f"This kved doesn`t exist. Please, check {record['NAME']}")
-                kved = Kved(section=Section.EMPTY_FIELD, division=Division.EMPTY_FIELD,
-                group=Group.EMPTY_FIELD, code="NF", name="Kved not found")
-                return kved
-            return kzed_dict[kved_code]
-    
+        else:
+            kved_code=Kzed.EMPTY_FIELD
+        if kved_code not in kzed_dict:
+            print (f"This kved doesn`t exist. Please, check {record['NAME']}")
+            #toDo - insert EMPTY_KZED(section=Section.EMPTY_FIELD, division=Division.EMPTY_FIELD, 
+            # group=Group.EMPTY_FIELD, code=Kzed.EMPTY_FIELD, name=Kzed.EMPTY_FIELD)
+        return kzed_dict[kved_code]
+
     #writing entry to ruo & founders table
     def save_to_ruo_table(self, record, state, kved):
         ruo = Ruo.objects.filter(

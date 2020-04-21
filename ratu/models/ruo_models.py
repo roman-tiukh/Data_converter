@@ -18,7 +18,6 @@ class State(models.Model):
 class Ruo(models.Model):
     state = models.ForeignKey(State, on_delete=models.CASCADE)
     kved = models.ForeignKey(Kved, on_delete=models.CASCADE)
-    kzed = models.ForeignKey(Kzed, on_delete=models.CASCADE)
     name = models.CharField(max_length=500, null=True)
     short_name = models.CharField(max_length=500, null=True)
     edrpou = models.CharField(max_length=50, null=True)
