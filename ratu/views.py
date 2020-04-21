@@ -6,8 +6,8 @@ from ratu.models.rfop_models import Rfop
 from ratu.models.ruo_models import Ruo
 from ratu.serializers import RfopSerializer
 from ratu.serializers import RuoSerializer
-from ratu.models.ratu_models import Region,District,City,Citydistrict,Street
-from .serializers import RegionSerializer,CitySerializer,CitydistrictSerializer,StreetSerializer,DistrictSerializer
+from ratu.models.ratu_models import Region, District, City, Citydistrict, Street
+from .serializers import RegionSerializer, CitySerializer, CitydistrictSerializer, StreetSerializer, DistrictSerializer
 
 def index(request):
     return HttpResponse("Hello, world. You're at the ratu index.")
@@ -53,7 +53,3 @@ class StreetView(APIView):
         street = Street.objects.all()
         serializer = StreetSerializer(street, many=True)
         return Response({"street": serializer.data})
-
-
-
-

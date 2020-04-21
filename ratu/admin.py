@@ -8,4 +8,3 @@ admin.site.register(District)
 admin.site.register(City)
 admin.site.register(Citydistrict)
 admin.site.register(Street)
-
