@@ -1,5 +1,4 @@
 from django.db import models
-from ratu.models.kzed_models import Kzed 
 
 class Kved(models.Model):
     EMPTY_FIELD = 'empty field'
@@ -30,3 +29,4 @@ class Ruo(models.Model):
 class Founders(models.Model):
     company = models.ForeignKey(Ruo, on_delete=models.CASCADE)
     founder = models.TextField(null=True)
+    
