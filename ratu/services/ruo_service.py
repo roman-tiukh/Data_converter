@@ -43,13 +43,13 @@ class RuoConverter(Converter):
         state_dict[state.name]=state
     for kved in Kved.objects.all():
         kved_dict[kved.name]=kved
+    for kzed in Kzed.objects.all():
+        kzed_dict[kzed.code] = kzed
+
 
     #creating BulkCreateManager objects
     bulk_manager = BulkCreateManager(CHUNK_SIZE)
     bulk_submanager = BulkCreateManager(100000) #chunck size 100000 for never reach it
-
-    for kzed in Kzed.objects.all():
-        kzed_dict[kzed.code] = kzed
     
     #writing entry to db 
     def save_to_db(self, record):
