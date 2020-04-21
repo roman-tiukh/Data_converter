@@ -1,6 +1,6 @@
 import config
 from ratu.models.ruo_models import Founders, Kved, Ruo, State
-from ratu.services.main import Converter
+from ratu.services.main import Converter, BulkCreateManager
 
 class RuoConverter(Converter):
     
@@ -8,6 +8,7 @@ class RuoConverter(Converter):
     FILE_URL = config.FILE_URL_RUO
     LOCAL_FILE_NAME = config.LOCAL_FILE_NAME_RUO
     LOCAL_FOLDER = config.LOCAL_FOLDER
+    CHUNK_SIZE = 300
 
     #list of models for clearing DB
     tables=[
@@ -33,18 +34,25 @@ class RuoConverter(Converter):
     #creating dictionaries for registration items that had writed to db
     state_dict={} # dictionary uses for keeping whole model class objects
     kved_dict={}
+    
+    index=0 # index for entries in _create_queues[model_key] list
 
+    #filling state & kved dictionaries with with existing db items
     for state in State.objects.all():
         state_dict[state.name]=state
     for kved in Kved.objects.all():
         kved_dict[kved.name]=kved
-    
+
+    #creating BulkCreateManager objects
+    bulk_manager = BulkCreateManager(CHUNK_SIZE)
+    bulk_submanager = BulkCreateManager(100000) #chunck size 100000 for never reach it
+
     #writing entry to db 
     def save_to_db(self, record):
         state=self.save_to_state_table(record)
         kved=self.save_to_kved_table(record)
         ruo=self.save_to_ruo_table(record, state, kved)
-        self.save_to_founders_table(record, ruo)
+        # self.save_to_founders_table(record, ruo)
         print('saved')
         
     #writing entry to state table       
@@ -79,7 +87,7 @@ class RuoConverter(Converter):
         kved=self.kved_dict[kved_name]
         return kved
     
-    #writing entry to ruo table
+    #writing entry to ruo & founders table
     def save_to_ruo_table(self, record, state, kved):
         ruo = Ruo.objects.filter(
             state=state.id,
@@ -91,7 +99,7 @@ class RuoConverter(Converter):
             boss=record['BOSS']  
         )
         if ruo.exists():  
-            return ruo
+            return ruo.first()
         ruo = Ruo(
             state=state,
             kved=kved,
@@ -101,19 +109,32 @@ class RuoConverter(Converter):
             address=record['ADDRESS'],
             boss=record['BOSS'] 
         )
-        ruo.save()
-        return ruo
+        '''Для реализации метода bulk_create() при сохранении вложенных записей штатному полю id объекта founders
+        временно присваивается значение индекса объекта ruo в списке _create_queues['ratu.Ruo']. После сохранения 
+        в базе данных порции объектов ruo они получают свои уникальные id базы данных, после чего назначаются
+        связанному полю founders.company в соответствии с временным id объекта founders. Далее поле founders.id 
+        очищается от временного id для сохранения founders в базе данных с id назначенным базой'''
+        self.bulk_manager.add(ruo)
+        self.add_founders_to_queue(record, ruo)
+        self.index = self.index+1
+        if len(self.bulk_manager._create_queues['ratu.Ruo']) >= self.CHUNK_SIZE:
+            for founders in self.bulk_submanager._create_queues['ratu.Founders']:
+                founders.company =  self.bulk_manager._create_queues['ratu.Ruo'][founders.id]
+                founders.id=None
+            self.bulk_submanager._commit(Founders)
+            self.bulk_submanager._create_queues['ratu.Founders']=[]
+            self.index = 0
 
-    #writing entry to founder table
-    def save_to_founders_table(self, record, ruo):
-        _create_queues=list()          
+    #filling _create_queues['ratu.Founders'] list
+    def add_founders_to_queue(self, record, ruo):        
         for founder in record['FOUNDER']:
             founders = Founders(
+                id=self.index,
                 company=ruo,
                 founder=founder
             )
-            _create_queues.append(founders)    
-        Founders.objects.bulk_create(_create_queues)
+            self.bulk_submanager.add(founders)
+        
     print(
         'Ruo already imported. For start rewriting RUO to the DB run > RuoConverter().process()\n',
         'For clear RUO tables run > RuoConverter().clear_db()'
