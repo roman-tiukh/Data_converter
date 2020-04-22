@@ -1,4 +1,5 @@
 from django.db import models
+from ratu.models.kzed_models import Kzed 
 
 class Kved(models.Model):
     EMPTY_FIELD = 'empty field'
