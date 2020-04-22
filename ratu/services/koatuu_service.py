@@ -18,12 +18,11 @@ class KoatuuConverter(Converter):
     ]
 
     #creating dictionary & lists for registration items that had writed to db 
-    #region_dict = {} # dictionary uses for keeping whole model class objects
+    region_koatuu_dict = {} # dictionary uses for keeping whole model class objects
 
-    #for region in Region.objects.all():
-    #    region_dict[region.name]=region
+    for region in Region.objects.all():
+        region_koatuu_dict[region]=region.name
         
-    
 
     #writing entry to region table 
     def save_to_region_table(self, region_data):
@@ -35,18 +34,20 @@ class KoatuuConverter(Converter):
         name_object = "Назва об'єкта українською мовою"
 
 
-        #for index, object_koatuu in enumerate(region_data):
-        #    for key in object_koatuu:
-        #        if (key == level_two) & (object_koatuu[key]==''):
-                    #if object_koatuu[name_object].split() in self.region_dict:
-                        #region = Region()
-                        #region.koatuu = object_koatuu[level_one]
-                    #print(object_koatuu[level_one], object_koatuu[name_object])
-#def save_to_district_city_table(self, data):
         for index, object_koatuu in enumerate(region_data):
             for key in object_koatuu:
-                if (key==level_three) & (object_koatuu[key]=='') & (object_koatuu[level_two]!=''):
-                    print(object_koatuu[level_two], object_koatuu[name_object]) 
+               if (key == level_two) & (object_koatuu[key]==''):
+                    if object_koatuu[name_object] in region_koatuu_dict:
+                        region = Region()
+                        region.koatuu = object_koatuu[level_one]
+                    #print(object_koatuu[level_one], object_koatuu[name_object])
+
+
+#def save_to_district_city_table(self, data):
+        #for index, object_koatuu in enumerate(region_data):
+            #for key in object_koatuu:
+                #if (key==level_three) & (object_koatuu[key]=='') & (object_koatuu[level_two]!=''):
+                    #print(object_koatuu[level_two], object_koatuu[name_object]) 
 # if (object_koatuu[self.level_two][2]=='1'):
 # print('Printing objects to add to city table')
 # print(object_koatuu[self.level_two], object_koatuu[self.name_object])
