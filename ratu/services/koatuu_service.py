@@ -20,8 +20,11 @@ class KoatuuConverter(Converter):
     #creating dictionary & lists for registration items that had writed to db 
     region_koatuu_dict = {} # dictionary uses for keeping whole model class objects
 
+    index=0 # index for entries in _create_queues[model_key] list
+
     for region in Region.objects.all():
-        region_koatuu_dict[region]=region.name
+        region_koatuu_dict[region.name]=region
+        #print(region_koatuu_dict)
         
 
     #writing entry to region table 
@@ -35,11 +38,22 @@ class KoatuuConverter(Converter):
 
 
         for index, object_koatuu in enumerate(region_data):
-            for key in object_koatuu:
-               if (key == level_two) & (object_koatuu[key]==''):
-                    if object_koatuu[name_object] in region_koatuu_dict:
-                        region = Region()
-                        region.koatuu = object_koatuu[level_one]
+            for level in object_koatuu:
+               if (level == level_two) & (object_koatuu[level]==''):
+                    object_region_name = object_koatuu[name_object].split()[0]
+                    for key, value in self.region_koatuu_dict.items():
+                    #[[key, value]] = ((str(key), str(value)) for key,value in self.region_koatuu_dict.items()())
+                        table_region_name = str(key).upper().split()[0]
+                        #print(str(key).upper().split()[0])
+                        if (object_region_name==table_region_name):
+                            region = Region()
+                            region.koatuu = object_koatuu[level_one]
+                            region.save()
+                            print(object_region_name, object_koatuu[level_one])
+                    #region = self.region_koatuu_dict[object_koatuu[name_object]]
+                    #region.koatuu = object_koatuu[level_one]
+                    #region.save()
+
                     #print(object_koatuu[level_one], object_koatuu[name_object])
 
 
@@ -61,5 +75,3 @@ class KoatuuConverter(Converter):
 #print(region.koatuu)
 
 
-#if (koatuu_object[level_two] = '') & (koatuu_object[level_three] = '') & (koatuu_object[level_four] = ''): 
-#koatuu_number = Region (koatuu=koatuu_object[])
