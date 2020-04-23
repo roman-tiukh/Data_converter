@@ -23,8 +23,9 @@ class KoatuuConverter(Converter):
     index=0 # index for entries in _create_queues[model_key] list
 
     for region in Region.objects.all():
-        region_koatuu_dict[region.name]=region
-        #print(region_koatuu_dict)
+        region_name = upper().split()[0] 
+        region_koatuu_dict[region_name]=region
+        print(region_koatuu_dict)
         
 
     #writing entry to region table 
@@ -38,18 +39,17 @@ class KoatuuConverter(Converter):
 
 
         for index, object_koatuu in enumerate(region_data):
-            for level in object_koatuu:
-               if (level == level_two) & (object_koatuu[level]==''):
+
+            if (object_koatuu[level_one!='']) & (object_koatuu[level_two]==''):                    
                     object_region_name = object_koatuu[name_object].split()[0]
-                    for key, value in self.region_koatuu_dict.items():
-                    #[[key, value]] = ((str(key), str(value)) for key,value in self.region_koatuu_dict.items()())
-                        table_region_name = str(key).upper().split()[0]
-                        #print(str(key).upper().split()[0])
-                        if (object_region_name==table_region_name):
-                            region = Region()
-                            region.koatuu = object_koatuu[level_one]
-                            region.save()
-                            print(object_region_name, object_koatuu[level_one])
+                    print('object', object_region_name)
+                    if object_region_name in self.region_koatuu_dict:     
+                        print('inside')                              
+                        
+                            # region = Region()
+                            # region.koatuu = object_koatuu[level_one]
+                            # region.save(update_fields=['koatuu'])
+                            # print(object_region_name, object_koatuu[level_one])
                     #region = self.region_koatuu_dict[object_koatuu[name_object]]
                     #region.koatuu = object_koatuu[level_one]
                     #region.save()
