@@ -1,5 +1,5 @@
 import config
-from ratu.models.ruo_models import Founders, Kved, Ruo, State
+from ratu.models.ruo_models import Founders, Ruo, State
 from ratu.services.main import Converter, BulkCreateManager
 from ratu.models.kzed_models import Kzed, Group, Division, Section
 
@@ -38,16 +38,12 @@ class RuoConverter(Converter):
     state_dict={} # dictionary uses for keeping whole model class objects
     kved_dict={}
     index=0 # index for entries in _create_queues[model_key] list
-    kzed_dict={}
 
     #filling state & kved dictionaries with with existing db items
     for state in State.objects.all():
         state_dict[state.name]=state
-    for kved in Kved.objects.all():
-        kved_dict[kved.name]=kved
     for kzed in Kzed.objects.all():
-        kzed_dict[kzed.code] = kzed
-
+        kved_dict[kzed.code]=kzed
 
     #creating BulkCreateManager objects
     bulk_manager = BulkCreateManager(CHUNK_SIZE)
@@ -56,8 +52,7 @@ class RuoConverter(Converter):
     #writing entry to db 
     def save_to_db(self, record):
         state=self.save_to_state_table(record)
-        kved=self.save_to_kved_table(record)
-        # kzed = self.get_kzed(record)
+        kved=self.get_kved_from_DB(record)
         ruo=self.save_to_ruo_table(record, state, kved)
         # self.save_to_founders_table(record, ruo)
         print('saved')
@@ -78,34 +73,33 @@ class RuoConverter(Converter):
         state=self.state_dict[state_name]
         return state
     
-    #writing entry to kved table       
-    def save_to_kved_table(self, record):
-        if record['KVED']:
-            kved_name=record['KVED']
-        else:
-            kved_name=Kved.EMPTY_FIELD
-        if not kved_name in self.kved_dict:
-            kved = Kved(
-                name=kved_name
-                )
-            kved.save()
-            self.kved_dict[kved_name]=kved
-            return kved
-        kved=self.kved_dict[kved_name]
-        return kved
+    # #writing entry to kved table       
+    # def save_to_kved_table(self, record):
+    #     if record['KVED']:
+    #         kved_name=record['KVED']
+    #     else:
+    #         kved_name=Kved.EMPTY_FIELD
+    #     if not kved_name in self.kved_dict:
+    #         kved = Kved(
+    #             name=kved_name
+    #             )
+    #         kved.save()
+    #         self.kved_dict[kved_name]=kved
+    #         return kved
+    #     kved=self.kved_dict[kved_name]
+    #     return kved
     
-    #writing entry to kzed table       
-    def get_kzed(self, record):
+    #verifying kved 
+    def get_kved_from_DB(self, record):
         if record['KVED']:
-            record_as_list = record['KVED'].split(" ")
-            kved_code=record_as_list[0]
+            #in xml record we have kved code and name together in one string. Here we are getting only code
+            kved_code = record['KVED'].split(" ")[0]
+            print(f"Kved code is {kved_code}")
+            if kved_code in self.kved_dict:
+                return self.kved_dict[kved_code]
         else:
-            kved_code=Kzed.EMPTY_FIELD
-        if kved_code not in kzed_dict:
-            print (f"This kved doesn`t exist. Please, check {record['NAME']}")
-            #toDo - insert EMPTY_KZED(section=Section.EMPTY_FIELD, division=Division.EMPTY_FIELD, 
-            # group=Group.EMPTY_FIELD, code=Kzed.EMPTY_FIELD, name=Kzed.EMPTY_FIELD)
-        return kzed_dict[kved_code]
+            print (f"This kved value is empty or not valid. Please, check record {record['NAME']}")
+            return Kzed.objects.get(code='EMP')
 
     #writing entry to ruo & founders table
     def save_to_ruo_table(self, record, state, kved):

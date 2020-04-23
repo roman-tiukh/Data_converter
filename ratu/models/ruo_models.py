@@ -1,4 +1,5 @@
 from django.db import models
+from ratu.models.kzed_models import Kzed
 
 class Kved(models.Model):
     EMPTY_FIELD = 'empty field'
@@ -16,7 +17,7 @@ class State(models.Model):
 
 class Ruo(models.Model):
     state = models.ForeignKey(State, on_delete=models.CASCADE)
-    kved = models.ForeignKey(Kved, on_delete=models.CASCADE)
+    kved = models.ForeignKey(Kzed, on_delete=models.CASCADE)
     name = models.CharField(max_length=500, null=True)
     short_name = models.CharField(max_length=500, null=True)
     edrpou = models.CharField(max_length=50, null=True)
