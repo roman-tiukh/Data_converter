@@ -26,7 +26,7 @@ class KoatuuConverter(Converter):
             region_name = region.name.upper().split()[0]
             region_koatuu_dict[region_name]=region
          
-    #writing entry to region table 
+    #writing entry to koatuu field in region table 
     def save_to_region_table(self, data):
         for index, object_koatuu in enumerate(data):            
             if (object_koatuu['Перший рівень']!='') & (object_koatuu['Другий рівень']==''):                
