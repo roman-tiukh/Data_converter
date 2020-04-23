@@ -27,6 +27,6 @@ class Ruo(models.Model):
             return self.name
     
 class Founders(models.Model):
-    company = models.ForeignKey(Ruo, on_delete=models.CASCADE)
+    company = models.ForeignKey(Ruo, related_name='founders', on_delete=models.CASCADE)
     founder = models.TextField(null=True)
     
