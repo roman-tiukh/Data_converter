@@ -40,7 +40,7 @@ class KoatuuConverter(Converter):
     #writing entry to koatuu field in region table
     def save_to_region_table(self, data, object_koatuu, region_koatuu_dict):
         if (object_koatuu[self.LEVEL_ONE]!='') & (object_koatuu[self.LEVEL_TWO]==''):
-            object_region_name = object_koatuu[self.OBJECT_NAME].upper().split()[0]
+            object_region_name = self.first_word(object_koatuu[self.OBJECT_NAME])
             if object_region_name in region_koatuu_dict:
                 region_koatuu = region_koatuu_dict[object_region_name]
                 region_koatuu.koatuu = object_koatuu[self.LEVEL_ONE]
