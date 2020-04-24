@@ -1,4 +1,10 @@
 from rest_framework import serializers
+from ratu.models.ruo_models import Founders
+
+class FoundersSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Founders
+        fields = ['founder']
 
 class RuoSerializer(serializers.Serializer):
     state = serializers.CharField(max_length=100)
@@ -8,3 +14,4 @@ class RuoSerializer(serializers.Serializer):
     edrpou = serializers.CharField()
     address = serializers.CharField()
     boss = serializers.CharField()
+    founders = FoundersSerializer(many=True)
