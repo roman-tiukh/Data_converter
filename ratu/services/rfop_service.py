@@ -1,6 +1,7 @@
 import config
 from ratu.models.rfop_models import Rfop
-from ratu.models.ruo_models import Kved, State
+from ratu.models.ruo_models import State
+from ratu.models.kved_models import Kved
 from ratu.services.main import Converter, BulkCreateManager
 
 class RfopConverter(Converter):
@@ -40,12 +41,12 @@ class RfopConverter(Converter):
     for state in State.objects.all():
         state_dict[state.name]=state
     for kved in Kved.objects.all():
-        kved_dict[kved.name]=kved
+        kved_dict[kved.code]=kved
 
     #writing entry to db 
     def save_to_db(self, record):
         state=self.save_to_state_table(record)
-        kved=self.save_to_kved_table(record)
+        kved=self.get_kved_from_DB(record)
         self.save_to_rfop_table(record, state, kved)
         print('saved')
         
@@ -65,21 +66,33 @@ class RfopConverter(Converter):
         state=self.state_dict[state_name]
         return state
     
-    #writing entry to kved table       
-    def save_to_kved_table(self, record):
+    # #writing entry to kved table       
+    # def save_to_kved_table(self, record):
+    #     if record['KVED']:
+    #         kved_name=record['KVED']
+    #     else:
+    #         kved_name=Kved.EMPTY_FIELD
+    #     if not kved_name in self.kved_dict:
+    #         kved = Kved(
+    #             name=kved_name
+    #             )
+    #         kved.save()
+    #         self.kved_dict[kved_name]=kved
+    #         return kved
+    #     kved=self.kved_dict[kved_name]
+    #     return kved
+
+        
+    #verifying kved 
+    def get_kved_from_DB(self, record):
         if record['KVED']:
-            kved_name=record['KVED']
+            #in xml record we have code and name of the kved together in one string. Here we are getting only code
+            kved_code = record['KVED'].split(" ")[0]
+            if kved_code in self.kved_dict:
+                return self.kved_dict[kved_code]
         else:
-            kved_name=Kved.EMPTY_FIELD
-        if not kved_name in self.kved_dict:
-            kved = Kved(
-                name=kved_name
-                )
-            kved.save()
-            self.kved_dict[kved_name]=kved
-            return kved
-        kved=self.kved_dict[kved_name]
-        return kved
+            print (f"This kved value is empty or not valid. Please, check record {record['NAME']}")
+            return Kved.objects.get(code='EMP')
     
     #writing entry to rfop table
     def save_to_rfop_table(self, record, state, kved):

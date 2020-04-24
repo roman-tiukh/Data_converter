@@ -2,7 +2,7 @@
 
 from django.db import migrations
 from django.apps import apps
-from ratu.models.kzed_models import Section, Division, Group, Kzed
+from ratu.models.kved_models import Section, Division, Group, Kved
 
 
 class Migration(migrations.Migration):
@@ -29,14 +29,14 @@ class Migration(migrations.Migration):
         group.name = "EMPTY"
         group.save()
 
-        Kzed = apps.get_model('ratu', 'Kzed')
-        kzed = Kzed() 
-        kzed.section = section
-        kzed.division = division
-        kzed.group = group
-        kzed.code = "EMP"
-        kzed.name = "EMPTY"
-        kzed.save()
+        Kved = apps.get_model('ratu', 'Kved')
+        kved = Kved() 
+        kved.section = section
+        kved.division = division
+        kved.group = group
+        kved.code = "EMP"
+        kved.name = "EMPTY"
+        kved.save()
 
     dependencies = [
         ('ratu', '0035_auto_20200422_1059'),
