@@ -31,36 +31,6 @@ class RuoConverter(Converter):
         'FOUNDER': []
     }
     
-    def save_default_kved(self):
-        section = Section()
-        section.code = "EMP"
-        section.name = "EMPTY"
-        section.save()
-
-        division = Division()
-        division.section = section
-        division.code = "EMP"
-        division.name = "EMPTY"
-        division.save()
-
-        group = Group() 
-        group.section = section
-        group.division = division
-        group.code = "EMP"
-        group.name = "EMPTY"
-        group.save()
-
-        kved = Kved() 
-        kved.section = section
-        kved.division = division
-        kved.group = group
-        kved.code = "EMP"
-        kved.name = "EMPTY"
-        kved.save()
-
-    def unzip_file(self): # empty function, because unzipping process executes in rfop module
-        return
-
     #creating dictionaries for registration items that had writed to db
     state_dict={} # dictionary uses for keeping whole model class objects
     kved_dict={}
@@ -70,7 +40,7 @@ class RuoConverter(Converter):
     for state in State.objects.all():
         state_dict[state.name]=state
     for kved in Kved.objects.all():
-        kved_dict[kzed.code]=kved
+        kved_dict[kved.code]=kved
 
     #creating BulkCreateManager objects
     bulk_manager = BulkCreateManager(CHUNK_SIZE)
@@ -80,7 +50,7 @@ class RuoConverter(Converter):
     def save_to_db(self, record):
         state=self.save_to_state_table(record)
         kved=self.get_kved_from_DB(record)
-        ruo=self.save_to_ruo_table(record, state, kved)
+        self.save_to_ruo_table(record, state, kved)
         # self.save_to_founders_table(record, ruo)
         print('saved')
         
@@ -99,23 +69,7 @@ class RuoConverter(Converter):
             return state
         state=self.state_dict[state_name]
         return state
-    
-    # #writing entry to kved table       
-    # def save_to_kved_table(self, record):
-    #     if record['KVED']:
-    #         kved_name=record['KVED']
-    #     else:
-    #         kved_name=Kved.EMPTY_FIELD
-    #     if not kved_name in self.kved_dict:
-    #         kved = Kved(
-    #             name=kved_name
-    #             )
-    #         kved.save()
-    #         self.kved_dict[kved_name]=kved
-    #         return kved
-    #     kved=self.kved_dict[kved_name]
-    #     return kved
-    
+        
     #verifying kved 
     def get_kved_from_DB(self, record):
         if record['KVED']:
@@ -123,9 +77,14 @@ class RuoConverter(Converter):
             kved_code = record['KVED'].split(" ")[0]
             if kved_code in self.kved_dict:
                 return self.kved_dict[kved_code]
+                #In know this is bad code, need m
+            else:
+                print (f"This kved value is empty or not valid. Please, check record {record['NAME']}")
+                return Kved.objects.get(code='EMP')
         else:
-            print (f"This kved value is empty or not valid. Please, check record {record['NAME']}")
-            return Kved.objects.get(code='EMP')
+                print (f"This kved value is empty or not valid. Please, check record {record['NAME']}")
+                return Kved.objects.get(code='EMP')
+
 
     #writing entry to ruo & founders table
     def save_to_ruo_table(self, record, state, kved):

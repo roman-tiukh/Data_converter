@@ -65,33 +65,19 @@ class RfopConverter(Converter):
             return state
         state=self.state_dict[state_name]
         return state
-    
-    # #writing entry to kved table       
-    # def save_to_kved_table(self, record):
-    #     if record['KVED']:
-    #         kved_name=record['KVED']
-    #     else:
-    #         kved_name=Kved.EMPTY_FIELD
-    #     if not kved_name in self.kved_dict:
-    #         kved = Kved(
-    #             name=kved_name
-    #             )
-    #         kved.save()
-    #         self.kved_dict[kved_name]=kved
-    #         return kved
-    #     kved=self.kved_dict[kved_name]
-    #     return kved
-
-        
+            
     #verifying kved 
     def get_kved_from_DB(self, record):
-        if record['KVED']:
+        if record['KVED'] and record['KVED'] != None and record['KVED'] != "None":
             #in xml record we have code and name of the kved together in one string. Here we are getting only code
             kved_code = record['KVED'].split(" ")[0]
             if kved_code in self.kved_dict:
                 return self.kved_dict[kved_code]
+            else:
+                print (f"This kved value is empty or not valid. Please, check record {record['FIO']}")
+                return Kved.objects.get(code='EMP')
         else:
-            print (f"This kved value is empty or not valid. Please, check record {record['NAME']}")
+            print (f"This kved value is empty or not valid. Please, check record {record['FIO']}")
             return Kved.objects.get(code='EMP')
     
     #writing entry to rfop table
@@ -108,3 +94,4 @@ class RfopConverter(Converter):
         'Rfop_class already imported. For start rewriting RFOP to the DB run > RfopConverter().process()\n',
         'For clear RFOP tables run > RfopConverter().clear_db()'
         )
+        

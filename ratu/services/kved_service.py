@@ -17,6 +17,33 @@ class KvedConverter(Converter):
         Kved
     ]
 
+    def save_default_kved(self):
+        section = Section()
+        section.code = "EMP"
+        section.name = "EMPTY"
+        section.save()
+
+        division = Division()
+        division.section = section
+        division.code = "EMP"
+        division.name = "EMPTY"
+        division.save()
+
+        group = Group() 
+        group.section = section
+        group.division = division
+        group.code = "EMP"
+        group.name = "EMPTY"
+        group.save()
+
+        kved = Kved() 
+        kved.section = section
+        kved.division = division
+        kved.group = group
+        kved.code = "EMP"
+        kved.name = "EMPTY"
+        kved.save()
+
     # #storing data to all tables       
     def save_to_db(self, data):
         # getting a value from json file, because it is put into a list
