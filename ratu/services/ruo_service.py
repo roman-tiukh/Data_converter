@@ -6,11 +6,10 @@ from ratu.models.kzed_models import Kzed, Group, Division, Section
 class RuoConverter(Converter):
     
     #paths for remote and local source files
-    FILE_URL = config.FILE_URL_RUO
-    LOCAL_FILE_NAME = config.LOCAL_FILE_NAME_RUO
-    LOCAL_FOLDER = config.LOCAL_FOLDER
     CHUNK_SIZE = 300
-
+    FILE_URL = ""
+    LOCAL_FILE_NAME = "uo.xml"
+    
     #list of models for clearing DB
     tables=[
         Founders,
