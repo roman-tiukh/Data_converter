@@ -32,6 +32,9 @@ class RuoConverter(Converter):
         'FOUNDER': []
     }
 
+    def unzip_file(self): # empty function, because unzipping process executes in rfop module
+        return
+
     #creating dictionaries for registration items that had writed to db
     state_dict={} # dictionary uses for keeping whole model class objects
     kved_dict={}
