@@ -4,6 +4,7 @@ from django.apps import apps
 import json
 import io
 import os
+from os import path
 import requests
 import sys
 import time
@@ -74,6 +75,8 @@ class Converter:
             return 1
 
         # download file
+        if not (os.path.exists(self.DOWNLOAD_FOLDER)) or not (os.path.exists(self.DOWNLOAD_FOLDER)):
+            os.mkdir(self.DOWNLOAD_FOLDER)
         with open(self.DOWNLOAD_FOLDER + self.DOWNLOADED_FILE_NAME, 'wb') as fd:
             print ("Download zip file: " + fd.name + " (" + str(file_size) + " bytes total) ...")
             done = 0
