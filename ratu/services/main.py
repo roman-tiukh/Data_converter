@@ -4,10 +4,8 @@ from django.apps import apps
 import json
 import io
 import os
-from os import path
 import requests
 import sys
-import time
 from xml.etree.ElementTree import iterparse, XMLParser, tostring
 import xmltodict
 import zipfile
