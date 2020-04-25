@@ -6,9 +6,9 @@ from ratu.services.main import Converter, BulkCreateManager
 class RfopConverter(Converter):
     
     #paths for remote and local source files
-    FILE_URL = config.FILE_URL_RUO
-    LOCAL_FILE_NAME = config.LOCAL_FILE_NAME_RFOP
-    LOCAL_FOLDER = config.LOCAL_FOLDER
+    FILE_URL = "https://data.gov.ua/dataset/b244f35a-e50a-4a80-b704-032c42ba8142/resource/06bbccbd-e19c-40d5-9e18-447b110c0b4c/download/"
+    DOWNLOADED_FILE_NAME = "rfop_ruo.zip"
+    LOCAL_FILE_NAME = "fop.xml"
     CHUNK_SIZE = 200
 
     #list of models for clearing DB
@@ -25,6 +25,12 @@ class RfopConverter(Converter):
         'STAN': ''
     }
     
+    def rename (self, file):
+        new_filename = ""
+        if (file.upper().find('UO') >= 0): new_filename = 'uo.xml'
+        if (file.upper().find('FOP') >= 0): new_filename = 'fop.xml'
+        return new_filename
+        
     #creating dictionaries for registration items that had writed to db
     state_dict={} # dictionary uses for keeping whole model class objects
     kved_dict={}
