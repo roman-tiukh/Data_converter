@@ -9,6 +9,7 @@ import sys
 from xml.etree.ElementTree import iterparse, XMLParser, tostring
 import xmltodict
 import zipfile
+from ratu.models.kved_models import Kved
 
 class Converter:
     
@@ -139,6 +140,20 @@ class Converter:
         for table in self.tables:
             table.objects.all().delete()
             print('Old data have deleted.')
+
+    #verifying kved 
+    def get_kved_from_DB(self, record, record_identity):
+        empty_kved = Kved.objects.get(code='EMP')
+        if not record['KVED']:
+            print (f"Kved value doesn`t exist. Please, check record {record[record_identity]}")
+            return empty_kved
+        #in xml record we have code and name of the kved together in one string. Here we are getting only code
+        kved_code = self.get_first_word(record['KVED'])
+        if kved_code in self.kved_dict:
+            return self.kved_dict[kved_code]
+        else:
+            print (f"This kved value is not valid. Please, check record {record[record_identity]}")
+            return empty_kved
 
     def process(self):
         # parsing sours file in flow

@@ -1,5 +1,6 @@
 from django.db import models
-from ratu.models.ruo_models import Kved, State
+from ratu.models.ruo_models import State
+from ratu.models.kved_models import Kved
 
 class Rfop(models.Model): 
     state = models.ForeignKey(State, on_delete=models.CASCADE)

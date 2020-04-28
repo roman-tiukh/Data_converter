@@ -1,11 +1,5 @@
 from django.db import models
-
-class Kved(models.Model):
-    EMPTY_FIELD = 'empty field'
-    name = models.CharField(max_length=500, unique=True, null=True)
-
-    def __str__(self):
-            return self.name
+from ratu.models.kved_models import Kved
 
 class State(models.Model):
     EMPTY_FIELD = 'empty field'
