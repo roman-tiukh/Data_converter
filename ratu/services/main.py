@@ -23,6 +23,10 @@ class Converter:
     def __init__(self):
         return 
 
+        #geting a single uppercase word from some string
+    def get_first_word(self, string):
+        return string.upper().split()[0]        
+
     def rename_files (self):
         # abstract method for rename unzipped files for each app
         return ""
