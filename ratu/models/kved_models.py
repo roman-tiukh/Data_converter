@@ -33,7 +33,3 @@ class Kved(models.Model):
 
     def __str__(self):
             return f"КВЕД {self.code}, назва: {self.name}"
-
-    @property
-    def empty(self):
-        return self.objects.get(code='EMP')
