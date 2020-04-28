@@ -94,4 +94,3 @@ class RfopConverter(Converter):
         'Rfop_class already imported. For start rewriting RFOP to the DB run > RfopConverter().process()\n',
         'For clear RFOP tables run > RfopConverter().clear_db()'
         )
-        

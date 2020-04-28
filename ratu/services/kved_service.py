@@ -17,6 +17,7 @@ class KvedConverter(Converter):
         Kved
     ]
 
+    #We can delete this function after changing clear_db function in Converter
     def save_default_kved(self):
         section = Section()
         section.code = "EMP"
