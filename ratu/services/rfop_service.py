@@ -68,17 +68,16 @@ class RfopConverter(Converter):
             
     #verifying kved 
     def get_kved_from_DB(self, record):
-        if record['KVED'] and record['KVED'] != None and record['KVED'] != "None":
-            #in xml record we have code and name of the kved together in one string. Here we are getting only code
-            kved_code = record['KVED'].split(" ")[0]
-            if kved_code in self.kved_dict:
-                return self.kved_dict[kved_code]
-            else:
-                print (f"This kved value is empty or not valid. Please, check record {record['FIO']}")
-                return Kved.objects.get(code='EMP')
+        if not record['KVED']:
+            print (f"Kved value doesn`t exist. Please, check record {record['FIO']}")
+            return Kved.empty
+        #in xml record we have code and name of the kved together in one string. Here we are getting only code
+        kved_code = self.get_first_word(record['KVED'])
+        if kved_code in self.kved_dict:
+            return self.kved_dict[kved_code]
         else:
-            print (f"This kved value is empty or not valid. Please, check record {record['FIO']}")
-            return Kved.objects.get(code='EMP')
+            print (f"This kved value is not valid. Please, check record {record['FIO']}")
+            return Kved.empty
     
     #writing entry to rfop table
     def save_to_rfop_table(self, record, state, kved):

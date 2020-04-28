@@ -72,19 +72,16 @@ class RuoConverter(Converter):
         
     #verifying kved 
     def get_kved_from_DB(self, record):
-        if record['KVED']:
-            #in xml record we have code and name of the kved together in one string. Here we are getting only code
-            kved_code = record['KVED'].split(" ")[0]
-            if kved_code in self.kved_dict:
-                return self.kved_dict[kved_code]
-                #In know this is bad code, need m
-            else:
-                print (f"This kved value is empty or not valid. Please, check record {record['NAME']}")
-                return Kved.objects.get(code='EMP')
+        if not record['KVED']:
+            print (f"Kved value doesn`t exist. Please, check record {record['NAME']}")
+            return Kved.empty
+        #in xml record we have code and name of the kved together in one string. Here we are getting only code
+        kved_code = self.get_first_word(record['KVED'])
+        if kved_code in self.kved_dict:
+            return self.kved_dict[kved_code]
         else:
-                print (f"This kved value is empty or not valid. Please, check record {record['NAME']}")
-                return Kved.objects.get(code='EMP')
-
+            print (f"This kved value is not valid. Please, check record {record['NAME']}")
+            return Kved.empty
 
     #writing entry to ruo & founders table
     def save_to_ruo_table(self, record, state, kved):
