@@ -24,8 +24,8 @@ class Converter:
         return 
 
         #geting a single uppercase word from some string
-    def get_first_word(self, string):
-        return string.upper().split()[0]        
+    def get_first_word(self, string, upper = False):
+        return string.upper().split()[0] if upper else string.split()[0]
 
     def rename_files (self):
         # abstract method for rename unzipped files for each app
