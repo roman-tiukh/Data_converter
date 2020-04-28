@@ -2,6 +2,8 @@
 
 from django.db import migrations, models
 import django.db.models.deletion
+from django.apps import apps
+from ratu.models.kved_models import Section, Division, Group, Kved
 
 
 # Functions from the following migrations need manual copying.
@@ -17,37 +19,39 @@ class Migration(migrations.Migration):
         ('ratu', '0035_auto_20200422_1059'),
     ]
 
+    def add_kved_not_found (apps, schema_editor):
+        Section = apps.get_model('ratu', 'Section')
+        section = Section()
+        section.code = "EMP"
+        section.name = "EMPTY"
+        section.save()
+
+        Division = apps.get_model('ratu', 'Division')
+        division = Division()
+        division.section = section
+        division.code = "EMP"
+        division.name = "EMPTY"
+        division.save()
+
+        Group = apps.get_model('ratu', 'Group')
+        group = Group() 
+        group.section = section
+        group.division = division
+        group.code = "EMP"
+        group.name = "EMPTY"
+        group.save()
+
+        Kved = apps.get_model('ratu', 'Kved')
+        kved = Kved() 
+        kved.section = section
+        kved.division = division
+        kved.group = group
+        kved.code = "EMP"
+        kved.name = "EMPTY"
+        kved.save()
+
     operations = [
-        migrations.RunPython(
-            code=ratu.migrations.0036_auto_20200422_1225.Migration.add_kved_not_found,
-        ),
-        migrations.AlterField(
-            model_name='kzed',
-            name='name',
-            field=models.CharField(max_length=1),
-        ),
-        migrations.AlterField(
-            model_name='ruo',
-            name='kved',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='ratu.Kzed'),
-        ),
-        migrations.AlterField(
-            model_name='kzed',
-            name='name',
-            field=models.CharField(max_length=150),
-        ),
-        migrations.RemoveField(
-            model_name='kzed',
-            name='division',
-        ),
-        migrations.RemoveField(
-            model_name='kzed',
-            name='group',
-        ),
-        migrations.RemoveField(
-            model_name='kzed',
-            name='section',
-        ),
+        migrations.RunPython(add_kved_not_found),
         migrations.AddField(
             model_name='kved',
             name='code',

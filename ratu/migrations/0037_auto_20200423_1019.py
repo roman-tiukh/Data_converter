@@ -7,7 +7,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('ratu', '0036_auto_20200422_1225'),
+        ('ratu', '0036_squashed'),
     ]
 
     operations = [
