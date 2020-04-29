@@ -1,36 +1,36 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-from rest_framework.response import Response
-from rest_framework.views import APIView
 from ratu.models.ratu_models import Region, District, City, Citydistrict, Street
 from ratu.serializers.ratu_serializers import RegionSerializer, CitySerializer, CitydistrictSerializer, StreetSerializer, DistrictSerializer
+from ratu.views.views import Views
+from data_converter.pagination import CustomPagination
 
-class RegionView(APIView):
-    def get(self, request):
-        region = Region.objects.all()
-        serializer = RegionSerializer(region, many=True)
-        return Response({"region": serializer.data})
+class RegionView(Views):
+    serializer_class = RegionSerializer
+    queryset = Region.objects.all()
+    serializer = RegionSerializer(queryset, many=True)
+    pagination_class = CustomPagination
 
-class DistrictView(APIView):
-    def get(self, request):
-        district = District.objects.all()
-        serializer = DistrictSerializer(district, many=True)
-        return Response({"district": serializer.data})
+class DistrictView(Views):
+    serializer_class = DistrictSerializer
+    queryset = District.objects.all()
+    serializer = DistrictSerializer(queryset, many=True)
+    pagination_class = CustomPagination
 
-class CityView(APIView):
-    def get(self, request):
-        city = City.objects.all()
-        serializer = CitySerializer(city, many=True)
-        return Response({"city": serializer.data})
+class CityView(Views):
+    serializer_class = CitySerializer
+    queryset = City.objects.all()
+    serializer = CitySerializer(queryset, many=True)
+    pagination_class = CustomPagination
 
-class CitydistrictView(APIView):
-    def get(self, request):
-        citydistrict = Citydistrict.objects.all()
-        serializer = CitydistrictSerializer(citydistrict, many=True)
-        return Response({"citydistrict": serializer.data})
+class CitydistrictView(Views):
+    serializer_class = CitydistrictSerializer
+    queryset = Citydistrict.objects.all()
+    serializer = CitydistrictSerializer(queryset, many=True)
+    pagination_class = CustomPagination
 
-class StreetView(APIView):
-    def get(self, request):
-        street = Street.objects.all()
-        serializer = StreetSerializer(street, many=True)
-        return Response({"street": serializer.data})
+class StreetView(Views):
+    serializer_class = StreetSerializer
+    queryset = Street.objects.all()
+    serializer = StreetSerializer(queryset, many=True)
+    pagination_class = CustomPagination
