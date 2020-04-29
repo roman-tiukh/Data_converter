@@ -13,73 +13,39 @@ from ratu.models.kved_models import Section, Division, Group, Kved
 
 class Migration(migrations.Migration):
 
-    replaces = [('ratu', '0036_auto_20200422_1225'), ('ratu', '0037_auto_20200423_1237'), ('ratu', '0038_auto_20200423_1406'), ('ratu', '0039_auto_20200424_0814'), ('ratu', '0040_auto_20200424_1005')]
-
     dependencies = [
         ('ratu', '0035_auto_20200422_1059'),
     ]
 
-    def add_kved_not_found (apps, schema_editor):
-        Section = apps.get_model('ratu', 'Section')
-        section = Section()
-        section.code = "EMP"
-        section.name = "EMPTY"
-        section.save()
-
-        Division = apps.get_model('ratu', 'Division')
-        division = Division()
-        division.section = section
-        division.code = "EMP"
-        division.name = "EMPTY"
-        division.save()
-
-        Group = apps.get_model('ratu', 'Group')
-        group = Group() 
-        group.section = section
-        group.division = division
-        group.code = "EMP"
-        group.name = "EMPTY"
-        group.save()
-
-        Kved = apps.get_model('ratu', 'Kved')
-        kved = Kved() 
-        kved.section = section
-        kved.division = division
-        kved.group = group
-        kved.code = "EMP"
-        kved.name = "EMPTY"
-        kved.save()
-
     operations = [
-        migrations.RunPython(add_kved_not_found),
         migrations.AddField(
             model_name='kved',
             name='code',
-            field=models.CharField(default=1, max_length=5, unique=True),
+            field=models.CharField(max_length=5, unique=True),
             preserve_default=False,
         ),
         migrations.AddField(
             model_name='kved',
             name='division',
-            field=models.ForeignKey(default=1, on_delete=django.db.models.deletion.CASCADE, to='ratu.Division'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='ratu.Division'),
             preserve_default=False,
         ),
         migrations.AddField(
             model_name='kved',
             name='group',
-            field=models.ForeignKey(default=1, on_delete=django.db.models.deletion.CASCADE, to='ratu.Group'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='ratu.Group'),
             preserve_default=False,
         ),
         migrations.AddField(
             model_name='kved',
             name='section',
-            field=models.ForeignKey(default=1, on_delete=django.db.models.deletion.CASCADE, to='ratu.Section'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='ratu.Section'),
             preserve_default=False,
         ),
         migrations.AlterField(
             model_name='kved',
             name='name',
-            field=models.CharField(default=1, max_length=150),
+            field=models.CharField(max_length=150),
             preserve_default=False,
         ),
         migrations.AlterField(
