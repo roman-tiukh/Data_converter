@@ -7,20 +7,20 @@ class RegionSerializer(serializers.Serializer):
 class DistrictSerializer(serializers.Serializer):
     region = serializers.CharField(max_length=30)
     name = serializers.CharField(max_length=100)
-    koatuu = serializers.CharField()
+    koatuu = serializers.CharField(max_length=10)
     
 class CitySerializer(serializers.Serializer):
     region = serializers.CharField(max_length=30)
     district = serializers.CharField(max_length=100)
     name = serializers.CharField(max_length=100)
-    koatuu = serializers.CharField()
+    koatuu = serializers.CharField(max_length=10)
 
 class CitydistrictSerializer(serializers.Serializer):
     region = serializers.CharField(max_length=30)
     district = serializers.CharField(max_length=100)
     city = serializers.CharField(max_length=100)
     name = serializers.CharField(max_length=100)
-    koatuu = serializers.CharField()
+    koatuu = serializers.CharField(max_length=10)
     
 class StreetSerializer(serializers.Serializer):
     region = serializers.CharField(max_length=30)
