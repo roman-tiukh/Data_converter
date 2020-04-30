@@ -23,4 +23,3 @@ class Ruo(models.Model):
 class Founders(models.Model):
     company = models.ForeignKey(Ruo, related_name='founders', on_delete=models.CASCADE)
     founder = models.TextField(null=True)
-    

@@ -9,7 +9,7 @@ from data_ocean.models.kved_models import Section, Division, Group, Kved
 # Functions from the following migrations need manual copying.
 # Move them and any dependencies into this file, then update the
 # RunPython operations to refer to the local versions:
-# ratu.migrations.0036_auto_20200422_1225
+# data_ocean.migrations.0036_auto_20200422_1225
 
 class Migration(migrations.Migration):
 

@@ -8,6 +8,7 @@ class Region(models.Model):
         return self.name
 
 class District(models.Model):
+    EMPTY_FIELD = 'empty field'
     region = models.ForeignKey(Region, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
     koatuu = models.CharField(max_length=10, unique=True, null=True)
