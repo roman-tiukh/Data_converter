@@ -1,8 +1,8 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-from ratu.models.ratu_models import Region, District, City, Citydistrict, Street
-from ratu.serializers.ratu_serializers import RegionSerializer, CitySerializer, CitydistrictSerializer, StreetSerializer, DistrictSerializer
-from ratu.views.views import Views
+from data_ocean.models.ratu_models import Region, District, City, Citydistrict, Street
+from data_ocean.serializers.ratu_serializers import RegionSerializer, CitySerializer, CitydistrictSerializer, StreetSerializer, DistrictSerializer
+from data_ocean.views.views import Views
 from data_converter.pagination import CustomPagination
 
 class RegionView(Views):

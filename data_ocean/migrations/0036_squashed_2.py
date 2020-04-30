@@ -9,7 +9,7 @@ from data_ocean.models.kved_models import Section, Division, Group, Kved
 # Functions from the following migrations need manual copying.
 # Move them and any dependencies into this file, then update the
 # RunPython operations to refer to the local versions:
-# ratu.migrations.0036_auto_20200422_1225
+# data_ocean.migrations.0036_auto_20200422_1225
 
 class Migration(migrations.Migration):
 
@@ -24,14 +24,14 @@ class Migration(migrations.Migration):
         section.name = "EMPTY"
         section.save()
 
-        Division = apps.get_model('ratu', 'Division')
+        Division = apps.get_model('data_ocean', 'Division')
         division = Division()
         division.section = section
         division.code = "EMP"
         division.name = "EMPTY"
         division.save()
 
-        Group = apps.get_model('ratu', 'Group')
+        Group = apps.get_model('data_ocean', 'Group')
         group = Group() 
         group.section = section
         group.division = division
@@ -39,7 +39,7 @@ class Migration(migrations.Migration):
         group.name = "EMPTY"
         group.save()
 
-        Kved = apps.get_model('ratu', 'Kved')
+        Kved = apps.get_model('data_ocean', 'Kved')
         kved = Kved() 
         kved.section = section
         kved.division = division
