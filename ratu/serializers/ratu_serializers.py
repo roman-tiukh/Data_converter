@@ -5,26 +5,26 @@ class RegionSerializer(serializers.Serializer):
     koatuu = serializers.CharField()
     
 class DistrictSerializer(serializers.Serializer):
-    region_id = serializers.IntegerField()
+    region = serializers.CharField(max_length=100)
     name = serializers.CharField(max_length=100)
     koatuu = serializers.CharField()
     
 class CitySerializer(serializers.Serializer):
-    region_id = serializers.IntegerField()
-    district_id = serializers.IntegerField()
+    region = serializers.CharField(max_length=100)
+    district = serializers.CharField(max_length=100)
     name = serializers.CharField(max_length=100)
     koatuu = serializers.CharField()
 
 class CitydistrictSerializer(serializers.Serializer):
-    region_id = serializers.IntegerField()
-    district_id = serializers.IntegerField()
-    city_id = serializers.IntegerField()
+    region = serializers.CharField(max_length=100)
+    district = serializers.CharField(max_length=100)
+    city = serializers.CharField(max_length=100)
     name = serializers.CharField(max_length=100)
     koatuu = serializers.CharField()
     
 class StreetSerializer(serializers.Serializer):
-    region_id = serializers.IntegerField()
-    district_id = serializers.IntegerField()
-    city_id = serializers.IntegerField()
-    citydistrict_id = serializers.IntegerField()
+    region = serializers.CharField(max_length=100)
+    district = serializers.CharField(max_length=100)
+    city = serializers.CharField(max_length=100)
+    citydistrict = serializers.CharField(max_length=100)
     name = serializers.CharField(max_length=100)
