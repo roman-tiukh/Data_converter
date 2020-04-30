@@ -1,6 +1,6 @@
-from ratu.services.rfop_service import RfopConverter
-from ratu.services.ruo_service import RuoConverter
-from ratu.services.ratu_service import RatuConverter
+from data_ocean.services.rfop_service import RfopConverter
+from data_ocean.services.ruo_service import RuoConverter
+from data_ocean.services.ratu_service import RatuConverter
 
 if RatuConverter().download_file() == 0:
     if RatuConverter().unzip_file() == 0:
