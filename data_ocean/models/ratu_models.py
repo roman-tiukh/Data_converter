@@ -1,13 +1,14 @@
 from django.db import models
+from data_ocean.models.main import DataOceanModel
 
-class Region(models.Model):
+class Region(DataOceanModel):
     name = models.CharField(max_length=30, unique=True)
     koatuu = models.CharField(max_length=10, unique=True, null=True)
 
     def __str__(self):
         return self.name
 
-class District(models.Model):
+class District(DataOceanModel):
     EMPTY_FIELD = 'empty field'
     region = models.ForeignKey(Region, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
@@ -16,13 +17,13 @@ class District(models.Model):
     def __str__(self):
         return self.name
 
-class Category(models.Model):
+class Category(DataOceanModel):
     name = (models.CharField(max_length=5, unique=True, null=True))
 
     def __str__(self):
         return self.name
 
-class City(models.Model):
+class City(DataOceanModel):
     EMPTY_FIELD = 'empty field'
     region = models.ForeignKey(Region, on_delete=models.CASCADE)
     district = models.ForeignKey(District, on_delete=models.CASCADE)
@@ -33,7 +34,7 @@ class City(models.Model):
     def __str__(self):
         return self.name
 
-class Citydistrict(models.Model):
+class Citydistrict(DataOceanModel):
     EMPTY_FIELD = 'empty field'
     region = models.ForeignKey(Region, on_delete=models.CASCADE)
     district = models.ForeignKey(District, on_delete=models.CASCADE)
@@ -45,7 +46,7 @@ class Citydistrict(models.Model):
     def __str__(self):
         return self.name
 
-class Street(models.Model):
+class Street(DataOceanModel):
     region = models.ForeignKey(Region, on_delete=models.CASCADE)
     district = models.ForeignKey(District, on_delete=models.CASCADE)
     city = models.ForeignKey(City, on_delete=models.CASCADE)
