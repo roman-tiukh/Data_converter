@@ -1,14 +1,15 @@
 from django.db import models
+from data_ocean.models.main import DataOceanModel
 from data_ocean.models.kved_models import Kved
 
-class State(models.Model):
+class State(DataOceanModel):
     EMPTY_FIELD = 'empty field'
     name = models.CharField(max_length=100, unique=True, null=True)
     
     def __str__(self):
             return self.name
 
-class Ruo(models.Model):
+class Ruo(DataOceanModel):
     state = models.ForeignKey(State, on_delete=models.CASCADE)
     kved = models.ForeignKey(Kved, on_delete=models.CASCADE)
     name = models.CharField(max_length=500, null=True)
@@ -20,6 +21,6 @@ class Ruo(models.Model):
     def __str__(self):
             return self.name
     
-class Founders(models.Model):
+class Founders(DataOceanModel):
     company = models.ForeignKey(Ruo, related_name='founders', on_delete=models.CASCADE)
     founder = models.TextField(null=True)
