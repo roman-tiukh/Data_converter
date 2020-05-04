@@ -19,7 +19,7 @@ class RatuConverter(Converter):
         Street
     ]
     
-    #format record's data 
+    #format record's data
     record={
         'RECORD': '',
         'OBL_NAME': '',
@@ -65,11 +65,16 @@ class RatuConverter(Converter):
         return region
     
     #writing entry to district table    
-    def save_to_district_table(self, record, region):
-        record['REGION_NAME'] = record['REGION_NAME'].lower()
-        print(record['REGION_NAME'])
+    def save_to_district_table(self, record, region):              
         if record['REGION_NAME']:
-            district_name=record['REGION_NAME']
+            position1_num = record['REGION_NAME'].find('р-н')
+            position2_num = record['REGION_NAME'].find('р.')
+            if (position1_num != -1):
+                district_name=record['REGION_NAME'].lower()[:position1_num]
+            elif (position2_num != -1):
+                district_name=record['REGION_NAME'].lower()[(position2_num + 2):]                
+            else:
+                district_name=record['REGION_NAME'].lower()
         else:
             district_name=District.EMPTY_FIELD
         if not [region.id, district_name] in self.district_list:
@@ -86,10 +91,9 @@ class RatuConverter(Converter):
         return district
 
     #writing entry to city table    
-    def save_to_city_table(self, record, region, district):
-        record['CITY_NAME'] = record['CITY_NAME'].lower()
+    def save_to_city_table(self, record, region, district):        
         if record['CITY_NAME']:
-            city_name=record['CITY_NAME']
+            city_name=record['CITY_NAME'].lower()
         else:
             city_name=City.EMPTY_FIELD 
         if not [region.id, district.id, city_name] in self.city_list:
@@ -109,9 +113,8 @@ class RatuConverter(Converter):
     
     #writing entry to citydistrict table
     def save_to_citydistrict_table(self, record, region, district, city):
-        record['CITY_REGION_NAME'] = record['CITY_REGION_NAME'].lower()
         if record['CITY_REGION_NAME']:
-            citydistrict_name=record['CITY_REGION_NAME']
+            citydistrict_name=record['CITY_REGION_NAME'].lower()
         else:
             citydistrict_name=Citydistrict.EMPTY_FIELD
         if not [region.id, district.id, city.id, citydistrict_name] in self.citydistrict_list:
@@ -132,15 +135,14 @@ class RatuConverter(Converter):
         return citydistrict
     
     #writing entry to street table
-    def save_to_street_table(self, record, region, district, city, citydistrict):
-        record['STREET_NAME'] = record['STREET_NAME'].lower()
+    def save_to_street_table(self, record, region, district, city, citydistrict):     
         if record['STREET_NAME']:
             street = Street(
                 region=region, 
                 district=district,
                 city=city,
                 citydistrict=citydistrict,
-                name=record['STREET_NAME']
+                name=record['STREET_NAME'].lower()
                 )
             self.bulk_manager.add(street)
        
