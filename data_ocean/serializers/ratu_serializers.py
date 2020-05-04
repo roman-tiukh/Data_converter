@@ -21,7 +21,6 @@ class CitydistrictSerializer(serializers.ModelSerializer):
     class Meta:
         model = Citydistrict
         fields = ('id', 'region', 'district', 'city', 'name', 'koatuu')
-    serializers.CharField(max_length=10)
     
 class StreetSerializer(serializers.ModelSerializer):
     class Meta:
