@@ -68,7 +68,7 @@ class RatuConverter(Converter):
         return region
     
     #writing entry to district table    
-    def save_to_district_table(self, record, region): 
+    def save_to_district_table(self, record, region):
         if record['REGION_NAME']:
             position1_num = self.find_substring_in_string('р-н', record['REGION_NAME'])
             position2_num = self.find_substring_in_string('р.', record['REGION_NAME'])
