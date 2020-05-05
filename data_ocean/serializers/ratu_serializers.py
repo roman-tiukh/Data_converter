@@ -4,20 +4,20 @@ from data_ocean.models.ratu_models import Region, District, City, Citydistrict, 
 class RegionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Region
-        fields = '__all__'
+        fields = ('id', 'name', 'koatuu')
 
 class DistrictSerializer(serializers.ModelSerializer):
     region = serializers.CharField(max_length=30)
     class Meta:
         model = District
-        fields = '__all__'
+        fields = ('id', 'region', 'name', 'koatuu')
         
 class CitySerializer(serializers.ModelSerializer):
     region = serializers.CharField(max_length=30)
     district = serializers.CharField(max_length=100)
     class Meta:
         model = City
-        fields = '__all__'
+        fields = ('id', 'region', 'district', 'name', 'koatuu')
     
 class CitydistrictSerializer(serializers.ModelSerializer):
     region = serializers.CharField(max_length=30)
@@ -25,7 +25,7 @@ class CitydistrictSerializer(serializers.ModelSerializer):
     city = serializers.CharField(max_length=100)
     class Meta:
         model = Citydistrict
-        fields = '__all__'
+        fields = ('id', 'region', 'district', 'city', 'name', 'koatuu')
     
 class StreetSerializer(serializers.ModelSerializer):
     region = serializers.CharField(max_length=30)
@@ -34,4 +34,4 @@ class StreetSerializer(serializers.ModelSerializer):
     citydistrict = serializers.CharField(max_length=100)
     class Meta:
         model = Street
-        fields = '__all__'
+        fields = ('id', 'region', 'district', 'citydistrict', 'city', 'name')
