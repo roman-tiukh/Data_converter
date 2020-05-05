@@ -33,6 +33,9 @@ class RatuConverter(Converter):
         new_filename = ""
         if (file.upper().find('ATU') >= 0): new_filename = 'ratu.xml'
         return new_filename
+    
+    def find_substring_in_string(self, substring, string):
+        return string.find(substring)
         
     #creating dictionary & lists for registration items that had writed to db 
     region_dict = {} # dictionary uses for keeping whole model class objects
@@ -65,14 +68,14 @@ class RatuConverter(Converter):
         return region
     
     #writing entry to district table    
-    def save_to_district_table(self, record, region):              
+    def save_to_district_table(self, record, region): 
         if record['REGION_NAME']:
-            position1_num = record['REGION_NAME'].find('р-н')
-            position2_num = record['REGION_NAME'].find('р.')
+            position1_num = self.find_substring_in_string('р-н', record['REGION_NAME'])
+            position2_num = self.find_substring_in_string('р.', record['REGION_NAME'])
             if (position1_num != -1):
                 district_name=record['REGION_NAME'].lower()[:position1_num]
             elif (position2_num != -1):
-                district_name=record['REGION_NAME'].lower()[(position2_num + 2):]                
+                district_name=record['REGION_NAME'].lower()[(position2_num + 2):]         
             else:
                 district_name=record['REGION_NAME'].lower()
         else:
@@ -91,7 +94,7 @@ class RatuConverter(Converter):
         return district
 
     #writing entry to city table    
-    def save_to_city_table(self, record, region, district):        
+    def save_to_city_table(self, record, region, district):
         if record['CITY_NAME']:
             city_name=record['CITY_NAME'].lower()
         else:
@@ -119,7 +122,7 @@ class RatuConverter(Converter):
             citydistrict_name=Citydistrict.EMPTY_FIELD
         if not [region.id, district.id, city.id, citydistrict_name] in self.citydistrict_list:
             citydistrict = Citydistrict(
-                region=region, 
+                region=region,
                 district=district,
                 city=city,
                 name=citydistrict_name
@@ -135,7 +138,7 @@ class RatuConverter(Converter):
         return citydistrict
     
     #writing entry to street table
-    def save_to_street_table(self, record, region, district, city, citydistrict):     
+    def save_to_street_table(self, record, region, district, city, citydistrict):
         if record['STREET_NAME']:
             street = Street(
                 region=region, 
