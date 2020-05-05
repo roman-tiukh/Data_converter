@@ -6,7 +6,7 @@ class KvedSerializer(serializers.ModelSerializer):
         model = Kved
         fields = ['code', 'name']
 
-class FullKvedSerializer(serializers.ModelSerializer):
+class KvedDetailSerializer(serializers.ModelSerializer):
     group = serializers.CharField(max_length=500)
     division = serializers.CharField(max_length=500)    
     section = serializers.CharField(max_length=500)
