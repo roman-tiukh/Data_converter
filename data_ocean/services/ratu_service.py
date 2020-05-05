@@ -93,10 +93,14 @@ class RatuConverter(Converter):
             )
         return district
 
-    #writing entry to city table    
+    #writing entry to city table
     def save_to_city_table(self, record, region, district):
         if record['CITY_NAME']:
-            city_name=record['CITY_NAME'].lower()
+            position_num = self.find_substring_in_string('.', record['CITY_NAME'])
+            if (position_num != -1):
+                city_name = record['CITY_NAME'].lower()[(position_num + 1):]
+            else:
+                city_name = record['CITY_NAME'].lower()
         else:
             city_name=City.EMPTY_FIELD 
         if not [region.id, district.id, city_name] in self.city_list:
@@ -117,7 +121,12 @@ class RatuConverter(Converter):
     #writing entry to citydistrict table
     def save_to_citydistrict_table(self, record, region, district, city):
         if record['CITY_REGION_NAME']:
-            citydistrict_name=record['CITY_REGION_NAME'].lower()
+            position_num = self.find_substring_in_string('.', record['CITY_REGION_NAME'])
+            if (position_num != -1):
+                citydistrict_name = record['CITY_REGION_NAME'].lower()[(position_num + 1):]
+            else:
+                citydistrict_name = record['CITY_REGION_NAME'].lower()
+            
         else:
             citydistrict_name=Citydistrict.EMPTY_FIELD
         if not [region.id, district.id, city.id, citydistrict_name] in self.citydistrict_list:
