@@ -1,13 +1,12 @@
-import config
+# import config
 from data_ocean.services.main import Converter
 from data_ocean.models.kved_models import Section, Division, Group, Kved
 
 
 class KvedConverter(Converter):
-    #paths for remote and local source files
-    FILE_URL = config.FILE_URL_KVED
-    LOCAL_FILE_NAME = config.LOCAL_FILE_NAME_KVED
-    LOCAL_FOLDER = config.LOCAL_FOLDER
+    
+    LOCAL_FILE_NAME = "kved.json"
+    DATASET_ID = "e1afb81c-70e4-4009-96a0-b240c36e4603"
 
     #list of models for clearing DB
     tables=[

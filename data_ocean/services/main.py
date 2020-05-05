@@ -14,18 +14,31 @@ from data_ocean.models.kved_models import Kved
 class Converter:
     
     UPDATE_FILE_NAME = "update.cfg"
-    LOCAL_FILE_NAME = None
+    DATA_GOV_UA_API = "https://data.gov.ua/api/3/action/package_show?id="
+    DATASET_ID = "" # specified dataset id
+    LOCAL_FILE_NAME = None # 
     FILE_URL = None # url of remote zipfile without filename, look like as "http://hostname.ccc/lllll/mmmmm/"
-    LOCAL_FOLDER = "unzipped_xml/" # local folder for unzipped xml files
+    LOCAL_FOLDER = "source_data/" # local folder for unzipped source files
     DOWNLOAD_FOLDER = "download/" # folder to downloaded files
-    DOWNLOADED_FILE_NAME = None # destination local filename
-    URLS_DICT = {}
+    DOWNLOADED_FILE_NAME = None # destination local zip filename
+    URLS_DICT = {} # control remote dataset files update
     
     def __init__(self):
         return 
 
-        #geting a single uppercase word from some string
+    def get_urls (self):
+        # returns actual dataset urls
+        response = requests.get(self.DATA_GOV_UA_API + self.DATASET_ID)
+        if (response.status_code != 200):
+            print ("ERROR of requests.get(" + self.DATA_GOV_UA_API + ") in module ratu/main.py")
+            return response.status_code
+        urls = []
+        for i in response.json()['result']['resources']:
+            urls.append(i['url'])
+        return (urls)
+
     def get_first_word(self, string, upper = False):
+        #geting a single uppercase word from some string
         return string.upper().split()[0] if upper else string.split()[0]
 
     def rename_files (self):
@@ -62,52 +75,59 @@ class Converter:
     def download_file(self):
         # getting remote file from self.file_url
         # returns 0 if operation is succefully or another value if error occured
+        urls = self.get_urls()
+        for url in urls:
+            #request to remote url
+            print ("Request to remote url > " + url)
+            response = requests.get(url, stream=True) 
+            print ("Response: " + str(response.status_code))
+            if (response.status_code != 200):
+                print ("ERROR of requests.get(" + url + ")")
+                continue
 
-        #request to remote url
-        print ("Request to remote url > " + self.FILE_URL)
-        response = requests.get(self.FILE_URL, stream=True) 
-        print ("Response: " + str(response.status_code))
-        if (response.status_code != 200):
-            print ("ERROR of requests.get(" + self.file_url + ") in module ratu/main.py")
-            return 1
+            # check for remote file updates 
+            file_size = int (response.headers['Content-Length'])
+            if not ( self.is_update (file_size) ):
+                print ("File at the url is not updated. Not need to download.")
+                continue
 
-        # check for remote file updates 
-        file_size = int (response.headers['Content-Length'])
-        if not ( self.is_update (file_size) ):
-            print ("Source files are not updated. Nothing to download.")
-            return 1
+            # folder existing control
+            if not (os.path.exists(self.DOWNLOAD_FOLDER)) or not (os.path.isdir(self.DOWNLOAD_FOLDER)):
+                os.mkdir(self.DOWNLOAD_FOLDER)
 
-        # download file
-        if not (os.path.exists(self.DOWNLOAD_FOLDER)) or not (os.path.exists(self.DOWNLOAD_FOLDER)):
-            os.mkdir(self.DOWNLOAD_FOLDER)
-        with open(self.DOWNLOAD_FOLDER + self.DOWNLOADED_FILE_NAME, 'wb') as fd:
-            print ("Download zip file: " + fd.name + " (" + str(file_size) + " bytes total) ...")
-            done = 0
-            buffer_size = 102400
-            step = 10
+            # download file
+            file = os.path.split(url)[1]
+            with open(self.DOWNLOAD_FOLDER + file, 'wb') as fd:
+                print ("Download file: " + fd.name + " (" + str(file_size) + " bytes total) ...")
+                done = 0
+                buffer_size = 102400
+                step = 10
 
-            for chunk in response.iter_content(chunk_size=buffer_size):
-                fd.write(chunk)
-                done += buffer_size
-                percent = round(( done / file_size * 100 ))
-                if (percent >= step):
-                    if percent > 100: percent = 100
-                    print ( str ( percent ) + "%")
-                    step += 10
+                for chunk in response.iter_content(chunk_size=buffer_size):
+                    fd.write(chunk)
+                    done += buffer_size
+                    percent = round(( done / file_size * 100 ))
+                    if (percent >= step):
+                        if percent > 100: percent = 100
+                        print ( str ( percent ) + "%")
+                        step += 10
 
-            if (os.stat(self.DOWNLOAD_FOLDER + self.DOWNLOADED_FILE_NAME).st_size == file_size):
-                print ("File downloaded succefully.")
-                self.change_update (file_size)
-                return 0
-            else: 
-                print ("Download file error")
-                return 2
+                if (os.stat(self.DOWNLOAD_FOLDER + file).st_size == file_size):
+                    print ("File " + file + " downloaded succefully.")
+                    self.change_update (file_size)
+                    
+                else: 
+                    print ("Download file error")
+                    continue
+            # unzipping file:
+            if os.path.splitext (file)[1] == ".zip":
+                self.unzip_file(file)
 
-    def unzip_file (self):
+    def unzip_file (self, file):
         # unzip downloaded file
-        print("Unzipping file ...") 
+        print("Unzipping file " + file + " ...")
         try:
-            zip_file = zipfile.ZipFile(self.DOWNLOAD_FOLDER + self.DOWNLOADED_FILE_NAME)
+            zip_file = zipfile.ZipFile(self.DOWNLOAD_FOLDER + file)
             zip_file.extractall(self.LOCAL_FOLDER)
         except:
             print ("ERROR unzip file")
@@ -115,9 +135,9 @@ class Converter:
 
         # remove zip file
         try:
-            os.remove (self.DOWNLOAD_FOLDER + self.DOWNLOADED_FILE_NAME) 
+            os.remove (self.DOWNLOAD_FOLDER + file) 
         except:
-            print('Deleting zipfile error!')
+            print('ERROR deleting zipfile ' + file)
             
         print ("Unzip succefully.")
         return 0

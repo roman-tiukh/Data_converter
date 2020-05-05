@@ -10,6 +10,7 @@ class RfopConverter(Converter):
     FILE_URL = "https://data.gov.ua/dataset/b244f35a-e50a-4a80-b704-032c42ba8142/resource/06bbccbd-e19c-40d5-9e18-447b110c0b4c/download/"
     DOWNLOADED_FILE_NAME = "rfop_ruo.zip"
     LOCAL_FILE_NAME = "fop.xml"
+    DATASET_ID = "1c7f3815-3259-45e0-bdf1-64dca07ddc10"
     CHUNK_SIZE = 200
 
     #list of models for clearing DB
