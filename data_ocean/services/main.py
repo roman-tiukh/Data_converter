@@ -16,11 +16,11 @@ class Converter:
     UPDATE_FILE_NAME = "update.cfg"
     DATA_GOV_UA_API = "https://data.gov.ua/api/3/action/package_show?id="
     DATASET_ID = "" # specified dataset id
-    LOCAL_FILE_NAME = None # 
-    FILE_URL = None # url of remote zipfile without filename, look like as "http://hostname.ccc/lllll/mmmmm/"
+    # LOCAL_FILE_NAME = None # 
+    # FILE_URL = None # url of remote zipfile without filename, look like as "http://hostname.ccc/lllll/mmmmm/"
     LOCAL_FOLDER = "source_data/" # local folder for unzipped source files
     DOWNLOAD_FOLDER = "download/" # folder to downloaded files
-    DOWNLOADED_FILE_NAME = None # destination local zip filename
+    # DOWNLOADED_FILE_NAME = None # destination local zip filename
     URLS_DICT = {} # control remote dataset files update
     
     def __init__(self):
@@ -45,7 +45,7 @@ class Converter:
         # abstract method for rename unzipped files for each app
         return ""
 
-    def is_update (self, current_size):
+    def is_update (self, current_size, url):
         # returns true, if file size at the <url> changed compared to current_size 
         
         try:
@@ -58,26 +58,26 @@ class Converter:
             pass
 
         if len (self.URLS_DICT) > 0:
-            if self.FILE_URL in self.URLS_DICT:
-                if int(self.URLS_DICT[self.FILE_URL]) == current_size:
+            if url in self.URLS_DICT:
+                if int(self.URLS_DICT[url]) == current_size:
                     return False
 
         return True
 
-    def change_update (self, current_size):
+    def change_update (self, current_size, url):
         # update json, contains url & remote files size 
 
-        self.URLS_DICT[self.FILE_URL] = current_size
+        self.URLS_DICT[url] = current_size
         file = open (self.UPDATE_FILE_NAME, "w")
         file.write (json.dumps(self.URLS_DICT))
         file.close
 
     def download_file(self):
         # getting remote file from self.file_url
-        # returns 0 if operation is succefully or another value if error occured
         urls = self.get_urls()
         for url in urls:
-            #request to remote url
+            file = os.path.split(url)[1]
+            #request to remote url:
             print ("Request to remote url > " + url)
             response = requests.get(url, stream=True) 
             print ("Response: " + str(response.status_code))
@@ -85,18 +85,17 @@ class Converter:
                 print ("ERROR of requests.get(" + url + ")")
                 continue
 
-            # check for remote file updates 
+            # check for remote file updates:
             file_size = int (response.headers['Content-Length'])
-            if not ( self.is_update (file_size) ):
-                print ("File at the url is not updated. Not need to download.")
+            if not ( self.is_update (file_size, url) ):
+                print ("File " + file + " is not updated. Not need to download.")
                 continue
 
-            # folder existing control
+            # folder existing control:
             if not (os.path.exists(self.DOWNLOAD_FOLDER)) or not (os.path.isdir(self.DOWNLOAD_FOLDER)):
                 os.mkdir(self.DOWNLOAD_FOLDER)
 
-            # download file
-            file = os.path.split(url)[1]
+            # download file:
             with open(self.DOWNLOAD_FOLDER + file, 'wb') as fd:
                 print ("Download file: " + fd.name + " (" + str(file_size) + " bytes total) ...")
                 done = 0
@@ -114,14 +113,17 @@ class Converter:
 
                 if (os.stat(self.DOWNLOAD_FOLDER + file).st_size == file_size):
                     print ("File " + file + " downloaded succefully.")
-                    self.change_update (file_size)
+                    self.change_update (file_size, url)
                     
                 else: 
                     print ("Download file error")
+                    self.delete_downloaded_file (file)
                     continue
             # unzipping file:
             if os.path.splitext (file)[1] == ".zip":
                 self.unzip_file(file)
+            else :
+                print ("Move ===>")
 
     def unzip_file (self, file):
         # unzip downloaded file
@@ -129,26 +131,25 @@ class Converter:
         try:
             zip_file = zipfile.ZipFile(self.DOWNLOAD_FOLDER + file)
             zip_file.extractall(self.LOCAL_FOLDER)
+            print ("Unzip succefully.")
         except:
-            print ("ERROR unzip file")
-            return 1
+            print ("ERROR unzip file " + file)
+        self.delete_downloaded_file (file)
 
-        # remove zip file
+    def delete_downloaded_file (self, file):
         try:
             os.remove (self.DOWNLOAD_FOLDER + file) 
         except:
-            print('ERROR deleting zipfile ' + file)
+            print('ERROR deleting file ' + file)
             
-        print ("Unzip succefully.")
-        return 0
 
-    def rename_files (self):
-        # renames unzipped files to short statical names
-        files = os.listdir (self.LOCAL_FOLDER)
+    # def rename_files (self):
+    #     # renames unzipped files to short statical names
+    #     files = os.listdir (self.LOCAL_FOLDER)
 
-        for file in files:
-            new_filename = self.rename(file)
-            if (new_filename != ""): os.rename(self.LOCAL_FOLDER + file, self.LOCAL_FOLDER + new_filename)
+    #     for file in files:
+    #         new_filename = self.rename(file)
+    #         if (new_filename != ""): os.rename(self.LOCAL_FOLDER + file, self.LOCAL_FOLDER + new_filename)
 
     def parse_file(self):
         # encoding & parsing .xml source file

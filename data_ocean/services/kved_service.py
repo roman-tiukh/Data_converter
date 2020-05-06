@@ -5,7 +5,7 @@ from data_ocean.models.kved_models import Section, Division, Group, Kved
 
 class KvedConverter(Converter):
     
-    LOCAL_FILE_NAME = "kved.json"
+    # LOCAL_FILE_NAME = "kved.json"
     DATASET_ID = "e1afb81c-70e4-4009-96a0-b240c36e4603"
 
     #list of models for clearing DB

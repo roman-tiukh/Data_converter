@@ -7,8 +7,8 @@ class RuoConverter(Converter):
     
     #paths for remote and local source files
     CHUNK_SIZE = 300
-    FILE_URL = ""
-    LOCAL_FILE_NAME = "uo.xml"
+    # FILE_URL = ""
+    # LOCAL_FILE_NAME = "uo.xml"
     
     #list of models for clearing DB
     tables=[

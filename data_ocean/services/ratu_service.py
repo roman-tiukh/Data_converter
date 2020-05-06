@@ -6,9 +6,9 @@ class RatuConverter(Converter):
     
     #paths for remote and local source files
     DATASET_ID = "a2d6c060-e7e6-4471-ac67-42cfa1742a19"
-    FILE_URL = "https://data.gov.ua/dataset/75e57837-128b-49e1-a007-5e7dfa7bf6af/resource/e21a1e57-051c-46ea-9c8e-8f30de7d863d/download/"
-    DOWNLOADED_FILE_NAME = "ratu.zip"
-    LOCAL_FILE_NAME = "ratu.xml"
+    # FILE_URL = "https://data.gov.ua/dataset/75e57837-128b-49e1-a007-5e7dfa7bf6af/resource/e21a1e57-051c-46ea-9c8e-8f30de7d863d/download/"
+    # DOWNLOADED_FILE_NAME = "ratu.zip"
+    # LOCAL_FILE_NAME = "ratu.xml"
     CHUNK_SIZE = 200
 
     #list of models for clearing DB
@@ -30,10 +30,10 @@ class RatuConverter(Converter):
         'STREET_NAME': ''
     }
  
-    def rename (self, file):
-        new_filename = ""
-        if (file.upper().find('ATU') >= 0): new_filename = 'ratu.xml'
-        return new_filename
+    # def rename (self, file):
+    #     new_filename = ""
+    #     if (file.upper().find('ATU') >= 0): new_filename = 'ratu.xml'
+    #     return new_filename
         
     #creating dictionary & lists for registration items that had writed to db 
     region_dict = {} # dictionary uses for keeping whole model class objects
