@@ -1,30 +1,37 @@
 from rest_framework import serializers
+from data_ocean.models.ratu_models import Region, District, City, Citydistrict, Street
 
-class RegionSerializer(serializers.Serializer):
-    name = serializers.CharField(max_length=30)
-    koatuu = serializers.CharField(max_length=10)
-    
-class DistrictSerializer(serializers.Serializer):
+class RegionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Region
+        fields = ('id', 'name', 'koatuu')
+
+class DistrictSerializer(serializers.ModelSerializer):
     region = serializers.CharField(max_length=30)
-    name = serializers.CharField(max_length=100)
-    koatuu = serializers.CharField(max_length=10)
-    
-class CitySerializer(serializers.Serializer):
+    class Meta:
+        model = District
+        fields = ('id', 'region', 'name', 'koatuu')
+        
+class CitySerializer(serializers.ModelSerializer):
     region = serializers.CharField(max_length=30)
     district = serializers.CharField(max_length=100)
-    name = serializers.CharField(max_length=100)
-    koatuu = serializers.CharField(max_length=10)
-
-class CitydistrictSerializer(serializers.Serializer):
+    class Meta:
+        model = City
+        fields = ('id', 'region', 'district', 'name', 'koatuu')
+    
+class CitydistrictSerializer(serializers.ModelSerializer):
     region = serializers.CharField(max_length=30)
     district = serializers.CharField(max_length=100)
     city = serializers.CharField(max_length=100)
-    name = serializers.CharField(max_length=100)
-    koatuu = serializers.CharField(max_length=10)
+    class Meta:
+        model = Citydistrict
+        fields = ('id', 'region', 'district', 'city', 'name', 'koatuu')
     
-class StreetSerializer(serializers.Serializer):
+class StreetSerializer(serializers.ModelSerializer):
     region = serializers.CharField(max_length=30)
     district = serializers.CharField(max_length=100)
     city = serializers.CharField(max_length=100)
     citydistrict = serializers.CharField(max_length=100)
-    name = serializers.CharField(max_length=100)
+    class Meta:
+        model = Street
+        fields = ('id', 'region', 'district', 'citydistrict', 'city', 'name')
