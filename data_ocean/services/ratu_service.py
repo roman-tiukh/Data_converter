@@ -34,8 +34,8 @@ class RatuConverter(Converter):
     def rename (self, file):
         new_filename = ""
         if (file.upper().find('ATU') >= 0): new_filename = 'ratu.xml'
-        return new_filename  
-           
+        return new_filename
+    
     #creating dictionary & lists for registration items that had writed to db
     region_dict = {} # dictionary uses for keeping whole model class objects
     district_list = list() # lists use for keeping cells content
@@ -45,7 +45,7 @@ class RatuConverter(Converter):
     bulk_manager = BulkCreateManager(CHUNK_SIZE)
 
     #changing from records like: "волинська обл." to "волинська область"
-    def clear_region_name(self, region):
+    def clean_region_name(self, region):
         region = region.lower()
         region = re.sub(r"обл\.", "область", region)
         return region.strip()
@@ -64,6 +64,7 @@ class RatuConverter(Converter):
         city = city.lower()
         city = re.sub(r"с\.", "", city)
         city = re.sub(r"м\.", "", city)
+        city = re.sub(r"р\.", "", city)
         city = re.sub(r"смт\.", "", city)
         city = re.sub(r"сщ\.", "", city)
         city = re.sub(r"с/рада\.", "", city)
@@ -90,8 +91,8 @@ class RatuConverter(Converter):
             self.region_dict[record['OBL_NAME']]=region
             return region
         region=self.region_dict[record['OBL_NAME']]
-        return region  
-        
+        return region
+    
     #writing entry to district table
     def save_to_district_table(self, record, region):
         if record['REGION_NAME']:
