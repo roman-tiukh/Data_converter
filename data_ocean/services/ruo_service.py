@@ -51,7 +51,6 @@ class RuoConverter(Converter):
         state=self.save_to_state_table(record)
         kved=self.get_kved_from_DB(record, 'NAME')
         self.save_to_ruo_table(record, state, kved)
-        # self.save_to_founders_table(record, ruo)
         print('saved')
         
     #writing entry to state table       
@@ -100,12 +99,12 @@ class RuoConverter(Converter):
         self.bulk_manager.add(ruo)
         self.add_founders_to_queue(record, ruo)
         self.index = self.index+1
-        if len(self.bulk_manager._create_queues['ratu.Ruo']) >= self.CHUNK_SIZE:
-            for founders in self.bulk_submanager._create_queues['ratu.Founders']:
-                founders.company =  self.bulk_manager._create_queues['ratu.Ruo'][founders.id]
+        if len(self.bulk_manager._create_queues['data_ocean.Ruo']) >= self.CHUNK_SIZE:
+            for founders in self.bulk_submanager._create_queues['data_ocean.Founders']:
+                founders.company =  self.bulk_manager._create_queues['data_ocean.Ruo'][founders.id]
                 founders.id=None
             self.bulk_submanager._commit(Founders)
-            self.bulk_submanager._create_queues['ratu.Founders']=[]
+            self.bulk_submanager._create_queues['data_ocean.Founders']=[]
             self.index = 0
 
     #filling _create_queues['ratu.Founders'] list
