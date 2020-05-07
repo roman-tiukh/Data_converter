@@ -11,8 +11,8 @@ class RuoConverter(Converter):
 
     def rename_file (self, file):
         new_filename = file
-        if (file.upper().find('UO') >= 0): new_filename = 'UO.xml'
-        if (file.upper().find('FOP') >= 0): new_filename = 'FOP.xml'
+        if (file.upper().find('UO') >= 0): new_filename = 'uo.xml'
+        if (file.upper().find('FOP') >= 0): new_filename = 'fop.xml'
         return new_filename
         
     #list of models for clearing DB

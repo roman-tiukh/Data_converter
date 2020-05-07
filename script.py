@@ -7,8 +7,8 @@ from data_ocean.services.koatuu_service import KoatuuConverter
 KoatuuConverter().download_file()
 KvedConverter().download_file()
 RatuConverter().download_file()
-RfopConverter().download_file()
 RuoConverter().download_file()
+RfopConverter().download_file()
 
 # KvedConverter().process()
 # RatuConverter().process()
