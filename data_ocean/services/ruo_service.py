@@ -5,11 +5,16 @@ from data_ocean.models.kved_models import Kved, Group, Division, Section
 
 class RuoConverter(Converter):
     
-    #paths for remote and local source files
     CHUNK_SIZE = 300
-    # FILE_URL = ""
-    # LOCAL_FILE_NAME = "uo.xml"
-    
+    LOCAL_FILE_NAME = "uo.xml"
+    DATASET_ID = "1c7f3815-3259-45e0-bdf1-64dca07ddc10"
+
+    def rename_file (self, file):
+        new_filename = file
+        if (file.upper().find('UO') >= 0): new_filename = 'UO.xml'
+        if (file.upper().find('FOP') >= 0): new_filename = 'FOP.xml'
+        return new_filename
+        
     #list of models for clearing DB
     tables=[
         Founders,

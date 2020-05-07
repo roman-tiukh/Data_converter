@@ -5,8 +5,8 @@ from data_ocean.models.ratu_models import Region, District, City, Citydistrict
 class KoatuuConverter(Converter):
 
     #paths for the local souce file
-    LOCAL_FILE_NAME = config.LOCAL_FILE_NAME_KOATUU
-    LOCAL_FOLDER = config.LOCAL_FOLDER
+    LOCAL_FILE_NAME = "koatuu.json"
+    DATASET_ID = "dc081fb0-f504-4696-916c-a5b24312ab6e"
 
     #constants from json file
     LEVEL_ONE = 'Перший рівень'

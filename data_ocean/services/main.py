@@ -16,11 +16,9 @@ class Converter:
     UPDATE_FILE_NAME = "update.cfg"
     DATA_GOV_UA_API = "https://data.gov.ua/api/3/action/package_show?id="
     DATASET_ID = "" # specified dataset id
-    # LOCAL_FILE_NAME = None # 
-    # FILE_URL = None # url of remote zipfile without filename, look like as "http://hostname.ccc/lllll/mmmmm/"
+    LOCAL_FILE_NAME = None # static short local filename
     LOCAL_FOLDER = "source_data/" # local folder for unzipped source files
     DOWNLOAD_FOLDER = "download/" # folder to downloaded files
-    # DOWNLOADED_FILE_NAME = None # destination local zip filename
     URLS_DICT = {} # control remote dataset files update
     
     def __init__(self):
@@ -30,7 +28,7 @@ class Converter:
         # returns actual dataset urls
         response = requests.get(self.DATA_GOV_UA_API + self.DATASET_ID)
         if (response.status_code != 200):
-            print ("ERROR of requests.get(" + self.DATA_GOV_UA_API + ") in module ratu/main.py")
+            print (f"ERROR request to {self.DATA_GOV_UA_API}")
             return response.status_code
         urls = []
         for i in response.json()['result']['resources']:
@@ -41,9 +39,9 @@ class Converter:
         #geting a single uppercase word from some string
         return string.upper().split()[0] if upper else string.split()[0]
 
-    def rename_files (self):
+    def rename_file (self, file):
         # abstract method for rename unzipped files for each app
-        return ""
+        return
 
     def is_update (self, current_size, url):
         # returns true, if file size at the <url> changed compared to current_size 
@@ -78,26 +76,28 @@ class Converter:
         for url in urls:
             file = os.path.split(url)[1]
             #request to remote url:
-            print ("Request to remote url > " + url)
+            print (f"\nRequest to remote url > {url}")
             response = requests.get(url, stream=True) 
-            print ("Response: " + str(response.status_code))
+            print (f"\tResponse: {response.status_code}")
             if (response.status_code != 200):
-                print ("ERROR of requests.get(" + url + ")")
+                print (f"E\tRROR of requests.get ({url})")
                 continue
 
             # check for remote file updates:
             file_size = int (response.headers['Content-Length'])
             if not ( self.is_update (file_size, url) ):
-                print ("File " + file + " is not updated. Not need to download.")
+                print (f"- File {file} did not update. Not need to download.")
                 continue
 
             # folder existing control:
             if not (os.path.exists(self.DOWNLOAD_FOLDER)) or not (os.path.isdir(self.DOWNLOAD_FOLDER)):
                 os.mkdir(self.DOWNLOAD_FOLDER)
+            if not (os.path.exists(self.LOCAL_FOLDER)) or not (os.path.isdir(self.LOCAL_FOLDER)):
+                os.mkdir(self.LOCAL_FOLDER)
 
             # download file:
             with open(self.DOWNLOAD_FOLDER + file, 'wb') as fd:
-                print ("Download file: " + fd.name + " (" + str(file_size) + " bytes total) ...")
+                print (f"Download file {fd.name} ({file_size} bytes total):")
                 done = 0
                 buffer_size = 102400
                 step = 10
@@ -105,56 +105,53 @@ class Converter:
                 for chunk in response.iter_content(chunk_size=buffer_size):
                     fd.write(chunk)
                     done += buffer_size
+                    if done > file_size: done = file_size
                     percent = round(( done / file_size * 100 ))
                     if (percent >= step):
                         if percent > 100: percent = 100
-                        print ( str ( percent ) + "%")
+                        print ( f"\t{percent} % ===> {done} bytes")
                         step += 10
 
                 if (os.stat(self.DOWNLOAD_FOLDER + file).st_size == file_size):
-                    print ("File " + file + " downloaded succefully.")
+                    print (f"File {file} downloaded succefully.")
                     self.change_update (file_size, url)
                     
                 else: 
                     print ("Download file error")
                     self.delete_downloaded_file (file)
                     continue
-            # unzipping file:
-            if os.path.splitext (file)[1] == ".zip":
-                self.unzip_file(file)
+
+            if zipfile.is_zipfile(self.DOWNLOAD_FOLDER + file):
+                self.unzip_file(self.DOWNLOAD_FOLDER + file)
             else :
-                print ("Move ===>")
+                os.rename (self.DOWNLOAD_FOLDER + file, self.LOCAL_FOLDER + self.LOCAL_FILE_NAME)
 
     def unzip_file (self, file):
         # unzip downloaded file
-        print("Unzipping file " + file + " ...")
+        print(f"Unzipping file {file} ...")
         try:
-            zip_file = zipfile.ZipFile(self.DOWNLOAD_FOLDER + file)
+            zip_file = zipfile.ZipFile(file)
             zip_file.extractall(self.LOCAL_FOLDER)
-            print ("Unzip succefully.")
+            print ("\tUnzip succefully.")
         except:
-            print ("ERROR unzip file " + file)
-        self.delete_downloaded_file (file)
+            print (f"\tERROR unzip file {file}")
+        
+        # rename & move unzipped files:
+        for unzipped_file in zip_file.namelist():
+            os.rename (self.LOCAL_FOLDER + unzipped_file, self.LOCAL_FOLDER + self.rename_file(file))
 
-    def delete_downloaded_file (self, file):
+        # deleting zipfile:
         try:
-            os.remove (self.DOWNLOAD_FOLDER + file) 
+            os.remove (file) 
         except:
-            print('ERROR deleting file ' + file)
+            print(f"ERROR deleting file {file}")
             
-
-    # def rename_files (self):
-    #     # renames unzipped files to short statical names
-    #     files = os.listdir (self.LOCAL_FOLDER)
-
-    #     for file in files:
-    #         new_filename = self.rename(file)
-    #         if (new_filename != ""): os.rename(self.LOCAL_FOLDER + file, self.LOCAL_FOLDER + new_filename)
 
     def parse_file(self):
         # encoding & parsing .xml source file
         with codecs.open(self.LOCAL_FOLDER + self.LOCAL_FILE_NAME, encoding="cp1251") as file:
             return xmltodict.parse(file.read())
+    
     
     def clear_db(self):
         # clearing data base
@@ -162,8 +159,8 @@ class Converter:
             table.objects.all().delete()
             print('Old data have deleted.')
 
-    #verifying kved 
     def get_kved_from_DB(self, record, record_identity):
+        #verifying kved 
         empty_kved = Kved.objects.get(code='EMP')
         if not record['KVED']:
             print (f"Kved value doesn`t exist. Please, check record {record[record_identity]}")
