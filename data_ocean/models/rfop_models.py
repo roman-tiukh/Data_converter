@@ -33,7 +33,7 @@ class Fop(DataOceanModel):
 class FopToKved(DataOceanModel):
     fop = models.ForeignKey(Fop, on_delete=models.CASCADE)
     kved = models.ForeignKey(Kved, on_delete=models.CASCADE)
-    primary = models.BooleanField(default=False)
+    primary_kved = models.BooleanField(default=False)
 
 class ExchangeData(DataOceanModel): 
     fop = models.ForeignKey(Fop, on_delete=models.CASCADE)

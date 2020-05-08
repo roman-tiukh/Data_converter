@@ -59,7 +59,7 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True, null=True)),
                 ('deleted_at', models.DateTimeField(null=True)),
-                ('primary', models.BooleanField(default=False)),
+                ('primary_kved', models.BooleanField(default=False)),
                 ('fop', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='data_ocean.Fop')),
                 ('kved', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='data_ocean.Kved')),
             ],
