@@ -96,36 +96,39 @@ class Converter:
                 os.mkdir(self.LOCAL_FOLDER)
 
             # download file:
-            with open(self.DOWNLOAD_FOLDER + file, 'wb') as fd:
-                print (f"Download file {fd.name} ({file_size} bytes total):")
-                done = 0
-                buffer_size = 102400
-                step = 10
+            fd = open(self.DOWNLOAD_FOLDER + file, 'wb')
+            print (f"Download file {fd.name} ({'{0:,}'.format(file_size).replace(',', ' ')} bytes total):")
+            done = 0
+            buffer_size = 1024*1024*10
+            step = 10
 
-                for chunk in response.iter_content(chunk_size=buffer_size):
-                    fd.write(chunk)
-                    done += buffer_size
-                    if done > file_size: done = file_size
-                    percent = round(( done / file_size * 100 ))
-                    if (percent >= step):
-                        if percent > 100: percent = 100
-                        print ( f"\t{percent} % ===> {done} bytes")
-                        step += 10
+            for chunk in response.iter_content(chunk_size = buffer_size):
+                fd.write(chunk)
+                fd.flush()
+                done += buffer_size
+                if done > file_size: done = file_size
+                percent = round(( done / file_size * 100 ))
+                if (percent >= step):
+                    if percent > 100: percent = 100
+                    print ( f"\t{percent} % ===> {'{0:,}'.format(done).replace(',', ' ')} bytes")
+                    step += 10
 
-                if (os.stat(self.DOWNLOAD_FOLDER + file).st_size == file_size):
-                    print (f"File {file} downloaded succefully.")
-                    self.change_update (file_size, url)
-                    
-                else: 
-                    print ("Download file error")
-                    self.delete_downloaded_file (file)
-                    continue
+            fd.close()
+            if (os.stat(self.DOWNLOAD_FOLDER + file).st_size == file_size):
+                print (f"File {file} downloaded succefully.")
+                self.change_update (file_size, url)
+                
+            else: 
+                print ("Download file error")
+                self.delete_downloaded_file (file)
+                continue
 
             if zipfile.is_zipfile(self.DOWNLOAD_FOLDER + file):
                 self.unzip_file(self.DOWNLOAD_FOLDER + file)
             else :
                 os.rename (self.DOWNLOAD_FOLDER + file, self.LOCAL_FOLDER + self.LOCAL_FILE_NAME)
 
+            
     def unzip_file (self, file):
         # unzip downloaded file
         print(f"Unzipping file {file} ...")
@@ -138,8 +141,12 @@ class Converter:
         
         # rename & move unzipped files:
         for unzipped_file in zip_file.namelist():
-            os.rename (self.LOCAL_FOLDER + unzipped_file, self.LOCAL_FOLDER + self.rename_file(file))
+            os.rename (self.LOCAL_FOLDER + unzipped_file, self.LOCAL_FOLDER + self.rename_file(unzipped_file))
 
+        self.delete_downloaded_file (file)
+
+
+    def delete_downloaded_file (self, file):
         # deleting zipfile:
         try:
             os.remove (file) 
