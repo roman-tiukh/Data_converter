@@ -47,28 +47,22 @@ class RatuConverter(Converter):
     #changing from records like: "волинська обл." to "волинська область"
     def clean_region_name(self, region):
         region = region.lower()
-        region = re.sub(r"обл\.", "область", region)
+        region = region.replace("обл.", "область")
         return region.strip()
 
     #changing from records like: "донецький р-н" to "донецький район", "р.райони вінницької області" to "райони вінницької області", "райони міста Київ" to "райони м.Київ"
     def clean_district_name(self, district):
         district = district.lower()
-        district = re.sub(r"р-н", "район", district)
-        district = re.sub(r"р\.", "", district)
-        district = re.sub(r"райони міста", "райони м.", district)
-        district = re.sub(r"области", "області", district) #fixing up particular mistake in data
+        district = re.sub(r"р\.","", district)
+        district = district.replace("р-н", "район")
+        district = district.replace("райони міста", "райони м.")
+        district = district.replace("области", "області") #fixing up particular mistake in data
         return district.strip()
 
     #changing from records like: "с.високе" to "високе", "м.судак" to "судак", "смт.научне" to "научне", "сщ.стальне" to "стальне", "с/рада.вілінська" to "вілінська", "сщ/рада.поштівська" to "поштівська"
     def clean_city_or_citydistrict_name(self, city):
         city = city.lower()
-        city = re.sub(r"с\.", "", city)
-        city = re.sub(r"м\.", "", city)
-        city = re.sub(r"р\.", "", city)
-        city = re.sub(r"смт\.", "", city)
-        city = re.sub(r"сщ\.", "", city)
-        city = re.sub(r"с/рада\.", "", city)
-        city = re.sub(r"сщ/рада\.", "", city)
+        city = re.sub(r"с\.|м\.|смт\.|сщ\.|с/рада\.|сщ/рада\.", "", city)
         return city.strip()
     
     #writing entry to db
