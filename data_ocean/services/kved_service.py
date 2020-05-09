@@ -1,4 +1,3 @@
-# import config
 from data_ocean.services.main import Converter
 from data_ocean.models.kved_models import Section, Division, Group, Kved
 
