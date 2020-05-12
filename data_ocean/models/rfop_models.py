@@ -5,7 +5,7 @@ from data_ocean.models.kved_models import Kved
 from data_ocean.models.main import DataOceanModel
 from data_ocean.models.ruo_models import State
 
-
+#we can keep this model for training purpose
 class Rfop(DataOceanModel): 
     state = models.ForeignKey(State, on_delete=models.CASCADE)
     kved = models.ForeignKey(Kved, on_delete=models.CASCADE)
