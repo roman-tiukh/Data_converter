@@ -1,4 +1,5 @@
 from django.db import models
+from simple_history.models import HistoricalRecords
 
 from data_ocean.models.common_models import Authority, Status, TaxpayerType
 from data_ocean.models.kved_models import Kved
@@ -31,11 +32,13 @@ class Fop(DataOceanModel):
     contact_info = models.CharField(max_length=100, null=True)
     vp_dates = models.CharField(max_length=100, null=True)
     authority = models.ForeignKey(Authority, on_delete=models.CASCADE)
+    history = HistoricalRecords()
 
 class FopToKved(DataOceanModel):
     fop = models.ForeignKey(Fop, related_name='kveds', on_delete=models.CASCADE)
     kved = models.ForeignKey(Kved, on_delete=models.CASCADE)
     primary_kved = models.BooleanField(default=False)
+    history = HistoricalRecords()
 
     def __str__(self):
         return f"{self.kved} (зазначений як основний)" if self.primary_kved else f"{self.kved}"
@@ -48,3 +51,4 @@ class ExchangeData(DataOceanModel):
     start_number = models.CharField(max_length=20, null=True)
     end_date = models.DateField(null=True)
     end_number = models.CharField(max_length=20, null=True)
+    history = HistoricalRecords()
