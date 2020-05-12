@@ -1,7 +1,6 @@
 import config
 from data_ocean.services.main import Converter
 from data_ocean.models.ratu_models import Region, District, City, Citydistrict
-import re
 
 class KoatuuConverter(Converter):
 
