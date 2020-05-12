@@ -10,13 +10,6 @@ class RfopSerializer(serializers.Serializer):
     fullname = serializers.CharField()
     address = serializers.CharField()
 
-class FopToKvedSerializer(serializers.ModelSerializer):
-    kved = KvedSerializer()
-
-    class Meta:
-        model = FopToKved
-        fields = ['kved', 'primary_kved']
-
 class ExchangeDataSerializer(serializers.ModelSerializer):
     authority = serializers.CharField(max_length=500)
     taxpayer_type = serializers.CharField(max_length=200)
@@ -38,5 +31,5 @@ class FopSerializer(serializers.Serializer):
     contact_info = serializers.CharField(max_length=100)
     vp_dates = serializers.CharField(max_length=100)
     authority = AuthoritySerializer()
-    kveds = FopToKvedSerializer(many=True)
+    kveds = serializers.StringRelatedField(many=True)
     exchange_data = ExchangeDataSerializer(many=True)
