@@ -1,12 +1,10 @@
 from django.contrib import admin
-from data_ocean.models.rfop_models import Rfop, Fop, FopToKved, ExchangeData
+from data_ocean.models.rfop_models import Rfop, Fop
 from data_ocean.models.ratu_models import Region, District, City, Citydistrict, Street
 from data_ocean.models.kved_models import Kved, Group, Division, Section
 
 admin.site.register(Rfop)
 admin.site.register(Fop)
-admin.site.register(FopToKved)
-admin.site.register(ExchangeData)
 admin.site.register(Region)
 admin.site.register(District)
 admin.site.register(City)

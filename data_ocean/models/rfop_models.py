@@ -38,7 +38,6 @@ class FopToKved(DataOceanModel):
     fop = models.ForeignKey(Fop, related_name='kveds', on_delete=models.CASCADE)
     kved = models.ForeignKey(Kved, on_delete=models.CASCADE)
     primary_kved = models.BooleanField(default=False)
-    history = HistoricalRecords()
 
     def __str__(self):
         return f"{self.kved} (зазначений як основний)" if self.primary_kved else f"{self.kved}"
@@ -51,4 +50,3 @@ class ExchangeData(DataOceanModel):
     start_number = models.CharField(max_length=20, null=True)
     end_date = models.DateField(null=True)
     end_number = models.CharField(max_length=20, null=True)
-    history = HistoricalRecords()
