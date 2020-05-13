@@ -10,11 +10,20 @@ from data_ocean.serializers.rfop_serializers import (FopSerializer, RfopSerializ
 from data_ocean.views.views import Views
 
 
-class RfopView(Views):
-    serializer_class = RfopSerializer
+class RfopView(viewsets.ReadOnlyModelViewSet, PageNumberPagination):
     queryset = Rfop.objects.all()
-    serializer = RfopSerializer(queryset, many=True)
-    pagination_class = CustomPagination
+    
+    def list(self, request):
+        queryset = self.get_queryset()
+        results = self.paginate_queryset(queryset)
+        serializer = RfopSerializer(results, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        queryset = self.get_queryset()
+        rfop = get_object_or_404(queryset, pk=pk)
+        serializer = RfopSerializer(rfop)
+        return Response(serializer.data) 
     
 class FopView(viewsets.ReadOnlyModelViewSet, PageNumberPagination):
     queryset = Fop.objects.all()

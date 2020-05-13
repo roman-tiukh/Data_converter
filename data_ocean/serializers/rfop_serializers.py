@@ -3,12 +3,15 @@ from data_ocean.models.rfop_models import FopToKved, ExchangeData, Fop
 from data_ocean.serializers.kved_serializers import KvedSerializer
 from data_ocean.serializers.common_serializers import (StatusSerializer, AuthoritySerializer,
 TaxpayerTypeSerializer)
+from data_ocean.models.rfop_models import Rfop
 
 class RfopSerializer(serializers.Serializer):
     state = serializers.CharField(max_length=100)
     kved = serializers.CharField()
-    fullname = serializers.CharField()
-    address = serializers.CharField()
+    
+    class Meta:
+        model = Rfop
+        fields = ('id', 'state', 'kved', 'fullname', 'address') 
 
 class ExchangeDataSerializer(serializers.ModelSerializer):
     authority = serializers.CharField(max_length=500)

@@ -10,7 +10,8 @@ app_name = 'data_ocean.apps.DataOceanConfig'
 
 urlpatterns = [
     path('rest-auth/', include('rest_auth.urls')),
-    path('rfop/', RfopView.as_view()),
+    path('rfop/', RfopView.as_view({'get':'list'})),
+    path('rfop/<int:pk>', RfopView.as_view({'get':'retrieve'})),
     path('fop/', FopView.as_view({'get':'list'})),
     path('fop/<int:pk>', FopView.as_view({'get':'retrieve'})),
     path('ruo/', RuoView.as_view({'get':'list'})),
