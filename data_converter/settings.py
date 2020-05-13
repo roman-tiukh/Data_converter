@@ -42,7 +42,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'rest_auth',
-    'django_extensions'
+    'django_extensions',
+    'simple_history',
 ]
 
 MIDDLEWARE = [
