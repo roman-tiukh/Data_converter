@@ -6,11 +6,15 @@ from data_ocean.services.main import Converter, BulkCreateManager
 
 class RfopConverter(Converter):
     
-    #paths for remote and local source files
-    FILE_URL = "https://data.gov.ua/dataset/b244f35a-e50a-4a80-b704-032c42ba8142/resource/06bbccbd-e19c-40d5-9e18-447b110c0b4c/download/"
-    DOWNLOADED_FILE_NAME = "rfop_ruo.zip"
     LOCAL_FILE_NAME = "fop.xml"
+    DATASET_ID = "1c7f3815-3259-45e0-bdf1-64dca07ddc10"
     CHUNK_SIZE = 200
+
+    def rename_file (self, file):
+        new_filename = file
+        if (file.upper().find('UO') >= 0): new_filename = 'uo.xml'
+        if (file.upper().find('FOP') >= 0): new_filename = 'fop.xml'
+        return new_filename
 
     #list of models for clearing DB
     tables=[
@@ -26,12 +30,6 @@ class RfopConverter(Converter):
         'STAN': ''
     }
     
-    def rename (self, file):
-        new_filename = ""
-        if (file.upper().find('UO') >= 0): new_filename = 'uo.xml'
-        if (file.upper().find('FOP') >= 0): new_filename = 'fop.xml'
-        return new_filename
-        
     #creating dictionaries for registration items that had writed to db
     state_dict={} # dictionary uses for keeping whole model class objects
     kved_dict={}
