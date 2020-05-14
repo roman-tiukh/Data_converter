@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from data_ocean.models.rfop_models import FopToKved, ExchangeData, Fop
+from data_ocean.models.rfop_models import FopToKved, ExchangeDataFop, Fop
 from data_ocean.serializers.kved_serializers import KvedSerializer
 from data_ocean.serializers.common_serializers import (StatusSerializer, AuthoritySerializer,
 TaxpayerTypeSerializer)
@@ -13,11 +13,11 @@ class RfopSerializer(serializers.Serializer):
         model = Rfop
         fields = ('id', 'state', 'kved', 'fullname', 'address') 
 
-class ExchangeDataSerializer(serializers.ModelSerializer):
+class ExchangeDataFopSerializer(serializers.ModelSerializer):
     authority = serializers.CharField(max_length=500)
     taxpayer_type = serializers.CharField(max_length=200)
     class Meta:
-        model = ExchangeData
+        model = ExchangeDataFop
         fields = ['authority', 'taxpayer_type', 'start_date', 'start_number', 'end_date', 
         'end_number']
 
@@ -35,4 +35,4 @@ class FopSerializer(serializers.Serializer):
     vp_dates = serializers.CharField(max_length=100)
     authority = AuthoritySerializer()
     kveds = serializers.StringRelatedField(many=True)
-    exchange_data = ExchangeDataSerializer(many=True)
+    exchange_data = ExchangeDataFopSerializer(many=True)

@@ -42,7 +42,7 @@ class FopToKved(DataOceanModel):
     def __str__(self):
         return f"{self.kved} (зазначений як основний)" if self.primary_kved else f"{self.kved}"
 
-class ExchangeData(DataOceanModel): 
+class ExchangeDataFop(DataOceanModel): 
     fop = models.ForeignKey(Fop, related_name='exchange_data', on_delete=models.CASCADE)
     authority = models.ForeignKey(Authority, on_delete=models.CASCADE)
     taxpayer_type = models.ForeignKey(TaxpayerType, on_delete=models.CASCADE)

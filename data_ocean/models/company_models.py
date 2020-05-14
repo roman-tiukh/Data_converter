@@ -3,6 +3,7 @@ from data_ocean.models.main import DataOceanModel
 from data_ocean.models.kved_models import Kved
 from data_ocean.models.ruo_models import State
 from django.db import models
+from simple_history.models import HistoricalRecords
 
 class Bylaw(DataOceanModel):
     name = models.CharField(max_length=100, unique=True)
@@ -24,6 +25,7 @@ class Company(DataOceanModel): #constraint for not null in both name & short_nam
     contact_info = models.CharField(max_length=100, null=True)
     authority = models.ForeignKey(Authority, on_delete=models.CASCADE)
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True)
+    history = HistoricalRecords()
 
 class Assignee(DataOceanModel):
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
@@ -46,6 +48,7 @@ class CompanyDetail(DataOceanModel):
     terminated_info = models.CharField(max_length=100, null=True)
     termination_cancel_info = models.CharField(max_length=100, null=True)
     vp_dates = models.CharField(max_length=100, null=True)
+    history = HistoricalRecords()
 
 class CompanyToKved(DataOceanModel): #constraint for only only one truth in primary field
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
