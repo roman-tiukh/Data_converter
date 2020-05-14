@@ -65,13 +65,11 @@ class KoatuuConverter(Converter):
         district_items_list = []
         if not (object_region_name in region_dict):
             return
-        else:
-            region_koatuu = region_dict[object_region_name]            
-            if not (str(object_koatuu[self.LEVEL_TWO])[:2] == str(region_koatuu.koatuu)[:2]):
-                return
-            else:
-                object_district_name = object_district_name + str(region_koatuu.id)
-                district_items_list.append(object_district_name)
+        region_koatuu = region_dict[object_region_name]            
+        if not (str(object_koatuu[self.LEVEL_TWO])[:2] == str(region_koatuu.koatuu)[:2]):
+            return
+        object_district_name = object_district_name + str(region_koatuu.id)
+        district_items_list.append(object_district_name)
         return district_items_list
 
     #creating list out of name and district_id from json file fot city items
@@ -116,10 +114,9 @@ class KoatuuConverter(Converter):
     def save_to_region_table(self, data, object_koatuu, region_dict, object_region_name):
         if  not object_region_name in region_dict:
             return
-        else:
-            region_koatuu = region_dict[object_region_name]
-            region_koatuu.koatuu = object_koatuu[self.LEVEL_ONE]
-            region_koatuu.save(update_fields=['koatuu'])
+        region_koatuu = region_dict[object_region_name]
+        region_koatuu.koatuu = object_koatuu[self.LEVEL_ONE]
+        region_koatuu.save(update_fields=['koatuu'])
             
     #writing entry to koatuu field in district table and level_two records of city_table
     def save_to_district_table(self, data, object_koatuu, district_dict, city_dict, object_region_name, region_dict, district_items_list):
@@ -139,15 +136,12 @@ class KoatuuConverter(Converter):
         for object_name in level_items_list:
             if not object_name in up_level_dict:
                 return
-            else:
-                up_level_koatuu = up_level_dict[object_name]
-                if not str(object_level_number)[:5] == str(up_level_koatuu.koatuu)[:5]:
-                    return
-                else:
-                    object_level_name = object_level_name + str(up_level_koatuu.id)
-                    if not (object_level_name in level_dict):
-                        return
-                    else:
-                        level_koatuu = level_dict[object_level_name]
-                        level_koatuu.koatuu = object_level_number
-                        level_koatuu.save(update_fields=['koatuu'])
+            up_level_koatuu = up_level_dict[object_name]
+            if not str(object_level_number)[:5] == str(up_level_koatuu.koatuu)[:5]:
+                return
+            object_level_name = object_level_name + str(up_level_koatuu.id)
+            if not (object_level_name in level_dict):
+                return
+            level_koatuu = level_dict[object_level_name]
+            level_koatuu.koatuu = object_level_number
+            level_koatuu.save(update_fields=['koatuu'])
