@@ -110,7 +110,7 @@ class KoatuuConverter(Converter):
                 self.save_to_city_or_citydistrict_table(data, object_level_four, object_citydistrict_name, city_items_list, city_dict, citydistrict_dict)
         print("Koatuu values saved")
        
-    # #writing entry to koatuu field in region table
+    #writing entry to koatuu field in region table
     def save_to_region_table(self, data, object_koatuu, region_dict, object_region_name):
         if  not object_region_name in region_dict:
             return
