@@ -60,7 +60,7 @@ class RatuConverter(Converter):
     #changing from records like: "с.високе" to "високе", "м.судак" to "судак", "смт.научне" to "научне", "сщ.стальне" to "стальне", "с/рада.вілінська" to "вілінська", "сщ/рада.поштівська" to "поштівська"
     def clean_city_or_citydistrict_name(self, city):
         city = city.lower()
-        city = re.sub(r"с\.|м\.|смт\.|сщ\.|с/рада\.|сщ/рада\.", "", city)
+        city = re.sub(r"с\.|м\.|смт\.|сщ\.|с/рада\.|сщ/рада\.|р\.", "", city)
         return city.strip()
     
     #writing entry to db
