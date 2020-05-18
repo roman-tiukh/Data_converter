@@ -1,8 +1,4 @@
-# from data_ocean.models.common_models import Authority, Status, TaxpayerType
 from data_ocean.models.company_models import Bylaw, CompanyType, Company, Assignee, BancruptcyReadjustment, CompanyDetail, CompanyToKved, ExchangeDataCompany, FounderFull, Predecessor, CompanyToPredecessor, Signer, TerminationStarted
-# from data_ocean.models.kved_models import Kved
-# from data_ocean.models.ruo_models import State
-
 from rest_framework import serializers
 from simple_history.models import HistoricalRecords
 
@@ -34,7 +30,7 @@ class CompanySerializer(serializers.ModelSerializer):
     termination_started = serializers.CharField(max_length=300)
     class Meta:
         model = Company
-        fields = ('id', 'name', 'short_name', 'company_type', 'edrpou', 'address', 'state', 'bylaw', 'registration_date', 'registration_info', 'contact_info', 'authority', 'parent', 'history')
+        fields = ('name', 'short_name', 'company_type', 'edrpou', 'address', 'state', 'bylaw', 'registration_date', 'registration_info', 'contact_info', 'authority', 'parent')
 
 class AssigneeSerializer(serializers.ModelSerializer):
     company = serializers.CharField(max_length=500)
