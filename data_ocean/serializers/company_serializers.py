@@ -19,10 +19,20 @@ class CompanyTypeSerializer(serializers.ModelSerializer):
 
 class CompanySerializer(serializers.ModelSerializer):
     company_type = serializers.CharField(max_length=100)
-    bylaw = serializers.CharField(max_length=100)
+    bylaw = serializers.CharField(max_length=300)
     state = serializers.CharField(max_length=100)
     authority = serializers.CharField(max_length=500)
     parent = serializers.CharField(max_length=500)
+    assignee = serializers.CharField(max_length=100)
+    bancruptcy_readjustment = serializers.CharField(max_length=300)
+    company_detail = serializers.CharField(max_length=100)
+    company_to_kved = serializers.CharField(max_length=500)
+    exchange_data_company = serializers.CharField(max_length=500)
+    founder_full = serializers.CharField(max_length=500)
+    predecessor = serializers.CharField(max_length=100)
+    company_to_predecessor = serializers.CharField(max_length=100)
+    signer = serializers.CharField(max_length=300)
+    termination_started = serializers.CharField(max_length=300)
     class Meta:
         model = Company
         fields = ('id', 'name', 'short_name', 'company_type', 'edrpou', 'address', 'state', 'bylaw', 'registration_date', 'registration_info', 'contact_info', 'authority', 'parent', 'history')
