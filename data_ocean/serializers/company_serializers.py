@@ -1,8 +1,7 @@
-from data_ocean.models.common_models import Authority, Status, TaxpayerType
+# from data_ocean.models.common_models import Authority, Status, TaxpayerType
 from data_ocean.models.company_models import Bylaw, CompanyType, Company, Assignee, BancruptcyReadjustment, CompanyDetail, CompanyToKved, ExchangeDataCompany, FounderFull, Predecessor, CompanyToPredecessor, Signer, TerminationStarted
-from data_ocean.models.kved_models import Kved
-from data_ocean.models.main import DataOceanModel
-from data_ocean.models.ruo_models import State
+# from data_ocean.models.kved_models import Kved
+# from data_ocean.models.ruo_models import State
 
 from rest_framework import serializers
 from simple_history.models import HistoricalRecords
