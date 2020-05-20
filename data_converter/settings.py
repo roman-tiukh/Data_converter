@@ -44,6 +44,12 @@ INSTALLED_APPS = [
     'rest_auth',
     'django_extensions',
     'simple_history',
+    'users',
+    'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'rest_auth.registration',
+
 ]
 
 MIDDLEWARE = [
@@ -135,3 +141,9 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.AllowAny', #IsAuthenticated
     ]
 }
+
+AUTH_USER_MODEL = 'users.DataOceanUser'
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+SITE_ID = 1
