@@ -92,22 +92,22 @@ class KoatuuConverter(Converter):
         for index, object_koatuu in enumerate(data):
             if (object_koatuu[self.LEVEL_ONE]!='') & (object_koatuu[self.LEVEL_TWO]==''):
                 object_region_name = self.get_lowercase_words_before_virgule(object_koatuu[self.OBJECT_NAME])
-                # self.save_to_region_table(data, object_koatuu, region_dict, object_region_name)
+                self.save_to_region_table(data, object_koatuu, region_dict, object_region_name)
             if (object_koatuu[self.LEVEL_ONE]!='') & (object_koatuu[self.LEVEL_TWO]!='') & (object_koatuu[self.LEVEL_THREE]==''):
                 KOATUU_VALUE = str(object_koatuu[self.LEVEL_TWO]) #position in koatuu wich defines district or city record 
                 object_district_name = self.get_lowercase_words_before_virgule(object_koatuu[self.OBJECT_NAME])
                 district_items_list = self.create_district_items_list(object_koatuu, object_region_name, region_dict, object_district_name, KOATUU_VALUE)
                 city_items_list = self.create_city_items_list(data, object_koatuu, city_dict_for_district_table, district_items_list, KOATUU_VALUE)
-                # self.save_to_district_table(data, object_koatuu, district_dict, city_dict_for_district_table, object_region_name, region_dict, district_items_list, KOATUU_VALUE)
+                self.save_to_district_table(data, object_koatuu, district_dict, city_dict_for_district_table, object_region_name, region_dict, district_items_list, KOATUU_VALUE)
             if (object_koatuu[self.LEVEL_ONE]!='') & (object_koatuu[self.LEVEL_TWO]!='') & (object_koatuu[self.LEVEL_THREE]!='') & (object_koatuu[self.LEVEL_FOUR]==''):
                 object_city_name = self.get_lowercase_words_before_virgule(object_koatuu[self.OBJECT_NAME])
                 object_level_three = object_koatuu[self.LEVEL_THREE]
-                # self.save_to_city_or_citydistrict_table(data, object_level_three, object_city_name, district_items_list, district_dict, city_dict)
-                # self.save_to_city_or_citydistrict_table(data, object_level_three, object_city_name, city_items_list, city_dict, citydistrict_dict)
+                self.save_to_city_or_citydistrict_table(data, object_level_three, object_city_name, district_items_list, district_dict, city_dict)
+                self.save_to_city_or_citydistrict_table(data, object_level_three, object_city_name, city_items_list, city_dict, citydistrict_dict)
             if (object_koatuu[self.LEVEL_ONE]!='') & (object_koatuu[self.LEVEL_TWO]!='') & (object_koatuu[self.LEVEL_THREE]!='') & (object_koatuu[self.LEVEL_FOUR]!=''):
                 object_citydistrict_name = self.get_lowercase_words_before_virgule(object_koatuu[self.OBJECT_NAME])
                 object_level_four = object_koatuu[self.LEVEL_FOUR]
-                # self.save_to_city_or_citydistrict_table(data, object_level_four, object_citydistrict_name, district_items_list, district_dict, city_dict)
+                self.save_to_city_or_citydistrict_table(data, object_level_four, object_citydistrict_name, district_items_list, district_dict, city_dict)
                 self.save_to_city_or_citydistrict_table(data, object_level_four, object_citydistrict_name, city_items_list, city_dict, citydistrict_dict)
         print("Koatuu values saved")
        
