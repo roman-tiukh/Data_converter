@@ -1,6 +1,7 @@
 from django.urls import path, include
 from django.contrib import admin
 
+from data_ocean.views.company_views import CompanyView
 from data_ocean.views.kved_views import KvedView
 from data_ocean.views.ratu_views import CitydistrictView, CityView, DistrictView, RegionView, StreetView
 from data_ocean.views.rfop_views import RfopView, FopView
@@ -28,4 +29,6 @@ urlpatterns = [
     path('citydistrict/<int:pk>', CitydistrictView.as_view({'get':'retrieve'})),
     path('district/', DistrictView.as_view({'get':'list'})),
     path('district/<int:pk>', DistrictView.as_view({'get':'retrieve'})),
+    path('company/', CompanyView.as_view({'get':'list'})),
+    path('company/<int:pk>', CompanyView.as_view({'get':'retrieve'})),
 ]
