@@ -12,7 +12,7 @@ import xmltodict
 import zipfile
 
 from business_register.models.kved_models import Kved
-
+from data_ocean.models import Status, Authority, TaxpayerType
 
 class Converter:
     UPDATE_FILE_NAME = "update.cfg"
@@ -36,10 +36,6 @@ class Converter:
         for i in response.json()['result']['resources']:
             urls.append(i['url'])
         return (urls)
-
-    def get_first_word(self, string, upper=False):
-        # geting a single uppercase word from some string
-        return string.upper().split()[0] if upper else string.split()[0]
 
     def rename_file(self, file):
         # abstract method for rename unzipped files for each app
@@ -164,20 +160,6 @@ class Converter:
             table.objects.all().delete()
             print('Old data have deleted.')
 
-    def get_kved_from_DB(self, record, record_identity):
-        # verifying kved
-        empty_kved = Kved.objects.get(code='EMP')
-        if not record['KVED']:
-            print(f"Kved value doesn`t exist. Please, check record {record[record_identity]}")
-            return empty_kved
-        # in xml record we have code and name of the kved together in one string. Here we are getting only code
-        kved_code = self.get_first_word(record['KVED'])
-        if kved_code in self.kved_dict:
-            return self.kved_dict[kved_code]
-        else:
-            print(f"This kved value is not valid. Please, check record {record[record_identity]}")
-            return empty_kved
-
     def process(self):
         # parsing sours file in flow
         # get an iterable
@@ -241,6 +223,60 @@ class Converter:
         print('All the records have been rewritten.')
     print('Converter has imported.')
 
+    #lets have all supporting functions in the end of the class
+    def get_first_word(self, string, upper=False):
+        return string.upper().split()[0] if upper else string.split()[0]
+
+    def get_other_words(self, string):
+        return string.split()[1:]
+
+    def get_kved_from_DB(self, kved_from_record):
+        # verifying kved
+        empty_kved = Kved.objects.get(code='EMP')
+        # in xml record we have code and name of the kved together in one string. Here we are getting only code
+        kved_code = self.get_first_word(kved_from_record)
+        kved_dict = {}    
+        for kved in Kved.objects.all():
+            kved_dict[kved.code]=kved
+        if kved_code in kved_dict:
+            return kved_dict[kved_code]
+        else:
+            print(f"This kved value is not valid")
+            return empty_kved
+    
+    def get_or_save_status(self, status_from_record):
+        status_dict = {}
+        for status in Status.objects.all():
+            status_dict[status.name] = status
+        if not status_from_record in status_dict:
+            new_status = Status(name=status_from_record)
+            new_status.save()
+            return new_status
+        else:
+            return status_dict[status_from_record]
+
+    #later we should add a code if exists
+    def get_or_save_authority(self, authority_from_record):
+        authority_dict = {}
+        for authority in Authority.objects.all():
+            authority_dict[authority.name] = authority
+        if not authority_from_record in authority_dict:
+            new_authority = Authority(name = authority_from_record, )
+            new_authority.save()
+            return new_authority
+        else:
+            return authority_dict[authority_from_record]
+
+    def get_or_save_taxpayertype(self, taxpayertype_from_record):
+        taxpayertype_dict = {}
+        for taxpayertype in TaxpayerType.objects.all():
+            taxpayertype_dict[taxpayertype.name] = taxpayertype
+        if not taxpayertype_from_record in taxpayertype_dict:
+            new_taxpayertype = TaxpayerType(name=taxpayertype_from_record)
+            new_taxpayertype.save()
+            return new_taxpayertype
+        else:
+            return taxpayertype_dict[taxpayertype_from_record]
 
 class BulkCreateManager(object):  # https://www.caktusgroup.com/blog/2019/01/09/django-bulk-inserts/
     """
