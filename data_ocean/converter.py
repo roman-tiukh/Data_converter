@@ -230,16 +230,14 @@ class Converter:
     def get_other_words(self, string):
         return string.split()[1:]
 
-    def get_kved_from_DB(self, kved_from_record):
+    def get_kved_from_DB(self, kved_code_from_record):
         # verifying kved
         empty_kved = Kved.objects.get(code='EMP')
-        # in xml record we have code and name of the kved together in one string. Here we are getting only code
-        kved_code = self.get_first_word(kved_from_record)
         kved_dict = {}    
         for kved in Kved.objects.all():
             kved_dict[kved.code]=kved
-        if kved_code in kved_dict:
-            return kved_dict[kved_code]
+        if kved_code_from_record in kved_dict:
+            return kved_dict[kved_code_from_record]
         else:
             print(f"This kved value is not valid")
             return empty_kved
@@ -261,7 +259,7 @@ class Converter:
         for authority in Authority.objects.all():
             authority_dict[authority.name] = authority
         if not authority_from_record in authority_dict:
-            new_authority = Authority(name = authority_from_record, )
+            new_authority = Authority(name=authority_from_record)
             new_authority.save()
             return new_authority
         else:
