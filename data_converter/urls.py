@@ -16,10 +16,43 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import include, path
+from rest_framework import routers
+
+from business_register.views.company_views import CompanyView
+from business_register.views.kved_views import KvedView
+from business_register.views.rfop_views import RfopView, FopView
+from business_register.views.ruo_views import RuoView
+from location_register.views import RegionView, CityView, StreetView, CitydistrictView, DistrictView
+
+router = routers.DefaultRouter()
+
+router.register(r'rfop', RfopView, basename='rfop')
+router.register(r'rfop/<int:pk>', RfopView, basename='rfop_item')
+router.register(r'fop', FopView, basename='fop')
+router.register(r'fop/<int:pk>', FopView, basename='fop_item')
+router.register(r'ruo', RuoView, basename='ruo')
+router.register(r'ruo/<int:pk>', RuoView, basename='ruo_item')
+router.register(r'kved', KvedView, basename='kved')
+router.register(r'kved/<int:pk>', KvedView, basename='kved_item')
+router.register(r'region', RegionView, basename='region')
+router.register(r'region/<int:pk>', RegionView, basename='region_item')
+router.register(r'city', CityView, basename='city')
+router.register(r'city/<int:pk>', CityView, basename='city_item')
+router.register(r'street', StreetView, basename='street')
+router.register(r'street/<int:pk>', StreetView, basename='street_item')
+router.register(r'citydistrict', CitydistrictView, basename='citydistrict')
+router.register(r'citydistrict/<int:pk>', CitydistrictView, basename='citydistrict_item')
+router.register(r'district', DistrictView, basename='district')
+router.register(r'district/<int:pk>', DistrictView, basename='district_item')
+router.register(r'company', CompanyView, basename='company')
+router.register(r'company/<int:pk>', CompanyView, basename='company_item')
+
 
 urlpatterns = [
-    path('api/', include('data_ocean.urls')),
+
     path('admin/', admin.site.urls),
+    path('api/', include(router.urls)),
+
     path('api/users/', include('users.urls')),
     path('api/users/rest-auth/', include('rest_auth.urls')),
     path('api/rest-auth/registration/', include('rest_auth.registration.urls')),

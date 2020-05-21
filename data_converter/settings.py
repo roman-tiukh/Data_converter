@@ -11,9 +11,10 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 """
 
 import os
-import config
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+from data_converter import settings_local
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
@@ -44,6 +45,8 @@ INSTALLED_APPS = [
     'rest_auth',
     'django_extensions',
     'simple_history',
+    'business_register',
+    'location_register',
     'users',
     'django.contrib.sites',
     'allauth',
@@ -94,7 +97,7 @@ WSGI_APPLICATION = 'data_converter.wsgi.application'
 # }
 
 DATABASES = {
-    'default': config.DATABASE_CONFIG
+    'default': settings_local.DATABASE_CONFIG
     }
 
 # Password validation

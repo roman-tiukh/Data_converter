@@ -26,6 +26,7 @@ static/img/background/
 static/img/tables/
 /web/static/calendar/js/events.json
 venv/
+/data_converter/settings_local.py
 # /web/docker_django/development
 # web/docker_django/system/cryptography/
 # web/docker_django/system/cryptography/EUSignCP.py
