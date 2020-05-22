@@ -224,8 +224,8 @@ class Converter:
     print('Converter has imported.')
 
     #lets have all supporting functions in the end of the class
-    def get_first_word(self, string, upper=False):
-        return string.upper().split()[0] if upper else string.split()[0]
+    def get_first_word(self, string):
+        return string.split()[0]
 
     def get_other_words(self, string):
         return string.split()[1:]
@@ -242,39 +242,17 @@ class Converter:
             print(f"This kved value is not valid")
             return empty_kved
     
-    def get_or_save_status(self, status_from_record):
-        status_dict = {}
-        for status in Status.objects.all():
-            status_dict[status.name] = status
-        if not status_from_record in status_dict:
-            new_status = Status(name=status_from_record)
-            new_status.save()
-            return new_status
+    #for status, authority(without code) and taxpayer_type 
+    def get_or_save_to_DB(self, text_from_record, class_name):
+        all_objects_from_DB = {}
+        for object in class_name.objects.all():
+            all_objects_from_DB[object.name] = object
+        if not text_from_record in all_objects_from_DB:
+            new_object = class_name(name=text_from_record)
+            new_object.save()
+            return new_object
         else:
-            return status_dict[status_from_record]
-
-    #later we should add a code if exists
-    def get_or_save_authority(self, authority_from_record):
-        authority_dict = {}
-        for authority in Authority.objects.all():
-            authority_dict[authority.name] = authority
-        if not authority_from_record in authority_dict:
-            new_authority = Authority(name=authority_from_record)
-            new_authority.save()
-            return new_authority
-        else:
-            return authority_dict[authority_from_record]
-
-    def get_or_save_taxpayertype(self, taxpayertype_from_record):
-        taxpayertype_dict = {}
-        for taxpayertype in TaxpayerType.objects.all():
-            taxpayertype_dict[taxpayertype.name] = taxpayertype
-        if not taxpayertype_from_record in taxpayertype_dict:
-            new_taxpayertype = TaxpayerType(name=taxpayertype_from_record)
-            new_taxpayertype.save()
-            return new_taxpayertype
-        else:
-            return taxpayertype_dict[taxpayertype_from_record]
+            return all_objects_from_DB[text_from_record]
 
 class BulkCreateManager(object):  # https://www.caktusgroup.com/blog/2019/01/09/django-bulk-inserts/
     """
