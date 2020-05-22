@@ -26,21 +26,11 @@ class TaxpayerType(DataOceanModel):
     name = models.CharField(max_length=200, unique=True)
 
 
-class Source(DataOceanModel):
-    name = models.CharField(max_length=300)
-
-
-class SourceAdress(DataOceanModel):
-    url_adress = models.URLField(max_length=500)
-    api_adress = models.URLField(max_length=500, null=True)
-    source = models.ForeignKey(Source, on_delete=models.CASCADE)
-
-
 class Register(DataOceanModel):
     name = models.CharField(max_length=500)
-    source = models.ForeignKey(Source, on_delete=models.CASCADE)
-    url_adress = models.ForeignKey(SourceAdress, on_delete=models.CASCADE)
-    api_adress = models.ForeignKey(SourceAdress, on_delete=models.CASCADE)
+    source_name = models.CharField(max_length=300)
+    url_address = models.URLField(max_length=500)
+    api_address = models.URLField(max_length=500, null=True)
 
     def __str__(self):
         return self.name
