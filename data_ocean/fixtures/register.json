@@ -1,0 +1,46 @@
+[
+    {
+      "model": "data_ocean.register",
+      "id": 501,
+      "fields": {
+        "created_at": "2020-05-22 17:55",
+        "name": "Єдиний державний реєстр юридичних осіб, фізичних осіб-підприємців та громадських формувань",
+        "source_name": "data.gov.ua",
+        "url_address": "https://data.gov.ua/dataset/b244f35a-e50a-4a80-b704-032c42ba8142/resource/06bbccbd-e19c-40d5-9e18-447b110c0b4c/download/17-ufop_20-05-2020.zip",
+        "api_address": "https://data.gov.ua/api/3/action/package_show?id="
+      }
+    },
+    {
+      "model": "data_ocean.register",
+      "id": 502,
+      "fields": {
+        "created_at": "2020-05-22 17:55",
+        "name": "Класифікація видів економічної діяльності (КВЕД)",
+        "source_name": "data.gov.ua",
+        "url_address": "https://data.gov.ua/dataset/f8a741b9-af17-48e2-8178-8e161c244549/resource/878a36b5-31af-4c36-86e6-5dbf432e9331/download/kved.json",
+        "api_address": "null"
+      }
+    },
+    {
+      "model": "data_ocean.register",
+      "id": 503,
+      "fields": {
+        "created_at": "2020-05-22 17:55",
+        "name": "Реєстр адміністративно-територіального устрою",
+        "source_name": "data.gov.ua",
+        "url_address": "https://data.gov.ua/dataset/75e57837-128b-49e1-a007-5e7dfa7bf6af/resource/e21a1e57-051c-46ea-9c8e-8f30de7d863d/download/28-ex_xml_atu.zip",
+        "api_address": "null"
+      }
+    },
+    {
+      "model": "data_ocean.register",
+      "id": 504,
+      "fields": {
+        "created_at": "2020-05-22 17:55",
+        "name": "Класифікатор об’єктів адміністративно-територіального устрою України (КОАТУУ)",
+        "source_name": "data.gov.ua",
+        "url_address": "https://data.gov.ua/dataset/d945de87-539c-45b4-932a-7dda57daf8d9/resource/296adb7a-476a-40c8-9de6-211327cb3aa1/download/koatuu.json",
+        "api_address": "null"
+      }
+    }
+  ]
