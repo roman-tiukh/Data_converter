@@ -22,9 +22,57 @@ class Converter:
     LOCAL_FOLDER = "source_data/"  # local folder for unzipped source files
     DOWNLOAD_FOLDER = "download/"  # folder to downloaded files
     URLS_DICT = {}  # control remote dataset files update
+    #dictionaries whith all kveds, statuses, authorities and taxpayer_types
+    all_kveds_dict = {}  
+    all_statuses_dict = {}
+    all_authorities_dict = {}
+    all_taxpayer_types_dict = {}
 
+    #initializing dictionaries with all objects
     def __init__(self):
-        return
+        self.all_kveds_dict = self.initialize_objects_for("business_register", "Kved")
+        self.all_statuses_dict = self.initialize_objects_for("data_ocean", "Status")
+        self.all_authorities_dict = self.initialize_objects_for("data_ocean", "Authority")
+        self.all_taxpayer_types_dict = self.initialize_objects_for("data_ocean", "TaxpayerType")
+
+    def initialize_objects_for(self, app_name, model_name):
+        model = self.get_model_from_string(app_name, model_name)
+        all_objects = model.objects.all()
+        all_objects_dict = {}
+        for object in all_objects:
+            all_objects_dict[object.name]=object
+        return all_objects_dict
+
+    def get_model_from_string(self, app_name, model_name):
+        return apps.get_model(app_name, model_name)
+
+    #lets have all supporting functions at the beginning
+    def get_first_word(self, string):
+        return string.split()[0]
+
+    def cut_first_word(self, string):
+        return string.split()[1:]
+
+    # verifying kved
+    def get_kved_from_DB(self, kved_code_from_record):
+        empty_kved = Kved.objects.get(code='EMP')
+        if kved_code_from_record in self.all_kveds_dict:
+            return self.all_kveds_dict[kved_code_from_record]
+        else:
+            print(f"This kved value is not valid")
+            return empty_kved
+    
+    def save_or_get_from_DB(self, text_from_record, app_name, model_name, all_objects_dict):
+        #storing an object that isn`t in DB yet
+        model = self.get_model_from_string(app_name, model_name)
+        if not text_from_record in all_objects_dict:
+            new_object = model(name=text_from_record)
+            new_object.save()
+            all_objects_dict[text_from_record] = new_object
+            return new_object, all_objects_dict
+        #getting an existed object from DB
+        else:
+            return all_objects_dict[text_from_record]
 
     def get_urls(self):
         # returns actual dataset urls
@@ -223,36 +271,6 @@ class Converter:
         print('All the records have been rewritten.')
     print('Converter has imported.')
 
-    #lets have all supporting functions in the end of the class
-    def get_first_word(self, string):
-        return string.split()[0]
-
-    def get_other_words(self, string):
-        return string.split()[1:]
-
-    def get_kved_from_DB(self, kved_code_from_record):
-        # verifying kved
-        empty_kved = Kved.objects.get(code='EMP')
-        kved_dict = {}    
-        for kved in Kved.objects.all():
-            kved_dict[kved.code]=kved
-        if kved_code_from_record in kved_dict:
-            return kved_dict[kved_code_from_record]
-        else:
-            print(f"This kved value is not valid")
-            return empty_kved
-    
-    #for status, authority(without code) and taxpayer_type 
-    def get_or_save_to_DB(self, text_from_record, class_name):
-        all_objects_from_DB = {}
-        for object in class_name.objects.all():
-            all_objects_from_DB[object.name] = object
-        if not text_from_record in all_objects_from_DB:
-            new_object = class_name(name=text_from_record)
-            new_object.save()
-            return new_object
-        else:
-            return all_objects_from_DB[text_from_record]
 
 class BulkCreateManager(object):  # https://www.caktusgroup.com/blog/2019/01/09/django-bulk-inserts/
     """
