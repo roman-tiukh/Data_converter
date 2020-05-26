@@ -1,7 +1,6 @@
 import re
 from data_ocean.converter import Converter, BulkCreateManager
-from data_ocean.models import Register
-from location_register.models import Region, District, City, Citydistrict, Street
+from location_register.models import Region, District, City, Citydistrict, Street, Category
 
 
 class RatuConverter(Converter):
@@ -41,6 +40,7 @@ class RatuConverter(Converter):
 
     bulk_manager = BulkCreateManager(CHUNK_SIZE)
 
+
     # changing from records like: "волинська обл." to "волинська область"
     def clean_region_name(self, region):
         region = region.lower()
@@ -62,12 +62,26 @@ class RatuConverter(Converter):
         city = re.sub(r"с\.|м\.|смт\.|сщ\.|с/рада\.|сщ/рада\.|р\.", "", city)
         return city.strip()
 
+    # function to compare data records with category types
+    def category(self, name):
+        name = str(name).split('.')[0]
+        switcher={
+            'с':'С',
+            'сщ':'Щ',
+            'смт':'Т',
+            'м':'М',
+            'р':'Р'
+            }
+        return switcher.get(name,'null')
+
     # writing entry to db
     def save_to_db(self, record):
         region = self.save_to_region_table(record)
         district = self.save_to_district_table(record, region)
         city = self.save_to_city_table(record, region, district)
         citydistrict = self.save_to_citydistrict_table(record, region, district, city)
+        self.save_to_category_id(record['CITY_NAME'], City)
+        self.save_to_category_id(record['CITY_REGION_NAME'], Citydistrict)
         self.save_to_street_table(record, region, district, city, citydistrict)
         print('saved')
 
@@ -146,6 +160,19 @@ class RatuConverter(Converter):
             city=city.id
         )
         return citydistrict
+
+    # adding category_id values to city and citydistrict table
+    def save_to_category_id(self, record, Model):
+        if record:
+            city_name = self.clean_city_or_citydistrict_name(record)
+            city_value = Model.objects.get(name=city_name)
+            city_value.category_id = Category.objects.get(name=self.category(record)).id
+            city_value.save(update_fields=['category_id'])
+        else:
+            empty_values = Model.objects.filter(name='empty field')
+            for value in empty_values:
+                value.category_id = Category.objects.get(name='null').id
+                value.save(update_fields=['category_id'])            
 
     # writing entry to street table
     def save_to_street_table(self, record, region, district, city, citydistrict):
