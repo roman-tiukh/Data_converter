@@ -30,21 +30,21 @@ class Converter:
 
     #initializing dictionaries with all objects
     def __init__(self):
-        self.all_kveds_dict = self.initialize_objects_for("business_register", "Kved")
-        self.all_statuses_dict = self.initialize_objects_for("data_ocean", "Status")
-        self.all_authorities_dict = self.initialize_objects_for("data_ocean", "Authority")
-        self.all_taxpayer_types_dict = self.initialize_objects_for("data_ocean", "TaxpayerType")
+        all_objects = Kved.objects.all()
+        for kved in all_objects:
+            self.all_kveds_dict[kved.code]=kved
 
-    def initialize_objects_for(self, app_name, model_name):
-        model = self.get_model_from_string(app_name, model_name)
+        self.all_statuses_dict = self.initialize_objects_for("Status")
+        self.all_authorities_dict = self.initialize_objects_for("Authority")
+        self.all_taxpayer_types_dict = self.initialize_objects_for("TaxpayerType")
+
+    def initialize_objects_for(self, model_name):
+        model = apps.get_model("data_ocean", model_name)
         all_objects = model.objects.all()
         all_objects_dict = {}
         for object in all_objects:
             all_objects_dict[object.name]=object
         return all_objects_dict
-
-    def get_model_from_string(self, app_name, model_name):
-        return apps.get_model(app_name, model_name)
 
     #lets have all supporting functions at the beginning
     def get_first_word(self, string):
@@ -62,17 +62,38 @@ class Converter:
             print(f"This kved value is not valid")
             return empty_kved
     
-    def save_or_get_from_DB(self, text_from_record, app_name, model_name, all_objects_dict):
+    def save_or_get_status(self, status_from_record):
         #storing an object that isn`t in DB yet
-        model = self.get_model_from_string(app_name, model_name)
-        if not text_from_record in all_objects_dict:
-            new_object = model(name=text_from_record)
-            new_object.save()
-            all_objects_dict[text_from_record] = new_object
-            return new_object, all_objects_dict
+        if not status_from_record in self.all_statuses_dict:
+            new_status = Status(name=status_from_record)
+            new_status.save()
+            self.all_statuses_dict[status_from_record] = new_status
+            return new_status
         #getting an existed object from DB
         else:
-            return all_objects_dict[text_from_record]
+            return self.all_statuses_dict[status_from_record]
+
+    def save_or_get_authority(self, authority_from_record):
+        #storing an object that isn`t in DB yet
+        if not authority_from_record in self.all_authorities_dict:
+            new_authority = Authority(name=authority_from_record)
+            new_authority.save()
+            self.all_authorities_dict[authority_from_record] = new_authority
+            return new_authority
+        #getting an existed object from DB
+        else:
+            return self.all_authorities_dict[authority_from_record]
+
+    def save_or_get_taxpayer_type(self, taxpayer_type_from_record):
+        #storing an object that isn`t in DB yet
+        if not taxpayer_type_from_record in self.all_taxpayer_types_dict:
+            new_taxpayer_type = TaxpayerType(name=taxpayer_type_from_record)
+            new_taxpayer_type.save()
+            self.all_taxpayer_types_dict[taxpayer_type_from_record] = new_taxpayer_type
+            return new_taxpayer_type
+        #getting an existed object from DB
+        else:
+            return self.all_taxpayer_types_dict[taxpayer_type_from_record]
 
     def get_urls(self):
         # returns actual dataset urls
