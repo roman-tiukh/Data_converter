@@ -12,7 +12,7 @@ import xmltodict
 import zipfile
 
 from business_register.models.kved_models import Kved
-
+from data_ocean.models import Status, Authority, TaxpayerType
 
 class Converter:
     UPDATE_FILE_NAME = "update.cfg"
@@ -22,9 +22,74 @@ class Converter:
     LOCAL_FOLDER = "source_data/"  # local folder for unzipped source files
     DOWNLOAD_FOLDER = "download/"  # folder to downloaded files
     URLS_DICT = {}  # control remote dataset files update
+    #dictionaries whith all kveds, statuses, authorities and taxpayer_types
+    all_kveds_dict = {}  
+    all_statuses_dict = {}
+    all_authorities_dict = {}
+    all_taxpayer_types_dict = {}
 
+    #initializing dictionaries with all objects
     def __init__(self):
-        return
+        all_objects = Kved.objects.all()
+        for kved in all_objects:
+            self.all_kveds_dict[kved.code]=kved
+
+        self.all_statuses_dict = self.initialize_objects_for("Status")
+        self.all_authorities_dict = self.initialize_objects_for("Authority")
+        self.all_taxpayer_types_dict = self.initialize_objects_for("TaxpayerType")
+
+    def initialize_objects_for(self, model_name):
+        model = apps.get_model("data_ocean", model_name)
+        all_objects = model.objects.all()
+        all_objects_dict = {}
+        for object in all_objects:
+            all_objects_dict[object.name]=object
+        return all_objects_dict
+
+    #lets have all supporting functions at the beginning
+    def get_first_word(self, string):
+        return string.split()[0]
+
+    def cut_first_word(self, string):
+        return string.split()[1:]
+
+    # verifying kved
+    def get_kved_from_DB(self, kved_code_from_record):
+        empty_kved = Kved.objects.get(code='EMP')
+        if kved_code_from_record in self.all_kveds_dict:
+            return self.all_kveds_dict[kved_code_from_record]
+        print(f"This kved value is outdated or not valid")
+        return empty_kved
+    
+    def save_or_get_status(self, status_from_record):
+        #storing an object that isn`t in DB yet
+        if not status_from_record in self.all_statuses_dict:
+            new_status = Status(name=status_from_record)
+            new_status.save()
+            self.all_statuses_dict[status_from_record] = new_status
+            return new_status
+        #getting an existed object from DB
+        return self.all_statuses_dict[status_from_record]
+
+    def save_or_get_authority(self, authority_from_record):
+        #storing an object that isn`t in DB yet
+        if not authority_from_record in self.all_authorities_dict:
+            new_authority = Authority(name=authority_from_record)
+            new_authority.save()
+            self.all_authorities_dict[authority_from_record] = new_authority
+            return new_authority
+        #getting an existed object from DB
+        return self.all_authorities_dict[authority_from_record]
+
+    def save_or_get_taxpayer_type(self, taxpayer_type_from_record):
+        #storing an object that isn`t in DB yet
+        if not taxpayer_type_from_record in self.all_taxpayer_types_dict:
+            new_taxpayer_type = TaxpayerType(name=taxpayer_type_from_record)
+            new_taxpayer_type.save()
+            self.all_taxpayer_types_dict[taxpayer_type_from_record] = new_taxpayer_type
+            return new_taxpayer_type
+        #getting an existed object from DB
+        return self.all_taxpayer_types_dict[taxpayer_type_from_record]
 
     def get_urls(self):
         # returns actual dataset urls
@@ -36,10 +101,6 @@ class Converter:
         for i in response.json()['result']['resources']:
             urls.append(i['url'])
         return (urls)
-
-    def get_first_word(self, string, upper=False):
-        # geting a single uppercase word from some string
-        return string.upper().split()[0] if upper else string.split()[0]
 
     def rename_file(self, file):
         # abstract method for rename unzipped files for each app
@@ -163,20 +224,6 @@ class Converter:
         for table in self.tables:
             table.objects.all().delete()
             print('Old data have deleted.')
-
-    def get_kved_from_DB(self, record, record_identity):
-        # verifying kved
-        empty_kved = Kved.objects.get(code='EMP')
-        if not record['KVED']:
-            print(f"Kved value doesn`t exist. Please, check record {record[record_identity]}")
-            return empty_kved
-        # in xml record we have code and name of the kved together in one string. Here we are getting only code
-        kved_code = self.get_first_word(record['KVED'])
-        if kved_code in self.kved_dict:
-            return self.kved_dict[kved_code]
-        else:
-            print(f"This kved value is not valid. Please, check record {record[record_identity]}")
-            return empty_kved
 
     def process(self):
         # parsing sours file in flow
