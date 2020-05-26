@@ -59,7 +59,7 @@ class Converter:
         if kved_code_from_record in self.all_kveds_dict:
             return self.all_kveds_dict[kved_code_from_record]
         else:
-            print(f"This kved value is not valid")
+            print(f"This kved value is outdated or not valid")
             return empty_kved
     
     def save_or_get_status(self, status_from_record):
