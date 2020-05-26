@@ -3,6 +3,7 @@ from collections import defaultdict
 from django.apps import apps
 import json
 import io
+from lxml import etree
 import os
 import requests
 import sys
@@ -222,7 +223,22 @@ class Converter:
         except:
             None
         print('All the records have been rewritten.')
-
+    
+    def process_full(self): # It's temporary method name, in the future this 'process' will be one       
+        i = 0
+        records = etree.Element('RECORDS')
+        for _, elem in etree.iterparse(self.LOCAL_FOLDER + self.LOCAL_FILE_NAME, tag = 'SUBJECT'):           
+            if len(records) < self.CHUNK_SIZE:
+                for text in elem.iter():
+                    print('\t%28s\t%s'%(text.tag, text.text))
+                records.append(elem)
+                i = i + 1
+                print(i,
+                    'record\n\n................................................................................................')
+            else:
+                self.save_to_db(records)
+                records.clear()
+        print('All the records have been rewritten.')
     print('Converter has imported.')
 
 
