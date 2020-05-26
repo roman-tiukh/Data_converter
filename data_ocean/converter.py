@@ -58,9 +58,8 @@ class Converter:
         empty_kved = Kved.objects.get(code='EMP')
         if kved_code_from_record in self.all_kveds_dict:
             return self.all_kveds_dict[kved_code_from_record]
-        else:
-            print(f"This kved value is outdated or not valid")
-            return empty_kved
+        print(f"This kved value is outdated or not valid")
+        return empty_kved
     
     def save_or_get_status(self, status_from_record):
         #storing an object that isn`t in DB yet
@@ -70,8 +69,7 @@ class Converter:
             self.all_statuses_dict[status_from_record] = new_status
             return new_status
         #getting an existed object from DB
-        else:
-            return self.all_statuses_dict[status_from_record]
+        return self.all_statuses_dict[status_from_record]
 
     def save_or_get_authority(self, authority_from_record):
         #storing an object that isn`t in DB yet
@@ -81,8 +79,7 @@ class Converter:
             self.all_authorities_dict[authority_from_record] = new_authority
             return new_authority
         #getting an existed object from DB
-        else:
-            return self.all_authorities_dict[authority_from_record]
+        return self.all_authorities_dict[authority_from_record]
 
     def save_or_get_taxpayer_type(self, taxpayer_type_from_record):
         #storing an object that isn`t in DB yet
@@ -92,8 +89,7 @@ class Converter:
             self.all_taxpayer_types_dict[taxpayer_type_from_record] = new_taxpayer_type
             return new_taxpayer_type
         #getting an existed object from DB
-        else:
-            return self.all_taxpayer_types_dict[taxpayer_type_from_record]
+        return self.all_taxpayer_types_dict[taxpayer_type_from_record]
 
     def get_urls(self):
         # returns actual dataset urls
