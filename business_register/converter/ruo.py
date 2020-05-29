@@ -1,12 +1,12 @@
 from business_register.models.kved_models import Kved
 from business_register.models.ruo_models import Founders, Ruo, State
 from data_ocean.converter import Converter, BulkCreateManager
-
+from data_ocean.models import Register
 
 class RuoConverter(Converter):
     CHUNK_SIZE = 300
     LOCAL_FILE_NAME = "uo.xml"
-    DATASET_ID = "1c7f3815-3259-45e0-bdf1-64dca07ddc10"
+    API_ADDRESS_FOR_DATASET = Register.objects.get(name="Єдиний державний реєстр юридичних осіб, фізичних осіб-підприємців та громадських формувань").api_address
 
     def rename_file(self, file):
         new_filename = file

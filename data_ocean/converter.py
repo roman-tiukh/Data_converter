@@ -16,8 +16,7 @@ from data_ocean.models import Status, Authority, TaxpayerType
 
 class Converter:
     UPDATE_FILE_NAME = "update.cfg"
-    DATA_GOV_UA_API = "https://data.gov.ua/api/3/action/package_show?id="
-    DATASET_ID = ""  # specified dataset id
+    API_ADDRESS_FOR_DATASET = ""  # specified api address with dataset id
     LOCAL_FILE_NAME = None  # static short local filename
     LOCAL_FOLDER = "source_data/"  # local folder for unzipped source files
     DOWNLOAD_FOLDER = "download/"  # folder to downloaded files
@@ -93,9 +92,9 @@ class Converter:
 
     def get_urls(self):
         # returns actual dataset urls
-        response = requests.get(self.DATA_GOV_UA_API + self.DATASET_ID)
+        response = requests.get(self.API_ADDRESS_FOR_DATASET)
         if (response.status_code != 200):
-            print(f"ERROR request to {self.DATA_GOV_UA_API}")
+            print(f"ERROR request to {self.API_ADDRESS_FOR_DATASET}")
             return response.status_code
         urls = []
         for i in response.json()['result']['resources']:

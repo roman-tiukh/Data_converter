@@ -1,10 +1,11 @@
 import re
 from data_ocean.converter import Converter, BulkCreateManager
+from data_ocean.models import Register
 from location_register.models import Region, District, City, Citydistrict, Street
 
 
 class RatuConverter(Converter):
-    DATASET_ID = "a2d6c060-e7e6-4471-ac67-42cfa1742a19"
+    API_ADDRESS_FOR_DATASET = Register.objects.get(name="Реєстр адміністративно-територіального устрою").api_address
     LOCAL_FILE_NAME = "ratu.xml"
     CHUNK_SIZE = 200
 

@@ -24,3 +24,13 @@ class Authority(DataOceanModel):
 
 class TaxpayerType(DataOceanModel):
     name = models.CharField(max_length=200, unique=True)
+
+
+class Register(DataOceanModel):
+    name = models.CharField(max_length=500)
+    source_name = models.CharField(max_length=300)
+    url_address = models.URLField(max_length=500)
+    api_address = models.URLField(max_length=500, null=True)
+
+    def __str__(self):
+        return self.name

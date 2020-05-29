@@ -23,6 +23,7 @@ from business_register.views.kved_views import KvedView
 from business_register.views.rfop_views import RfopView, FopView
 from business_register.views.ruo_views import RuoView
 from location_register.views import RegionView, CityView, StreetView, CitydistrictView, DistrictView
+from data_ocean.views import RegisterView
 
 router = routers.DefaultRouter()
 
@@ -46,7 +47,8 @@ router.register(r'district', DistrictView, basename='district')
 router.register(r'district/<int:pk>', DistrictView, basename='district_item')
 router.register(r'company', CompanyView, basename='company')
 router.register(r'company/<int:pk>', CompanyView, basename='company_item')
-
+router.register(r'register', RegisterView, basename='register')
+router.register(r'register/<int:pk>', RegisterView, basename='registeritem')
 
 urlpatterns = [
 

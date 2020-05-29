@@ -1,4 +1,5 @@
 from data_ocean.converter import Converter
+from data_ocean.models import Register
 from location_register.models import Region, District, City, Citydistrict
 
 
@@ -6,7 +7,7 @@ class KoatuuConverter(Converter):
 
     #paths for the local souce file
     LOCAL_FILE_NAME = "koatuu.json"
-    DATASET_ID = "dc081fb0-f504-4696-916c-a5b24312ab6e"
+    API_ADDRESS_FOR_DATASET = Register.objects.get(name="Класифікатор об’єктів адміністративно-територіального устрою України (КОАТУУ)").api_address
 
     #constants from json file
     LEVEL_ONE = 'Перший рівень'
