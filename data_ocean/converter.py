@@ -1,6 +1,7 @@
 import codecs
 from collections import defaultdict
 from django.apps import apps
+import datetime
 import json
 import io
 from lxml import etree
@@ -50,9 +51,14 @@ class Converter:
         return string.split()[0]
 
     def cut_first_word(self, string):
-        return string.split()[1:]
+        words_after_first = string.split()[1:]
+        return " ".join(words_after_first)
 
-    # verifying kved
+    def format_date_to_yymmdd(self, str_ddmmyy): 
+        ddmmyy = str_ddmmyy.replace(";", "")
+        return datetime.datetime.strptime(ddmmyy, "%d.%m.%Y").strftime("%Y-%m-%d")
+        
+    #verifying kved
     def get_kved_from_DB(self, kved_code_from_record):
         empty_kved = Kved.objects.get(code='EMP')
         if kved_code_from_record in self.all_kveds_dict:
@@ -286,7 +292,6 @@ class Converter:
                 records.clear()
         print('All the records have been rewritten.')
     print('Converter has imported.')
-
 
 class BulkCreateManager(object):  # https://www.caktusgroup.com/blog/2019/01/09/django-bulk-inserts/
     """
