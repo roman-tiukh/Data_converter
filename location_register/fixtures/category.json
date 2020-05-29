@@ -1,0 +1,50 @@
+[
+    {
+      "model": "location_register.category",
+      "id": 100,
+      "fields": {
+        "created_at": "2020-05-22 15:30",
+        "name": "null"
+      }
+    },
+    {
+      "model": "location_register.category",
+      "id": 101,
+      "fields": {
+        "created_at": "2020-05-22 15:30",
+        "name": "С"
+      }
+    },
+    {
+      "model": "location_register.category",
+      "id": 102,
+      "fields": {
+        "created_at": "2020-05-22 15:30",
+        "name": "Щ"
+      }
+    },
+    {
+      "model": "location_register.category",
+      "id": 103,
+      "fields": {
+        "created_at": "2020-05-22 15:30",
+        "name": "Т"
+      }
+    },
+    {
+      "model": "location_register.category",
+      "id": 104,
+      "fields": {
+        "created_at": "2020-05-22 15:30",
+        "name": "М"
+      }
+    },
+    {
+      "model": "location_register.category",
+      "id": 105,
+      "fields": {
+        "created_at": "2020-05-22 15:30",
+        "name": "Р"
+      }
+    }
+]
