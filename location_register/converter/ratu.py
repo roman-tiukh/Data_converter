@@ -63,7 +63,7 @@ class RatuConverter(Converter):
         return city.strip()
 
     # function to compare data records with category types
-    def category(self, name):
+    def format_category_name(self, name):
         name = str(name).split('.')[0]
         switcher={
             'с':'С',
