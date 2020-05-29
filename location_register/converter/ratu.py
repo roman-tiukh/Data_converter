@@ -1,5 +1,6 @@
 import re
 from data_ocean.converter import Converter, BulkCreateManager
+from data_ocean.models import Register
 from location_register.models import Region, District, City, Citydistrict, Street, Category
 
 
