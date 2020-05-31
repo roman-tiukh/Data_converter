@@ -31,6 +31,7 @@ class Register(DataOceanModel):
     source_name = models.CharField(max_length=300)
     url_address = models.URLField(max_length=500)
     api_address = models.URLField(max_length=500, null=True)
+    last_update = models.DateTimeField(auto_now=False, auto_now_add=False)
 
     def __str__(self):
         return self.name
