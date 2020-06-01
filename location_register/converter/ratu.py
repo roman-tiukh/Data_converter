@@ -5,7 +5,7 @@ from location_register.models import Region, District, City, Citydistrict, Stree
 
 
 class RatuConverter(Converter):
-    API_ADDRESS_FOR_DATASET = Register.objects.get(name="Реєстр адміністративно-територіального устрою").api_address
+    API_ADDRESS_FOR_DATASET = Register.objects.get(source_register_id="a2d6c060-e7e6-4471-ac67-42cfa1742a19").api_address
     LOCAL_FILE_NAME = "ratu.xml"
     CHUNK_SIZE = 200
 

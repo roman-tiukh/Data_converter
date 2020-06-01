@@ -11,8 +11,7 @@ from data_ocean.models import Authority, Status, TaxpayerType
 
 class FopConverter(Converter):
     LOCAL_FILE_NAME = "fop.xml"
-    LOCAL_FOLDER = "/Users/marichka/Data_converter/unzipped_xml/"
-    DATASET_ID = "1c7f3815-3259-45e0-bdf1-64dca07ddc10"
+    API_ADDRESS_FOR_DATASET = Register.objects.get(source_register_id="1c7f3815-3259-45e0-bdf1-64dca07ddc10").api_address
     CHUNK_SIZE = 100000
     bulk_manager = BulkCreateManager(1000000)
     all_fops_dict = {}

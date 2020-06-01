@@ -7,7 +7,7 @@ from data_ocean.models import Register
 
 class RfopConverter(Converter):
     LOCAL_FILE_NAME = "fop.xml"
-    API_ADDRESS_FOR_DATASET = Register.objects.get(name="Єдиний державний реєстр юридичних осіб, фізичних осіб-підприємців та громадських формувань").api_address
+    API_ADDRESS_FOR_DATASET = Register.objects.get(source_register_id="1c7f3815-3259-45e0-bdf1-64dca07ddc10").api_address
     CHUNK_SIZE = 200
 
     def rename_file(self, file):

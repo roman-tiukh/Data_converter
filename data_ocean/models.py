@@ -1,6 +1,5 @@
 from django.db import models
 
-
 class DataOceanModel(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
@@ -27,10 +26,12 @@ class TaxpayerType(DataOceanModel):
 
 
 class Register(DataOceanModel):
-    name = models.CharField(max_length=500)
+    name = models.CharField(max_length=500, unique=True)
     source_name = models.CharField(max_length=300)
+    source_register_id = models.URLField(max_length=300, unique=True)
     url_address = models.URLField(max_length=500)
     api_address = models.URLField(max_length=500, null=True)
+    source_last_update = models.DateTimeField(default=None, null=True)
 
     def __str__(self):
         return self.name
