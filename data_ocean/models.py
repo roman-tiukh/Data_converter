@@ -1,5 +1,5 @@
 from django.db import models
-
+import uuid
 
 class DataOceanModel(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
@@ -27,11 +27,12 @@ class TaxpayerType(DataOceanModel):
 
 
 class Register(DataOceanModel):
-    name = models.CharField(max_length=500)
+    source_register_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=500, unique=True)
     source_name = models.CharField(max_length=300)
     url_address = models.URLField(max_length=500)
     api_address = models.URLField(max_length=500, null=True)
-    last_update = models.DateTimeField(auto_now_add=True, null=True)
+    source_last_update = models.DateTimeField(auto_now=False, auto_now_add=False)
 
     def __str__(self):
         return self.name
