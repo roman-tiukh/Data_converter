@@ -6,7 +6,7 @@ from data_ocean.models import Register
 class RuoConverter(Converter):
     CHUNK_SIZE = 300
     LOCAL_FILE_NAME = "uo.xml"
-    API_ADDRESS_FOR_DATASET = Register.objects.get(source_register_id=1).api_address
+    API_ADDRESS_FOR_DATASET = Register.objects.get(source_register_id="1c7f3815-3259-45e0-bdf1-64dca07ddc10").api_address
 
     def rename_file(self, file):
         new_filename = file
