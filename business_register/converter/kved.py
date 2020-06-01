@@ -4,7 +4,7 @@ from data_ocean.models import Register
 
 class KvedConverter(Converter):
     LOCAL_FILE_NAME = "kved.json"
-    API_ADDRESS_FOR_DATASET = Register.objects.get(name="Класифікація видів економічної діяльності").api_address
+    API_ADDRESS_FOR_DATASET = Register.objects.get(source_register_id=2).api_address
 
     # list of models for clearing DB
     tables = [

@@ -7,7 +7,7 @@ class KoatuuConverter(Converter):
 
     #paths for the local souce file
     LOCAL_FILE_NAME = "koatuu.json"
-    API_ADDRESS_FOR_DATASET = Register.objects.get(name="Класифікатор об’єктів адміністративно-територіального устрою України").api_address
+    API_ADDRESS_FOR_DATASET = Register.objects.get(source_register_id=4).api_address
 
     #constants from json file
     LEVEL_ONE = 'Перший рівень'
