@@ -34,5 +34,6 @@ config.py
 ratu/sanding.py
 .vscode
 unzipped_xml
+source_data
 download
 *.zip

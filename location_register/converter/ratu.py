@@ -167,7 +167,7 @@ class RatuConverter(Converter):
         if record:
             city_name = self.clean_city_or_citydistrict_name(record)
             city_value = Model.objects.get(name=city_name)
-            city_value.category_id = Category.objects.get(name=self.category(record)).id
+            city_value.category_id = Category.objects.get(name=self.format_category_name(record)).id
             city_value.save(update_fields=['category_id'])
         else:
             empty_values = Model.objects.filter(name='empty field')
