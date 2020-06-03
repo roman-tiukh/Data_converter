@@ -34,12 +34,12 @@ class Converter:
         for kved in all_objects:
             self.all_kveds_dict[kved.code]=kved
 
-        self.all_statuses_dict = self.initialize_objects_for("Status")
-        self.all_authorities_dict = self.initialize_objects_for("Authority")
-        self.all_taxpayer_types_dict = self.initialize_objects_for("TaxpayerType")
+        self.all_statuses_dict = self.initialize_objects_for("data_ocean", "Status")
+        self.all_authorities_dict = self.initialize_objects_for("data_ocean", "Authority")
+        self.all_taxpayer_types_dict = self.initialize_objects_for("data_ocean", "TaxpayerType")
 
-    def initialize_objects_for(self, model_name):
-        model = apps.get_model("data_ocean", model_name)
+    def initialize_objects_for(self, app_name, model_name):
+        model = apps.get_model(app_name, model_name)
         all_objects = model.objects.all()
         all_objects_dict = {}
         for object in all_objects:
@@ -277,6 +277,7 @@ class Converter:
         print('All the records have been rewritten.')
     
     def process_full(self): # It's temporary method name, in the future this 'process' will be one       
+        self.clear_db()
         i = 0
         records = etree.Element('RECORDS')
         for _, elem in etree.iterparse(self.LOCAL_FOLDER + self.LOCAL_FILE_NAME, tag = 'SUBJECT'):           
@@ -305,15 +306,22 @@ class BulkCreateManager(object):  # https://www.caktusgroup.com/blog/2019/01/09/
 
     def __init__(self, chunk_size=200):
         self._create_queues = defaultdict(list)
+        self._update_queues = defaultdict(list)
         self.chunk_size = chunk_size
-        self.first = False
+        self.create_first = False
+        self.update_first = False
 
-    def _commit(self, model_class):
+    def _commit_create(self, model_class):
         model_key = model_class._meta.label
         model_class.objects.bulk_create(self._create_queues[model_key])
-        self.first = True
+        self.create_first = True
 
-    def add(self, obj):
+    def _commit_update(self, model_class, fields):
+        model_key = model_class._meta.label
+        model_class.objects.bulk_update(self._create_queues[model_key], fields)
+        self.update_first = True
+
+    def add_create(self, obj):
         """
         Add an object to the queue to be created, and call bulk_create if we
         have enough objs.
@@ -321,12 +329,27 @@ class BulkCreateManager(object):  # https://www.caktusgroup.com/blog/2019/01/09/
         model_class = type(obj)
         model_key = model_class._meta.label
 
-        if self.first:
+        if self.create_first:
             self._create_queues[model_key] = []
-            self.first = False
+            self.create_first = False
         self._create_queues[model_key].append(obj)
         if len(self._create_queues[model_key]) >= self.chunk_size:
-            self._commit(model_class)
+            self._commit_create(model_class)
+
+    def add_update(self, obj):
+        """
+        Add an object to the queue to be updated, and call bulk_update if we
+        have enough objs.
+        """
+        model_class = type(obj)
+        model_key = model_class._meta.label
+
+        if self.update_first:
+            self._update_queues[model_key] = []
+            self.update_first = False
+        self._update_queues[model_key].append(obj)
+        if len(self._update_queues[model_key]) >= self.chunk_size:
+            self._commit_update(model_class)
 
     def done(self):
         """
