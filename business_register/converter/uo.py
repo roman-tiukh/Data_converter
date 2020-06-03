@@ -14,8 +14,6 @@ class Parser(Converter):
     LOCAL_FOLDER = settings_local.LOCAL_FOLDER
     CHUNK_SIZE = 5
     all_bylaw_dict = {}
-    all_state_dict = {}
-    all_authorities_dict = {}
     all_company_type_dict = {}
     company_update_dict = {}
     company_create_dict = {}  
@@ -28,25 +26,14 @@ class Parser(Converter):
         # Authority
     ]
     bulk_manager = BulkCreateManager(100000)       
-    
-    authority = None
     bylaw = None
-    company_type = None
-    state = None
+    company_type = None 
     
     def __init__(self):
         self.all_bylaw_dict = self.initialize_objects_for("business_register", "Bylaw")
         self.all_company_type_dict = self.initialize_objects_for("business_register", "CompanyType")
         
         super(Parser, self).__init__()
-
-    def cut_first_word(self, string):
-        words_after_first = string.split()[1:]
-        return " ".join(words_after_first)
-    	
-    def format_date_to_yymmdd(self, str_ddmmyy):
-        ddmmyy = str_ddmmyy.replace(";", "")
-        return datetime.datetime.strptime(ddmmyy, "%d.%m.%Y").strftime("%Y-%m-%d")
 
     def fill_foreign_tables(self, record):
         self.authority = self.save_or_get_authority(record.xpath('CURRENT_AUTHORITY')[0].text)
