@@ -1,6 +1,6 @@
 from data_ocean.converter import Converter
 from data_ocean.models import Register
-from location_register.models import Region, District, City, Citydistrict
+from location_register.models.ratu_models import Region, District, City, Citydistrict
 
 
 class KoatuuConverter(Converter):

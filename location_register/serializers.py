@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from location_register.models import Region, District, City, Citydistrict, Street
+from location_register.models.ratu_models import Region, District, City, Citydistrict, Street
 
 
 class RegionSerializer(serializers.ModelSerializer):

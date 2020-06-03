@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from location_register.models import Region, District, City, Citydistrict, Street
+from location_register.models.ratu_models import Region, District, City, Citydistrict, Street
 
 admin.site.register(Region)
 admin.site.register(District)
