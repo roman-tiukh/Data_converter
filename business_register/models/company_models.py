@@ -75,8 +75,7 @@ class ExchangeDataCompany(DataOceanModel):
 class FounderFull(DataOceanModel):
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     name = models.TextField(null=True)
-    hash_code = models.CharField(max_length=510)
-    
+    hash_code = models.CharField(max_length=510)    
 
 
 class Predecessor(DataOceanModel): #constraint for not null in both fields

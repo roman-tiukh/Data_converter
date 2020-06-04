@@ -4,7 +4,7 @@ from django.utils.dateparse import parse_date
 from lxml import etree
 
 from data_converter import settings_local
-from data_ocean.converter import Converter, BulkCreateManager
+from data_ocean.converter import Converter, BulkCreateUpdateManager
 from data_ocean.models import Authority
 from business_register.models.company_models import Bylaw, Company, CompanyType, FounderFull
 from data_ocean.models import Status
@@ -25,54 +25,49 @@ class Parser(Converter):
         # Status,
         # Authority
     ]
-    bulk_manager = BulkCreateManager(100000)       
-    bylaw = None
-    company_type = None 
+    bulk_manager = BulkCreateUpdateManager(100000)       
     
     def __init__(self):
         self.all_bylaw_dict = self.initialize_objects_for("business_register", "Bylaw")
         self.all_company_type_dict = self.initialize_objects_for("business_register", "CompanyType")
         
-        super(Parser, self).__init__()
+        super().__init__()
 
-    def fill_foreign_tables(self, record):
-        self.authority = self.save_or_get_authority(record.xpath('CURRENT_AUTHORITY')[0].text)
-        self.status = self.save_or_get_status(record.xpath('STAN')[0].text)      
-        
+    def save_or_get_bylaw(self, record):
         if not record.xpath('STATUTE')[0].text in self.all_bylaw_dict:
-            print(self.all_bylaw_dict)
             self.bylaw = Bylaw(name=record.xpath('STATUTE')[0].text)
             self.bylaw.save()
             self.all_bylaw_dict[record.xpath('STATUTE')[0].text] = self.bylaw   
         else:
             self.bylaw = self.all_bylaw_dict[record.xpath('STATUTE')[0].text]
-                    
+
+    def save_or_get_company_type(self, record):                
         if not record.xpath('OPF')[0].text in self.all_company_type_dict:
-            print(self.all_company_type_dict)
             self.company_type = CompanyType(name=record.xpath('OPF')[0].text)
             self.company_type.save()
             self.all_company_type_dict[record.xpath('OPF')[0].text] = self.company_type   
         else:
             self.company_type = self.all_company_type_dict[record.xpath('OPF')[0].text]
 
-    def company_create (self, record):
+    def create_hash_code(self, record, edrpou):
+        hash_code = record.xpath('NAME')[0].text + edrpou
+        return hash_code
+
+    def company_create (self, record, edrpou, registration_date, registration_info):
         company = Company()
         company.name = record.xpath('NAME')[0].text
         company.short_name = record.xpath('SHORT_NAME')[0].text
         company.company_type = self.company_type
-        if record.xpath('EDRPOU')[0].text:
-            company.edrpou = record.xpath('EDRPOU')[0].text
-        else:
-            company.edrpou = 'empty'
+        
+        company.edrpou = edrpou
         company.address = record.xpath('ADDRESS')[0].text
         company.status = self.status
         company.bylaw = self.bylaw
-        if record.xpath('REGISTRATION')[0].text:
-            company.registration_date = self.format_date_to_yymmdd(self.get_first_word(record.xpath('REGISTRATION')[0].text))
-            company.registration_info = self.cut_first_word(record.xpath('REGISTRATION')[0].text)
+        company.registration_date = registration_date
+        company.registration_info = registration_info
         company.contact_info = record.xpath('CONTACTS')[0].text
         company.authority = self.authority
-        company.hash_code = record.xpath('NAME')[0].text + company.edrpou
+        company.hash_code = self.create_hash_code(record, edrpou)
         return company
 
     def add_founders(self, record, edrpou):
@@ -80,48 +75,50 @@ class Parser(Converter):
             for item in record.xpath('FOUNDERS')[0]:
                 founder = FounderFull()
                 founder.name = item.text
-                founder.hash_code = record.xpath('NAME')[0].text + edrpou
+                founder.hash_code = self.create_hash_code(record, edrpou)
                 self.bulk_manager.add_create(founder)
             
     def save_to_db(self, records):
+        bylaw = None
+        company_type = None
         for record in records:
-            self.fill_foreign_tables(record)
-            if record.xpath('EDRPOU')[0].text:
-                edrpou = record.xpath('EDRPOU')[0].text
-            else:
-                edrpou = 'empty'
+            self.authority = self.save_or_get_authority(record.xpath('CURRENT_AUTHORITY')[0].text)
+            self.status = self.save_or_get_status(record.xpath('STAN')[0].text)
+            self.save_or_get_bylaw(record)
+            self.save_or_get_company_type(record)
+
+            edrpou = record.xpath('EDRPOU')[0].text or 'empty'
             registration_date = None
             registration_info = None
-            if record.xpath('REGISTRATION')[0].text:
-                    registration_date = self.format_date_to_yymmdd(self.get_first_word(record.xpath('REGISTRATION')[0].text))
-                    registration_info = self.cut_first_word(record.xpath('REGISTRATION')[0].text)
-            company_list = Company.objects.filter(
-                name = record.xpath('NAME')[0].text,
-                short_name = record.xpath('SHORT_NAME')[0].text,
-                company_type = self.company_type,
-                edrpou = edrpou,
-                address = record.xpath('ADDRESS')[0].text,
-                status = self.status,
-                bylaw = self.bylaw,
-                registration_date = registration_date,
-                registration_info = registration_info,
-                contact_info = record.xpath('CONTACTS')[0].text,
-                authority = self.authority,
-                hash_code = record.xpath('NAME')[0].text + edrpou
-            )
-            if company_list.exists():
-                company = company_list.first()
+            registration = record.xpath('REGISTRATION')[0].text
+            if registration:
+                registration_date = self.format_date_to_yymmdd(self.get_first_word(registration)) or None
+                registration_info = self.cut_first_word(registration) or None
+            try:
+                company = Company.objects.filter(hash_code = self.create_hash_code(record, edrpou)).first()
+                company.short_name = record.xpath('SHORT_NAME')[0].text
+                company.company_type = company_type
+                company.address = record.xpath('ADDRESS')[0].text
+                company.status = self.status
+                company.bylaw = bylaw
+                company.registration_date = registration_date
+                company.registration_info = registration_info
+                company.contact_info = record.xpath('CONTACTS')[0].text
+                company.authority = self.authority
                 self.bulk_manager.add_update(company)
-                self.add_founders(record, edrpou)
-            else:
                 
-                company = self.company_create(record)
+                print('update')
+            except:
+                
+                company = self.company_create(record, edrpou, registration_date, registration_info)
                 self.bulk_manager.add_create(company)
-                self.add_founders(record, edrpou)
-        try:
+                
+                print('create')
+            self.add_founders(record, edrpou)
+
+        if len(self.bulk_manager._update_queues['business_register.Company']) > 0:
             self.bulk_manager._commit_update(Company, ['name', 'short_name', 'company_type', 'edrpou'])
-        except:
-            None
+        
         
         self.bulk_manager._commit_create(Company)
         company_update_dict = {}
@@ -140,4 +137,4 @@ class Parser(Converter):
                 founder.company = company_create_dict[founder.hash_code]
 
         self.bulk_manager._commit_create(FounderFull)
-        self.bulk_manager._create_queues['business_register.FounderFull']=[]
+        self.bulk_manager._create_queues['business_register.FounderFull'] = []
