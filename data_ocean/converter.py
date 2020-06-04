@@ -318,7 +318,7 @@ class BulkCreateUpdateManager(object):  # https://www.caktusgroup.com/blog/2019/
 
     def _commit_update(self, model_class, fields):
         model_key = model_class._meta.label
-        model_class.objects.bulk_update(self._create_queues[model_key], fields)
+        model_class.objects.bulk_update(self._update_queues[model_key], fields)
         self.update_first = True
 
     def add_create(self, obj):

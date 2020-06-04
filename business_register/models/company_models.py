@@ -9,7 +9,7 @@ class Bylaw(DataOceanModel):
 
 
 class CompanyType(DataOceanModel):
-    name = models.CharField(max_length=100, unique=True)
+    name = models.CharField(max_length=100, unique=True, null=True)
 
 
 class Company(DataOceanModel): #constraint for not null in both name & short_name fields
@@ -22,8 +22,8 @@ class Company(DataOceanModel): #constraint for not null in both name & short_nam
     status = models.ForeignKey(Status, on_delete=models.CASCADE)
     bylaw = models.ForeignKey(Bylaw, on_delete=models.CASCADE)
     registration_date = models.DateTimeField(null=True)
-    registration_info = models.CharField(max_length=100, null=True)
-    contact_info = models.CharField(max_length=100, null=True)
+    registration_info = models.CharField(max_length=150, null=True)
+    contact_info = models.CharField(max_length=140, null=True)
     authority = models.ForeignKey(Authority, on_delete=models.CASCADE)
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True)
     history = HistoricalRecords()
