@@ -12,14 +12,14 @@ from data_ocean.models import Status
 class Parser(Converter):
     LOCAL_FILE_NAME = settings_local.LOCAL_FILE_NAME_UO
     LOCAL_FOLDER = settings_local.LOCAL_FOLDER
-    CHUNK_SIZE = 1000
+    CHUNK_SIZE = 100
     all_bylaw_dict = {}
     all_company_type_dict = {}
     company_update_dict = {}
     company_create_dict = {}  
     tables= [
         # Bylaw,
-        Company,
+        # Company,
         # CompanyType,
         FounderFull,
         # Status,
@@ -50,8 +50,7 @@ class Parser(Converter):
             self.company_type = self.all_company_type_dict[record.xpath('OPF')[0].text]
 
     def create_hash_code(self, record, edrpou):
-        hash_code = record.xpath('NAME')[0].text + edrpou
-        return hash_code
+        return record.xpath('NAME')[0].text + edrpou
 
     def company_create (self, record, edrpou, registration_date, registration_info):
         company = Company()
@@ -133,8 +132,8 @@ class Parser(Converter):
         for company in self.bulk_manager._create_queues['business_register.Company']:
             company_create_dict[company.hash_code] = company
 
-        # self.bulk_manager._update_queues['business_register.Company'] = []
-        # self.bulk_manager._create_queues['business_register.Company'] = []
+        self.bulk_manager._update_queues['business_register.Company'] = []
+        self.bulk_manager._create_queues['business_register.Company'] = []
 
         for founder in self.bulk_manager._create_queues['business_register.FounderFull']:
             if founder.hash_code in company_update_dict:

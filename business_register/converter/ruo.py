@@ -1,6 +1,6 @@
 from business_register.models.kved_models import Kved
 from business_register.models.ruo_models import Founders, Ruo, State
-from data_ocean.converter import Converter, BulkCreateManager
+from data_ocean.converter import Converter, BulkCreateUpdateManager
 from data_ocean.models import Register
 
 class RuoConverter(Converter):
@@ -47,8 +47,8 @@ class RuoConverter(Converter):
         kved_dict[kved.code] = kved
 
     # creating BulkCreateManager objects
-    bulk_manager = BulkCreateManager(CHUNK_SIZE)
-    bulk_submanager = BulkCreateManager(100000)  # chunck size 100000 for never reach it
+    bulk_manager = BulkCreateUpdateManager(CHUNK_SIZE)
+    bulk_submanager = BulkCreateUpdateManager(100000)  # chunck size 100000 for never reach it
 
     # writing entry to db
     def save_to_db(self, record):

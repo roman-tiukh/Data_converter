@@ -1,7 +1,7 @@
 from business_register.models.kved_models import Kved
 from business_register.models.rfop_models import Rfop
 from business_register.models.ruo_models import State
-from data_ocean.converter import Converter, BulkCreateManager
+from data_ocean.converter import Converter, BulkCreateUpdateManager
 from data_ocean.models import Register
 
 
@@ -34,7 +34,7 @@ class RfopConverter(Converter):
     state_dict = {}  # dictionary uses for keeping whole model class objects
     kved_dict = {}
 
-    bulk_manager = BulkCreateManager(CHUNK_SIZE)
+    bulk_manager = BulkCreateUpdateManager(CHUNK_SIZE)
 
     for state in State.objects.all():
         state_dict[state.name] = state

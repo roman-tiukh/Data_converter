@@ -26,8 +26,8 @@ class Company(DataOceanModel): #constraint for not null in both name & short_nam
     contact_info = models.CharField(max_length=140, null=True)
     authority = models.ForeignKey(Authority, on_delete=models.CASCADE)
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True)
-    history = HistoricalRecords()
     hash_code = models.CharField(max_length=510)
+    history = HistoricalRecords()
 
 
 class Assignee(DataOceanModel):
