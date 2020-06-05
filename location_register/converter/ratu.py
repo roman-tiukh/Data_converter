@@ -1,5 +1,5 @@
 import re
-from data_ocean.converter import Converter, BulkCreateManager
+from data_ocean.converter import Converter, BulkCreateUpdateManager
 from data_ocean.models import Register
 from location_register.models.ratu_models import Region, District, City, Citydistrict, Street, Category
 
@@ -39,7 +39,7 @@ class RatuConverter(Converter):
     city_list = list()
     citydistrict_list = list()
 
-    bulk_manager = BulkCreateManager(CHUNK_SIZE)
+    bulk_manager = BulkCreateUpdateManager(CHUNK_SIZE)
 
 
     # changing from records like: "волинська обл." to "волинська область"

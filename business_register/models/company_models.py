@@ -1,8 +1,7 @@
 from django.db import models
 from simple_history.models import HistoricalRecords
 from business_register.models.kved_models import Kved
-from business_register.models.ruo_models import State
-from data_ocean.models import DataOceanModel, Authority, TaxpayerType
+from data_ocean.models import Authority, DataOceanModel, Status, TaxpayerType
 
 
 class Bylaw(DataOceanModel):
@@ -10,7 +9,7 @@ class Bylaw(DataOceanModel):
 
 
 class CompanyType(DataOceanModel):
-    name = models.CharField(max_length=100, unique=True)
+    name = models.CharField(max_length=100, unique=True, null=True)
 
 
 class Company(DataOceanModel): #constraint for not null in both name & short_name fields
@@ -20,13 +19,14 @@ class Company(DataOceanModel): #constraint for not null in both name & short_nam
     company_type = models.ForeignKey(CompanyType, on_delete=models.CASCADE)
     edrpou = models.CharField(max_length=50)
     address = models.CharField(max_length=500, null=True)  
-    state = models.ForeignKey(State, on_delete=models.CASCADE)
+    status = models.ForeignKey(Status, on_delete=models.CASCADE)
     bylaw = models.ForeignKey(Bylaw, on_delete=models.CASCADE)
     registration_date = models.DateTimeField(null=True)
-    registration_info = models.CharField(max_length=100, null=True)
-    contact_info = models.CharField(max_length=100, null=True)
+    registration_info = models.CharField(max_length=150, null=True)
+    contact_info = models.CharField(max_length=140, null=True)
     authority = models.ForeignKey(Authority, on_delete=models.CASCADE)
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True)
+    hash_code = models.CharField(max_length=510)
     history = HistoricalRecords()
 
 
@@ -75,6 +75,7 @@ class ExchangeDataCompany(DataOceanModel):
 class FounderFull(DataOceanModel):
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     name = models.TextField(null=True)
+    hash_code = models.CharField(max_length=510)    
 
 
 class Predecessor(DataOceanModel): #constraint for not null in both fields

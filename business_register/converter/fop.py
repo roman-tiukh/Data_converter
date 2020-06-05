@@ -5,7 +5,7 @@ from django.apps import apps
 
 from business_register.models.rfop_models import (ExchangeDataFop, Fop,
                                                   FopToKved)
-from data_ocean.converter import BulkCreateManager, Converter
+from data_ocean.converter import BulkCreateUpdateManager, Converter
 from data_ocean.models import Authority, Status, TaxpayerType
 
 
@@ -13,7 +13,7 @@ class FopConverter(Converter):
     LOCAL_FILE_NAME = "fop.xml"
     API_ADDRESS_FOR_DATASET = Register.objects.get(source_register_id="1c7f3815-3259-45e0-bdf1-64dca07ddc10").api_address
     CHUNK_SIZE = 100000
-    bulk_manager = BulkCreateManager(1000000)
+    bulk_manager = BulkCreateUpdateManager(1000000)
     all_fops_dict = {}
     all_fop_kveds = []
     all_fop_exchange_data = []
