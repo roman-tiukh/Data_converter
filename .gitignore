@@ -12,7 +12,7 @@ celerybeat-schedule
 /web/docker_django/allstatic/
 /config/certbot/conf/
 /data/
-.idea
+/.idea
 Thumbs.db
 __pycache__
 /__pycache__
@@ -25,14 +25,15 @@ django_cache
 static/img/background/
 static/img/tables/
 /web/static/calendar/js/events.json
-venv/
+/venv/
+/.venv/
 /data_converter/settings_local.py
 # /web/docker_django/development
 # web/docker_django/system/cryptography/
 # web/docker_django/system/cryptography/EUSignCP.py
 config.py
 ratu/sanding.py
-.vscode
+/.vscode/
 unzipped_xml
 source_data
 download
