@@ -57,7 +57,6 @@ class Parser(Converter):
         company.name = record.xpath('NAME')[0].text
         company.short_name = record.xpath('SHORT_NAME')[0].text
         company.company_type = self.company_type
-        
         company.edrpou = edrpou
         company.address = record.xpath('ADDRESS')[0].text
         company.status = self.status
@@ -86,7 +85,7 @@ class Parser(Converter):
             self.save_or_get_bylaw(record)
             self.save_or_get_company_type(record)
 
-            edrpou = record.xpath('EDRPOU')[0].text or 'empty'
+            edrpou = record.xpath('EDRPOU')[0].text or Company.INVALID
             registration_date = None
             registration_info = None
             registration = record.xpath('REGISTRATION')[0].text
@@ -117,11 +116,7 @@ class Parser(Converter):
 
         if len(self.bulk_manager._update_queues['business_register.Company']) > 0:
 
-            # print(self.bulk_manager._update_queues['business_register.Company'])
-            # print(self.bulk_manager._update_queues['business_register.Company'][0].pk)
-
             self.bulk_manager._commit_update(Company, ['name', 'short_name', 'company_type', 'edrpou'])
-        
         
         self.bulk_manager._commit_create(Company)
         company_update_dict = {}
