@@ -40,18 +40,20 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
+    'django_extensions',
+
     'rest_framework',
     'rest_framework.authtoken',
     'rest_auth',
-    'django_extensions',
+    'rest_auth.registration',
+    'allauth',
+    'allauth.account',
+    'users',
+    
     'simple_history',
     'business_register',
     'location_register',
-    'users',
-    'django.contrib.sites',
-    'allauth',
-    'allauth.account',
-    'rest_auth.registration',
 
 ]
 
@@ -150,3 +152,8 @@ AUTH_USER_MODEL = 'users.DataOceanUser'
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 SITE_ID = 1
+
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
