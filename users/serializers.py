@@ -1,8 +1,8 @@
 from rest_framework import serializers
-from . import models
+from users import models
 
 
-class UserSerializer(serializers.ModelSerializer):
+class DataOceanUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.DataOceanUser
-        fields = ('email', 'username', )
+        fields = ('email', )
