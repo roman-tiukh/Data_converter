@@ -4,7 +4,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
 from location_register.models.ratu_models import Region, District, City, Citydistrict, Street
-from location_register.serializers import RegionSerializer, DistrictSerializer, CitySerializer, CitydistrictSerializer, \
+from location_register.serializers.ratu_serializers import RegionSerializer, DistrictSerializer, CitySerializer, CitydistrictSerializer, \
     StreetSerializer
 
 

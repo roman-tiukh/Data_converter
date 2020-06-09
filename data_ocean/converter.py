@@ -28,23 +28,39 @@ class Converter:
     all_authorities_dict = {}
     all_taxpayer_types_dict = {}
 
-    #initializing dictionaries with all objects
+    # initializing dictionaries with all objects
     def __init__(self):
-        all_objects = Kved.objects.all()
-        for kved in all_objects:
-            self.all_kveds_dict[kved.code] = kved
+        self.all_kveds_dict = self.put_all_objects_to_dict_with_code("business_register", "Kved")
+        self.all_statuses_dict = self.put_all_objects_to_dict_with_name("data_ocean", "Status")
+        self.all_authorities_dict = self.put_all_objects_to_dict_with_name("data_ocean", "Authority")
+        self.all_taxpayer_types_dict = self.put_all_objects_to_dict_with_name("data_ocean", "TaxpayerType")
 
-        self.all_statuses_dict = self.initialize_objects_for("data_ocean", "Status")
-        self.all_authorities_dict = self.initialize_objects_for("data_ocean", "Authority")
-        self.all_taxpayer_types_dict = self.initialize_objects_for("data_ocean", "TaxpayerType")
-
-    def initialize_objects_for(self, app_name, model_name):
+    # putting all objects of the model from DB to a dictionary using name as a key
+    def put_all_objects_to_dict_with_name(self, app_name, model_name):
         model = apps.get_model(app_name, model_name)
         all_objects = model.objects.all()
         all_objects_dict = {}
         for object in all_objects:
             all_objects_dict[object.name] = object
         return all_objects_dict
+    
+    # putting all objects of the model from DB to a dictionary using code as a key
+    def put_all_objects_to_dict_with_code(self, app_name, model_name):
+        model = apps.get_model(app_name, model_name)
+        all_objects = model.objects.all()
+        all_objects_dict = {}
+        for object in all_objects:
+            all_objects_dict[object.code]=object
+        return all_objects_dict
+
+    # putting objects of the model from DB to a dictionary using region as a filter
+    def put_objects_from_region_to_dict(self, app_name, model_name, region_name):
+        model = apps.get_model(app_name, model_name)
+        region_objects = model.objects.filter(region=region_name)
+        region_objects_dict = {}
+        for object in region_objects:
+            region_objects_dict[object.name]=object
+        return region_objects_dict
 
     #lets have all supporting functions at the beginning
     def get_first_word(self, string):

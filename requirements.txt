@@ -24,4 +24,5 @@ sqlparse==0.3.1
 urllib3==1.22
 wrapt==1.11.2
 xmltodict==0.12.0
+zeep==3.4.0
 django-allauth
