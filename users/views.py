@@ -1,10 +1,9 @@
-from django.shortcuts import render
-
 from rest_framework import generics
 
-from . import models
-from . import serializers
+from users import models
+from users import serializers
+
 
 class UserListView(generics.ListAPIView):
     queryset = models.DataOceanUser.objects.all()
-    serializer_class = serializers.UserSerializer
+    serializer_class = serializers.DataOceanUserSerializer
