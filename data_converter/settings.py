@@ -143,6 +143,7 @@ ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 
+<<<<<<< HEAD
 # Settings for social authentication
 
 AUTHENTICATION_BACKENDS = (
@@ -170,3 +171,15 @@ REST_AUTH_SERIALIZERS = {
     'LOGIN_SERIALIZER': 'users.serializers.CustomLoginSerializer',
     'TOKEN_SERIALIZER': 'users.serializers.TokenSerializer',
 }
+=======
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6379/',
+        'OPTIONS': {
+            # 'PASSWORD': 'XXXXXXXXX',
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
+    }
+}
+>>>>>>> add wide cache
