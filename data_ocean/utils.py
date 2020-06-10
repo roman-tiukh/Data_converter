@@ -9,25 +9,25 @@ import re
 # changing to lowercase, deleting 'р.', 'м.', 'с.', 'смт.', 'смт', 'сщ.', 'с/рада.', 'сщ/рада.', /
 # 'вул.' from a string
 def clean_name(name):
-    name = name.lower()
-    return re.sub(r'р\.|м\.|с\.|смт|смт\.|сщ\.|с/рада\.|сщ/рада\.|вул\.', "", name).strip()
+    return re.sub(r'р\.|м\.|с\.|смт|смт\.|сщ\.|с/рада\.|сщ/рада\.|вул\.', "", name.lower()).strip()
+
+#a dictionary for storing all abbreviations and full forms
+SHORT_TO_FULL_DICT = {
+    'р-н': 'район',
+    'вул.': 'вулиця ',
+    'бульв.': 'бульвар ',
+    'просп.': 'проспект ',
+    'пров.': 'провулок ',
+    'пл.': 'площа ',
+    'обл.': 'область',
+    'области': 'області'
+}
 
 # changing to lowercase and abbreviations to full forms like 'р-н' to 'район' /
 # (see all cases in short_to_full_dict)
 def change_to_full_name(name):
-    #a dictionary for storing all abbreviations and full forms
-    short_to_full_dict = {
-        'р-н': 'район',
-        'вул.': 'вулиця ',
-        'бульв.': 'бульвар ',
-        'просп.': 'проспект ',
-        'пров.': 'провулок ',
-        'пл.': 'площа ',
-        'обл.': 'область',
-        'области': 'області'
-    }
     name = name.lower()
-    for abbr, full_form in short_to_full_dict.items():
+    for abbr, full_form in SHORT_TO_FULL_DICT.items():
         name = name.replace(abbr, full_form)
     return name
 
