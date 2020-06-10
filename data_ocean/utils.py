@@ -10,7 +10,7 @@ import re
 # 'вул.' from a string
 def clean_name(name):
     name = name.lower()
-    return re.sub(r'р\.|м\.|с\.|смт|смт\.|сщ\.|с/рада\.|сщ/рада\.', "", name).trim()
+    return re.sub(r'р\.|м\.|с\.|смт|смт\.|сщ\.|с/рада\.|сщ/рада\.', "", name).strip()
 
 # changing to lowercase and abbreviations to full forms like 'р-н' to 'район' /
 # (see all cases in short_to_full_dict)
