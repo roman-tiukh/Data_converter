@@ -10,7 +10,7 @@ import re
 # 'вул.' from a string
 def clean_name(name):
     name = name.lower()
-    return re.sub(r'р\.|м\.|с\.|смт|смт\.|сщ\.|с/рада\.|сщ/рада\.', "", name).strip()
+    return re.sub(r'р\.|м\.|с\.|смт|смт\.|сщ\.|с/рада\.|сщ/рада\.|вул\.', "", name).strip()
 
 # changing to lowercase and abbreviations to full forms like 'р-н' to 'район' /
 # (see all cases in short_to_full_dict)
@@ -27,7 +27,9 @@ def change_to_full_name(name):
         'области': 'області'
     }
     name = name.lower()
-    return name.replace(name, short_to_full_dict[name])
+    for abbr, full_form in short_to_full_dict.items():
+        name = name.replace(abbr, full_form)
+    return name
 
 # extracting the first word
 def get_first_word(string):
