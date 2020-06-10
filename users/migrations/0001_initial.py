@@ -9,8 +9,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        #('auth', '0011_update_proxy_permissions'),
-        # this dependence may be different
+        ('auth', '0011_update_proxy_permissions'),
     ]
 
     operations = [
