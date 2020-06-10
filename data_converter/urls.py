@@ -25,6 +25,8 @@ from business_register.views.ruo_views import RuoView
 from location_register.views.ratu_viewsets import RegionView, CityView, StreetView, CitydistrictView, DistrictView
 from location_register.views.drv_viewsets import DrvBuildingViewSet
 from data_ocean.views import RegisterView
+from users.views import CurrentUserProfileView
+
 
 router = routers.DefaultRouter()
 
@@ -56,10 +58,13 @@ router.register(r'register/<int:pk>', RegisterView, basename='registeritem')
 urlpatterns = [
 
     path('admin/', admin.site.urls),
-    path('api/', include(router.urls)),
+
     path('api/accounts/', include('allauth.urls')),
+    path('api/', include(router.urls)),
 
     path('api/users/', include('users.urls')),
-    path('api/users/rest-auth/', include('rest_auth.urls')),
+
     path('api/rest-auth/registration/', include('rest_auth.registration.urls')),
+    path('api/rest-auth/', include('rest_auth.urls')),
+    path('api/rest-auth/profile/', CurrentUserProfileView.as_view()),
 ]
