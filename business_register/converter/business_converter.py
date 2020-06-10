@@ -6,7 +6,7 @@ from data_ocean.models import Authority, Status, TaxpayerType
 
 class BusinessConverter:
     """
-    here we have common functions for Fop and Company converters 
+    here we have common functions for Fop and Company converters
     """
     def __init__(self):
         """
@@ -15,11 +15,12 @@ class BusinessConverter:
         """
         self.all_kveds_dict = self.put_all_objects_to_dict("code", "business_register", "Kved")
         self.all_statuses_dict = self.put_all_objects_to_dict("name", "data_ocean", "Status")
-        self.all_authorities_dict = self.put_all_objects_to_dict("name","data_ocean", "Authority")
-        self.all_taxpayer_types_dict = self.put_all_objects_to_dict("name","data_ocean", "TaxpayerType")
+        self.all_authorities_dict = self.put_all_objects_to_dict("name", "data_ocean", "Authority")
+        self.all_taxpayer_types_dict = self.put_all_objects_to_dict("name", "data_ocean", "TaxpayerType")
 
     def put_all_objects_to_dict(self, key_field, app_name, model_name):
-        return {getattr(obj, key_field): obj for obj in apps.get_model(app_name, model_name).objects.all()}
+        return {getattr(obj, key_field): obj \
+            for obj in apps.get_model(app_name, model_name).objects.all()}
         
     def get_kved_from_DB(self, kved_code_from_record):
         """
