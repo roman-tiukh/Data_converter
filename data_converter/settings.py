@@ -81,9 +81,6 @@ CORS_ORIGIN_WHITELIST = [
     'http://localhost:3000',
 ]
 
-CSRF_TRUSTED_ORIGINS = [
-    'dataocean.us',
-]
 
 # CORS_URLS_REGEX = r'^/api/.*$'
 
