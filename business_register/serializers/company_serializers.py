@@ -85,8 +85,8 @@ class TerminationStartedSerializer(serializers.ModelSerializer):
 
 class CompanySerializer(serializers.ModelSerializer):
     name = serializers.CharField(max_length=500)
-    company_type = serializers.CharField(max_length=100)
-    bylaw = serializers.CharField(max_length=300)
+    company_type = serializers.StringRelatedField()
+    bylaw = serializers.StringRelatedField()
     status = serializers.CharField(max_length=100)
     authority = serializers.CharField(max_length=500)
     parent = serializers.CharField(max_length=500)
@@ -102,4 +102,4 @@ class CompanySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Company
-        fields = ('__all__')
+        fields = '__all__'

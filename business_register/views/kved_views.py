@@ -7,7 +7,7 @@ from business_register.models.kved_models import Kved
 from business_register.serializers.kved_serializers import KvedDetailSerializer
 
 
-class KvedView(viewsets.ReadOnlyModelViewSet, PageNumberPagination):
+class KvedView(viewsets.ReadOnlyModelViewSet):
     queryset = Kved.objects.exclude(code='EMP')
     serializer_class = KvedDetailSerializer
 

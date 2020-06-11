@@ -21,7 +21,8 @@ class Views (GenericAPIView):
             data = serializer.data
         return Response(data)
 
-class RegisterView(viewsets.ReadOnlyModelViewSet, PageNumberPagination):
+
+class RegisterView(viewsets.ReadOnlyModelViewSet):
     queryset = Register.objects.all()
     serializer_class = RegisterSerializer
 
