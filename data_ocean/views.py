@@ -1,12 +1,10 @@
-from data_converter.pagination import CustomPagination
 from data_ocean.models import Register
 from data_ocean.serializers import RegisterSerializer
 from django.shortcuts import get_object_or_404
-
 from rest_framework import generics, viewsets
 from rest_framework.generics import GenericAPIView
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
+
 
 class Views (GenericAPIView):
     def get(self, request):
