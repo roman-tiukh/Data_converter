@@ -1,14 +1,12 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import generics, viewsets
-from rest_framework.pagination import PageNumberPagination
+from rest_framework import viewsets
 from rest_framework.response import Response
-
 from location_register.models.ratu_models import Region, District, City, Citydistrict, Street
 from location_register.serializers.ratu_serializers import RegionSerializer, DistrictSerializer, CitySerializer, CitydistrictSerializer, \
     StreetSerializer
 
 
-class RegionView(viewsets.ReadOnlyModelViewSet, PageNumberPagination):
+class RegionView(viewsets.ReadOnlyModelViewSet):
     queryset = Region.objects.all()
     serializer_class = RegionSerializer
 
@@ -25,7 +23,7 @@ class RegionView(viewsets.ReadOnlyModelViewSet, PageNumberPagination):
         return Response(serializer.data)
 
 
-class DistrictView(viewsets.ReadOnlyModelViewSet, PageNumberPagination):
+class DistrictView(viewsets.ReadOnlyModelViewSet):
     queryset = District.objects.all()
     serializer_class = DistrictSerializer
 
@@ -42,7 +40,7 @@ class DistrictView(viewsets.ReadOnlyModelViewSet, PageNumberPagination):
         return Response(serializer.data)
 
 
-class CityView(viewsets.ReadOnlyModelViewSet, PageNumberPagination):
+class CityView(viewsets.ReadOnlyModelViewSet):
     queryset = City.objects.all()
     serializer_class = CitySerializer
 
@@ -59,7 +57,7 @@ class CityView(viewsets.ReadOnlyModelViewSet, PageNumberPagination):
         return Response(serializer.data)
 
 
-class CitydistrictView(viewsets.ReadOnlyModelViewSet, PageNumberPagination):
+class CitydistrictView(viewsets.ReadOnlyModelViewSet):
     queryset = Citydistrict.objects.all()
     serializer_class = CitydistrictSerializer
 
@@ -76,7 +74,7 @@ class CitydistrictView(viewsets.ReadOnlyModelViewSet, PageNumberPagination):
         return Response(serializer.data)
 
 
-class StreetView(viewsets.ReadOnlyModelViewSet, PageNumberPagination):
+class StreetView(viewsets.ReadOnlyModelViewSet):
     queryset = Street.objects.all()
     serializer_class = StreetSerializer
 

@@ -2,12 +2,11 @@ from django.shortcuts import get_object_or_404
 from rest_framework import generics, viewsets
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
-
 from business_register.models.company_models import Company
 from business_register.serializers.company_serializers import CompanySerializer
 
 
-class CompanyView(viewsets.ReadOnlyModelViewSet, PageNumberPagination):
+class CompanyView(viewsets.ReadOnlyModelViewSet):
     queryset = Company.objects.all()
     serializer_class = CompanySerializer
 

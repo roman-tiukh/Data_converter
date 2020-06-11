@@ -7,7 +7,7 @@ from location_register.models.drv_models import DrvBuilding
 from location_register.serializers.drv_serializers import DrvBuildingSerializer
 
 
-class DrvBuildingViewSet(viewsets.ReadOnlyModelViewSet, PageNumberPagination):
+class DrvBuildingViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = DrvBuilding.objects.all()
     serializer_class = DrvBuildingSerializer
 

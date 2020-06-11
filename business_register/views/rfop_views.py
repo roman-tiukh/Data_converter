@@ -7,7 +7,7 @@ from business_register.models.rfop_models import Rfop, Fop
 from business_register.serializers.rfop_serializers import RfopSerializer, FopSerializer
 
 
-class RfopView(viewsets.ReadOnlyModelViewSet, PageNumberPagination):
+class RfopView(viewsets.ReadOnlyModelViewSet):
     queryset = Rfop.objects.all()
 
     def list(self, request):
@@ -23,7 +23,7 @@ class RfopView(viewsets.ReadOnlyModelViewSet, PageNumberPagination):
         return Response(serializer.data)
 
 
-class FopView(viewsets.ReadOnlyModelViewSet, PageNumberPagination):
+class FopView(viewsets.ReadOnlyModelViewSet):
     queryset = Fop.objects.all()
     serializer_class = FopSerializer
 
