@@ -15,6 +15,7 @@ Including another URLconf
 """
 
 from django.contrib import admin
+from django.conf import settings
 from django.urls import include, path
 from rest_framework import routers
 
@@ -68,3 +69,8 @@ urlpatterns = [
     path('api/rest-auth/', include('rest_auth.urls')),
     path('api/rest-auth/profile/', CurrentUserProfileView.as_view()),
 ]
+
+if settings.DEBUG:
+    urlpatterns += [
+        path('debug-rest-auth/', include('rest_framework.urls', namespace='rest_framework'))
+    ]
