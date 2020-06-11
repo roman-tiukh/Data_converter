@@ -9,26 +9,7 @@ https://docs.djangoproject.com/en/2.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.0/ref/settings/
 """
-
-import os
-
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-from data_converter import settings_local
-
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/2.0/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '89di$5_t-fo8f*z0!kvbli20gcz^6f)8&2!e1g3o4pbe7v(h^q'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = []
-
+from data_converter.settings_local import *
 
 # Application definition
 
@@ -71,24 +52,10 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# CORS settings
-# https://github.com/adamchainz/django-cors-headers
-
-CORS_ORIGIN_WHITELIST = [
-    'https://dataocean.us',
-    'http://127.0.0.1:8000',
-    'http://127.0.0.1:3000',
-    'http://localhost:3000',
-]
-
 
 # CORS_URLS_REGEX = r'^/api/.*$'
-
-
-
 # CORS_ALLOW_CREDENTIALS = True
 # SESSION_COOKIE_SAMESITE = None
-
 # SESSION_COOKIE_SECURE = True
 
 
@@ -112,20 +79,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'data_converter.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/2.0/ref/settings/#databases
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-#     }
-# }
-
-DATABASES = {
-    'default': settings_local.DATABASE_CONFIG
-    }
 
 # Password validation
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators
@@ -169,7 +122,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 5,
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny', #IsAuthenticated
+        'rest_framework.permissions.AllowAny',  #IsAuthenticated
     ]
 }
 
