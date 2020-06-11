@@ -31,12 +31,12 @@ class Company(DataOceanModel): #constraint for not null in both name & short_nam
 
 
 class Assignee(DataOceanModel):
-    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='assignees')
     name = models.CharField(max_length=100, null=True)
 
 
 class BancruptcyReadjustment(DataOceanModel):
-    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='bancruptcy_readjustment')
     op_date = models.DateTimeField(null=True)
     reason = models.TextField(null=True)
     sbj_state = models.CharField(max_length=100, null=True)
@@ -44,7 +44,7 @@ class BancruptcyReadjustment(DataOceanModel):
 
 
 class CompanyDetail(DataOceanModel):
-    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='company_detail')
     founding_document_number = models.CharField(max_length=100, null=True)
     executive_power = models.CharField(max_length=100, null=True)
     superior_management = models.CharField(max_length=100, null=True)
@@ -57,13 +57,13 @@ class CompanyDetail(DataOceanModel):
 
 
 class CompanyToKved(DataOceanModel): #constraint for only only one truth in primary field
-    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='kveds')
     kved = models.ForeignKey(Kved, on_delete=models.CASCADE)
     primary_kved = models.BooleanField(default=False)
 
 
 class ExchangeDataCompany(DataOceanModel):
-    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='exchange_data')
     authority = models.ForeignKey(Authority, on_delete=models.CASCADE)
     taxpayer_type = models.ForeignKey(TaxpayerType, on_delete=models.CASCADE)
     start_date = models.DateTimeField(null=True)
@@ -73,7 +73,7 @@ class ExchangeDataCompany(DataOceanModel):
 
 
 class FounderFull(DataOceanModel):
-    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='founders')
     name = models.TextField(null=True)
     hash_code = models.CharField(max_length=510)    
 
@@ -84,17 +84,17 @@ class Predecessor(DataOceanModel): #constraint for not null in both fields
 
 
 class CompanyToPredecessor(DataOceanModel):
-    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='predecessors')
     predecessor = models.ForeignKey(Predecessor, on_delete=models.CASCADE)
 
 
 class Signer(DataOceanModel):
-    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='signers')
     name = models.CharField(max_length=300, null=True)
 
 
 class TerminationStarted(DataOceanModel):
-    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='termination_started')
     op_date = models.DateTimeField(null=True)
     reason = models.TextField(null=True)
     sbj_state = models.CharField(max_length=100, null=True)
