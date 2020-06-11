@@ -85,17 +85,6 @@ CORS_ORIGIN_WHITELIST = [
 # CORS_URLS_REGEX = r'^/api/.*$'
 
 
-CORS_ALLOW_HEADERS = [
-    'accept',
-    'accept-encoding',
-    'authorization',
-    'content-type',
-    'dnt',
-    'origin',
-    'user-agent',
-    'x-csrftoken',
-    'x-requested-with',
-]
 
 # CORS_ALLOW_CREDENTIALS = True
 # SESSION_COOKIE_SAMESITE = None
