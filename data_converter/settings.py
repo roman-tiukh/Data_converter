@@ -41,8 +41,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
-    'django_extensions',
 
+    'django_extensions',
+    'corsheaders',
     'rest_framework',
     'rest_framework.authtoken',
     'rest_auth',
@@ -51,6 +52,7 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
+
     'users',
     'simple_history',
     'business_register',
@@ -61,12 +63,34 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# CORS settings
+# https://github.com/adamchainz/django-cors-headers
+
+CORS_ORIGIN_WHITELIST = [
+    'https://dataocean.us',
+    'http://127.0.0.1:8000',
+    'http://127.0.0.1:3000',
+    'http://localhost:3000',
+]
+
+
+# CORS_URLS_REGEX = r'^/api/.*$'
+
+
+
+# CORS_ALLOW_CREDENTIALS = True
+# SESSION_COOKIE_SAMESITE = None
+
+# SESSION_COOKIE_SECURE = True
+
 
 ROOT_URLCONF = 'data_converter.urls'
 
