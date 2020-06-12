@@ -16,7 +16,7 @@ from data_ocean.models import Status
 class Parser(Converter):
     LOCAL_FILE_NAME = settings_local.LOCAL_FILE_NAME_UO
     LOCAL_FOLDER = settings_local.LOCAL_FOLDER
-    CHUNK_SIZE = 5
+    CHUNK_SIZE = 100
     all_bylaw_dict = {}
     all_company_type_dict = {}
     all_predecessors_dict = {}
@@ -26,7 +26,7 @@ class Parser(Converter):
     tables = [
         BancruptcyReadjustment,
         # Bylaw,
-        Company,
+        # Company,
         CompanyDetail,
         CompanyToKved,
         CompanyToPredecessor,
