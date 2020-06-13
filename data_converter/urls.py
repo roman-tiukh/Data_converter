@@ -27,6 +27,7 @@ from location_register.views.ratu_viewsets import RegionView, CityView, StreetVi
 from location_register.views.drv_viewsets import DrvBuildingViewSet
 from data_ocean.views import RegisterView
 from users.views import CurrentUserProfileView
+from django.views.generic import TemplateView
 
 
 router = routers.DefaultRouter()
@@ -60,14 +61,17 @@ urlpatterns = [
 
     path('admin/', admin.site.urls),
 
+    path('', TemplateView.as_view(template_name='users/index.html')),
+    path('api/accounts/profile/', TemplateView.as_view(template_name='users/profile.html')),
     path('api/accounts/', include('allauth.urls')),
-    path('api/', include(router.urls)),
+
+    path('api/rest-auth/registration/', include('rest_auth.registration.urls')),
+    path('api/rest-auth/profile/', CurrentUserProfileView.as_view()),
+    path('api/rest-auth/', include('rest_auth.urls')),
 
     path('api/users/', include('users.urls')),
 
-    path('api/rest-auth/registration/', include('rest_auth.registration.urls')),
-    path('api/rest-auth/', include('rest_auth.urls')),
-    path('api/rest-auth/profile/', CurrentUserProfileView.as_view()),
+    path('api/', include(router.urls)),
 ]
 
 if settings.DEBUG:
