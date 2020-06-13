@@ -1,0 +1,17 @@
+{% load socialaccount %}
+<html lang="uk">
+  <head>
+    <title>Google Registration</title>
+  </head>
+  <body>
+  <h1>My Google Profile</h1>
+
+  {% if user.is_authenticated %}
+    <p>Welcome, {{ user.first_name }} {{ user.last_name }} ({{ user.email }})!</p>
+  {% else %}
+      <p>Welcome, None user!</p>
+      <a href="{% provider_login_url 'google' %}">Login with Google</a>
+  {% endif %}
+
+  </body>
+</html>
