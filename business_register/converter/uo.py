@@ -246,15 +246,17 @@ class Parser(Converter):
     def add_termination_started(self, record, edrpou):
         termination_started = TerminationStarted()
         if record.xpath('TERMINATION_STARTED_INFO/OP_DATE'):
-            termination_started.op_date = self.format_date_to_yymmdd(
-                record.xpath('TERMINATION_STARTED_INFO/OP_DATE')[0].text) or None
+            if record.xpath('TERMINATION_STARTED_INFO/OP_DATE')[0].text:
+                termination_started.op_date = self.format_date_to_yymmdd(
+                    record.xpath('TERMINATION_STARTED_INFO/OP_DATE')[0].text) or None
             termination_started.reason = record.xpath('TERMINATION_STARTED_INFO/REASON')[0].text
             termination_started.sbj_state = record.xpath(
                 'TERMINATION_STARTED_INFO/SBJ_STATE')[0].text
             termination_started.signer_name = record.xpath(
                 'TERMINATION_STARTED_INFO/SIGNER_NAME')[0].text
-            termination_started.creditor_reg_end_date = record.xpath(
-                'TERMINATION_STARTED_INFO/CREDITOR_REQ_END_DATE')[0].text
+            if record.xpath('TERMINATION_STARTED_INFO/CREDITOR_REQ_END_DATE')[0].text:
+                termination_started.creditor_reg_end_date = self.format_date_to_yymmdd(
+                    record.xpath('TERMINATION_STARTED_INFO/CREDITOR_REQ_END_DATE')[0].text) or '01.01.1990'
             termination_started.hash_code = self.create_hash_code(
                 record.xpath('NAME')[0].text, edrpou)
             self.bulk_manager.add_create(termination_started)
