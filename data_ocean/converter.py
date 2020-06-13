@@ -79,7 +79,7 @@ class Converter:
         empty_kved = Kved.objects.get(code='EMP')
         if kved_code_from_record in self.all_kveds_dict:
             return self.all_kveds_dict[kved_code_from_record]
-        print(f"This kved value is outdated or not valid")
+        # print(f"This kved value is outdated or not valid")
         return empty_kved
     
     def save_or_get_status(self, status_from_record):
@@ -298,8 +298,8 @@ class Converter:
         records = etree.Element('RECORDS')
         for _, elem in etree.iterparse(self.LOCAL_FOLDER + self.LOCAL_FILE_NAME, tag = 'SUBJECT'):           
             if len(records) < self.CHUNK_SIZE:
-                for text in elem.iter():
-                    print('\t%28s\t%s'%(text.tag, text.text))
+                # for text in elem.iter():
+                #     print('\t%28s\t%s'%(text.tag, text.text))
                 records.append(elem)
                 i = i + 1
                 print(i,

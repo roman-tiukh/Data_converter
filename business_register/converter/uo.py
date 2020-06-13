@@ -12,11 +12,13 @@ from business_register.models.company_models import(
     Signer, TerminationStarted
 )
 from data_ocean.models import Status
+from django.conf import settings
+
 
 class Parser(Converter):
     LOCAL_FILE_NAME = settings_local.LOCAL_FILE_NAME_UO
     LOCAL_FOLDER = settings_local.LOCAL_FOLDER
-    CHUNK_SIZE = 100
+    CHUNK_SIZE = settings.UO_CHUNK_SIZE
     all_bylaw_dict = {}
     all_company_type_dict = {}
     all_predecessors_dict = {}
