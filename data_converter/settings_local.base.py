@@ -50,3 +50,10 @@ LOCAL_FILE_NAME_KOATUU = ''
 LOCAL_FOLDER = ''
 FILE_URL_KVED = ''
 LOCAL_FILE_NAME_KVED = ''
+
+
+LOGIN_REDIRECT_URL = '/'
+ACCOUNT_LOGOUT_REDIRECT_URL = '/'
+
+# business_register/converter/uo.py
+UO_CHUNK_SIZE = 100
