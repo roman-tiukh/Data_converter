@@ -271,23 +271,27 @@ class Parser(Converter):
                 self.save_or_get_bylaw('EMP')
                 self.save_or_get_company_type('EMP')
                 self.save_or_get_status('EMP')
-                try:
-                    branch = Company.objects.filter(
-                        hash_code=self.create_hash_code(item.xpath('NAME')[0].text, code)).first()
-                except:
-                    pass
-                if branch:
-                    branch.address = item.xpath('ADDRESS')[0].text
-                    if item.xpath('CREATE_DATE')[0].text:
-                        branch.registration_date = self.format_date_to_yymmdd(
-                            item.xpath('CREATE_DATE')[0].text) or None
-                    branch.contact_info = item.xpath('CONTACTS')[0].text
-                    self.branch_bulk_manager.add_update(branch)
-                    print('update')
-                else:
-                    branch = self.branch_create(item, code)
-                    self.branch_bulk_manager.add_create(branch)
-                    print('create')
+                # try:
+                #     branch = Company.objects.filter(
+                #         hash_code=self.create_hash_code(item.xpath('NAME')[0].text, code)).first()
+                # except:
+                #     pass
+                # if branch:
+                #     branch.address = item.xpath('ADDRESS')[0].text
+                #     if item.xpath('CREATE_DATE')[0].text:
+                #         branch.registration_date = self.format_date_to_yymmdd(
+                #             item.xpath('CREATE_DATE')[0].text) or None
+                #     branch.contact_info = item.xpath('CONTACTS')[0].text
+                #     self.branch_bulk_manager.add_update(branch)
+                #     print('update')
+                # else:
+                #     branch = self.branch_create(item, code)
+                #     self.branch_bulk_manager.add_create(branch)
+                #     print('create')
+                branch = self.branch_create(item, code)
+                self.branch_bulk_manager.add_create(branch)
+                print('create')
+
                 self.add_company_to_kved_branch(
                     item.xpath('ACTIVITY_KINDS')[0],
                     item.xpath('NAME')[0].text, code
@@ -323,27 +327,31 @@ class Parser(Converter):
                 registration_date = self.format_date_to_yymmdd(
                     self.get_first_word(registration)) or None
                 registration_info = self.cut_first_word(registration) or None
-            try:
-                company = Company.objects.filter(
-                    hash_code=self.create_hash_code(record.xpath('NAME')[0].text, edrpou)).first()
-                company.short_name = record.xpath('SHORT_NAME')[0].text
-                company.company_type = self.company_type
-                company.address = record.xpath('ADDRESS')[0].text
-                company.status = self.status
-                company.bylaw = self.bylaw
-                company.registration_date = registration_date
-                company.registration_info = registration_info
-                company.contact_info = record.xpath('CONTACTS')[0].text
-                company.authority = self.authority
-                self.bulk_manager.add_update(company)
+            # try:
+            #     company = Company.objects.filter(
+            #         hash_code=self.create_hash_code(record.xpath('NAME')[0].text, edrpou)).first()
+            #     company.short_name = record.xpath('SHORT_NAME')[0].text
+            #     company.company_type = self.company_type
+            #     company.address = record.xpath('ADDRESS')[0].text
+            #     company.status = self.status
+            #     company.bylaw = self.bylaw
+            #     company.registration_date = registration_date
+            #     company.registration_info = registration_info
+            #     company.contact_info = record.xpath('CONTACTS')[0].text
+            #     company.authority = self.authority
+            #     self.bulk_manager.add_update(company)
+            #
+            #     print('update')
+            # except:
+            #
+            #     company = self.company_create(record, edrpou, registration_date, registration_info)
+            #     self.bulk_manager.add_create(company)
+            #
+            #     print('create')
+            company = self.company_create(record, edrpou, registration_date, registration_info)
+            self.bulk_manager.add_create(company)
 
-                print('update')
-            except:
-
-                company = self.company_create(record, edrpou, registration_date, registration_info)
-                self.bulk_manager.add_create(company)
-
-                print('create')
+            print('create')
 
             self.add_branches(record, edrpou)
             self.add_assignees(record, edrpou)
