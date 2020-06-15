@@ -1,6 +1,8 @@
 from data_ocean.models import Register
 from data_ocean.serializers import RegisterSerializer
 from django.shortcuts import get_object_or_404
+from django.views.decorators.cache import cache_page
+from django.utils.decorators import method_decorator
 from rest_framework import generics, viewsets
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
@@ -35,3 +37,9 @@ class RegisterView(viewsets.ReadOnlyModelViewSet):
         register = get_object_or_404(queryset, pk=pk)
         serializer = RegisterSerializer(register)
         return Response(serializer.data)
+
+class CachedViewMixin:
+    @method_decorator(cache_page(60*15))
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
