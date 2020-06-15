@@ -53,20 +53,21 @@ LOCAL_FOLDER = ''
 FILE_URL_KVED = ''
 LOCAL_FILE_NAME_KVED = ''
 
-
 CACHES = {
     'default': {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://127.0.0.1:6379/',
-        'OPTIONS': {
-            "IGNORE_EXCEPTIONS": True,
-            # 'PASSWORD': 'XXXXXXXXX',
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-         # 'BACKEND': 'django.core.cache.backends.dummy.DummyCache',  # use this cashe for developing
-        }
-    }
-}
+        # REDIS cache configs
+        # 'BACKEND': 'django_redis.cache.RedisCache',
+        # 'LOCATION': 'redis://127.0.0.1:6379/',
+        # 'OPTIONS': {
+        #     "IGNORE_EXCEPTIONS": True,
+        #     # 'PASSWORD': 'XXXXXXXXX',
+        #     'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        # },
 
+        # Dummy Cache for developing
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',  # use this cashe for developing
+    },
+}
 
 LOGIN_REDIRECT_URL = '/'
 ACCOUNT_LOGOUT_REDIRECT_URL = '/'
