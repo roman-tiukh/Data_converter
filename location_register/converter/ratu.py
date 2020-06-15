@@ -1,4 +1,3 @@
-# import re
 from data_ocean.converter import Converter, BulkCreateUpdateManager
 from data_ocean.models import Register
 from data_ocean.utils import clean_name, change_to_full_name
