@@ -61,8 +61,7 @@ CACHES = {
             "IGNORE_EXCEPTIONS": True,
             # 'PASSWORD': 'XXXXXXXXX',
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-            
+         # 'BACKEND': 'django.core.cache.backends.dummy.DummyCache',  # use this cashe for developing
         }
     }
 }
-
