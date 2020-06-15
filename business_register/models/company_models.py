@@ -5,11 +5,11 @@ from data_ocean.models import Authority, DataOceanModel, Status, TaxpayerType
 
 
 class Bylaw(DataOceanModel):
-    name = models.CharField(max_length=100, unique=True)
+    name = models.CharField(max_length=320, unique=True, null=True)
 
 
 class CompanyType(DataOceanModel):
-    name = models.CharField(max_length=100, unique=True, null=True)
+    name = models.CharField(max_length=270, unique=True, null=True)
 
 
 class Company(DataOceanModel): #constraint for not null in both name & short_name fields
@@ -17,13 +17,13 @@ class Company(DataOceanModel): #constraint for not null in both name & short_nam
     name = models.CharField(max_length=500, null=True)
     short_name = models.CharField(max_length=500, null=True)
     company_type = models.ForeignKey(CompanyType, on_delete=models.CASCADE)
-    edrpou = models.CharField(max_length=50)
+    edrpou = models.CharField(max_length=260)
     address = models.CharField(max_length=500, null=True)  
     status = models.ForeignKey(Status, on_delete=models.CASCADE)
     bylaw = models.ForeignKey(Bylaw, on_delete=models.CASCADE)
     registration_date = models.DateTimeField(null=True)
-    registration_info = models.CharField(max_length=150, null=True)
-    contact_info = models.CharField(max_length=140, null=True)
+    registration_info = models.CharField(max_length=450, null=True)
+    contact_info = models.CharField(max_length=310, null=True)
     authority = models.ForeignKey(Authority, on_delete=models.CASCADE)
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True)
     hash_code = models.CharField(max_length=510)
@@ -32,27 +32,30 @@ class Company(DataOceanModel): #constraint for not null in both name & short_nam
 
 class Assignee(DataOceanModel):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='assignees')
-    name = models.CharField(max_length=100, null=True)
+    name = models.CharField(max_length=610, null=True)
+    hash_code = models.CharField(max_length=510)
 
 
 class BancruptcyReadjustment(DataOceanModel):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='bancruptcy_readjustment')
     op_date = models.DateTimeField(null=True)
     reason = models.TextField(null=True)
-    sbj_state = models.CharField(max_length=100, null=True)
-    head_name = models.CharField(max_length=300, null=True)
+    sbj_state = models.CharField(max_length=345, null=True)
+    head_name = models.CharField(max_length=515, null=True)
+    hash_code = models.CharField(max_length=510)
 
 
 class CompanyDetail(DataOceanModel):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='company_detail')
-    founding_document_number = models.CharField(max_length=100, null=True)
-    executive_power = models.CharField(max_length=100, null=True)
-    superior_management = models.CharField(max_length=100, null=True)
-    authorized_capital = models.CharField(max_length=100, null=True)
-    managing_paper = models.CharField(max_length=100, null=True)
-    terminated_info = models.CharField(max_length=100, null=True)
-    termination_cancel_info = models.CharField(max_length=100, null=True)
-    vp_dates = models.CharField(max_length=100, null=True)
+    founding_document_number = models.CharField(max_length=375, null=True)
+    executive_power = models.CharField(max_length=390, null=True)
+    superior_management = models.CharField(max_length=620, null=True)
+    authorized_capital = models.CharField(max_length=560, null=True)
+    managing_paper = models.CharField(max_length=360, null=True)
+    terminated_info = models.CharField(max_length=600, null=True)
+    termination_cancel_info = models.CharField(max_length=570, null=True)
+    vp_dates = models.TextField(null=True)
+    hash_code = models.CharField(max_length=510)
     history = HistoricalRecords()
 
 
@@ -60,6 +63,7 @@ class CompanyToKved(DataOceanModel): #constraint for only only one truth in prim
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='kveds')
     kved = models.ForeignKey(Kved, on_delete=models.CASCADE)
     primary_kved = models.BooleanField(default=False)
+    hash_code = models.CharField(max_length=510)
 
 
 class ExchangeDataCompany(DataOceanModel):
@@ -67,9 +71,10 @@ class ExchangeDataCompany(DataOceanModel):
     authority = models.ForeignKey(Authority, on_delete=models.CASCADE)
     taxpayer_type = models.ForeignKey(TaxpayerType, on_delete=models.CASCADE)
     start_date = models.DateTimeField(null=True)
-    start_number = models.CharField(max_length=20, null=True)
+    start_number = models.CharField(max_length=555, null=True)
     end_date = models.DateTimeField(null=True)
-    end_number = models.CharField(max_length=20, null=True)
+    end_number = models.CharField(max_length=555, null=True)
+    hash_code = models.CharField(max_length=510)
 
 
 class FounderFull(DataOceanModel):
@@ -79,24 +84,27 @@ class FounderFull(DataOceanModel):
 
 
 class Predecessor(DataOceanModel): #constraint for not null in both fields
-    name = models.CharField(max_length=100, null=True)
-    code = models.CharField(max_length=100, null=True)
+    name = models.CharField(max_length=500, null=True)
+    code = models.CharField(max_length=405, null=True)
 
 
 class CompanyToPredecessor(DataOceanModel):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='predecessors')
     predecessor = models.ForeignKey(Predecessor, on_delete=models.CASCADE)
+    hash_code = models.CharField(max_length=510)
 
 
 class Signer(DataOceanModel):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='signers')
-    name = models.CharField(max_length=300, null=True)
+    name = models.CharField(max_length=390, null=True)
+    hash_code = models.CharField(max_length=510)
 
 
 class TerminationStarted(DataOceanModel):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='termination_started')
     op_date = models.DateTimeField(null=True)
     reason = models.TextField(null=True)
-    sbj_state = models.CharField(max_length=100, null=True)
-    signer_name = models.CharField(max_length=300, null=True)
+    sbj_state = models.CharField(max_length=530, null=True)
+    signer_name = models.CharField(max_length=480, null=True)
     creditor_reg_end_date = models.DateTimeField(null=True)
+    hash_code = models.CharField(max_length=510)
