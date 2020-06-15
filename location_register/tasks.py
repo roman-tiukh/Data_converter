@@ -17,3 +17,11 @@ def fill_in_koatuu_table():
     with open(LOCAL_FILE_NAME) as json_file:
         data = json.load(json_file)
     KoatuuConverter().save_to_db(data)
+
+@shared_task
+def task_one():
+    print('Hello ;)')
+
+@shared_task
+def task_two():
+    print(' my friend!!')
