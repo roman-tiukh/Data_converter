@@ -154,11 +154,12 @@ class RatuConverter(Converter):
     def save_to_category_id(self, record, model):
         if record:
             city_name = clean_name(record)
-            city_value = model.objects.filter(name=city_name)
-            if (record['CITY_REGION_NAME'] == 'None') | (city_value.category_id != 'null'):
+            try:
+                city_value = model.objects.get(name=city_name)
+                city_value.category_id = Category.objects.get(name=self.format_category_name(record)).id
+                city_value.save(update_fields=['category_id'])
+            except model.MultipleObjectsReturned:
                 return
-            city_value.category_id = Category.objects.get(name=self.format_category_name(record)).id
-            city_value.save(update_fields=['category_id'])
         else:
             empty_values = model.objects.filter(name='empty field')
             for value in empty_values:
