@@ -2,9 +2,10 @@ from django.apps import apps
 
 from business_register.models.kved_models import Kved
 from data_ocean.models import Authority, Status, TaxpayerType
+from data_ocean.converter import Converter
 
 
-class BusinessConverter:
+class BusinessConverter(Converter):
     """
     here we have common functions for Fop and Company converters
     """

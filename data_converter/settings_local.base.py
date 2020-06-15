@@ -73,3 +73,4 @@ ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 
 # business_register/converter/uo.py
 UO_CHUNK_SIZE = 100
+
