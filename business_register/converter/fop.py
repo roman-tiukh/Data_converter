@@ -1,27 +1,24 @@
 import time
-import datetime
-
-from django.apps import apps
 
 from business_register.models.rfop_models import (ExchangeDataFop, Fop,
                                                   FopToKved)
+from business_register.converter.business_converter import BusinessConverter
 from data_ocean.converter import BulkCreateUpdateManager, Converter
-from data_ocean.models import Authority, Status, TaxpayerType
+from data_ocean.models import Register
+from data_ocean.utils import get_first_word, cut_first_word, format_date_to_yymmdd
 
 
-class FopConverter(Converter):
-    LOCAL_FILE_NAME = "fop.xml"
-    API_ADDRESS_FOR_DATASET = Register.objects.get(source_register_id="1c7f3815-3259-45e0-bdf1-64dca07ddc10").api_address
+class FopConverter(BusinessConverter):
     CHUNK_SIZE = 100000
     bulk_manager = BulkCreateUpdateManager(1000000)
-    all_fops_dict = {}
     all_fop_kveds = []
     all_fop_exchange_data = []
 
-    # def __init__(self):
-    all_fops = Fop.objects.all()
-    for fop in all_fops:
-        all_fops_dict[fop.hash_code] = fop
+    def __init__(self):
+        API_ADDRESS_FOR_DATASET = Register.objects.get(source_register_id=
+        "1c7f3815-3259-45e0-bdf1-64dca07ddc10").api_address
+        self.all_fops_dict = self.put_all_objects_to_dict('hash_code', "business_register", "Bylaw")
+        super().__init__()
 
     def update_fop_fields(self, hash_code, status, registration_date, registration_info, estate_manager, termination_date, terminated_info, termination_cancel_info, contact_info, vp_dates, authority):
         fop = self.all_fops_dict[hash_code]
@@ -35,23 +32,23 @@ class FopConverter(Converter):
         fop.contact_info = contact_info
         fop.vp_dates = vp_dates
         fop.authority = authority
-        return fop                
+        return fop
 
     def create_new_fop(self, hash_code, fullname, address, status, registration_date, registration_info, estate_manager, termination_date, terminated_info, termination_cancel_info, contact_info, vp_dates, authority):
         fop = Fop(
-            hash_code = hash_code,
-            fullname = fullname,
-            address = address,
-            status = status,
-            registration_date = registration_date,
-            registration_info = registration_info,
-            estate_manager = estate_manager,
-            termination_date = termination_date,
-            terminated_info = terminated_info,
-            termination_cancel_info = termination_cancel_info,
-            contact_info = contact_info,
-            vp_dates = vp_dates,
-            authority = authority
+            hash_code=hash_code,
+            fullname=fullname,
+            address=address,
+            status=status,
+            registration_date=registration_date,
+            registration_info=registration_info,
+            estate_manager=estate_manager,
+            termination_date=termination_date,
+            terminated_info=terminated_info,
+            termination_cancel_info=termination_cancel_info,
+            contact_info=contact_info,
+            vp_dates=vp_dates,
+            authority=authority
             )
         return fop
     
@@ -77,9 +74,9 @@ class FopConverter(Converter):
             taxpayer_type = None
             if taxpayer_info and taxpayer_info[0].text:
                 taxpayer_type = self.save_or_get_taxpayer_type(taxpayer_info[0].text)
-            start_date = self.format_date_to_yymmdd(answer.xpath('EXCHANGE_ANSWER/START_DATE')[0].text)
+            start_date = format_date_to_yymmdd(answer.xpath('EXCHANGE_ANSWER/START_DATE')[0].text)
             start_number = answer.xpath('EXCHANGE_ANSWER/START_NUM')[0].text
-            end_date = self.format_date_to_yymmdd(answer.xpath('EXCHANGE_ANSWER/END_DATE')[0].text)
+            end_date = format_date_to_yymmdd(answer.xpath('EXCHANGE_ANSWER/END_DATE')[0].text)
             end_number = answer.xpath('EXCHANGE_ANSWER/END_NUM')[0].text
             self.all_fop_exchange_data.append({
                 "hash_code": hash_code,
@@ -97,8 +94,8 @@ class FopConverter(Converter):
             fop_to_kved.fop = Fop.objects.get(hash_code=dictionary["hash_code"])
             fop_to_kved.kved = dictionary["kved"]
             fop_to_kved.primary_kved = dictionary["primary"]
-            self.bulk_manager.add(fop_to_kved)
-        self.bulk_manager._commit(FopToKved)
+            self.bulk_manager.add_create(fop_to_kved)
+        self.bulk_manager._commit_create(FopToKved)
         self.bulk_manager._create_queues['business_register.FopToKved']=[]
     
     def save_exchange_data_to_db(self):
@@ -111,8 +108,8 @@ class FopConverter(Converter):
             exchange_data.start_number = dictionary["start_number"]
             exchange_data.end_date = dictionary["end_date"]
             exchange_data.end_number = dictionary["end_number"]
-            self.bulk_manager.add(exchange_data)
-        self.bulk_manager._commit(ExchangeDataFop)
+            self.bulk_manager.add_create(exchange_data)
+        self.bulk_manager._commit_create(ExchangeDataFop)
         self.bulk_manager._create_queues['business_register.ExchangeDataFop']=[]
 
     def save_to_db(self, records):
@@ -124,14 +121,14 @@ class FopConverter(Converter):
             registration_date = None
             registration_info = None         
             if registration_text:
-                registration_date = self.format_date_to_yymmdd(self.get_first_word(registration_text))
-                registration_info = self.cut_first_word(registration_text)
+                registration_date = format_date_to_yymmdd(self.get_first_word(registration_text))
+                registration_info = cut_first_word(registration_text)
             estate_manager = record.xpath('ESTATE_MANAGER')[0].text
             termination_date = None
             terminated_info = None         
             if termination_text:
-                termination_date = self.format_date_to_yymmdd(self.get_first_word(termination_text))
-                terminated_info = self.cut_first_word(termination_text)
+                termination_date = format_date_to_yymmdd(get_first_word(termination_text))
+                terminated_info = cut_first_word(termination_text)
             termination_cancel_info = record.xpath('TERMINATION_CANCEL_INFO')[0].text
             contact_info = record.xpath('CONTACTS')[0].text
             vp_dates = record.xpath('VP_DATES')[0].text
@@ -150,8 +147,8 @@ class FopConverter(Converter):
             exchange_data = record.xpath('EXCHANGE_DATA')[0]
             if len(exchange_data):
                 self.add_exchange_data_to_list(exchange_data, hash_code)
-            self.bulk_manager.add(fop)
-        self.bulk_manager._commit(Fop)
+            self.bulk_manager.add_create(fop)
+        self.bulk_manager._commit_create(Fop)
         time.sleep(3)
         self.bulk_manager._create_queues['business_register.Fop']=[]
         self.save_fop_kveds_to_db()

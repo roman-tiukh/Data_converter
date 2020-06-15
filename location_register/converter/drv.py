@@ -5,35 +5,27 @@ from zeep import Client, Settings
 from zeep.helpers import serialize_object
 
 from data_ocean.converter import Converter
+from business_register.converter.business_converter import BusinessConverter
 from location_register.models.drv_models import (DrvAto, DrvBuilding,
                                                  DrvCouncil, DrvDistrict,
                                                  DrvRegion, DrvStreet, ZipCode)
+from data_ocean.utils import clean_name, change_to_full_name
 
 
-class DrvConverter(Converter):
+class DrvConverter(BusinessConverter):
     WSDL_URL = 'https://www.drv.gov.ua/ords/svc/personal/API/Opendata'
     SETTINGS = Settings(strict=False, xml_huge_tree=True)
-    # dictionaries and lists for storing all objects from DB
-    all_regions_dict = {}
-    all_atos_dict = {}
-    all_zipcodes_dict = {}
 
-    # deleting 'м.', 'смт', 'с.', 'вул.' from string 
-    def clean_name(self, name):
-        return re.sub(r"с\.|м\.|смт|вул.", "", name).strip()
+    def __init__(self):
+        """
+        declaring as class fields and initialising dictionaries for storing all objects from DB
 
-    # changing 'р-н' to 'район'
-    def change_to_full_district_name(self, name):
-        return name.replace('р-н', 'район')
+        """
+        self.all_regions_dict = self.put_all_objects_to_dict('name', 'location_register', 'DrvRegion')
+        self.all_atos_dict = self.put_all_objects_to_dict('code','location_register', 'DrvAto')
+        self.all_zipcodes_dict =  self.put_all_objects_to_dict('code', 'location_register', 'ZipCode')
+        super().__init__()
 
-    # changing 'вул.' to 'вулиця ', 'бульв.' to 'бульвар ', 'пров.' to 'провулок ', 'пл.' to 'площа ', 'просп.' to 'проспект '
-    def change_to_full_street_name(self, name):
-        name = name.replace('вул.', 'вулиця ')        
-        name = name.replace('бульв.', 'бульвар ')
-        name = name.replace('просп.', 'проспект ')
-        name = name.replace('пров.', 'провулок ')
-        name = name.replace('пл.', 'площа ')
-        return name
 
     def parse_regions_data(self):
         client = Client(self.WSDL_URL, service_name='GetRegionsService', settings=self.SETTINGS)
@@ -44,16 +36,15 @@ class DrvConverter(Converter):
         return response_to_dict['Region']
 
     def save_region_data(self, regions_data_list):
-        self.all_regions_dict = self.put_all_objects_to_dict_with_name('location_register', 'DrvRegion')
         for dictionary in regions_data_list:
             code = dictionary['Region_Id']
             number = dictionary['Region_Num']
             name = dictionary['Region_Name']
-            name = self.clean_name(name)
+            name = clean_name(name)
             short_name = dictionary['Region_Short']
             capital = dictionary['Region_Center']
             if capital:
-                capital = self.clean_name(capital)
+                capital = clean_name(capital)
             if name in self.all_regions_dict:
                 region = self.all_regions_dict[name]
                 region.code = code
@@ -74,17 +65,16 @@ class DrvConverter(Converter):
         # converting zeep object to Python ordered dictionary
         response_to_dict = serialize_object(response)
         # accessing a nested list with ATO data as dictionaries
-        return(response_to_dict['ATO'])
+        return response_to_dict['ATO']
 
     def save_ato_data(self, atos_data_list, region):
-        self.all_atos_dict = self.put_all_objects_to_dict_with_code('location_register', 'DrvAto')
         for dictionary in atos_data_list:
             district_name = dictionary['ATO_Raj']
-            district_name =  self.change_to_full_district_name(district_name)
-            district_name =  self.clean_name(district_name)
+            district_name =  change_to_full_name(district_name)
+            district_name =  clean_name(district_name)
             council_name = dictionary['ATO_Rad']
             ato_name = dictionary['ATO_Name']
-            ato_name = self.clean_name(ato_name)
+            ato_name = clean_name(ato_name)
             # converting an integer value to string for comparing with codes from DB that are strings 
             ato_code = str(dictionary['ATO_Id'])
             district = DrvDistrict.objects.filter(region=region, name=district_name).first()
@@ -122,7 +112,7 @@ class DrvConverter(Converter):
             # converting an integer value to string for comparing with codes from DB that are strings 
             code = str(dictionary['Geon_Id'])
             name = dictionary['Geon_Name']
-            name =  self.change_to_full_street_name(name)
+            name =  change_to_full_name(name)
             previous_name = dictionary['Geon_OldNames']
             if previous_name:
                 previous_name = self.change_to_full_street_name(previous_name)
@@ -151,7 +141,6 @@ class DrvConverter(Converter):
                 self.save_building_data(buildings_data_list, region, district, council, ato, street)
 
     def save_building_data(self, buildings_data_list, region, district, council, ato, street):
-        self.all_zipcodes_dict =  self.put_all_objects_to_dict_with_code('location_register', 'ZipCode')
         for dictionary in buildings_data_list:
             # converting an integer value to string for comparing with codes from DB that are strings
             code = str(dictionary['Bld_ID'])

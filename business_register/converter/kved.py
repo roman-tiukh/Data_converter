@@ -4,17 +4,13 @@ from data_ocean.models import Register
 
 class KvedConverter(Converter):
     LOCAL_FILE_NAME = "kved.json"
-    # API_ADDRESS_FOR_DATASET = Register.objects.get(source_register_id="e1afb81c-70e4-4009-96a0-b240c36e4603").api_address
 
-    # list of models for clearing DB
-    tables = [
-        Section,
-        Division,
-        Group,
-        Kved
-    ]
+    def __init__(self):
+        API_ADDRESS_FOR_DATASET = Register.objects.get(source_register_id=
+        "e1afb81c-70e4-4009-96a0-b240c36e4603").api_address
+        super().__init__()
 
-    # We can delete this function after changing clear_db function in Converter
+    # Storing default kved (there is also such migration)
     def save_default_kved(self):
         section = Section()
         section.code = "EMP"
@@ -41,13 +37,6 @@ class KvedConverter(Converter):
         kved.code = "EMP"
         kved.name = "EMPTY"
         kved.save()
-
-    # #storing data to all tables
-    def save_to_db(self, data):
-        # getting a value from json file, because it is put into a list
-        sections = data['sections'][0]
-        self.save_to_section_table(sections)
-        print("Saved kved data ")
 
     def save_to_section_table(self, sections):
         for section_data in sections:
@@ -88,3 +77,10 @@ class KvedConverter(Converter):
             kved.code = class_data['classCode']
             kved.name = class_data['className']
             kved.save()
+    
+    # storing data to all tables
+    def save_to_db(self, data):
+        # getting a value from json file, because it is put into a list
+        sections = data['sections'][0]
+        self.save_to_section_table(sections)
+        print("Saved all kveds")

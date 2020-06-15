@@ -1,19 +1,15 @@
 import codecs
-from collections import defaultdict
-from django.apps import apps
-import datetime
 import json
-import io
-from lxml import etree
 import os
-import requests
-import sys
-from xml.etree.ElementTree import iterparse, XMLParser, tostring
-import xmltodict
 import zipfile
+from collections import defaultdict
+from xml.etree.ElementTree import iterparse
 
-from business_register.models.kved_models import Kved
-from data_ocean.models import Status, Authority, TaxpayerType
+import requests
+import xmltodict
+from django.apps import apps
+from lxml import etree
+
 
 class Converter:
     UPDATE_FILE_NAME = "update.cfg"
@@ -22,96 +18,8 @@ class Converter:
     LOCAL_FOLDER = "source_data/"  # local folder for unzipped source files
     DOWNLOAD_FOLDER = "download/"  # folder to downloaded files
     URLS_DICT = {}  # control remote dataset files update
-    #dictionaries whith all kveds, statuses, authorities and taxpayer_types
-    all_kveds_dict = {}  
-    all_statuses_dict = {}
-    all_authorities_dict = {}
-    all_taxpayer_types_dict = {}
-
-    # initializing dictionaries with all objects
-    def __init__(self):
-        self.all_kveds_dict = self.put_all_objects_to_dict_with_code("business_register", "Kved")
-        self.all_statuses_dict = self.put_all_objects_to_dict_with_name("data_ocean", "Status")
-        self.all_authorities_dict = self.put_all_objects_to_dict_with_name("data_ocean", "Authority")
-        self.all_taxpayer_types_dict = self.put_all_objects_to_dict_with_name("data_ocean", "TaxpayerType")
-
-    # putting all objects of the model from DB to a dictionary using name as a key
-    def put_all_objects_to_dict_with_name(self, app_name, model_name):
-        model = apps.get_model(app_name, model_name)
-        all_objects = model.objects.all()
-        all_objects_dict = {}
-        for object in all_objects:
-            all_objects_dict[object.name] = object
-        return all_objects_dict
-    
-    # putting all objects of the model from DB to a dictionary using code as a key
-    def put_all_objects_to_dict_with_code(self, app_name, model_name):
-        model = apps.get_model(app_name, model_name)
-        all_objects = model.objects.all()
-        all_objects_dict = {}
-        for object in all_objects:
-            all_objects_dict[object.code]=object
-        return all_objects_dict
-
-    # putting objects of the model from DB to a dictionary using region as a filter
-    def put_objects_from_region_to_dict(self, app_name, model_name, region_name):
-        model = apps.get_model(app_name, model_name)
-        region_objects = model.objects.filter(region=region_name)
-        region_objects_dict = {}
-        for object in region_objects:
-            region_objects_dict[object.name]=object
-        return region_objects_dict
 
     #lets have all supporting functions at the beginning
-    def get_first_word(self, string):
-        return string.split()[0]
-
-    def cut_first_word(self, string):
-        words_after_first = string.split()[1:]
-        return " ".join(words_after_first)
-
-    def format_date_to_yymmdd(self, str_ddmmyy): 
-        ddmmyy = str_ddmmyy.replace(";", "")
-        return datetime.datetime.strptime(ddmmyy, "%d.%m.%Y").strftime("%Y-%m-%d")
-        
-    #verifying kved
-    def get_kved_from_DB(self, kved_code_from_record):
-        empty_kved = Kved.objects.get(code='EMP')
-        if kved_code_from_record in self.all_kveds_dict:
-            return self.all_kveds_dict[kved_code_from_record]
-        # print(f"This kved value is outdated or not valid")
-        return empty_kved
-    
-    def save_or_get_status(self, status_from_record):
-        #storing an object that isn`t in DB yet
-        if not status_from_record in self.all_statuses_dict:
-            new_status = Status(name=status_from_record)
-            new_status.save()
-            self.all_statuses_dict[status_from_record] = new_status
-            return new_status
-        #getting an existed object from DB
-        return self.all_statuses_dict[status_from_record]
-
-    def save_or_get_authority(self, authority_from_record):
-        #storing an object that isn`t in DB yet
-        if not authority_from_record in self.all_authorities_dict:
-            new_authority = Authority(name=authority_from_record)
-            new_authority.save()
-            self.all_authorities_dict[authority_from_record] = new_authority
-            return new_authority
-        #getting an existed object from DB
-        return self.all_authorities_dict[authority_from_record]
-
-    def save_or_get_taxpayer_type(self, taxpayer_type_from_record):
-        #storing an object that isn`t in DB yet
-        if not taxpayer_type_from_record in self.all_taxpayer_types_dict:
-            new_taxpayer_type = TaxpayerType(name=taxpayer_type_from_record)
-            new_taxpayer_type.save()
-            self.all_taxpayer_types_dict[taxpayer_type_from_record] = new_taxpayer_type
-            return new_taxpayer_type
-        #getting an existed object from DB
-        return self.all_taxpayer_types_dict[taxpayer_type_from_record]
-
     def get_urls(self):
         # returns actual dataset urls
         response = requests.get(self.API_ADDRESS_FOR_DATASET)
