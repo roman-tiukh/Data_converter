@@ -41,7 +41,7 @@ class DataOceanUser(AbstractUser):
     email = models.EmailField(_('email address'), unique=True)
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = []
+    REQUIRED_FIELDS = ['last_name', 'first_name']
 
     objects = DataOceanUserManager()
 
