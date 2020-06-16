@@ -203,11 +203,11 @@ class Converter:
     def process_full(self): # It's temporary method name, in the future this 'process' will be one       
         self.clear_db()
         i = 0
-        records = etree.Element('RECORDS')
-        for _, elem in etree.iterparse(self.LOCAL_FOLDER + self.LOCAL_FILE_NAME, tag = 'SUBJECT'):           
+        records = etree.Element('main')
+        for _, elem in etree.iterparse(self.LOCAL_FOLDER + self.LOCAL_FILE_NAME, tag = 'DATA_RECORD'):           
             if len(records) < self.CHUNK_SIZE:
-                # for text in elem.iter():
-                #     print('\t%28s\t%s'%(text.tag, text.text))
+                for text in elem.iter():
+                    print('\t%28s\t%s'%(text.tag, text.text))
                 records.append(elem)
                 i = i + 1
                 print(i,
