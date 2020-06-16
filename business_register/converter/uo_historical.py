@@ -10,6 +10,7 @@ class Historical(Converter):
     LOCAL_FILE_NAME = settings_local.LOCAL_FILE_NAME_UO_ADDRESS
     LOCAL_FOLDER = settings_local.LOCAL_FOLDER
     CHUNK_SIZE = 500
+    RECORD_TAG = 'DATA_RECORD'
     HistoricalCompany = apps.get_model('business_register', 'HistoricalCompany')
     tables = [HistoricalCompany]
     create_queues = []

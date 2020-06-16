@@ -30,7 +30,6 @@ class Company(DataOceanModel): #constraint for not null in both name & short_nam
     history = HistoricalRecords()
 
 
-
 class Assignee(DataOceanModel):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='assignees')
     name = models.CharField(max_length=610, null=True)
