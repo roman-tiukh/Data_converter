@@ -17,7 +17,7 @@ class Company(DataOceanModel): #constraint for not null in both name & short_nam
     name = models.CharField(max_length=500, null=True)
     short_name = models.CharField(max_length=500, null=True)
     company_type = models.ForeignKey(CompanyType, on_delete=models.CASCADE)
-    edrpou = models.CharField(max_length=260)
+    edrpou = models.CharField(max_length=260, db_index=True)
     address = models.CharField(max_length=500, null=True)  
     status = models.ForeignKey(Status, on_delete=models.CASCADE)
     bylaw = models.ForeignKey(Bylaw, on_delete=models.CASCADE)
