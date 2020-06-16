@@ -5,7 +5,7 @@ from business_register.models.company_models import Company, FounderNew
 
 
 class FoundersUpdater(BusinessConverter):
-    LOCAL_FILE_NAME = '../unzipped_xml/ltds_1.xml'
+    LOCAL_FILE_NAME = '../Data_converter/unzipped_xml/ltds_1.xml'
     CHUNK_SIZE = 100
     record = []
     
@@ -32,27 +32,33 @@ class FoundersUpdater(BusinessConverter):
     def add_founders_info(self, records):
         j = 0
         for record in records:
-            company_edrpou = record.xpath('EDRPOU')[0].text
+            company_edrpou_info = record.xpath('EDRPOU')
+            if not company_edrpou_info:
+                return
+            company_edrpou = company_edrpou_info[0].text
             if not company_edrpou:
                 return
             company = Company.objects.filter(edrpou=company_edrpou).first()
             if not company:
                 return
-            founder_name = record.xpath('FOUNDER_NAME')[0].text
+            founder_name_info = record.xpath('FOUNDER_NAME')
+            if not founder_name_info:
+                return
+            founder_name = founder_name_info[0].text
             if not founder_name:
                 return
-            founder_info = record.xpath('FOUNDER_CODE')
-            if not founder_info:
-                return
-            founder_code = founder_info[0].text
+            founder_code_info = record.xpath('FOUNDER_CODE')
+            if founder_code_info:
+                founder_code = founder_code_info[0].text
             # ignoring personal data according to the law 
             founder_edrpou = founder_code if len(founder_code) == 8 else None
-            founder_equity = record.xpath('FOUNDER_EQUITY')[0].text
+            founder_equity_info = record.xpath('FOUNDER_EQUITY')
+            if founder_equity_info:
+                founder_equity = founder_equity_info[0].text
             if founder_equity:
                 founder_equity = float(founder_equity.replace(',', '.'))
             founder_new = FounderNew(name=founder_name, edrpou=founder_edrpou, 
             equity=founder_equity, company=company)
             founder_new.save()
-            j += 1
 
 FoundersUpdater().parse_file()
