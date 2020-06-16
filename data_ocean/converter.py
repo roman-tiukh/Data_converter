@@ -204,7 +204,7 @@ class Converter:
         self.clear_db()
         i = 0
         records = etree.Element('RECORDS')
-        for _, elem in etree.iterparse(self.LOCAL_FOLDER + self.LOCAL_FILE_NAME, tag = 'SUBJECT'):           
+        for _, elem in etree.iterparse(self.LOCAL_FOLDER + self.LOCAL_FILE_NAME, tag = self.RECORD_TAG):           
             if len(records) < self.CHUNK_SIZE:
                 # for text in elem.iter():
                 #     print('\t%28s\t%s'%(text.tag, text.text))
