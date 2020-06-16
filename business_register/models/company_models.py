@@ -105,6 +105,7 @@ class Signer(DataOceanModel):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='signers')
     name = models.CharField(max_length=390, null=True)
     hash_code = models.CharField(max_length=510)
+    history = HistoricalRecords()
 
 
 class TerminationStarted(DataOceanModel):
