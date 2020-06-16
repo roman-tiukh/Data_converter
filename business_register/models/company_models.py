@@ -84,15 +84,8 @@ class FounderFull(DataOceanModel):
     equity = models.FloatField(null=True)
     hash_code = models.CharField(max_length=510)
 
-class FounderFull(DataOceanModel):
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='founders')
-    name = models.TextField(null=True)
-    edrpou = models.CharField(max_length=9, null=True)
-    equity = models.FloatField(null=True)
-    hash_code = models.CharField(max_length=510)    
-
 class FounderNew(DataOceanModel):
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='founders')
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='founders_new')
     name = models.TextField(null=True)
     edrpou = models.CharField(max_length=9, null=True)
     equity = models.FloatField(null=True)
