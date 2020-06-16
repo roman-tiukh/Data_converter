@@ -50,13 +50,20 @@ class FoundersUpdater(BusinessConverter):
             founder_code_info = record.xpath('FOUNDER_CODE')
             if founder_code_info:
                 founder_code = founder_code_info[0].text
+            else:
+                founder_code = None
             # ignoring personal data according to the law 
-            founder_edrpou = founder_code if len(founder_code) == 8 else None
+            if founder_code and len(founder_code) == 8:
+                founder_edrpou = founder_code
+            else:
+                founder_edrpou = None
             founder_equity_info = record.xpath('FOUNDER_EQUITY')
             if founder_equity_info:
                 founder_equity = founder_equity_info[0].text
             if founder_equity:
                 founder_equity = float(founder_equity.replace(',', '.'))
+            else:
+                founder_equity = None
             founder_new = FounderNew(name=founder_name, edrpou=founder_edrpou, 
             equity=founder_equity, company=company)
             founder_new.save()
