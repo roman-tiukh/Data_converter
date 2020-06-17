@@ -15,11 +15,10 @@ def fill_in_ratu_table():
     RatuConverter().process()
 
 @shared_task
-def fill_in_koatuu_region_and_district_table():
+def fill_in_koatuu():
     with open(LOCAL_FILE_KOATUU) as json_file:
         data = json.load(json_file)
-    KoatuuConverter().save_to_db_region_and_district(data)
-    KoatuuConverter().save_to_db_city_and_citydistrict(data)
+    KoatuuConverter().save_to_db(data)
 
 @shared_task
 def fill_in_kved_table():
