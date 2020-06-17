@@ -26,11 +26,3 @@ def fill_in_kved_table():
     with open(LOCAL_FILE_KVED) as json_file:
         data = json.load(json_file)
     KvedConverter().save_to_db(data)
-
-# @shared_task
-# def task_one():
-#     print('Hello ')
-
-# @shared_task
-# def task_two():
-#     print(' my friend!!')

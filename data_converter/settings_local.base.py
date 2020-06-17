@@ -1,5 +1,4 @@
 import os
-from celery.schedules import crontab
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -85,14 +84,3 @@ CELERY_RESULT_BACKEND = 'redis://localhost:6379'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
-
-# CELERY_BEAT_SCHEDULE = {
-#     'fill_in_ratu_table':{
-#         'task': 'location_register.tasks.fill_in_ratu_table',
-#         'schedule': crontab(hour=14, minute=10, day_of_week=5),
-#     },
-#     'fill_in_koatuu_table':{
-#         'task': 'location_register.tasks.fill_in_koatuu_table',
-#         'schedule': crontab(hour=1, minute=10, day_of_week=6),
-#     }
-# }
