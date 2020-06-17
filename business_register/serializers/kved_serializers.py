@@ -6,14 +6,14 @@ from business_register.models.kved_models import Kved
 class KvedSerializer(serializers.ModelSerializer):
     class Meta:
         model = Kved
-        fields = ['code', 'name']
+        fields = ['id', 'code', 'name']
 
 
 class KvedDetailSerializer(serializers.ModelSerializer):
-    group = serializers.CharField(max_length=500)
-    division = serializers.CharField(max_length=500)
-    section = serializers.CharField(max_length=500)
+    group = serializers.StringRelatedField()
+    division = serializers.StringRelatedField()
+    section = serializers.StringRelatedField()
 
     class Meta:
         model = Kved
-        fields = ['code', 'name', 'group', 'division', 'section']
+        fields = ['id', 'code', 'name', 'group', 'division', 'section']

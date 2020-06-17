@@ -12,17 +12,17 @@ class StatusSerializer(serializers.ModelSerializer):
 class AuthoritySerializer(serializers.ModelSerializer):
     class Meta:
         model = Authority
-        fields = ['name', 'code']
+        fields = ['id', 'name', 'code']
 
 
 class TaxpayerTypeSerializer(serializers.ModelSerializer):
     name = serializers.CharField(max_length=200)
     class Meta:
         model = TaxpayerType
-        fields = ['name']
+        fields = ['id', 'name']
 
 
 class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = Register
-        fields = ['name', 'source_name', 'url_address', 'api_address']
+        fields = ['id', 'name', 'source_name', 'url_address', 'api_address', 'source_register_id']
