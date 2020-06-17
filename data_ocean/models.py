@@ -28,7 +28,7 @@ class TaxpayerType(DataOceanModel):
 class Register(DataOceanModel):
     name = models.CharField(max_length=500, unique=True)
     source_name = models.CharField(max_length=300)
-    source_register_id = models.URLField(max_length=300, unique=True)
+    source_register_id = models.CharField(max_length=36, unique=True)
     url_address = models.URLField(max_length=500)
     api_address = models.URLField(max_length=500, null=True)
     source_last_update = models.DateTimeField(default=None, null=True)
