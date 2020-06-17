@@ -68,7 +68,7 @@ class KoatuuConverter(Converter):
         if not object_region_name in region_dict:
             return
         region_koatuu = region_dict[object_region_name]
-        if not koatuu_value[:2] == str(region_koatuu.koatuu)[:2]:
+        if koatuu_value[:2] != str(region_koatuu.koatuu)[:2]:
             return
         object_district_name = object_district_name + str(region_koatuu.id)
         district_items_list.append(object_district_name)
@@ -84,12 +84,10 @@ class KoatuuConverter(Converter):
             return city_list
 
     # storing data to all tables
-    def save_to_db(self, data):
+    def save_to_db_region_and_district(self, data):
         region_dict = self.create_dictionary_for(Region)
         district_dict = self.create_dictionary_for_district_table(District)
         city_dict_for_district_table = self.create_dictionary_for_district_table(City)
-        city_dict = self.create_dictionary_for_city_table(City)
-        citydistrict_dict = self.create_dictionary_for_citydistrict_table()
         # getting values in json file Koatuu
         for index, object_koatuu in enumerate(data):
             if (object_koatuu[self.LEVEL_ONE] != '') & (object_koatuu[self.LEVEL_TWO] == ''):
@@ -104,14 +102,57 @@ class KoatuuConverter(Converter):
                     (object_koatuu[self.OBJECT_NAME])
                 district_items_list = self.create_district_items_list \
                     (object_region_name, region_dict, object_district_name, koatuu_value)
+                print(district_items_list)
+                # self.save_to_district_table(
+                #     object_koatuu,
+                #     district_dict,
+                #     city_dict_for_district_table,
+                #     district_items_list,
+                #     koatuu_value)
+        print("Koatuu values saved to region and district table")
+
+    # writing entry to koatuu field in region table
+    def save_to_region_table(self, object_koatuu, region_dict, object_region_name):
+        if  not object_region_name in region_dict:
+            return
+        region_koatuu = region_dict[object_region_name]
+        region_koatuu.koatuu = object_koatuu[self.LEVEL_ONE]
+        region_koatuu.save(update_fields=['koatuu'])
+
+    # writing entry to koatuu field in district table and level_two records of city_table
+    def save_to_district_table(self, object_koatuu, district_dict, \
+        city_dict, district_items_list, koatuu_value):
+        for object_district_name in district_items_list:
+            if (object_district_name in district_dict) & (koatuu_value[2] != '1'):
+                district_koatuu = district_dict[object_district_name]
+                district_koatuu.koatuu = object_koatuu[self.LEVEL_TWO]
+                district_koatuu.save(update_fields=['koatuu'])
+            elif (object_district_name in city_dict) & (koatuu_value[2] == '1'):
+                city_koatuu = city_dict[object_district_name]
+                city_koatuu.koatuu = object_koatuu[self.LEVEL_TWO]
+                city_koatuu.save(update_fields=['koatuu'])
+
+
+    def save_to_db_city_and_citydistrict(self, data):
+        region_dict = self.create_dictionary_for(Region)
+        city_dict = self.create_dictionary_for_city_table(City)
+        district_dict = self.create_dictionary_for_district_table(District)
+        citydistrict_dict = self.create_dictionary_for_citydistrict_table()
+        city_dict_for_district_table = self.create_dictionary_for_district_table(City)
+        # getting values in json file Koatuu
+        for index, object_koatuu in enumerate(data):
+            if (object_koatuu[self.LEVEL_ONE] != '') & (object_koatuu[self.LEVEL_TWO] == ''):
+                object_region_name = self.get_lowercase_words_before_virgule \
+                    (object_koatuu[self.OBJECT_NAME])
+            if (object_koatuu[self.LEVEL_ONE] != '') & (object_koatuu[self.LEVEL_TWO] != '') & \
+                (object_koatuu[self.LEVEL_THREE] == ''):
+                koatuu_value = str(object_koatuu[self.LEVEL_TWO])
+                object_district_name = self.get_lowercase_words_before_virgule \
+                    (object_koatuu[self.OBJECT_NAME])
+                district_items_list = self.create_district_items_list \
+                    (object_region_name, region_dict, object_district_name, koatuu_value)
                 city_items_list = self.create_city_items_list \
                     (city_dict_for_district_table, district_items_list, koatuu_value)
-                self.save_to_district_table(
-                    object_koatuu,
-                    district_dict,
-                    city_dict_for_district_table,
-                    district_items_list,
-                    koatuu_value)
             if (object_koatuu[self.LEVEL_ONE] != '') & (object_koatuu[self.LEVEL_TWO] != '') & \
                 (object_koatuu[self.LEVEL_THREE] != '') & (object_koatuu[self.LEVEL_FOUR] == ''):
                 object_city_name = self.get_lowercase_words_before_virgule(
@@ -147,27 +188,6 @@ class KoatuuConverter(Converter):
                     city_dict,
                     citydistrict_dict)
         print("Koatuu values saved")
-
-    # writing entry to koatuu field in region table
-    def save_to_region_table(self, object_koatuu, region_dict, object_region_name):
-        if  not object_region_name in region_dict:
-            return
-        region_koatuu = region_dict[object_region_name]
-        region_koatuu.koatuu = object_koatuu[self.LEVEL_ONE]
-        region_koatuu.save(update_fields=['koatuu'])
-
-    # writing entry to koatuu field in district table and level_two records of city_table
-    def save_to_district_table(self, object_koatuu, district_dict, \
-        city_dict, district_items_list, koatuu_value):
-        for object_district_name in district_items_list:
-            if (object_district_name in district_dict) & (koatuu_value[2] != '1'):
-                district_koatuu = district_dict[object_district_name]
-                district_koatuu.koatuu = object_koatuu[self.LEVEL_TWO]
-                district_koatuu.save(update_fields=['koatuu'])
-            elif (object_district_name in city_dict) & (koatuu_value[2] == '1'):
-                city_koatuu = city_dict[object_district_name]
-                city_koatuu.koatuu = object_koatuu[self.LEVEL_TWO]
-                city_koatuu.save(update_fields=['koatuu'])
 
     # writing entry to koatuu field in city and citydistrict table
     def save_to_city_or_citydistrict_table(self, object_level_number, object_level_name, \
