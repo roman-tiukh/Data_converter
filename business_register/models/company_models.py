@@ -12,13 +12,13 @@ class CompanyType(DataOceanModel):
     name = models.CharField(max_length=270, unique=True, null=True)
 
 
-class Company(DataOceanModel): #constraint for not null in both name & short_name fields
-    INVALID = 'invalid' #constant for empty edrpou fild etc.
+class Company(DataOceanModel):  # constraint for not null in both name & short_name fields
+    INVALID = 'invalid'  # constant for empty edrpou fild etc.
     name = models.CharField(max_length=500, null=True)
     short_name = models.CharField(max_length=500, null=True)
     company_type = models.ForeignKey(CompanyType, on_delete=models.CASCADE)
     edrpou = models.CharField(max_length=260, db_index=True)
-    address = models.CharField(max_length=1000, null=True)  
+    address = models.CharField(max_length=1000, null=True)
     status = models.ForeignKey(Status, on_delete=models.CASCADE)
     bylaw = models.ForeignKey(Bylaw, on_delete=models.CASCADE)
     registration_date = models.DateTimeField(null=True)
@@ -59,7 +59,7 @@ class CompanyDetail(DataOceanModel):
     history = HistoricalRecords()
 
 
-class CompanyToKved(DataOceanModel): #constraint for only only one truth in primary field
+class CompanyToKved(DataOceanModel):  # constraint for only only one truth in primary field
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='kveds')
     kved = models.ForeignKey(Kved, on_delete=models.CASCADE)
     primary_kved = models.BooleanField(default=False)
@@ -84,13 +84,20 @@ class FounderFull(DataOceanModel):
     equity = models.FloatField(null=True)
     hash_code = models.CharField(max_length=510)
 
+
 class FounderNew(DataOceanModel):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='founders_new')
     name = models.TextField(null=True)
     edrpou = models.CharField(max_length=9, null=True)
     equity = models.FloatField(null=True)
 
-class Predecessor(DataOceanModel): #constraint for not null in both fields
+    class Meta:
+        indexes = [
+            models.Index(fields=['name', 'company'], )
+        ]
+
+
+class Predecessor(DataOceanModel):  # constraint for not null in both fields
     name = models.CharField(max_length=500, null=True)
     code = models.CharField(max_length=405, null=True)
 

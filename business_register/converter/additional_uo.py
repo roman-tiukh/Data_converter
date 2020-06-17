@@ -4,33 +4,9 @@ from business_register.converter.business_converter import BusinessConverter
 from business_register.models.company_models import Company, FounderNew
 
 
-class FoundersUpdater(BusinessConverter):
-    LOCAL_FILE_NAME = '/unzipped_xml/ltds_1.xml'
-    CHUNK_SIZE = 100
-    record = []
-    
-    # def __init__(self):
-    #     self.all_companies_dict = self.put_all_objects_to_dict('name', 'business_register', 
-    #                                                             "Company")
-        
-        # super().__init__()
-
-    def parse_file(self):
-        i = 0
-        records = etree.Element('RECORDS')
-        for _, elem in etree.iterparse(self.LOCAL_FILE_NAME, tag = 'DATA_RECORD'):           
-            if len(records) < self.CHUNK_SIZE:
-                records.append(elem)
-            else:
-                self.add_founders_info(records)
-                records.clear()
-            i += 1
-            print(f'N{i}')
-        print('All the records checked')
-
-
-    def add_founders_info(self, records):
-        for record in records:
+def add_founders_info(records):
+    for record in records:
+        try:
             company_edrpou_info = record.xpath('EDRPOU')
             if not company_edrpou_info:
                 return
@@ -50,8 +26,8 @@ class FoundersUpdater(BusinessConverter):
             founder_code_info = record.xpath('FOUNDER_CODE')
             if founder_code_info:
                 founder_code = founder_code_info[0].text
-                # ignoring personal data according to the law 
             founder_edrpou = None
+            # ignoring personal data according to the law
             if founder_code and len(founder_code) == 8:
                 founder_edrpou = founder_code
             founder_equity = None
@@ -60,8 +36,34 @@ class FoundersUpdater(BusinessConverter):
                 founder_equity = founder_equity_info[0].text
             if founder_equity:
                 founder_equity = float(founder_equity.replace(',', '.'))
-            founder_new = FounderNew(name=founder_name, edrpou=founder_edrpou, 
-            equity=founder_equity, company=company)
-            founder_new.save()
+            if FounderNew.objects.filter(name=founder_name, company=company).first():
+                continue
+            else:
+                founder_new = FounderNew(name=founder_name, edrpou=founder_edrpou,
+                                         equity=founder_equity, company=company)
+                founder_new.save()
+        except etree.XMLSyntaxError:
+            continue
+
+
+class FoundersUpdater(BusinessConverter):
+    LOCAL_FILE_NAME = '/unzipped_xml/ltds_1.xml'
+    CHUNK_SIZE = 500
+    RECORD_TAG = 'DATA_RECORD'
+    record = []
+
+    def parse_file(self):
+        i = 0
+        records = etree.Element('RECORDS')
+        for _, elem in etree.iterparse(self.LOCAL_FILE_NAME, tag=self.RECORD_TAG):
+            if len(records) < self.CHUNK_SIZE:
+                records.append(elem)
+            else:
+                add_founders_info(records)
+                records.clear()
+            i += 1
+            print(f'N{i}')
+        print('All the records checked')
+
 
 FoundersUpdater().parse_file()
