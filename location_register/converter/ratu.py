@@ -1,18 +1,11 @@
+import re
 from data_ocean.converter import Converter, BulkCreateUpdateManager
 from data_ocean.models import Register
-from data_ocean.utils import clean_name, change_to_full_name
-from location_register.models.ratu_models import (
-    Region,
-    District,
-    City,
-    Citydistrict,
-    Street,
-    Category)
+from location_register.models.ratu_models import Region, District, City, Citydistrict, Street, Category
 
 
 class RatuConverter(Converter):
-    API_ADDRESS_FOR_DATASET = Register.objects.\
-        get(source_register_id="a2d6c060-e7e6-4471-ac67-42cfa1742a19").api_address
+    API_ADDRESS_FOR_DATASET = Register.objects.get(source_register_id="a2d6c060-e7e6-4471-ac67-42cfa1742a19").api_address
     LOCAL_FILE_NAME = "ratu.xml"
     CHUNK_SIZE = 200
 
@@ -37,8 +30,7 @@ class RatuConverter(Converter):
 
     def rename_file(self, file):
         new_filename = file
-        if file.upper().find('ATU') >= 0: \
-            new_filename = 'ratu.xml'
+        if (file.upper().find('ATU') >= 0): new_filename = 'ratu.xml'
         return new_filename
 
     # creating dictionary & lists for registration items that had writed to db
@@ -50,17 +42,38 @@ class RatuConverter(Converter):
     bulk_manager = BulkCreateUpdateManager(CHUNK_SIZE)
 
 
+    # changing from records like: "волинська обл." to "волинська область"
+    def clean_region_name(self, region):
+        region = region.lower()
+        region = region.replace("обл.", "область")
+        return region.strip()
+
+    # changing from records like: "донецький р-н" to "донецький район", "р.райони вінницької області" to "райони вінницької області", "райони міста Київ" to "райони м.Київ"
+    def clean_district_name(self, district):
+        district = district.lower()
+        district = re.sub(r"р\.", "", district)
+        district = district.replace("р-н", "район")
+        district = district.replace("райони міста", "райони м.")
+        district = district.replace("области", "області")  # fixing up particular mistake in data
+        return district.strip()
+
+    # changing from records like: "с.високе" to "високе", "м.судак" to "судак", "смт.научне" to "научне", "сщ.стальне" to "стальне", "с/рада.вілінська" to "вілінська", "сщ/рада.поштівська" to "поштівська"
+    def clean_city_or_citydistrict_name(self, city):
+        city = city.lower()
+        city = re.sub(r"с\.|м\.|смт\.|сщ\.|с/рада\.|сщ/рада\.|р\.", "", city)
+        return city.strip()
+
     # function to compare data records with category types
     def format_category_name(self, name):
         name = str(name).split('.')[0]
-        switcher = {
+        switcher={
             'с':'С',
             'сщ':'Щ',
             'смт':'Т',
             'м':'М',
             'р':'Р'
             }
-        return switcher.get(name, 'null')
+        return switcher.get(name,'null')
 
     # writing entry to db
     def save_to_db(self, record):
@@ -68,14 +81,14 @@ class RatuConverter(Converter):
         district = self.save_to_district_table(record, region)
         city = self.save_to_city_table(record, region, district)
         citydistrict = self.save_to_citydistrict_table(record, region, district, city)
-        # self.save_to_category_id(record['CITY_NAME'], City)
-        # self.save_to_category_id(record['CITY_REGION_NAME'], Citydistrict)
+        self.save_to_category_id(record['CITY_NAME'], City)
+        self.save_to_category_id(record['CITY_REGION_NAME'], Citydistrict)
         self.save_to_street_table(record, region, district, city, citydistrict)
         print('saved')
 
     # writing entry to region table
     def save_to_region_table(self, record):
-        record['OBL_NAME'] = change_to_full_name(record['OBL_NAME'])
+        record['OBL_NAME'] = self.clean_region_name(record['OBL_NAME'])
         if not record['OBL_NAME'] in self.region_dict:
             region = Region(
                 name=record['OBL_NAME']
@@ -89,11 +102,10 @@ class RatuConverter(Converter):
     # writing entry to district table
     def save_to_district_table(self, record, region):
         if record['REGION_NAME']:
-            district_name = clean_name(record['REGION_NAME'])
-            district_name = change_to_full_name(district_name)
+            district_name = self.clean_district_name(record['REGION_NAME'])
         else:
             district_name = District.EMPTY_FIELD
-        if [region.id, district_name] not in self.district_list:
+        if not [region.id, district_name] in self.district_list:
             district = District(
                 region=region,
                 name=district_name
@@ -109,10 +121,10 @@ class RatuConverter(Converter):
     # writing entry to city table
     def save_to_city_table(self, record, region, district):
         if record['CITY_NAME']:
-            city_name = clean_name(record['CITY_NAME'])
+            city_name = self.clean_city_or_citydistrict_name(record['CITY_NAME'])
         else:
             city_name = City.EMPTY_FIELD
-        if [region.id, district.id, city_name] not in self.city_list:
+        if not [region.id, district.id, city_name] in self.city_list:
             city = City(
                 region=region,
                 district=district,
@@ -130,10 +142,10 @@ class RatuConverter(Converter):
     # writing entry to citydistrict table
     def save_to_citydistrict_table(self, record, region, district, city):
         if record['CITY_REGION_NAME']:
-            citydistrict_name = clean_name(record['CITY_REGION_NAME'])
+            citydistrict_name = self.clean_city_or_citydistrict_name(record['CITY_REGION_NAME'])
         else:
             citydistrict_name = Citydistrict.EMPTY_FIELD
-        if [region.id, district.id, city.id, citydistrict_name] not in self.citydistrict_list:
+        if not [region.id, district.id, city.id, citydistrict_name] in self.citydistrict_list:
             citydistrict = Citydistrict(
                 region=region,
                 district=district,
@@ -151,20 +163,17 @@ class RatuConverter(Converter):
         return citydistrict
 
     # adding category_id values to city and citydistrict table
-    # def save_to_category_id(self, record, model):
-    #     if record:
-    #         city_name = clean_name(record)
-    #         try:
-    #             city_value = model.objects.get(name=city_name)
-    #             city_value.category_id = Category.objects.get(name=self.format_category_name(record)).id
-    #             city_value.save(update_fields=['category_id'])
-    #         except model.MultipleObjectsReturned:
-    #             return
-    #     else:
-    #         empty_values = model.objects.filter(name='empty field')
-    #         for value in empty_values:
-    #             value.category_id = Category.objects.get(name='null').id
-    #             value.save(update_fields=['category_id'])
+    def save_to_category_id(self, record, Model):
+        if record:
+            city_name = self.clean_city_or_citydistrict_name(record)
+            city_value = Model.objects.get(name=city_name)
+            city_value.category_id = Category.objects.get(name=self.format_category_name(record)).id
+            city_value.save(update_fields=['category_id'])
+        else:
+            empty_values = Model.objects.filter(name='empty field')
+            for value in empty_values:
+                value.category_id = Category.objects.get(name='null').id
+                value.save(update_fields=['category_id'])            
 
     # writing entry to street table
     def save_to_street_table(self, record, region, district, city, citydistrict):
@@ -176,10 +185,9 @@ class RatuConverter(Converter):
                 citydistrict=citydistrict,
                 name=record['STREET_NAME'].lower()
             )
-            self.bulk_manager.add_create(street)
+            self.bulk_manager.add(street)
 
     print(
-        'Ratu already imported.',
-        'For start rewriting RATU to the DB run > RatuConverter().process()\n',
+        'Ratu already imported. For start rewriting RATU to the DB run > RatuConverter().process()\n',
         'For clear all RATU tables run > RatuConverter().clear_db()'
     )
