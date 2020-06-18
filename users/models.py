@@ -44,7 +44,7 @@ class DataOceanUser(AbstractUser):
     date_of_birth = models.DateField(default=None, null=True, blank=True)
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = []
+    REQUIRED_FIELDS = ['last_name', 'first_name']
 
     objects = DataOceanUserManager()
 
