@@ -3,7 +3,7 @@
       "model": "data_ocean.register",
       "id": 1,
       "fields": {
-        "created_at": "2020-06-01 19:14",
+        "created_at": "2020-06-17 19:20",
         "name": "Єдиний державний реєстр юридичних осіб, фізичних осіб-підприємців та громадських формувань",
         "source_name": "data.gov.ua",
         "source_register_id": "1c7f3815-3259-45e0-bdf1-64dca07ddc10",
@@ -16,7 +16,7 @@
       "model": "data_ocean.register",
       "id": 2,
       "fields": {
-        "created_at": "2020-06-01 19:14",
+        "created_at": "2020-06-17 19:20",
         "name": "Класифікація видів економічної діяльності",
         "source_name": "data.gov.ua",
         "source_register_id": "e1afb81c-70e4-4009-96a0-b240c36e4603",
@@ -29,7 +29,7 @@
       "model": "data_ocean.register",
       "id": 3,
       "fields": {
-        "created_at": "2020-06-01 19:14",
+        "created_at": "2020-06-17 19:20",
         "name": "Реєстр адміністративно-територіального устрою",
         "source_name": "data.gov.ua",
         "source_register_id": "a2d6c060-e7e6-4471-ac67-42cfa1742a19",
@@ -42,12 +42,25 @@
       "model": "data_ocean.register",
       "id": 4,
       "fields": {
-        "created_at": "2020-06-01 19:14",
+        "created_at": "2020-06-17 19:20",
         "name": "Класифікатор об’єктів адміністративно-територіального устрою України",
         "source_name": "data.gov.ua",
         "source_register_id": "dc081fb0-f504-4696-916c-a5b24312ab6e",
         "url_address": "https://data.gov.ua/dataset/d945de87-539c-45b4-932a-7dda57daf8d9/resource/296adb7a-476a-40c8-9de6-211327cb3aa1/download/koatuu.json",
         "api_address": "https://data.gov.ua/api/3/action/package_show?id=dc081fb0-f504-4696-916c-a5b24312ab6e",
+        "source_last_update": "2020-02-10 16:52"
+      }
+    },
+    {
+      "model": "data_ocean.register",
+      "id": 5,
+      "fields": {
+        "created_at": "2020-06-17 19:20",
+        "name": "Адресний реєстр",
+        "source_name": "drv.gov.ua",
+        "source_register_id": "",
+        "url_address": "https://www.drv.gov.ua/ords/svc/personal/API/Opendata",
+        "api_address": "https://www.drv.gov.ua/ords/svc/personal/API/Opendata",
         "source_last_update": "2020-02-10 16:52"
       }
     }
