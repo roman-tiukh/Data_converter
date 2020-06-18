@@ -9,7 +9,7 @@ import re
 # changing to lowercase, deleting 'р.', 'м.', 'с.', 'смт.', 'смт', 'сщ.', 'с/рада.', 'сщ/рада.', /
 # 'вул.' from a string
 def clean_name(name):
-    return re.sub(r'р\.|м\.|с\.|смт|смт\.|сщ\.|с/рада\.|сщ/рада\.|вул\.', "", name.lower()).strip()
+    return re.sub(r'р\.|м\.|с\.|смт\.|сщ\.|с/рада\.|сщ/рада\.|вул\.', "", name.lower()).strip()
 
 #a dictionary for storing all abbreviations and full forms
 SHORT_TO_FULL_DICT = {

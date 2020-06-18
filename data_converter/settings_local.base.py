@@ -48,7 +48,7 @@ CSRF_TRUSTED_ORIGINS = [
     '127.0.0.1',
 ]
 
-LOCAL_FILE_NAME_KOATUU = ''
+LOCATION_KOATUU_LOCAL_FILE_NAME = ''
 LOCAL_FOLDER = ''
 FILE_URL_KVED = ''
 LOCAL_FILE_NAME_KVED = ''
@@ -59,7 +59,7 @@ CACHES = {
     'default': {
         # REDIS cache configs
         # 'BACKEND': 'django_redis.cache.RedisCache',
-        # 'LOCATION': 'redis://127.0.0.1:6379/',
+        # 'LOCATION': 'redis://127.0.0.1:6379/1',
         # 'OPTIONS': {
         #     "IGNORE_EXCEPTIONS": True,
         #     # 'PASSWORD': 'XXXXXXXXX',
@@ -76,3 +76,24 @@ ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 
 # business_register/converter/uo.py
 UO_CHUNK_SIZE = 100
+
+# celery settings
+
+CELERY_BROKER_URL = 'redis://localhost:6379/2' # redis://:password@hostname:port/db_number
+CELERY_BROKER_TRANSPORT_OPTIONS = {'visibility_timeout': 3600}
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/2'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+
+# use CELERY_BEAT_SHEDULE to set periodic tasks in code, without admin aplication/ periodic tasks
+# CELERY_BEAT_SCHEDULE = {
+#     'fill_in_ratu_table':{
+#         'task': 'location_register.tasks.fill_in_ratu_table',
+#         'schedule': crontab(hour=14, minute=10, day_of_week=5),
+#     },
+#     'fill_in_koatuu_table':{
+#         'task': 'location_register.tasks.fill_in_koatuu_table',
+#         'schedule': crontab(hour=1, minute=10, day_of_week=6),
+#     }
+# }
