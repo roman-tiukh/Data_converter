@@ -1,3 +1,5 @@
+from django.conf import settings
+
 from data_ocean.converter import Converter
 from data_ocean.models import Register
 from location_register.models.ratu_models import Region, District, City, Citydistrict
@@ -7,14 +9,16 @@ class KoatuuConverter(Converter):
 
     # paths for the local souce file
     LOCAL_FILE_NAME = "koatuu.json"
-    API_ADDRESS_FOR_DATASET = Register.objects. \
-        get(source_register_id="dc081fb0-f504-4696-916c-a5b24312ab6e").api_address
+    API_ADDRESS_FOR_DATASET = Register.objects.get(
+        source_register_id=settings.LOCATION_KOATUU_SOURCE_REGISTER_ID
+    ).api_address
 
     # constants from json file
     LEVEL_ONE = 'Перший рівень'
     LEVEL_TWO = 'Другий рівень'
     LEVEL_THREE = 'Третій рівень'
     LEVEL_FOUR = 'Четвертий рівень'
+    CATEGORY = 'Категорія'
     OBJECT_NAME = "Назва об'єкта українською мовою"
 
     # geting all words before virgule and changing string to lowercase
