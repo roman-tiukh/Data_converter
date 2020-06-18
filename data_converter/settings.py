@@ -134,7 +134,6 @@ REST_FRAMEWORK = {
 
 AUTH_USER_MODEL = 'users.DataOceanUser'
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 SITE_ID = 1
 
