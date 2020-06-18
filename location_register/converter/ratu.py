@@ -68,8 +68,8 @@ class RatuConverter(Converter):
         district = self.save_to_district_table(record, region)
         city = self.save_to_city_table(record, region, district)
         citydistrict = self.save_to_citydistrict_table(record, region, district, city)
-        self.save_to_category_id(record['CITY_NAME'], City)
-        self.save_to_category_id(record['CITY_REGION_NAME'], Citydistrict)
+        # self.save_to_category_id(record['CITY_NAME'], City)
+        # self.save_to_category_id(record['CITY_REGION_NAME'], Citydistrict)
         self.save_to_street_table(record, region, district, city, citydistrict)
         print('saved')
 
@@ -151,20 +151,20 @@ class RatuConverter(Converter):
         return citydistrict
 
     # adding category_id values to city and citydistrict table
-    def save_to_category_id(self, record, model):
-        if record:
-            city_name = clean_name(record)
-            try:
-                city_value = model.objects.get(name=city_name)
-                city_value.category_id = Category.objects.get(name=self.format_category_name(record)).id
-                city_value.save(update_fields=['category_id'])
-            except model.MultipleObjectsReturned:
-                return
-        else:
-            empty_values = model.objects.filter(name='empty field')
-            for value in empty_values:
-                value.category_id = Category.objects.get(name='null').id
-                value.save(update_fields=['category_id'])
+    # def save_to_category_id(self, record, model):
+    #     if record:
+    #         city_name = clean_name(record)
+    #         try:
+    #             city_value = model.objects.get(name=city_name)
+    #             city_value.category_id = Category.objects.get(name=self.format_category_name(record)).id
+    #             city_value.save(update_fields=['category_id'])
+    #         except model.MultipleObjectsReturned:
+    #             return
+    #     else:
+    #         empty_values = model.objects.filter(name='empty field')
+    #         for value in empty_values:
+    #             value.category_id = Category.objects.get(name='null').id
+    #             value.save(update_fields=['category_id'])
 
     # writing entry to street table
     def save_to_street_table(self, record, region, district, city, citydistrict):
