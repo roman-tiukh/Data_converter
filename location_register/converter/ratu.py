@@ -1,13 +1,7 @@
 from data_ocean.converter import Converter, BulkCreateUpdateManager
 from data_ocean.models import Register
 from data_ocean.utils import clean_name, change_to_full_name
-from location_register.models.ratu_models import (
-    Region,
-    District,
-    City,
-    Citydistrict,
-    Street,
-    Category)
+from location_register.models.ratu_models import (Region, District, City, Citydistrict, Street)
 
 
 class RatuConverter(Converter):
@@ -48,19 +42,6 @@ class RatuConverter(Converter):
     citydistrict_list = list()
 
     bulk_manager = BulkCreateUpdateManager(CHUNK_SIZE)
-
-
-    # function to compare data records with category types
-    def format_category_name(self, name):
-        name = str(name).split('.')[0]
-        switcher = {
-            'с':'С',
-            'сщ':'Щ',
-            'смт':'Т',
-            'м':'М',
-            'р':'Р'
-            }
-        return switcher.get(name, 'null')
 
     # writing entry to db
     def save_to_db(self, record):
@@ -149,22 +130,6 @@ class RatuConverter(Converter):
             city=city.id
         )
         return citydistrict
-
-    # adding category_id values to city and citydistrict table
-    # def save_to_category_id(self, record, model):
-    #     if record:
-    #         city_name = clean_name(record)
-    #         try:
-    #             city_value = model.objects.get(name=city_name)
-    #             city_value.category_id = Category.objects.get(name=self.format_category_name(record)).id
-    #             city_value.save(update_fields=['category_id'])
-    #         except model.MultipleObjectsReturned:
-    #             return
-    #     else:
-    #         empty_values = model.objects.filter(name='empty field')
-    #         for value in empty_values:
-    #             value.category_id = Category.objects.get(name='null').id
-    #             value.save(update_fields=['category_id'])
 
     # writing entry to street table
     def save_to_street_table(self, record, region, district, city, citydistrict):
