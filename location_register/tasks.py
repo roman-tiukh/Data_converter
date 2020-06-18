@@ -17,7 +17,7 @@ def fill_in_ratu_table():
 
 
 @shared_task
-def fill_in_koatuu():
+def fill_in_koatuu_table():
     with open(LOCAL_FILE_KOATUU) as json_file:
         data = json.load(json_file)
     KoatuuConverter().save_to_db(data)
