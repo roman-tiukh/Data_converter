@@ -58,7 +58,7 @@ CACHES = {
     'default': {
         # REDIS cache configs
         # 'BACKEND': 'django_redis.cache.RedisCache',
-        # 'LOCATION': 'redis://127.0.0.1:6379/',
+        # 'LOCATION': 'redis://127.0.0.1:6379/0',
         # 'OPTIONS': {
         #     "IGNORE_EXCEPTIONS": True,
         #     # 'PASSWORD': 'XXXXXXXXX',
@@ -84,3 +84,15 @@ CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
+
+# use CELERY_BEAT_SHEDULE to set periodic tasks in code, without admin aplication/ periodic tasks
+# CELERY_BEAT_SCHEDULE = {
+#     'fill_in_ratu_table':{
+#         'task': 'location_register.tasks.fill_in_ratu_table',
+#         'schedule': crontab(hour=14, minute=10, day_of_week=5),
+#     },
+#     'fill_in_koatuu_table':{
+#         'task': 'location_register.tasks.fill_in_koatuu_table',
+#         'schedule': crontab(hour=1, minute=10, day_of_week=6),
+#     }
+# }
