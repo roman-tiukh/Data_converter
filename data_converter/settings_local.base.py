@@ -48,12 +48,11 @@ CSRF_TRUSTED_ORIGINS = [
     '127.0.0.1',
 ]
 
-# Please, choose propriate email backend for your own goals. For develop and testing use console email backend only.
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # CONSOLE MODE - for development purposes.
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'  #SMTP - for production server.
-# EMAIL_BACKEND = 'mailer.backend.DbBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 
+LOCATION_KOATUU_LOCAL_FILE_NAME = ''
 LOCAL_FILE_NAME_KOATUU = ''
 LOCAL_FOLDER = ''
 FILE_URL_KVED = ''
