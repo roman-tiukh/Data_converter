@@ -1,7 +1,6 @@
 from django.conf import settings
 
 from data_ocean.converter import Converter
-from data_ocean.models import Register
 from location_register.models.ratu_models import Region, District, City, Citydistrict, Category
 
 
@@ -9,9 +8,6 @@ class KoatuuConverter(Converter):
 
     # paths for the local souce file
     LOCAL_FILE_NAME = settings.LOCATION_KOATUU_LOCAL_FILE_NAME
-    API_ADDRESS_FOR_DATASET = Register.objects.get(
-        source_register_id=settings.LOCATION_KOATUU_SOURCE_REGISTER_ID
-    ).api_address
 
     # constants from json file
     LEVEL_ONE = 'Перший рівень'
