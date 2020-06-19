@@ -1,14 +1,14 @@
-from users import models
 from rest_framework.authtoken.models import Token
 from rest_auth.registration.serializers import RegisterSerializer
 from rest_framework import serializers
 from rest_auth.serializers import LoginSerializer
+from .models import DataOceanUser
 
 
 class DataOceanUserSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.DataOceanUser
-        fields = ('id', 'last_name', 'first_name', 'email', )
+        model = DataOceanUser
+        fields = ('id', 'last_name', 'first_name', 'email', 'organization', 'position', 'date_of_birth')
 
 
 class CustomRegisterSerializer(RegisterSerializer):

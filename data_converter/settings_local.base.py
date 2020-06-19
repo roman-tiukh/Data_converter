@@ -48,6 +48,11 @@ CSRF_TRUSTED_ORIGINS = [
     '127.0.0.1',
 ]
 
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+LOCAL_FILE_NAME_KOATUU = ''
 LOCATION_KOATUU_LOCAL_FILE_NAME = ''
 LOCAL_FOLDER = ''
 FILE_URL_KVED = ''

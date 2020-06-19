@@ -39,6 +39,9 @@ class DataOceanUserManager(BaseUserManager):
 class DataOceanUser(AbstractUser):
     username = None
     email = models.EmailField(_('email address'), unique=True)
+    organization = models.CharField(max_length=255, default='', blank=True)
+    position = models.CharField(max_length=150, default='', blank=True)
+    date_of_birth = models.DateField(default=None, null=True, blank=True)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['last_name', 'first_name']

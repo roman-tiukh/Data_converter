@@ -28,6 +28,8 @@ from location_register.views.drv_viewsets import DrvBuildingViewSet
 from data_ocean.views import RegisterView
 from users.views import CurrentUserProfileView
 from django.views.generic import TemplateView
+from django.urls import include, path, re_path
+from rest_auth.views import PasswordResetConfirmView
 
 
 router = routers.DefaultRouter()
@@ -60,6 +62,9 @@ router.register(r'register/<int:pk>', RegisterView, basename='registeritem')
 urlpatterns = [
 
     path('admin/', admin.site.urls),
+
+    re_path(r'^api/rest-auth/password/reset/confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', PasswordResetConfirmView.as_view(),
+            name='password_reset_confirm'),
 
     path('', TemplateView.as_view(template_name='users/index.html')),
     path('api/accounts/profile/', TemplateView.as_view(template_name='users/profile.html')),

@@ -134,16 +134,20 @@ REST_FRAMEWORK = {
 
 AUTH_USER_MODEL = 'users.DataOceanUser'
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 SITE_ID = 1
 
+# Settings for social authentication
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 
-# Settings for social authentication
+# Settings for rest-auth
+OLD_PASSWORD_FIELD_ENABLED = True
+LOGOUT_ON_PASSWORD_CHANGE = False
+LOGIN_REDIRECT_URL = '/'
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
@@ -169,4 +173,5 @@ REST_AUTH_REGISTER_SERIALIZERS = {
 REST_AUTH_SERIALIZERS = {
     'LOGIN_SERIALIZER': 'users.serializers.CustomLoginSerializer',
     'TOKEN_SERIALIZER': 'users.serializers.TokenSerializer',
+    'USER_DETAILS_SERIALIZER': 'users.serializers.DataOceanUserSerializer',
 }
