@@ -187,7 +187,8 @@ class KoatuuConverter(Converter):
                     city_items_list,
                     city_dict,
                     citydistrict_dict,
-                    category_level_three)
+                    category_level_three
+                )
             if (object_koatuu[self.LEVEL_ONE] != '') & (object_koatuu[self.LEVEL_TWO] != '') & \
                 (object_koatuu[self.LEVEL_THREE] != '') & (object_koatuu[self.LEVEL_FOUR] != ''):
                 object_citydistrict_name = self.get_lowercase_words_before_virgule(
