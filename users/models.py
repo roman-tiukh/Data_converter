@@ -1,7 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.base_user import BaseUserManager
+from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
+
+import requests
 
 
 class DataOceanUserManager(BaseUserManager):
@@ -50,3 +53,15 @@ class DataOceanUser(AbstractUser):
 
     def __str__(self):
         return self.email
+
+    def send_registration_email(self):
+        header_obj = {
+            'Content-Type': 'application/json',
+            'Authorisation': settings.POSTMAN_TOKEN,
+            }
+        data_obj = {
+            "recipient": self.email,
+            "text": self.first_name + ", ми отримали запит на реєстрацію у системі Data Ocean.",
+            "subject": "Підтвердження реєстрації на Data Ocean"
+            }
+        return requests.post(settings.POSTMAN_URL, data=data_obj, headers=header_obj)

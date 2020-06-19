@@ -10,6 +10,12 @@ SECRET_KEY = '89di$5_t-fo8f*z0!kvbli20gcz^6f)8&2!e1g3o4pbe7v(h^q'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+# AUTHORIZATION TOKEN FOR POSTMAN
+POSTMAN_TOKEN = '56eb6ddd9efcc9fa923438912842d9f55526800fcfc82408406e21b5b08d4397'
+
+# URL FOR POSTMAN
+POSTMAN_URL = 'https://postman.org.ua/api/v1/email/'
+
 ALLOWED_HOSTS = [
     'ipa.dataocean.us',
     'localhost',
