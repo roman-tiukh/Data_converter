@@ -2,6 +2,7 @@ import datetime
 from django.apps import apps
 from django.conf import settings
 
+from business_register.constants import HistoryTypes
 from business_register.models.company_models import Company, Signer
 from data_ocean.converter import Converter
 
@@ -12,9 +13,6 @@ class AddressHistorical(Converter):
     CHUNK_SIZE = 2000
     RECORD_TAG = 'DATA_RECORD'
     # django-simple-history history_type: + for create, ~ for update, and - for delete
-    CREATE = '+'
-    UPDATE = '~'
-    DELETE = '-'
     HistoricalCompany = apps.get_model('business_register', 'HistoricalCompany')
     tables = [HistoricalCompany]
     create_queues = []
@@ -34,7 +32,7 @@ class AddressHistorical(Converter):
                 company.id = company_exists.id
             except AttributeError:
                 company.id = 0 #for changed records that can't be assigned to existing company
-            company.history_type = self.UPDATE
+            company.history_type = HistoryTypes.UPDATE
             company.hash_code = record.xpath('NAME')[0].text + record.xpath('EDRPOU')[0].text
             company.created_at = datetime.datetime.now()
             self.create_queues.append(company)
@@ -73,7 +71,7 @@ class SignerHistorical(Converter):
                 signer.id = Signer.objects.filter(company=company_exists).first().id
             except AttributeError:
                 signer.id = 0 #for changed records that can't be assigned to existing company
-            signer.history_type = self.UPDATE
+            signer.history_type = HistoryTypes.UPDATE
             signer.hash_code = record.xpath('NAME')[0].text + record.xpath('EDRPOU')[0].text
             signer.created_at = datetime.datetime.now()
             self.create_queues.append(signer)
@@ -112,7 +110,7 @@ class FounderHistorical(Converter):
                 founder.id = Signer.objects.filter(company=company_exists).first().id
             except AttributeError:
                 founder.id = 0 #for changed records that can't be assigned to existing company
-            founder.history_type = self.UPDATE
+            founder.history_type = HistoryTypes.UPDATE
             founder.hash_code = record.xpath('NAME')[0].text + record.xpath('EDRPOU')[0].text
             founder.created_at = datetime.datetime.now()
             self.create_queues.append(founder)
