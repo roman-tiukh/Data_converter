@@ -108,7 +108,7 @@ class KoatuuConverter(Converter):
             if object_koatuu[self.LEVEL_ONE] and not object_koatuu[self.LEVEL_TWO]:
                 object_region_name = self.get_lowercase_words_before_virgule \
                     (object_koatuu[self.OBJECT_NAME])
-                if  not object_region_name in region_dict:
+                if object_region_name not in region_dict:
                     return
                 region_koatuu = region_dict[object_region_name]
                 region_koatuu.koatuu = object_koatuu[self.LEVEL_ONE]
