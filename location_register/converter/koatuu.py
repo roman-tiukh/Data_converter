@@ -89,10 +89,7 @@ class KoatuuConverter(Converter):
 
     # getting id value from category table
     def get_category_id(self, string):
-        if string == '':
-            id_number = Category.objects.get(name='null').id
-        else:
-            id_number = Category.objects.get(name=string).id
+        id_number = Category.objects.get(name=string or 'null').id
         return id_number
 
     # storing data to all tables
