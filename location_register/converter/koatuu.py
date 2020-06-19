@@ -179,7 +179,8 @@ class KoatuuConverter(Converter):
                     district_items_list,
                     district_dict,
                     city_dict,
-                    category_level_three)
+                    category_level_three
+                )
                 self.save_to_city_or_citydistrict_table(
                     object_level_three,
                     object_city_name,
