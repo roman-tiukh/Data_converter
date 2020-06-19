@@ -66,7 +66,7 @@ class KoatuuConverter(Converter):
         return koatuu_dict
 
     # creating list out of name and district_id from json file for district items
-    def create_district_items_list(self, object_region_name, region_dict, \
+    def create_district_items_list(self, object_region_name, region_dict,
         object_district_name, koatuu_value):
         district_items_list = []
         if not object_region_name in region_dict:
