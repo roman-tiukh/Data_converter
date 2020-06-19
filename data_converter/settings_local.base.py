@@ -14,7 +14,7 @@ DEBUG = True
 POSTMAN_TOKEN = 'e7937e4b5a309177b85fad8715bcbd451fdcb67f91696e1968f8dd188ada70a1'
 
 # URL FOR POSTMAN
-POSTMAN_URL = 'https://postman.org.ua/api/v1/email/'
+POSTMAN_URL = 'https://postman.org.ua/'
 
 ALLOWED_HOSTS = [
     'ipa.dataocean.us',
