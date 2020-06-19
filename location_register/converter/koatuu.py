@@ -72,7 +72,7 @@ class KoatuuConverter(Converter):
         if not object_region_name in region_dict:
             return
         region_koatuu = region_dict[object_region_name]
-        if not koatuu_value[:2] == str(region_koatuu.koatuu)[:2]:
+        if koatuu_value[:2] != str(region_koatuu.koatuu)[:2]:
             return
         object_district_name = object_district_name + str(region_koatuu.id)
         district_items_list.append(object_district_name)
