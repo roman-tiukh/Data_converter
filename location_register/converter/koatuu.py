@@ -105,7 +105,7 @@ class KoatuuConverter(Converter):
     def save_to_region_table(self, data):
         for index, object_koatuu in enumerate(data):
             region_dict = self.create_dictionary_for(Region)
-            if (object_koatuu[self.LEVEL_ONE] != '') & (object_koatuu[self.LEVEL_TWO] == ''):
+            if object_koatuu[self.LEVEL_ONE] and not object_koatuu[self.LEVEL_TWO]:
                 object_region_name = self.get_lowercase_words_before_virgule \
                     (object_koatuu[self.OBJECT_NAME])
                 if  not object_region_name in region_dict:
