@@ -213,7 +213,7 @@ class KoatuuConverter(Converter):
         print("Koatuu values to city and citydistrict saved")
 
     # writing entry to koatuu field in city and citydistrict table
-    def save_to_city_or_citydistrict_table(self, object_level_number, object_level_name, \
+    def save_to_city_or_citydistrict_table(self, object_level_number, object_level_name,
         level_items_list, up_level_dict, level_dict, category):
         for object_name in level_items_list:
             if not object_name in up_level_dict:
