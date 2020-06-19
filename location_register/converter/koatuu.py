@@ -82,7 +82,7 @@ class KoatuuConverter(Converter):
     def create_city_items_list(self, city_dict, district_items_list, koatuu_value):
         city_list = []
         for object_district_name in district_items_list:
-            if (object_district_name in city_dict) & (koatuu_value[2] == '1'):
+           if object_district_name in city_dict and koatuu_value[2] == '1':
                 city_koatuu = city_dict[object_district_name]
                 city_list.append(city_koatuu.name + str(city_koatuu.district_id))
             return city_list
