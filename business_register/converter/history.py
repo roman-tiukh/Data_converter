@@ -11,6 +11,10 @@ class AddressHistorical(Converter):
     LOCAL_FOLDER = settings.LOCAL_FOLDER
     CHUNK_SIZE = 2000
     RECORD_TAG = 'DATA_RECORD'
+    # django-simple-history history_type: + for create, ~ for update, and - for delete
+    CREATE = '+'
+    UPDATE = '~'
+    DELETE = '-'
     HistoricalCompany = apps.get_model('business_register', 'HistoricalCompany')
     tables = [HistoricalCompany]
     create_queues = []
@@ -30,7 +34,7 @@ class AddressHistorical(Converter):
                 company.id = company_exists.id
             except AttributeError:
                 company.id = 0 #for changed records that can't be assigned to existing company
-            company.history_type = '~'
+            company.history_type = self.UPDATE
             company.hash_code = record.xpath('NAME')[0].text + record.xpath('EDRPOU')[0].text
             company.created_at = datetime.datetime.now()
             self.create_queues.append(company)
@@ -43,6 +47,10 @@ class SignerHistorical(Converter):
     LOCAL_FOLDER = settings.LOCAL_FOLDER
     CHUNK_SIZE = 2000
     RECORD_TAG = 'DATA_RECORD'
+    # django-simple-history history_type: + for create, ~ for update, and - for delete
+    CREATE = '+'
+    UPDATE = '~'
+    DELETE = '-'
     HistoricalSigner = apps.get_model('business_register', 'HistoricalSigner')
     tables = [HistoricalSigner]
     create_queues = []
@@ -65,9 +73,48 @@ class SignerHistorical(Converter):
                 signer.id = Signer.objects.filter(company=company_exists).first().id
             except AttributeError:
                 signer.id = 0 #for changed records that can't be assigned to existing company
-            signer.history_type = '~'
+            signer.history_type = self.UPDATE
             signer.hash_code = record.xpath('NAME')[0].text + record.xpath('EDRPOU')[0].text
             signer.created_at = datetime.datetime.now()
             self.create_queues.append(signer)
         self.HistoricalSigner.objects.bulk_create(self.create_queues)
+        self.create_queues = []
+
+
+class FounderHistorical(Converter):
+    LOCAL_FILE_NAME = settings.LOCAL_FILE_NAME_UO_FOUNDER
+    LOCAL_FOLDER = settings.LOCAL_FOLDER
+    CHUNK_SIZE = 2000
+    RECORD_TAG = 'DATA_RECORD'
+    # django-simple-history history_type: + for create, ~ for update, and - for delete
+    CREATE = '+'
+    UPDATE = '~'
+    DELETE = '-'
+    HistoricalFounderFull = apps.get_model('business_register', 'HistoricalFounderFull')
+    tables = [HistoricalFounderFull]
+    create_queues = []
+
+    def save_to_db(self, records):
+        for record in records:
+            founder = self.HistoricalFounderFull()
+            edrpou = record.xpath('EDRPOU')[0].text
+            founder.name = record.xpath('FOUNDER')[0].text
+            founder.history_date = datetime.datetime.strptime(
+                record.xpath('DATE')[0].text,
+                "%Y/%m/%d %H:%M:%S"
+            ).strftime("%Y-%m-%d %H:%M:%S")
+            try:
+                company_exists = Company.objects.filter(edrpou=edrpou).first()
+                founder.company = company_exists
+            except AttributeError:
+                continue
+            try:
+                founder.id = Signer.objects.filter(company=company_exists).first().id
+            except AttributeError:
+                founder.id = 0 #for changed records that can't be assigned to existing company
+            founder.history_type = self.UPDATE
+            founder.hash_code = record.xpath('NAME')[0].text + record.xpath('EDRPOU')[0].text
+            founder.created_at = datetime.datetime.now()
+            self.create_queues.append(founder)
+        self.HistoricalFounderFull.objects.bulk_create(self.create_queues)
         self.create_queues = []
