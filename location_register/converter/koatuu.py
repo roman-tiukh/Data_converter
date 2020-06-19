@@ -121,7 +121,7 @@ class KoatuuConverter(Converter):
         district_dict = self.create_dictionary_for_district_table(District)
         city_dict = self.create_dictionary_for_city_table(City)
         for index, object_koatuu in enumerate(data):
-            if (object_koatuu[self.LEVEL_ONE] != '') & (object_koatuu[self.LEVEL_TWO] == ''):
+            if object_koatuu[self.LEVEL_ONE] and not object_koatuu[self.LEVEL_TWO]:
                 object_region_name = self.get_lowercase_words_before_virgule \
                     (object_koatuu[self.OBJECT_NAME])
             if (object_koatuu[self.LEVEL_ONE] != '') & (object_koatuu[self.LEVEL_TWO] != '') & \
