@@ -10,7 +10,7 @@ def send_registration_email(email, first_name):
     data_obj = {
         "recipient": email,
         # "template": "59_email_data_ocean_registration"
-        "text": f"{first_name}, ви успішно зареєстровані у системі Data Ocean.\n\r Якщо Вами такі дії не проводились, проігноруйте цей лист.\n\r З повагою, Data Ocean",
+        "text": f"{first_name}, ви успішно зареєстровані у системі Data Ocean.\r\n Якщо Вами такі дії не проводились, проігноруйте цей лист.\r\n З повагою, Data Ocean",
         "subject": "Підтвердження реєстрації на Data Ocean"
     }
     response = requests.post(settings.POSTMAN_URL, json=data_obj, headers=header_obj)
