@@ -31,6 +31,7 @@ class AddressHistorical(Converter):
             except AttributeError:
                 company.id = 0 #for changed records that can't be assigned to existing company
             company.history_type = '~'
+            # django-simple-history history_type: + for create, ~ for update, and - for delete
             company.hash_code = record.xpath('NAME')[0].text + record.xpath('EDRPOU')[0].text
             company.created_at = datetime.datetime.now()
             self.create_queues.append(company)
@@ -66,6 +67,7 @@ class SignerHistorical(Converter):
             except AttributeError:
                 signer.id = 0 #for changed records that can't be assigned to existing company
             signer.history_type = '~'
+            # django-simple-history history_type: + for create, ~ for update, and - for delete
             signer.hash_code = record.xpath('NAME')[0].text + record.xpath('EDRPOU')[0].text
             signer.created_at = datetime.datetime.now()
             self.create_queues.append(signer)
@@ -101,6 +103,7 @@ class FounderHistorical(Converter):
             except AttributeError:
                 founder.id = 0 #for changed records that can't be assigned to existing company
             founder.history_type = '~'
+            # django-simple-history history_type: + for create, ~ for update, and - for delete
             founder.hash_code = record.xpath('NAME')[0].text + record.xpath('EDRPOU')[0].text
             founder.created_at = datetime.datetime.now()
             self.create_queues.append(founder)
