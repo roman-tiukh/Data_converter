@@ -60,7 +60,7 @@ class RatuConverter(Converter):
     # writing entry to region table
     def save_to_region_table(self, record):
         record['OBL_NAME'] = change_to_full_name(record['OBL_NAME'])
-        if not record['OBL_NAME'] in self.region_dict:
+        if record['OBL_NAME'] not in self.region_dict:
             region = Region(
                 name=record['OBL_NAME']
             )

@@ -70,7 +70,7 @@ class KoatuuConverter(Converter):
             koatuu_value
         ):
         district_items_list = []
-        if not object_region_name in region_dict:
+        if object_region_name not in region_dict:
             return
         region_koatuu = region_dict[object_region_name]
         if koatuu_value[:2] != str(region_koatuu.koatuu)[:2]:
@@ -225,13 +225,13 @@ class KoatuuConverter(Converter):
             category
         ):
         for object_name in level_items_list:
-            if not object_name in up_level_dict:
+            if object_name not in up_level_dict:
                 return
             up_level_koatuu = up_level_dict[object_name]
             if str(object_level_number)[:5] != str(up_level_koatuu.koatuu)[:5]:
                 return
             object_level_name = object_level_name + str(up_level_koatuu.id)
-            if not object_level_name in level_dict:
+            if object_level_name not in level_dict:
                 return
             level_koatuu = level_dict[object_level_name]
             level_koatuu.koatuu = object_level_number
