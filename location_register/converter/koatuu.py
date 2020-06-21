@@ -78,7 +78,7 @@ class KoatuuConverter(Converter):
     def create_city_items_list(self, city_dict, district_items_list, koatuu_value):
         city_list = []
         for object_district_name in district_items_list:
-           if object_district_name in city_dict and koatuu_value[2] == '1':
+            if object_district_name in city_dict and koatuu_value[2] == '1':
                 city_koatuu = city_dict[object_district_name]
                 city_list.append(city_koatuu.name + str(city_koatuu.district_id))
             return city_list
@@ -116,23 +116,23 @@ class KoatuuConverter(Converter):
         city_dict = self.create_dictionary_for_city_table(City)
         for index, object_koatuu in enumerate(data):
             if object_koatuu[self.LEVEL_ONE] and not object_koatuu[self.LEVEL_TWO]:
-                object_region_name = self.get_lowercase_words_before_virgule \
-                    (object_koatuu[self.OBJECT_NAME])
+                object_region_name = self.get_lowercase_words_before_virgule(
+                    object_koatuu[self.OBJECT_NAME])
             if object_koatuu[self.LEVEL_ONE] and object_koatuu[self.LEVEL_TWO] and not
-                (object_koatuu[self.LEVEL_THREE] == ''):
+                object_koatuu[self.LEVEL_THREE]:
                 # koatuu_value is position in koatuu number wich defines district or city record
                 koatuu_value = str(object_koatuu[self.LEVEL_TWO])
-                object_district_name = self.get_lowercase_words_before_virgule \
-                    (object_koatuu[self.OBJECT_NAME])
-                district_items_list = self.create_district_items_list \
-                    (object_region_name, region_dict, object_district_name, koatuu_value)
+                object_district_name = self.get_lowercase_words_before_virgule(
+                    object_koatuu[self.OBJECT_NAME])
+                district_items_list = self.create_district_items_list(
+                    object_region_name, region_dict, object_district_name, koatuu_value)
                 category_level_two = self.get_category_id(object_koatuu[self.CATEGORY])
                 for object_district_name in district_items_list:
-                    if (object_district_name in district_dict) & (koatuu_value[2] != '1'):
+                    if (object_district_name in district_dict) and (koatuu_value[2] != '1'):
                         district_koatuu = district_dict[object_district_name]
                         district_koatuu.koatuu = object_koatuu[self.LEVEL_TWO]
                         district_koatuu.save()
-                    elif (object_district_name in city_dict) & (koatuu_value[2] == '1'):
+                    elif (object_district_name in city_dict) and (koatuu_value[2] == '1'):
                         city_koatuu = city_dict[object_district_name]
                         city_koatuu.koatuu = object_koatuu[self.LEVEL_TWO]
                         city_koatuu.category_id = category_level_two
@@ -149,18 +149,18 @@ class KoatuuConverter(Converter):
         # getting values in json file Koatuu
         for index, object_koatuu in enumerate(data):
             if object_koatuu[self.LEVEL_ONE] and not object_koatuu[self.LEVEL_TWO]:
-                object_region_name = self.get_lowercase_words_before_virgule \
-                    (object_koatuu[self.OBJECT_NAME])
+                object_region_name = self.get_lowercase_words_before_virgule(
+                    object_koatuu[self.OBJECT_NAME])
             if object_koatuu[self.LEVEL_ONE] and object_koatuu[self.LEVEL_TWO] and not
                 object_koatuu[self.LEVEL_THREE]:
                 # koatuu_value is position in koatuu number wich defines district or city record
                 koatuu_value = str(object_koatuu[self.LEVEL_TWO])
-                object_district_name = self.get_lowercase_words_before_virgule \
-                    (object_koatuu[self.OBJECT_NAME])
-                district_items_list = self.create_district_items_list \
-                    (object_region_name, region_dict, object_district_name, koatuu_value)
-                city_items_list = self.create_city_items_list \
-                    (city_dict_for_district_table, district_items_list, koatuu_value)
+                object_district_name = self.get_lowercase_words_before_virgule(
+                    object_koatuu[self.OBJECT_NAME])
+                district_items_list = self.create_district_items_list(
+                    object_region_name, region_dict, object_district_name, koatuu_value)
+                city_items_list = self.create_city_items_list(
+                    city_dict_for_district_table, district_items_list, koatuu_value)
             if object_koatuu[self.LEVEL_ONE] and object_koatuu[self.LEVEL_TWO] and 
                 object_koatuu[self.LEVEL_THREE] and not object_koatuu[self.LEVEL_FOUR]:
                 object_city_name = self.get_lowercase_words_before_virgule(
@@ -226,7 +226,7 @@ class KoatuuConverter(Converter):
     # writing entry to category fields where koatuu is empty
     def writing_category_null_id(self, table_model):
         category = self.get_category_id('null')
-        table_model_objects = table_model.objects.filter(category_id__isnull=True).count()
+        table_model_objects = table_model.objects.filter(category_id__isnull=True)
         for table_record in table_model_objects:
             table_record.category_id = category
             table_record.save()
