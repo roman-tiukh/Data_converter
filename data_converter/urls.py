@@ -30,7 +30,6 @@ from data_ocean.views import RegisterView
 from users.views import CurrentUserProfileView
 
 
-
 router = routers.DefaultRouter()
 
 router.register(r'rfop', RfopView, basename='rfop')
