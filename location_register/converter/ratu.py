@@ -34,7 +34,7 @@ class RatuConverter(Converter):
 
     def rename_file(self, file):
         new_filename = file
-        if file.upper().find('ATU') >= 0: \
+        if file.upper().find('ATU') >= 0:
             new_filename = 'ratu.xml'
         return new_filename
 
