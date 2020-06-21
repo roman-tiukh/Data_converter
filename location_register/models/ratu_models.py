@@ -40,7 +40,7 @@ class City(DataOceanModel):
         return self.name
 
 
-class Citydistrict(DataOceanModel):
+class CityDistrict(DataOceanModel):
     EMPTY_FIELD = 'empty field'
     region = models.ForeignKey(Region, on_delete=models.CASCADE)
     district = models.ForeignKey(District, on_delete=models.CASCADE)
@@ -57,7 +57,7 @@ class Street(DataOceanModel):
     region = models.ForeignKey(Region, on_delete=models.CASCADE)
     district = models.ForeignKey(District, on_delete=models.CASCADE)
     city = models.ForeignKey(City, on_delete=models.CASCADE)
-    citydistrict = models.ForeignKey(Citydistrict, on_delete=models.CASCADE)
+    citydistrict = models.ForeignKey(CityDistrict, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
 
     def __str__(self):

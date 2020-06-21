@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from location_register.models.ratu_models import Region, District, City, Citydistrict, Street
+from location_register.models.ratu_models import Region, District, City, CityDistrict, Street
 
 
 class RegionSerializer(serializers.ModelSerializer):
@@ -25,13 +25,13 @@ class CitySerializer(serializers.ModelSerializer):
         fields = ('id', 'region', 'district', 'name', 'koatuu')
 
 
-class CitydistrictSerializer(serializers.ModelSerializer):
+class CityDistrictSerializer(serializers.ModelSerializer):
     region = serializers.CharField(max_length=30)
     district = serializers.CharField(max_length=100)
     city = serializers.CharField(max_length=100)
 
     class Meta:
-        model = Citydistrict
+        model = CityDistrict
         fields = ('id', 'region', 'district', 'city', 'name', 'koatuu')
 
 

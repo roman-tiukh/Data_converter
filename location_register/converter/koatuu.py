@@ -1,7 +1,7 @@
 from django.conf import settings
 
 from data_ocean.converter import Converter
-from location_register.models.ratu_models import Region, District, City, Citydistrict, Category
+from location_register.models.ratu_models import Region, District, City, CityDistrict, Category
 
 
 class KoatuuConverter(Converter):
@@ -54,7 +54,7 @@ class KoatuuConverter(Converter):
     # creating a dictionary out off the values, which already exists in citydistrict table
     def create_dictionary_for_citydistrict_table(self):# table_model is a model from ratu_models
         koatuu_dict = {}
-        table_model_objects = Citydistrict.objects.all()
+        table_model_objects = CityDistrict.objects.all()
         for table_record in table_model_objects: # dictionary for keeping whole model class objects
             if table_record.name:
                 unit_name = table_record.name + str(table_record.city_id)
@@ -99,7 +99,7 @@ class KoatuuConverter(Converter):
         self.save_to_district_table(data)
         self.save_to_city_or_citydistrict(data)
         self.writing_category_null_id(City)
-        self.writing_category_null_id(Citydistrict)
+        self.writing_category_null_id(CityDistrict)
         print("Koatuu values saved")
 
     # writing entry to koatuu field in region table

@@ -3,7 +3,7 @@ from django.conf import settings
 from data_ocean.converter import Converter, BulkCreateUpdateManager
 from data_ocean.models import Register
 from data_ocean.utils import clean_name, change_to_full_name
-from location_register.models.ratu_models import (Region, District, City, Citydistrict, Street)
+from location_register.models.ratu_models import Region, District, City, CityDistrict, Street
 
 
 class RatuConverter(Converter):
@@ -18,7 +18,7 @@ class RatuConverter(Converter):
         Region,
         District,
         City,
-        Citydistrict,
+        CityDistrict,
         Street
     ]
 
@@ -53,7 +53,7 @@ class RatuConverter(Converter):
         city = self.save_to_city_table(record, region, district)
         citydistrict = self.save_to_citydistrict_table(record, region, district, city)
         # self.save_to_category_id(record['CITY_NAME'], City)
-        # self.save_to_category_id(record['CITY_REGION_NAME'], Citydistrict)
+        # self.save_to_category_id(record['CITY_REGION_NAME'], CityDistrict)
         self.save_to_street_table(record, region, district, city, citydistrict)
         print('saved')
 
@@ -116,9 +116,9 @@ class RatuConverter(Converter):
         if record['CITY_REGION_NAME']:
             citydistrict_name = clean_name(record['CITY_REGION_NAME'])
         else:
-            citydistrict_name = Citydistrict.EMPTY_FIELD
+            citydistrict_name = CityDistrict.EMPTY_FIELD
         if [region.id, district.id, city.id, citydistrict_name] not in self.citydistrict_list:
-            citydistrict = Citydistrict(
+            citydistrict = CityDistrict(
                 region=region,
                 district=district,
                 city=city,
@@ -126,7 +126,7 @@ class RatuConverter(Converter):
             )
             citydistrict.save()
             self.citydistrict_list.insert(0, [region.id, district.id, city.id, citydistrict_name])
-        citydistrict = Citydistrict.objects.get(
+        citydistrict = CityDistrict.objects.get(
             name=citydistrict_name,
             region=region.id,
             district=district.id,
