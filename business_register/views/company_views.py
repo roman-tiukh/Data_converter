@@ -1,4 +1,3 @@
-
 from rest_framework import viewsets
 from business_register.models.company_models import Company
 from business_register.serializers.company_serializers import CompanySerializer
