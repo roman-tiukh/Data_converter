@@ -16,20 +16,19 @@ Including another URLconf
 
 from django.contrib import admin
 from django.conf import settings
+from django.views.generic import TemplateView
 from django.urls import include, path
+from rest_auth.views import PasswordResetConfirmView
 from rest_framework import routers
 
+from data_ocean.views import RegisterView
 from business_register.views.company_views import CompanyView
 from business_register.views.kved_views import KvedView
 from business_register.views.rfop_views import RfopView, FopView
 from business_register.views.ruo_views import RuoView
-from location_register.views.ratu_viewsets import RegionView, CityView, StreetView, CitydistrictView, DistrictView
+from location_register.views.ratu_viewsets import RegionView, CityView, StreetView, CityDistrictView, DistrictView
 from location_register.views.drv_viewsets import DrvBuildingViewSet
-from data_ocean.views import RegisterView
 from users.views import CurrentUserProfileView
-from django.views.generic import TemplateView
-from django.urls import include, path, re_path
-from rest_auth.views import PasswordResetConfirmView
 
 
 router = routers.DefaultRouter()
@@ -48,8 +47,8 @@ router.register(r'city', CityView, basename='city')
 router.register(r'city/<int:pk>', CityView, basename='city_item')
 router.register(r'street', StreetView, basename='street')
 router.register(r'street/<int:pk>', StreetView, basename='street_item')
-router.register(r'citydistrict', CitydistrictView, basename='citydistrict')
-router.register(r'citydistrict/<int:pk>', CitydistrictView, basename='citydistrict_item')
+router.register(r'citydistrict', CityDistrictView, basename='citydistrict')
+router.register(r'citydistrict/<int:pk>', CityDistrictView, basename='citydistrict_item')
 router.register(r'district', DistrictView, basename='district')
 router.register(r'district/<int:pk>', DistrictView, basename='district_item')
 router.register(r'drvbuilding', DrvBuildingViewSet, basename='drvbuilding')
