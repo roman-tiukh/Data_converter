@@ -20,7 +20,11 @@ django-simple-history==2.10.0
 django-timezone-field==4.0
 djangorestframework==3.11.0
 drf-extensions==0.6.0
+<<<<<<< HEAD
 future==0.18.2
+=======
+drf-yasg==1.17.1
+>>>>>>> requirements
 idna==2.9
 isodate==0.6.0
 isort==4.3.21
