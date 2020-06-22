@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     'django.contrib.sites',
     'django_celery_beat',
     'django_extensions',
+    'drf_yasg',
     'corsheaders',
     'rest_framework',
     'rest_framework.authtoken',
