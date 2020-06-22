@@ -18,15 +18,16 @@ from django.contrib import admin
 from django.conf import settings
 from django.views.generic import TemplateView
 from django.urls import include, path
+from rest_auth.views import PasswordResetConfirmView
 from rest_framework import routers
 
+from data_ocean.views import RegisterView
 from business_register.views.company_views import CompanyView
 from business_register.views.kved_views import KvedView
 from business_register.views.rfop_views import RfopView, FopView
 from business_register.views.ruo_views import RuoView
 from location_register.views.ratu_viewsets import RegionView, CityView, StreetView, CityDistrictView, DistrictView
 from location_register.views.drv_viewsets import DrvBuildingViewSet
-from data_ocean.views import RegisterView
 from users.views import CurrentUserProfileView
 
 
@@ -60,6 +61,9 @@ router.register(r'register/<int:pk>', RegisterView, basename='registeritem')
 urlpatterns = [
 
     path('admin/', admin.site.urls),
+
+    re_path(r'^api/rest-auth/password/reset/confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', PasswordResetConfirmView.as_view(),
+            name='password_reset_confirm'),
 
     path('', TemplateView.as_view(template_name='users/index.html')),
     path('api/accounts/profile/', TemplateView.as_view(template_name='users/profile.html')),
