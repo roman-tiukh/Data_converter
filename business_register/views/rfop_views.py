@@ -27,4 +27,3 @@ class RfopView(viewsets.ReadOnlyModelViewSet):
 class FopView(CachedViewMixin, viewsets.ReadOnlyModelViewSet):
     queryset = Fop.objects.all()
     serializer_class = FopSerializer
-   
