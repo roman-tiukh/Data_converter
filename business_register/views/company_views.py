@@ -7,3 +7,4 @@ from data_ocean.views import CachedViewMixin
 class CompanyView(CachedViewMixin, viewsets.ReadOnlyModelViewSet):
     queryset = Company.objects.all()
     serializer_class = CompanySerializer
+
