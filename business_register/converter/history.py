@@ -3,7 +3,7 @@ from django.apps import apps
 from django.conf import settings
 
 from business_register.constants import HistoryTypes
-from business_register.models.company_models import Company, Signer
+from business_register.models.company_models import Company, CompanyDetail, Signer
 from data_ocean.converter import Converter
 
 
@@ -44,9 +44,6 @@ class SignerHistorical(Converter):
     LOCAL_FOLDER = settings.LOCAL_FOLDER
     CHUNK_SIZE = 2000
     RECORD_TAG = 'DATA_RECORD'
-    CREATE = '+'
-    UPDATE = '~'
-    DELETE = '-'
     HistoricalSigner = apps.get_model('business_register', 'HistoricalSigner')
     tables = [HistoricalSigner]
     create_queues = []
@@ -82,9 +79,6 @@ class FounderHistorical(Converter):
     LOCAL_FOLDER = settings.LOCAL_FOLDER
     CHUNK_SIZE = 2000
     RECORD_TAG = 'DATA_RECORD'
-    CREATE = '+'
-    UPDATE = '~'
-    DELETE = '-'
     HistoricalFounderFull = apps.get_model('business_register', 'HistoricalFounderFull')
     tables = [HistoricalFounderFull]
     create_queues = []
@@ -179,4 +173,42 @@ class ShortNameHistorical(Converter):
             company.created_at = datetime.datetime.now()
             self.create_queues.append(company)
         self.HistoricalCompany.objects.bulk_create(self.create_queues)
+        self.create_queues = []
+
+
+class CapitalHistorical(Converter):
+    LOCAL_FILE_NAME = settings.LOCAL_FILE_NAME_UO_CAPITAL
+    LOCAL_FOLDER = settings.LOCAL_FOLDER
+    CHUNK_SIZE = 2000
+    RECORD_TAG = 'DATA_RECORD'
+    HistoricalCompanyDetail = apps.get_model('business_register', 'HistoricalCompanyDetail')
+    tables = [HistoricalCompanyDetail]
+    create_queues = []
+
+    def save_to_db(self, records):
+        for record in records:
+            company_detail = self.HistoricalCompanyDetail()
+            edrpou = record.xpath('EDRPOU')[0].text
+            if len(record.xpath('AUTHORIZED_CAPITAL')) > 0:
+                company_detail.authorized_capital = record.xpath('AUTHORIZED_CAPITAL')[0].text
+            else:
+                company_detail.authorized_capital = ''
+            company_detail.history_date = datetime.datetime.strptime(
+                record.xpath('DATE')[0].text,
+                "%Y/%m/%d %H:%M:%S"
+            ).strftime("%Y-%m-%d %H:%M:%S")
+            try:
+                company_exists = Company.objects.filter(edrpou=edrpou).first()
+                company_detail.company = company_exists
+            except AttributeError:
+                continue
+            try:
+                company_detail.id = CompanyDetail.objects.filter(company=company_exists).first().id
+            except AttributeError:
+                company_detail.id = 0 #for changed records that can't be assigned
+            company_detail.history_type = HistoryTypes.UPDATE
+            company_detail.hash_code = record.xpath('NAME')[0].text + record.xpath('EDRPOU')[0].text
+            company_detail.created_at = datetime.datetime.now()
+            self.create_queues.append(company_detail)
+        self.HistoricalCompanyDetail.objects.bulk_create(self.create_queues)
         self.create_queues = []
