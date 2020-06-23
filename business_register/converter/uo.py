@@ -6,6 +6,8 @@ from lxml import etree
 from data_converter import settings_local
 from data_ocean.converter import Converter, BulkCreateUpdateManager
 from data_ocean.models import Authority
+from data_ocean.utils import cut_first_word, format_date_to_yymmdd, get_first_word
+from business_register.converter.business_converter import BusinessConverter
 from business_register.models.company_models import(
     Assignee, BancruptcyReadjustment, Bylaw, Company, CompanyDetail, CompanyToKved,
     CompanyToPredecessor, CompanyType, ExchangeDataCompany, FounderFull, Predecessor,
@@ -15,10 +17,11 @@ from data_ocean.models import Status
 from django.conf import settings
 
 
-class Parser(Converter):
+class Parser(BusinessConverter):
     LOCAL_FILE_NAME = settings_local.LOCAL_FILE_NAME_UO
     LOCAL_FOLDER = settings_local.LOCAL_FOLDER
     CHUNK_SIZE = settings.UO_CHUNK_SIZE
+    RECORD_TAG = 'SUBJECT'
     all_bylaw_dict = {}
     all_company_type_dict = {}
     all_predecessors_dict = {}
@@ -28,7 +31,7 @@ class Parser(Converter):
     tables = [
         BancruptcyReadjustment,
         # Bylaw,
-        # Company,
+        Company,
         CompanyDetail,
         CompanyToKved,
         CompanyToPredecessor,
@@ -45,12 +48,12 @@ class Parser(Converter):
     branch_bulk_manager = BulkCreateUpdateManager(100000)
 
     def __init__(self):
-        self.all_bylaw_dict = self.put_all_objects_to_dict_with_name("business_register", "Bylaw")
-        self.all_company_type_dict = self.put_all_objects_to_dict_with_name(
-            "business_register", "CompanyType"
+        self.all_bylaw_dict = self.put_all_objects_to_dict("name", "business_register", "Bylaw")
+        self.all_company_type_dict = self.put_all_objects_to_dict(
+            "name", "business_register", "CompanyType"
         )
-        self.all_predecessors_dict = self.put_all_objects_to_dict_with_name(
-            "business_register", "Predecessor"
+        self.all_predecessors_dict = self.put_all_objects_to_dict(
+            "name", "business_register", "Predecessor"
         )
 
         super().__init__()
@@ -110,7 +113,7 @@ class Parser(Converter):
         branch.short_name = code
         branch.address = item.xpath('ADDRESS')[0].text
         if item.xpath('CREATE_DATE')[0].text:
-            branch.registration_date = self.format_date_to_yymmdd(
+            branch.registration_date = format_date_to_yymmdd(
                 item.xpath('CREATE_DATE')[0].text
             ) or None
         branch.contact_info = item.xpath('CONTACTS')[0].text
@@ -145,7 +148,7 @@ class Parser(Converter):
     def add_bancruptcy_readjustment(self, record, edrpou):
         bancruptcy_readjustment = BancruptcyReadjustment()
         if record.xpath('BANKRUPTCY_READJUSTMENT_INFO/OP_DATE'):
-            bancruptcy_readjustment.op_date = self.format_date_to_yymmdd(
+            bancruptcy_readjustment.op_date = format_date_to_yymmdd(
                 record.xpath('BANKRUPTCY_READJUSTMENT_INFO/OP_DATE')[0].text) or None
             bancruptcy_readjustment.reason = record.xpath(
                 'BANKRUPTCY_READJUSTMENT_INFO/REASON')[0].text
@@ -189,11 +192,11 @@ class Parser(Converter):
                     tax_payer_type = item.xpath('TAX_PAYER_TYPE')[0].text or Company.INVALID
                     exchange_answer.taxpayer_type = self.save_or_get_taxpayer_type(tax_payer_type)
                     if item.xpath('START_DATE')[0].text:
-                        exchange_answer.start_date = self.format_date_to_yymmdd(
+                        exchange_answer.start_date = format_date_to_yymmdd(
                             item.xpath('START_DATE')[0].text) or None
                     exchange_answer.start_number = item.xpath('START_NUM')[0].text
                     if item.xpath('END_DATE')[0].text:
-                        exchange_answer.end_date = self.format_date_to_yymmdd(
+                        exchange_answer.end_date = format_date_to_yymmdd(
                             item.xpath('END_DATE')[0].text) or None
                     exchange_answer.end_number = item.xpath('END_NUM')[0].text
                     exchange_answer.hash_code = self.create_hash_code(name, edrpou)
@@ -209,11 +212,11 @@ class Parser(Converter):
                     tax_payer_type = item.xpath('TAX_PAYER_TYPE')[0].text or Company.INVALID
                     exchange_answer.taxpayer_type = self.save_or_get_taxpayer_type(tax_payer_type)
                     if item.xpath('START_DATE')[0].text:
-                        exchange_answer.start_date = self.format_date_to_yymmdd(
+                        exchange_answer.start_date = format_date_to_yymmdd(
                             item.xpath('START_DATE')[0].text) or None
                     exchange_answer.start_number = item.xpath('START_NUM')[0].text
                     if item.xpath('END_DATE')[0].text:
-                        exchange_answer.end_date = self.format_date_to_yymmdd(
+                        exchange_answer.end_date = format_date_to_yymmdd(
                             item.xpath('END_DATE')[0].text) or None
                     exchange_answer.end_number = item.xpath('END_NUM')[0].text
                     exchange_answer.hash_code = self.create_hash_code(name, code)
@@ -249,7 +252,7 @@ class Parser(Converter):
         termination_started = TerminationStarted()
         if record.xpath('TERMINATION_STARTED_INFO/OP_DATE'):
             if record.xpath('TERMINATION_STARTED_INFO/OP_DATE')[0].text:
-                termination_started.op_date = self.format_date_to_yymmdd(
+                termination_started.op_date = format_date_to_yymmdd(
                     record.xpath('TERMINATION_STARTED_INFO/OP_DATE')[0].text) or None
             termination_started.reason = record.xpath('TERMINATION_STARTED_INFO/REASON')[0].text
             termination_started.sbj_state = record.xpath(
@@ -257,7 +260,7 @@ class Parser(Converter):
             termination_started.signer_name = record.xpath(
                 'TERMINATION_STARTED_INFO/SIGNER_NAME')[0].text
             if record.xpath('TERMINATION_STARTED_INFO/CREDITOR_REQ_END_DATE')[0].text:
-                termination_started.creditor_reg_end_date = self.format_date_to_yymmdd(
+                termination_started.creditor_reg_end_date = format_date_to_yymmdd(
                     record.xpath('TERMINATION_STARTED_INFO/CREDITOR_REQ_END_DATE')[0].text) or '01.01.1990'
             termination_started.hash_code = self.create_hash_code(
                 record.xpath('NAME')[0].text, edrpou)
@@ -279,7 +282,7 @@ class Parser(Converter):
                 # if branch:
                 #     branch.address = item.xpath('ADDRESS')[0].text
                 #     if item.xpath('CREATE_DATE')[0].text:
-                #         branch.registration_date = self.format_date_to_yymmdd(
+                #         branch.registration_date = format_date_to_yymmdd(
                 #             item.xpath('CREATE_DATE')[0].text) or None
                 #     branch.contact_info = item.xpath('CONTACTS')[0].text
                 #     self.branch_bulk_manager.add_update(branch)
@@ -324,9 +327,9 @@ class Parser(Converter):
             registration_info = None
             registration = record.xpath('REGISTRATION')[0].text
             if registration:
-                registration_date = self.format_date_to_yymmdd(
-                    self.get_first_word(registration)) or None
-                registration_info = self.cut_first_word(registration) or None
+                registration_date = format_date_to_yymmdd(
+                    get_first_word(registration)) or None
+                registration_info = cut_first_word(registration) or None
             # try:
             #     company = Company.objects.filter(
             #         hash_code=self.create_hash_code(record.xpath('NAME')[0].text, edrpou)).first()
