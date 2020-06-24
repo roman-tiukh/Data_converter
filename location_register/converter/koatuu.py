@@ -1,8 +1,18 @@
+# Python logging package
+import logging
 from django.conf import settings
 
 from data_ocean.converter import Converter
 from location_register.models.ratu_models import Region, District, City, CityDistrict, Category
 
+
+# Standard instance of a logger with __name__
+# Run once at startup:
+# logging.config.dictConfig(settings.LOGGING_CONFIG)
+
+# # Include in each module:
+# log = logging.getLogger(__name__)
+# log.debug("Logging is configured.")
 
 class KoatuuConverter(Converter):
 
@@ -96,10 +106,10 @@ class KoatuuConverter(Converter):
     # storing data to all tables
     def save_to_db(self, data):
         self.save_to_region_table(data)
-        self.save_to_district_table(data)
-        self.save_to_city_or_citydistrict(data)
-        self.writing_category_null_id(City)
-        self.writing_category_null_id(CityDistrict)
+        # self.save_to_district_table(data)
+        # self.save_to_city_or_citydistrict(data)
+        # self.writing_category_null_id(City)
+        # self.writing_category_null_id(CityDistrict)
         print("Koatuu values saved")
 
     # writing entry to koatuu field in region table
@@ -241,7 +251,7 @@ class KoatuuConverter(Converter):
     # writing entry to category fields where koatuu is empty
     def writing_category_null_id(self, table_model):
         category = self.get_category_id('null')
-        table_model_objects = table_model.objects.filter(category_id__isnull=True)
+        table_model_objects = table_model.objects.filter(category_id__isnull=True).count()
         for table_record in table_model_objects:
             table_record.category_id = category
             table_record.save()
