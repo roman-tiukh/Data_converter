@@ -285,8 +285,10 @@ class InfoHistorical(Converter):
                 www = record.xpath('WWW')[0].text
             else:
                 www = ''
-            company.contact_info = f'phone_1: {phone_1}; phone_2: {phone_2}; \
-                fax: {fax}; email: {email}; www: {www}'
+            company.contact_info = (
+                f'phone_1: {phone_1}; phone_2: {phone_2}; '
+                f'fax: {fax}; email: {email}; www: {www}'
+            )
             company.history_date = datetime.datetime.strptime(
                 record.xpath('DATE')[0].text,
                 "%Y/%m/%d %H:%M:%S"
