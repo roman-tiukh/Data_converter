@@ -212,3 +212,95 @@ class CapitalHistorical(Converter):
             self.create_queues.append(company_detail)
         self.HistoricalCompanyDetail.objects.bulk_create(self.create_queues)
         self.create_queues = []
+
+
+class BranchHistorical(Converter):
+    LOCAL_FILE_NAME = settings.LOCAL_FILE_NAME_UO_BRANCH
+    LOCAL_FOLDER = settings.LOCAL_FOLDER
+    CHUNK_SIZE = 2000
+    RECORD_TAG = 'DATA_RECORD'
+    HistoricalCompany = apps.get_model('business_register', 'HistoricalCompany')
+    tables = [HistoricalCompany]
+    create_queues = []
+
+    def save_to_db(self, records):
+        for record in records:
+            branch = self.HistoricalCompany()
+            # branch.edrpou = record.xpath('')[0].text
+            branch.name = record.xpath('BRANCH_NAME')[0].text
+            if len (record.xpath('BRANCH_CODE')) > 0:
+                branch.short_name = record.xpath('BRANCH_CODE')[0].text
+            else:
+                branch.short_name = ''
+            branch.history_date = datetime.datetime.strptime(
+                record.xpath('DATE')[0].text,
+                "%Y/%m/%d %H:%M:%S"
+            ).strftime("%Y-%m-%d %H:%M:%S")
+            try:
+                company_exists = Company.objects.filter(
+                    edrpou=record.xpath('EDRPOU')[0].text).first()
+                branch.id = company_exists.id
+                branch.parent = company_exists
+            except AttributeError:
+                branch.id = 0 #for changed records that can't be assigned to existing company
+            branch.history_type = HistoryTypes.UPDATE
+            branch.hash_code = record.xpath('BRANCH_NAME')[0].text +\
+                branch.short_name
+            branch.created_at = datetime.datetime.now()
+            self.create_queues.append(branch)
+        self.HistoricalCompany.objects.bulk_create(self.create_queues)
+        self.create_queues = []
+
+
+class InfoHistorical(Converter):
+    LOCAL_FILE_NAME = settings.LOCAL_FILE_NAME_UO_INFO
+    LOCAL_FOLDER = settings.LOCAL_FOLDER
+    CHUNK_SIZE = 2000
+    RECORD_TAG = 'DATA_RECORD'
+    HistoricalCompany = apps.get_model('business_register', 'HistoricalCompany')
+    tables = [HistoricalCompany]
+    create_queues = []
+
+    def save_to_db(self, records):
+        for record in records:
+            company = self.HistoricalCompany()
+            company.edrpou = record.xpath('EDRPOU')[0].text
+            if len(record.xpath('PHONE_1')) > 0:
+                phone_1 = record.xpath('PHONE_1')[0].text
+            else:
+                phone_1 = ''
+            if len(record.xpath('PHONE_2')) > 0:
+                phone_2 = record.xpath('PHONE_2')[0].text
+            else:
+                phone_2 = ''
+            if len(record.xpath('FAX')) > 0:
+                fax = record.xpath('FAX')[0].text
+            else:
+                fax = ''
+            if len(record.xpath('EMAIL')) > 0:
+                email = record.xpath('EMAIL')[0].text
+            else:
+                email = ''
+            if len(record.xpath('WWW')) > 0:
+                www = record.xpath('WWW')[0].text
+            else:
+                www = ''
+            company.contact_info = (
+                f'phone_1: {phone_1}; phone_2: {phone_2}; '
+                f'fax: {fax}; email: {email}; www: {www}'
+            )
+            company.history_date = datetime.datetime.strptime(
+                record.xpath('DATE')[0].text,
+                "%Y/%m/%d %H:%M:%S"
+            ).strftime("%Y-%m-%d %H:%M:%S")
+            try:
+                company_exists = Company.objects.filter(edrpou=company.edrpou).first()
+                company.id = company_exists.id
+            except AttributeError:
+                company.id = 0 #for changed records that can't be assigned to existing company
+            company.history_type = HistoryTypes.UPDATE
+            company.hash_code = record.xpath('NAME')[0].text + record.xpath('EDRPOU')[0].text
+            company.created_at = datetime.datetime.now()
+            self.create_queues.append(company)
+        self.HistoricalCompany.objects.bulk_create(self.create_queues)
+        self.create_queues = []
