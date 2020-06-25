@@ -1,6 +1,15 @@
+import logging
+import django
 from business_register.models.kved_models import Section, Division, Group, Kved
 from data_ocean.converter import Converter
 from data_ocean.models import Register
+
+# Standard instance of a logger with __name__
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+dbalogger = logging.getLogger('dba')
+
 
 class KvedConverter(Converter):
     LOCAL_FILE_NAME = "kved.json"
@@ -77,10 +86,20 @@ class KvedConverter(Converter):
             kved.code = class_data['classCode']
             kved.name = class_data['className']
             kved.save()
-    
+
     # storing data to all tables
     def save_to_db(self, data):
         # getting a value from json file, because it is put into a list
         sections = data['sections'][0]
         self.save_to_section_table(sections)
-        print("Saved all kveds")
+        logger.info("Saved all kveds")
+
+    def save_to_db_1(self, data):
+        # getting a value from json file, because it is put into a list
+        sections = data['sections'][0]
+        try:
+            self.save_to_section_table(sections)
+        except django.db.utils.IntegrityError:
+            dbalogger.exception("Exception occurred")
+        else:
+            logger.info("Saved all kveds")

@@ -7,12 +7,9 @@ from location_register.models.ratu_models import Region, District, City, CityDis
 
 
 # Standard instance of a logger with __name__
-# Run once at startup:
-# logging.config.dictConfig(settings.LOGGING_CONFIG)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
-# # Include in each module:
-# log = logging.getLogger(__name__)
-# log.debug("Logging is configured.")
 
 class KoatuuConverter(Converter):
 
@@ -105,12 +102,15 @@ class KoatuuConverter(Converter):
 
     # storing data to all tables
     def save_to_db(self, data):
-        self.save_to_region_table(data)
-        # self.save_to_district_table(data)
-        # self.save_to_city_or_citydistrict(data)
-        # self.writing_category_null_id(City)
-        # self.writing_category_null_id(CityDistrict)
-        print("Koatuu values saved")
+        try:
+            self.save_to_region_table(data)
+            # self.save_to_district_table(data)
+            # self.save_to_city_or_citydistrict(data)
+            # self.writing_category_null_id(City)
+            # self.writing_category_null_id(CityDistrict)
+        except TypeError:
+            logger.exception('Tried to iterate NonType object')
+        logger.info("Koatuu values saved")
 
     # writing entry to koatuu field in region table
     def save_to_region_table(self, data):
@@ -124,7 +124,7 @@ class KoatuuConverter(Converter):
                 region_koatuu = region_dict[object_region_name]
                 region_koatuu.koatuu = object_koatuu[self.LEVEL_ONE]
                 region_koatuu.save()
-        print("Koatuu values to region saved")
+        logger.info("Koatuu values to region saved")
 
     # writing entry to koatuu field in district table and level_two records of city_table
     def save_to_district_table(self, data):
@@ -154,7 +154,7 @@ class KoatuuConverter(Converter):
                         city_koatuu.koatuu = object_koatuu[self.LEVEL_TWO]
                         city_koatuu.category_id = category_level_two
                         city_koatuu.save()
-        print("Koatuu values to district saved")
+        logger.info("Koatuu values to district saved")
 
     # processing entry to koatuu field in city_table and citydistrict_table
     def save_to_city_or_citydistrict(self, data):
@@ -222,7 +222,7 @@ class KoatuuConverter(Converter):
                     citydistrict_dict,
                     category_level_four
                 )
-        print("Koatuu values to city and citydistrict saved")
+        logger.info("Koatuu values to city and citydistrict saved")
 
     # writing entry to koatuu field in city and citydistrict table
     def save_to_city_or_citydistrict_table(
