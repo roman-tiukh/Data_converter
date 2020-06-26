@@ -252,7 +252,7 @@ class KoatuuConverter(Converter):
     # writing entry to category fields where koatuu is empty
     def writing_category_null_id(self, table_model):
         category = self.get_category_id('null')
-        table_model_objects = table_model.objects.filter(category_id__isnull=True).count()
+        table_model_objects = table_model.objects.filter(category_id__isnull=True)
         for table_record in table_model_objects:
             table_record.category_id = category
             table_record.save()

@@ -1,4 +1,9 @@
 import os
+# sentry import configarution
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
+from sentry_sdk.integrations.celery import CeleryIntegration
+from sentry_sdk.integrations.redis import RedisIntegration
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -119,11 +124,6 @@ CELERY_RESULT_SERIALIZER = 'json'
 # }
 
 # sentry configarution
-import sentry_sdk
-from sentry_sdk.integrations.django import DjangoIntegration
-from sentry_sdk.integrations.celery import CeleryIntegration
-from sentry_sdk.integrations.redis import RedisIntegration
-
 sentry_sdk.init(
     # create your sentry account and add your own dsn <account_dsn>
     # dsn.example="https://d47c87c1d55f4f30ba48ace8394efb0f@o411563.ingest.sentry.io/5286958"
@@ -140,7 +140,7 @@ RAVEN_CONFIG = {
     "dsn":"<account_dsn>" # create your sentry account and add your own dsn
 }
 
-# to enable custommer logging
+#Settings to enable custome logging
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': True,
