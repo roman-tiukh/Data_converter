@@ -104,18 +104,19 @@ class KoatuuConverter(Converter):
     def save_to_db(self, data):
         try:
             self.save_to_region_table(data)
-            # self.save_to_district_table(data)
-            # self.save_to_city_or_citydistrict(data)
-            # self.writing_category_null_id(City)
-            # self.writing_category_null_id(CityDistrict)
+            self.save_to_district_table(data)
+            self.save_to_city_or_citydistrict(data)
+            self.writing_category_null_id(City)
+            self.writing_category_null_id(CityDistrict)
         except TypeError:
             logger.exception('Tried to iterate NonType object')
-        logger.info("Koatuu values saved")
+        else:
+            logger.info("Koatuu values saved")
 
     # writing entry to koatuu field in region table
     def save_to_region_table(self, data):
         region_dict = self.create_dictionary_for(Region)
-        for index, object_koatuu in enumerate(data):
+        for _, object_koatuu in enumerate(data):
             if object_koatuu[self.LEVEL_ONE] and not object_koatuu[self.LEVEL_TWO]:
                 object_region_name = self.get_lowercase_words_before_virgule(
                     object_koatuu[self.OBJECT_NAME])
@@ -131,7 +132,7 @@ class KoatuuConverter(Converter):
         region_dict = self.create_dictionary_for(Region)
         district_dict = self.create_dictionary_for_district_table(District)
         city_dict = self.create_dictionary_for_city_table(City)
-        for index, object_koatuu in enumerate(data):
+        for _, object_koatuu in enumerate(data):
             if object_koatuu[self.LEVEL_ONE] and not object_koatuu[self.LEVEL_TWO]:
                 object_region_name = self.get_lowercase_words_before_virgule(
                     object_koatuu[self.OBJECT_NAME])
@@ -164,7 +165,7 @@ class KoatuuConverter(Converter):
         city_dict = self.create_dictionary_for_city_table(City)
         citydistrict_dict = self.create_dictionary_for_citydistrict_table()
         # getting values in json file Koatuu
-        for index, object_koatuu in enumerate(data):
+        for _, object_koatuu in enumerate(data):
             if object_koatuu[self.LEVEL_ONE] and not object_koatuu[self.LEVEL_TWO]:
                 object_region_name = self.get_lowercase_words_before_virgule(
                     object_koatuu[self.OBJECT_NAME])
