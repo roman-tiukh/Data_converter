@@ -1,5 +1,5 @@
 from django.contrib.auth.forms import PasswordResetForm
-from django.core.mail import send_mail
+from django.core.mail import send_mail as send_backend_mail
 from django.conf import settings
 from .models import DataOceanUser
 from postman import send_plain_mail
@@ -25,4 +25,4 @@ class CustomPasswordResetForm(PasswordResetForm):
                 send_plain_mail(context['email'], subject, text)
             else:
                 # з використанням EMAIL_BACKEND
-                send_mail(subject, text, settings.DEFAULT_FROM_EMAIL, [context['email'], ], fail_silently=True)
+                send_backend_mail(subject, text, settings.DEFAULT_FROM_EMAIL, [context['email'], ], fail_silently=True)
