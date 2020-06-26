@@ -119,10 +119,15 @@ CELERY_RESULT_SERIALIZER = 'json'
 # }
 
 # sentry configarution
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
+from sentry_sdk.integrations.celery import CeleryIntegration
+from sentry_sdk.integrations.redis import RedisIntegration
+
 sentry_sdk.init(
     # create your sentry account and add your own dsn <account_dsn>
     # dsn.example="https://d47c87c1d55f4f30ba48ace8394efb0f@o411563.ingest.sentry.io/5286958"
-    dsn=<account_dsn>,
+    dsn="<account_dsn>",
     integrations=[DjangoIntegration(), CeleryIntegration(), RedisIntegration()],
 
     # If you wish to associate users to errors (assuming you are using
@@ -132,7 +137,7 @@ sentry_sdk.init(
 
 RAVEN_CONFIG = {
     # format 'dsn':'https://<public_key>@sentry.io/<project_id>
-    "dsn":<account_dsn> # create your sentry account and add your own dsn
+    "dsn":"<account_dsn>" # create your sentry account and add your own dsn
 }
 
 # to enable custommer logging

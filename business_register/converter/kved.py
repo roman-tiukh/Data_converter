@@ -92,13 +92,6 @@ class KvedConverter(Converter):
     def save_to_db(self, data):
         # getting a value from json file, because it is put into a list
         sections = data['sections'][0]
-        self.save_to_section_table(sections)
-        logger.info("Saved all kveds")
-
-
-    def save_to_db_1(self, data):
-        # getting a value from json file, because it is put into a list
-        sections = data['sections'][0]
         logger.info("Saved all kveds")
         try:
             self.save_to_section_table(sections)
