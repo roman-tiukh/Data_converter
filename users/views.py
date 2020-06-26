@@ -60,7 +60,7 @@ class CustomRegisterView(views.APIView):
         # створити код підтвердження за HMAC
         msg = user.expire_at.strftime("%Y%m%dT%H%M%S%fZ") + user.email
         user.confirm_code = hmac.new(
-            key=settings.SECRET_KEY[5:-5].encode(),
+            key=settings.SECRET_KEY.encode(),
             msg=msg.encode('utf-8'),
             digestmod=hashlib.sha256  # md5
         ).hexdigest()
@@ -82,7 +82,7 @@ class CustomRegisterView(views.APIView):
             # з використанням EMAIL_BACKEND
             send_mail(subject, text, settings.DEFAULT_FROM_EMAIL, [user.email, ], fail_silently=True)
 
-        return Response(user.email, status=200)
+        return Response({"email": user.email, "first_name": user.first_name, "last_name": user.last_name}, status=200)
 
 
 class CustomRegisterConfirmView(views.APIView):
@@ -102,7 +102,7 @@ class CustomRegisterConfirmView(views.APIView):
         # створити код підтвердження за HMAC і порівняти із вхідним
         msg = user.expire_at.strftime("%Y%m%dT%H%M%S%fZ") + user.email
         confirm_code_check = hmac.new(
-            key=settings.SECRET_KEY[5:-5].encode(),
+            key=settings.SECRET_KEY.encode(),
             msg=msg.encode('utf-8'),
             digestmod=hashlib.sha256  # md5
         ).hexdigest()
@@ -133,4 +133,9 @@ class CustomRegisterConfirmView(views.APIView):
             # з використанням EMAIL_BACKEND
             send_mail(subject, text, settings.DEFAULT_FROM_EMAIL, [user.email, ], fail_silently=True)
 
-        return Response(real_user.email, status=200)
+        return Response({
+            "id": real_user.id,
+            "email": real_user.email,
+            "first_name": real_user.first_name,
+            "last_name": real_user.last_name,
+        }, status=200)
