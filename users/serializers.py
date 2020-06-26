@@ -1,7 +1,8 @@
 from rest_framework.authtoken.models import Token
 from rest_auth.registration.serializers import RegisterSerializer
 from rest_framework import serializers
-from rest_auth.serializers import LoginSerializer
+from rest_auth.serializers import LoginSerializer, PasswordResetSerializer
+from .forms import CustomPasswordResetForm
 from .models import DataOceanUser
 
 
@@ -37,3 +38,6 @@ class TokenSerializer(serializers.ModelSerializer):
         model = Token
         fields = ('key', 'user')
 
+
+class CustomPasswordResetSerializer(PasswordResetSerializer):
+    password_reset_form_class = CustomPasswordResetForm

@@ -1,7 +1,11 @@
+from datetime import datetime, timedelta
+from random import randint
+
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.base_user import BaseUserManager
 from django.utils.translation import ugettext_lazy as _
+from django.conf import settings
 
 
 class DataOceanUserManager(BaseUserManager):
@@ -47,6 +51,17 @@ class DataOceanUser(AbstractUser):
     REQUIRED_FIELDS = ['last_name', 'first_name']
 
     objects = DataOceanUserManager()
+
+    def __str__(self):
+        return self.email
+
+
+class CandidateUserModel(models.Model):
+    email = models.EmailField(_('email address'), unique=True)
+    password = models.CharField(_('password'), max_length=128)
+    first_name = models.CharField(_('first name'), max_length=30)
+    last_name = models.CharField(_('last name'), max_length=150)
+    expire_at = models.DateTimeField(_('expire at'), null=True, blank=True)
 
     def __str__(self):
         return self.email

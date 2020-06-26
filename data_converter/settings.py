@@ -174,4 +174,5 @@ REST_AUTH_SERIALIZERS = {
     'LOGIN_SERIALIZER': 'users.serializers.CustomLoginSerializer',
     'TOKEN_SERIALIZER': 'users.serializers.TokenSerializer',
     'USER_DETAILS_SERIALIZER': 'users.serializers.DataOceanUserSerializer',
+    'PASSWORD_RESET_SERIALIZER': 'users.serializers.CustomPasswordResetSerializer',
 }
