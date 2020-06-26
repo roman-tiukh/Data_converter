@@ -1,6 +1,6 @@
 import hmac
 import hashlib
-from datetime import datetime, timedelta
+from datetime import timedelta
 from rest_framework import generics, views
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -9,6 +9,7 @@ from rest_framework.permissions import AllowAny
 from django.core.mail import send_mail
 from django.contrib.auth.hashers import make_password
 from django.utils.translation import ugettext_lazy as _
+from django.utils import timezone
 from django.conf import settings
 
 from postman import send_plain_mail
@@ -54,7 +55,7 @@ class CustomRegisterView(views.APIView):
         CandidateUserModel.objects.filter(email=user.email).delete()
 
         # створити мітку часу закінчення дії реєстрації з цим кодом підтвердження
-        user.expire_at = datetime.utcnow() + timedelta(minutes=settings.CANDIDATE_EXPIRE_MINUTES)
+        user.expire_at = timezone.now() + timedelta(minutes=settings.CANDIDATE_EXPIRE_MINUTES)
 
         # створити код підтвердження за HMAC
         msg = user.expire_at.strftime("%Y%m%dT%H%M%S%fZ") + user.email
@@ -95,9 +96,8 @@ class CustomRegisterConfirmView(views.APIView):
             return Response({'detail': _('Confirmation link is broken')}, status=400)
 
         # перевірити, чи не закіінчився строк дії кода підтвердження
-        # TODO: datetime compare with TZ
-        # if datetime.utcnow() > user.expire_at:
-        #     return Response({'detail': _('Confirmation link is expired.')}, status=400)
+        if timezone.now() > user.expire_at:
+            return Response({'detail': _('Confirmation link is expired.')}, status=400)
 
         # створити код підтвердження за HMAC і порівняти із вхідним
         msg = user.expire_at.strftime("%Y%m%dT%H%M%S%fZ") + user.email
