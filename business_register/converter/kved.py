@@ -15,7 +15,7 @@ class KvedConverter(Converter):
     LOCAL_FILE_NAME = "kved.json"
 
     def __init__(self):
-        API_ADDRESS_FOR_DATASET = Register.objects.get(
+        self.API_ADDRESS_FOR_DATASET = Register.objects.get(
             source_register_id=settings.LOCATION_KVED_SOURCE_REGISTER_ID
             ).api_address
         super().__init__()
