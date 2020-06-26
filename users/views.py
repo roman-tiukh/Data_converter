@@ -60,7 +60,7 @@ class CustomRegisterView(views.APIView):
         # створити код підтвердження за HMAC
         msg = user.expire_at.strftime("%Y%m%dT%H%M%S%fZ") + user.email
         user.confirm_code = hmac.new(
-            key=settings.HMAC_SECRET_KEY,
+            key=settings.SECRET_KEY[5:-5].encode(),
             msg=msg.encode('utf-8'),
             digestmod=hashlib.sha256  # md5
         ).hexdigest()
@@ -102,7 +102,7 @@ class CustomRegisterConfirmView(views.APIView):
         # створити код підтвердження за HMAC і порівняти із вхідним
         msg = user.expire_at.strftime("%Y%m%dT%H%M%S%fZ") + user.email
         confirm_code_check = hmac.new(
-            key=settings.HMAC_SECRET_KEY,
+            key=settings.SECRET_KEY[5:-5].encode(),
             msg=msg.encode('utf-8'),
             digestmod=hashlib.sha256  # md5
         ).hexdigest()

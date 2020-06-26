@@ -19,7 +19,6 @@ BACKEND_SITE_URL = 'http://127.0.0.1:8000'
 # BACKEND_SITE_URL = 'https://ipa.dataocean.us'
 
 # Custom user registration
-HMAC_SECRET_KEY = b"34aa1879b926d21e2096a51b05cc29cec176b87e"
 CANDIDATE_EXPIRE_MINUTES = 5
 # Send user_registration/reset_password email by POSTMAN or EMAIL_BACKEND
 SEND_MAIL_BY_POSTMAN = False
