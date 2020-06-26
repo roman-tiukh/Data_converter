@@ -134,3 +134,59 @@ RAVEN_CONFIG = {
     # format 'dsn':'https://<public_key>@sentry.io/<project_id>
     "dsn":<account_dsn> # create your sentry account and add your own dsn
 }
+
+# to enable custommer logging
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': True,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        }
+    },
+    'filters': {
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'filters': ['require_debug_true'],
+            'formatter': 'verbose',
+        },
+        'production_logfile': {
+            'level': 'ERROR',
+            'filters': ['require_debug_false'],
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': 'django_production.log',
+            'maxBytes' : 1024*1024*100, # 100MB
+            'backupCount' : 5,
+            'formatter': 'verbose',
+        },
+        'sentry': {
+            'level': 'WARNING',
+            'class': 'raven.contrib.django.raven_compat.handlers.SentryHandler',
+        }
+    },
+    'loggers': {
+        'django.request': {
+            'handlers': ['production_logfile'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'location_register': {
+            'handlers': ['console', 'production_logfile'],
+            'level': 'INFO',
+        },
+        'business_register': {
+            'handlers': ['console', 'production_logfile'],
+            'level': 'INFO',
+        },
+    }
+}
