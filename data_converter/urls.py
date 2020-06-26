@@ -20,7 +20,7 @@ from django.urls import include, path, re_path
 from rest_auth.views import PasswordResetConfirmView
 from rest_framework import routers
 
-from data_ocean.views import RegisterView
+from data_ocean.views import RegisterView, SchemaView
 from business_register.views.company_views import CompanyView
 from business_register.views.kved_views import KvedView
 from business_register.views.rfop_views import RfopView, FopView
@@ -32,29 +32,17 @@ from users.views import CurrentUserProfileView, CustomRegisterView, CustomRegist
 router = routers.DefaultRouter()
 
 router.register(r'rfop', RfopView, basename='rfop')
-router.register(r'rfop/<int:pk>', RfopView, basename='rfop_item')
 router.register(r'fop', FopView, basename='fop')
-router.register(r'fop/<int:pk>', FopView, basename='fop_item')
 router.register(r'ruo', RuoView, basename='ruo')
-router.register(r'ruo/<int:pk>', RuoView, basename='ruo_item')
 router.register(r'kved', KvedView, basename='kved')
-router.register(r'kved/<int:pk>', KvedView, basename='kved_item')
 router.register(r'region', RegionView, basename='region')
-router.register(r'region/<int:pk>', RegionView, basename='region_item')
 router.register(r'city', CityView, basename='city')
-router.register(r'city/<int:pk>', CityView, basename='city_item')
 router.register(r'street', StreetView, basename='street')
-router.register(r'street/<int:pk>', StreetView, basename='street_item')
 router.register(r'citydistrict', CityDistrictView, basename='citydistrict')
-router.register(r'citydistrict/<int:pk>', CityDistrictView, basename='citydistrict_item')
 router.register(r'district', DistrictView, basename='district')
-router.register(r'district/<int:pk>', DistrictView, basename='district_item')
 router.register(r'drvbuilding', DrvBuildingViewSet, basename='drvbuilding')
-router.register(r'drvbuilding/<int:pk>', DrvBuildingViewSet, basename='drvbuilding_item')
 router.register(r'company', CompanyView, basename='company')
-router.register(r'company/<int:pk>', CompanyView, basename='company_item')
 router.register(r'register', RegisterView, basename='register')
-router.register(r'register/<int:pk>', RegisterView, basename='registeritem')
 
 urlpatterns = [
 
@@ -77,6 +65,22 @@ urlpatterns = [
     path('api/users/', include('users.urls')),
 
     path('api/', include(router.urls)),
+
+    re_path(
+        r'^schema/swagger(?P<format>\.json|\.yaml)$',
+        SchemaView.without_ui(cache_timeout=0),
+        name='schema-json'
+    ),
+    re_path(
+        r'^schema/swagger/$',
+        SchemaView.with_ui('swagger', cache_timeout=0),
+        name='schema-swagger-ui'
+    ),
+    re_path(
+        r'^schema/redoc/$',
+        SchemaView.with_ui('redoc', cache_timeout=0),
+        name='schema-redoc'
+    ),
 ]
 
 if settings.DEBUG:
