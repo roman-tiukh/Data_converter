@@ -132,7 +132,7 @@ sentry_sdk.init(
 
     # If you wish to associate users to errors (assuming you are using
     # django.contrib.auth) you may enable sending PII data.
-    send_default_pii=True
+    send_default_pii=False
 )
 
 RAVEN_CONFIG = {
@@ -141,9 +141,11 @@ RAVEN_CONFIG = {
 }
 
 #Settings to enable custome logging
+DEBUG_PROPAGATE_EXCEPTIONS = True
+
 LOGGING = {
     'version': 1,
-    'disable_existing_loggers': True,
+    'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
             'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
@@ -186,11 +188,11 @@ LOGGING = {
             'propagate': False,
         },
         'location_register': {
-            'handlers': ['console', 'production_logfile'],
+            'handlers': ['console', 'production_logfile', 'sentry'],
             'level': 'INFO',
         },
         'business_register': {
-            'handlers': ['console', 'production_logfile'],
+            'handlers': ['console', 'production_logfile', 'sentry'],
             'level': 'INFO',
         },
     }
