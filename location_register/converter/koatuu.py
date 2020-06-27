@@ -116,7 +116,7 @@ class KoatuuConverter(Converter):
     # writing entry to koatuu field in region table
     def save_to_region_table(self, data):
         region_dict = self.create_dictionary_for(Region)
-        for _, object_koatuu in enumerate(data):
+        for object_koatuu in data:
             if object_koatuu[self.LEVEL_ONE] and not object_koatuu[self.LEVEL_TWO]:
                 object_region_name = self.get_lowercase_words_before_virgule(
                     object_koatuu[self.OBJECT_NAME])
@@ -132,7 +132,7 @@ class KoatuuConverter(Converter):
         region_dict = self.create_dictionary_for(Region)
         district_dict = self.create_dictionary_for_district_table(District)
         city_dict = self.create_dictionary_for_city_table(City)
-        for _, object_koatuu in enumerate(data):
+        for object_koatuu in data:
             if object_koatuu[self.LEVEL_ONE] and not object_koatuu[self.LEVEL_TWO]:
                 object_region_name = self.get_lowercase_words_before_virgule(
                     object_koatuu[self.OBJECT_NAME])
@@ -165,7 +165,7 @@ class KoatuuConverter(Converter):
         city_dict = self.create_dictionary_for_city_table(City)
         citydistrict_dict = self.create_dictionary_for_citydistrict_table()
         # getting values in json file Koatuu
-        for _, object_koatuu in enumerate(data):
+        for object_koatuu in data:
             if object_koatuu[self.LEVEL_ONE] and not object_koatuu[self.LEVEL_TWO]:
                 object_region_name = self.get_lowercase_words_before_virgule(
                     object_koatuu[self.OBJECT_NAME])
