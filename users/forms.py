@@ -13,16 +13,16 @@ class CustomPasswordResetForm(PasswordResetForm):
         Custom send confirmation email for password reset.
         """
 
-        # перевірити існування такого email в таблиці користувачів
+        # check if this email is among existing users
         if DataOceanUser.objects.filter(email=context['email']).exists():
-            # створити лист користувачу для підтвердження скидання пароля
+            # create a letter to the user to confirm the password reset
             confirm_link = f"{settings.FRONTEND_SITE_URL}/api/rest-auth/password/reset/confirm/{context['uid']}/{context['token']}"
             subject = 'Скидання пароля користувача на Data Ocean'
             text = f"Вітаємо! \r\nВи замовили скидання пароля у системі Data Ocean. \r\nЛінк підтвердження: {confirm_link} \r\nЯкщо Вами ці дії не проводились, проігноруйте цей лист."
-            # відправити лист користувачу
+            # send mail
             if settings.SEND_MAIL_BY_POSTMAN:
-                # з використанням POSTMAN
+                # use POSTMAN
                 send_plain_mail(context['email'], subject, text)
             else:
-                # з використанням EMAIL_BACKEND
+                # use EMAIL_BACKEND
                 send_backend_mail(subject, text, settings.DEFAULT_FROM_EMAIL, [context['email'], ], fail_silently=True)
