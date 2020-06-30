@@ -71,7 +71,7 @@ class CustomRegisterView(views.APIView):
         # створити лист кандидату для підтвердження email
         confirm_link = f'{settings.FRONTEND_SITE_URL}/api/custom/registration-confirm/{user.id}/{user.confirm_code}'
         subject = 'Підтвердження реєстрації на Data Ocean'
-        text = f"Вітаємо, {user.first_name}! \r\nВи реєструєтесь у системі Data Ocean. \r\nПосилання на підтвердження: {confirm_link} \r\nЯкщо Вами ці дії не проводились, проігноруйте цей лист."
+        text = f"{user.first_name}, ми отримали запит на реєстрацію у системі Data Ocean. Щоб підтвердити адресу Вашої електронної пошти, перейдіть за цим посиланням {confirm_link} \r\nЯкщо Вами ці дії не проводились, проігноруйте цей лист. \r\nЗ повагою, Data Ocean"
         # відправити лист
         if settings.SEND_MAIL_BY_POSTMAN:
             # з використанням POSTMAN
