@@ -9,6 +9,7 @@ class BusinessConverter(Converter):
     """
     here we have common functions for Fop and Company converters
     """
+
     def __init__(self):
         """
         declaring as class fields for global access and initializing dictionaries with all kveds, /
@@ -20,19 +21,17 @@ class BusinessConverter(Converter):
         self.all_taxpayer_types_dict = self.put_all_objects_to_dict("name", "data_ocean", "TaxpayerType")
 
     def put_all_objects_to_dict(self, key_field, app_name, model_name):
-        return {getattr(obj, key_field): obj \
-            for obj in apps.get_model(app_name, model_name).objects.all()}
-        
+        return {getattr(obj, key_field): obj
+                for obj in apps.get_model(app_name, model_name).objects.all()}
+
     def get_kved_from_DB(self, kved_code_from_record):
         """
-        retreiving kved from DB or storing the new one
+        retreiving kved from DB
         """
-        empty_kved = Kved.objects.get(code='EMP')
         if kved_code_from_record in self.all_kveds_dict:
             return self.all_kveds_dict[kved_code_from_record]
-        print(f"This kved value {kved_code_from_record} is outdated or not valid")
-        return empty_kved
-    
+        return Kved.objects.get(code='EMP')
+
     def save_or_get_status(self, status_from_record):
         """
         retreiving status from DB or storing the new one
