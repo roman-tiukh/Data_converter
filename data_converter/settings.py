@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
+    'raven.contrib.django.raven_compat',
 
     'users',
     'simple_history',
