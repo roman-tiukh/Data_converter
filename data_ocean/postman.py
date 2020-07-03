@@ -32,14 +32,14 @@ def send_registration_template_email(email, first_name):
 
 
 def send_plain_mail(email, subject, text):
-    header_obj = {
+    headers = {
         "Content-Type": "application/json",
         "Authorization": f"Token {settings.POSTMAN_TOKEN}",
     }
-    data_obj = {
+    data = {
         "recipient": email,
         "text": text,
         "subject": subject,
     }
-    response = requests.post(f"{settings.POSTMAN_URL}api/v1/email/", json=data_obj, headers=header_obj)
+    response = requests.post(f"{settings.POSTMAN_URL}api/v1/email/", json=data, headers=headers)
     return response.status_code
