@@ -25,3 +25,4 @@ unzipped_xml
 source_data
 download
 *.zip
+db.sqlite3

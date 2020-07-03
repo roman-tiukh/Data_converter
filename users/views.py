@@ -12,7 +12,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
 from django.conf import settings
 
-from postman import send_plain_mail
+from data_ocean.postman import send_plain_mail
 from .models import DataOceanUser, CandidateUserModel
 from .serializers import DataOceanUserSerializer, CustomRegisterSerializer
 

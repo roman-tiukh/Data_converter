@@ -2,7 +2,7 @@ from django.contrib.auth.forms import PasswordResetForm
 from django.core.mail import send_mail as send_backend_mail
 from django.conf import settings
 from .models import DataOceanUser
-from postman import send_plain_mail
+from data_ocean.postman import send_plain_mail
 
 
 class CustomPasswordResetForm(PasswordResetForm):
