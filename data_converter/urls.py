@@ -27,7 +27,7 @@ from business_register.views.rfop_views import RfopView, FopView
 from business_register.views.ruo_views import RuoView
 from location_register.views.ratu_viewsets import RegionView, CityView, StreetView, CityDistrictView, DistrictView
 from location_register.views.drv_viewsets import DrvBuildingViewSet
-from users.views import CurrentUserProfileView, CustomRegisterView, CustomRegisterConfirmView
+from users.views import CustomRegisterView, CustomRegisterConfirmView
 
 router = routers.DefaultRouter()
 
@@ -48,18 +48,25 @@ urlpatterns = [
 
     path('admin/', admin.site.urls),
 
-    re_path(r'^api/rest-auth/password/reset/confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', PasswordResetConfirmView.as_view(),
-            name='password_reset_confirm'),
+    re_path(
+        r'^api/rest-auth/password/reset/confirm/(?P<uidb64>[0-9A-Za-z_\-]+)'
+        r'/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
+        PasswordResetConfirmView.as_view(),
+        name='password_reset_confirm'
+    ),
 
     path('', TemplateView.as_view(template_name='users/index.html')),
     path('api/accounts/profile/', TemplateView.as_view(template_name='users/profile.html')),
     path('api/accounts/', include('allauth.urls')),
 
-    path('api/custom/registration/', CustomRegisterView.as_view(), name='custom_registration'),
-    path('api/custom/registration-confirm/<int:user_id>/<str:confirm_code>', CustomRegisterConfirmView.as_view(), name='custom_registration_confirm'),
+    path('api/auth/registration/', CustomRegisterView.as_view(), name='custom_registration'),
+    path(
+        'api/auth/registration-confirm/<int:user_id>/<str:confirm_code>/',
+        CustomRegisterConfirmView.as_view(),
+        name='custom_registration_confirm',
+    ),
 
     # path('api/rest-auth/registration/', include('rest_auth.registration.urls')),
-    path('api/rest-auth/profile/', CurrentUserProfileView.as_view()),
     path('api/rest-auth/', include('rest_auth.urls')),
 
     path('api/users/', include('users.urls')),

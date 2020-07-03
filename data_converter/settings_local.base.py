@@ -27,18 +27,27 @@ BACKEND_SITE_URL = 'http://127.0.0.1:8000'
 CANDIDATE_EXPIRE_MINUTES = 5
 # Send user_registration/reset_password email by POSTMAN or EMAIL_BACKEND
 SEND_MAIL_BY_POSTMAN = False
-
 # AUTHORIZATION TOKEN FOR POSTMAN
 POSTMAN_TOKEN = 'e7937e4b5a309177b85fad8715bcbd451fdcb67f91696e1968f8dd188ada70a1'
-
 # URL FOR POSTMAN
 POSTMAN_URL = 'https://postman.org.ua/'
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = ''
+EMAIL_HOST_USER = ''
+EMAIL_PORT = 25
+EMAIL_HOST_PASSWORD = ''
+EMAIL_USE_SSL = False
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
 
 ALLOWED_HOSTS = [
     'ipa.dataocean.us',
     'localhost',
     '127.0.0.1',
 ]
+
+
 
 DATABASES = {
     'default': {

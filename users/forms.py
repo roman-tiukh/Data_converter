@@ -1,8 +1,19 @@
+import re
+
 from django.contrib.auth.forms import PasswordResetForm
 from django.core.mail import send_mail as send_backend_mail
 from django.conf import settings
 from .models import DataOceanUser
 from data_ocean.postman import send_plain_mail
+
+PASSWORD_RESET_SUBJECT = 'Скидання пароля користувача на Data Ocean'
+PASSWORD_RESET_MSG = (
+    "Вітаємо! \r\n"
+    "Ви замовили скидання пароля у системі Data Ocean. \r\n"
+    "Лінк підтвердження: \r\n"
+    "{confirm_link} \r\n"
+    "Якщо Вами ці дії не проводились, проігноруйте цей лист."
+)
 
 
 class CustomPasswordResetForm(PasswordResetForm):
@@ -16,13 +27,19 @@ class CustomPasswordResetForm(PasswordResetForm):
         # check if this email is among existing users
         if DataOceanUser.objects.filter(email=context['email']).exists():
             # create a letter to the user to confirm the password reset
-            confirm_link = f"{settings.FRONTEND_SITE_URL}/api/rest-auth/password/reset/confirm/{context['uid']}/{context['token']}"
-            subject = 'Скидання пароля користувача на Data Ocean'
-            text = f"Вітаємо! \r\nВи замовили скидання пароля у системі Data Ocean. \r\nЛінк підтвердження: {confirm_link} \r\nЯкщо Вами ці дії не проводились, проігноруйте цей лист."
+            domain = re.sub(r'/$', '', settings.FRONTEND_SITE_URL)
+            confirm_link = f"{domain}/api/rest-auth/password/reset/confirm/{context['uid']}/{context['token']}"
+            message = PASSWORD_RESET_MSG.format(confirm_link=confirm_link)
             # send mail
             if settings.SEND_MAIL_BY_POSTMAN:
                 # use POSTMAN
-                send_plain_mail(context['email'], subject, text)
+                send_plain_mail(context['email'], PASSWORD_RESET_SUBJECT, message)
             else:
                 # use EMAIL_BACKEND
-                send_backend_mail(subject, text, settings.DEFAULT_FROM_EMAIL, [context['email'], ], fail_silently=True)
+                send_backend_mail(
+                    subject=PASSWORD_RESET_SUBJECT,
+                    message=message,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=(context['email'],),
+                    fail_silently=True,
+                )

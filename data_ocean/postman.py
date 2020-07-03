@@ -1,5 +1,8 @@
 import requests
 from django.conf import settings
+import re
+
+POSTMAN_URL = re.sub(r'/$', '', settings.POSTMAN_URL)
 
 
 def send_registration_email(email, first_name):
@@ -12,7 +15,7 @@ def send_registration_email(email, first_name):
         "text": f"{first_name}, ви успішно зареєстровані у системі Data Ocean.\r\n Якщо Вами такі дії не проводились, проігноруйте цей лист.\r\n З повагою, Data Ocean",
         "subject": "Підтвердження реєстрації на Data Ocean"
     }
-    response = requests.post(f"{settings.POSTMAN_URL}api/v1/email/", json=data_obj, headers=header_obj)
+    response = requests.post(f"{POSTMAN_URL}/api/v1/email/", json=data_obj, headers=header_obj)
     print(f'Sending email status = {response.status_code}')
 
 
@@ -28,18 +31,18 @@ def send_registration_template_email(email, first_name):
             "name": first_name
         }
     }
-    response = requests.post(f"{settings.POSTMAN_URL}api/v1/email/", json=data_obj, headers=header_obj)
+    response = requests.post(f"{POSTMAN_URL}/api/v1/email/", json=data_obj, headers=header_obj)
 
 
 def send_plain_mail(email, subject, text):
-    header_obj = {
+    headers = {
         "Content-Type": "application/json",
         "Authorization": f"Token {settings.POSTMAN_TOKEN}",
     }
-    data_obj = {
+    data = {
         "recipient": email,
         "text": text,
         "subject": subject,
     }
-    response = requests.post(f"{settings.POSTMAN_URL}api/v1/email/", json=data_obj, headers=header_obj)
+    response = requests.post(f"{POSTMAN_URL}/api/v1/email/", json=data, headers=headers)
     return response.status_code
