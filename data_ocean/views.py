@@ -10,7 +10,6 @@ from data_ocean.models import Register
 from data_ocean.serializers import RegisterSerializer
 from data_ocean.filters import RegisterFilter
 
-
 # SchemaView for drf-yasg API documentation
 SchemaView = get_schema_view(
     openapi.Info(
