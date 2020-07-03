@@ -15,6 +15,7 @@ def send_registration_email(email, first_name):
     response = requests.post(f"{settings.POSTMAN_URL}api/v1/email/", json=data_obj, headers=header_obj)
     print(f'Sending email status = {response.status_code}')
 
+
 def send_registration_template_email(email, first_name):
     header_obj = {
         "Content-Type": "application/json",
@@ -28,8 +29,8 @@ def send_registration_template_email(email, first_name):
         }
     }
     response = requests.post(f"{settings.POSTMAN_URL}api/v1/email/", json=data_obj, headers=header_obj)
-    print(f'Sending email status = {response.status_code}')
-    
+
+
 def send_plain_mail(email, subject, text):
     header_obj = {
         "Content-Type": "application/json",
