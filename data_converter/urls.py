@@ -59,9 +59,9 @@ urlpatterns = [
     path('api/accounts/profile/', TemplateView.as_view(template_name='users/profile.html')),
     path('api/accounts/', include('allauth.urls')),
 
-    path('api/auth/registration/', CustomRegisterView.as_view(), name='custom_registration'),
+    path('api/rest-auth/registration/', CustomRegisterView.as_view(), name='custom_registration'),
     path(
-        'api/auth/registration-confirm/<int:user_id>/<str:confirm_code>/',
+        'api/rest-auth/registration-confirm/<int:user_id>/<str:confirm_code>/',
         CustomRegisterConfirmView.as_view(),
         name='custom_registration_confirm',
     ),
