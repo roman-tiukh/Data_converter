@@ -29,7 +29,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'rest_auth',
-    'rest_auth.registration',
+    # 'rest_auth.registration',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
