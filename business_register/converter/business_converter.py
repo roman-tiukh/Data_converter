@@ -1,8 +1,10 @@
+import re
+
 from django.apps import apps
 
 from business_register.models.kved_models import Kved
-from data_ocean.models import Authority, Status, TaxpayerType
 from data_ocean.converter import Converter
+from data_ocean.models import Authority, Status, TaxpayerType
 
 
 class BusinessConverter(Converter):

@@ -11,7 +11,8 @@ import re
 def clean_name(name):
     return re.sub(r'р\.|м\.|с\.|смт\.|сщ\.|с/рада\.|сщ/рада\.|вул\.', "", name.lower()).strip()
 
-#a dictionary for storing all abbreviations and full forms
+
+# a dictionary for storing all abbreviations and full forms
 SHORT_TO_FULL_DICT = {
     'р-н': 'район',
     'вул.': 'вулиця ',
@@ -23,6 +24,7 @@ SHORT_TO_FULL_DICT = {
     'области': 'області'
 }
 
+
 # changing to lowercase and abbreviations to full forms like 'р-н' to 'район' /
 # (see all cases in short_to_full_dict)
 def change_to_full_name(name):
@@ -31,14 +33,17 @@ def change_to_full_name(name):
         name = name.replace(abbr, full_form)
     return name
 
+
 # extracting the first word
 def get_first_word(string):
     return string.split()[0]
+
 
 # extracting all words except first
 def cut_first_word(string):
     words_after_first = string.split()[1:]
     return " ".join(words_after_first)
+
 
 # deleting ';' from a string, then converting it to the datetime format 'Y-m-d'
 def format_date_to_yymmdd(str_ddmmyy):

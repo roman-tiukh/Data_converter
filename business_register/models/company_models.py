@@ -65,6 +65,9 @@ class CompanyToKved(DataOceanModel):  # constraint for only only one truth in pr
     primary_kved = models.BooleanField(default=False)
     hash_code = models.CharField(max_length=510)
 
+    def __str__(self):
+        return f"{self.kved} (зазначений як основний)" if self.primary_kved else f"{self.kved}"
+
 
 class ExchangeDataCompany(DataOceanModel):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='exchange_data')
@@ -75,6 +78,9 @@ class ExchangeDataCompany(DataOceanModel):
     end_date = models.DateTimeField(null=True)
     end_number = models.CharField(max_length=555, null=True)
     hash_code = models.CharField(max_length=510)
+
+    def __str__(self):
+        return self.authority
 
 
 class FounderFull(DataOceanModel):
@@ -108,12 +114,18 @@ class CompanyToPredecessor(DataOceanModel):
     predecessor = models.ForeignKey(Predecessor, on_delete=models.CASCADE)
     hash_code = models.CharField(max_length=510)
 
+    def __str__(self):
+        return self.predecessor.name
+
 
 class Signer(DataOceanModel):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='signers')
     name = models.CharField(max_length=390, null=True)
     hash_code = models.CharField(max_length=510)
     history = HistoricalRecords()
+
+    def __str__(self):
+        return self.name
 
 
 class TerminationStarted(DataOceanModel):

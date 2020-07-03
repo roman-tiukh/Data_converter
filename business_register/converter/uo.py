@@ -1,26 +1,20 @@
-import datetime
-from django.apps import apps
-from django.utils.dateparse import parse_date
-from lxml import etree
+import re
 
-from data_converter import settings_local
-from data_ocean.converter import Converter, BulkCreateUpdateManager
-from data_ocean.models import Authority
-from data_ocean.utils import cut_first_word, format_date_to_yymmdd, get_first_word
 from business_register.converter.business_converter import BusinessConverter
-from business_register.models.company_models import(
+from business_register.models.company_models import (
     Assignee, BancruptcyReadjustment, Bylaw, Company, CompanyDetail, CompanyToKved,
     CompanyToPredecessor, CompanyType, ExchangeDataCompany, FounderFull, Predecessor,
     Signer, TerminationStarted
 )
-from data_ocean.models import Status
 from django.conf import settings
+from data_ocean.converter import BulkCreateUpdateManager
+from data_ocean.utils import cut_first_word, format_date_to_yymmdd, get_first_word
 
 
 class Parser(BusinessConverter):
-    LOCAL_FILE_NAME = settings_local.LOCAL_FILE_NAME_UO
-    LOCAL_FOLDER = settings_local.LOCAL_FOLDER
-    CHUNK_SIZE = settings.UO_CHUNK_SIZE
+    LOCAL_FILE_NAME = settings.LOCAL_FILE_NAME_UO
+    LOCAL_FOLDER = settings.LOCAL_FOLDER
+    CHUNK_SIZE = settings.CHUNK_SIZE_UO
     RECORD_TAG = 'SUBJECT'
     all_bylaw_dict = {}
     all_company_type_dict = {}
@@ -91,7 +85,7 @@ class Parser(BusinessConverter):
     def create_hash_code(self, name, edrpou):
         return name + edrpou
 
-    def company_create (self, record, edrpou, registration_date, registration_info):
+    def company_create(self, record, edrpou, registration_date, registration_info):
         company = Company()
         company.name = record.xpath('NAME')[0].text
         company.short_name = record.xpath('SHORT_NAME')[0].text
@@ -222,11 +216,27 @@ class Parser(BusinessConverter):
                     exchange_answer.hash_code = self.create_hash_code(name, code)
                     self.branch_bulk_manager.add_create(exchange_answer)
 
+    def extract_founder_data(self, string):
+        splitted = string.split(',')
+        name = splitted[0]
+        second = splitted[1].strip()
+        edrpou = second if len(second) == 8 and second.isdigit() else None
+        equity = None
+        for s in splitted:
+            if s.startswith(' розмір внеску до статутного фонду') and s.endswith('грн.'):
+                equity = float(re.findall("\d+\.\d+", s)[0])
+                break
+        return name, edrpou, equity
+
     def add_founders(self, record, edrpou):
         if len(record.xpath('FOUNDERS')[0]) > 0:
             for item in record.xpath('FOUNDERS')[0]:
                 founder = FounderFull()
-                founder.name = item.text
+                # checking if there is additional data except name
+                if ',' in item.text:
+                    founder.name, founder.edrpou, founder.equity = self.extract_founder_data(item.text)
+                else:
+                    founder.name = item.text
                 founder.hash_code = self.create_hash_code(record.xpath('NAME')[0].text, edrpou)
                 self.bulk_manager.add_create(founder)
 
@@ -311,7 +321,7 @@ class Parser(BusinessConverter):
                     self.branch_bulk_manager.add_create(signer)
                 self.branch_to_parent[
                     self.create_hash_code(item.xpath('NAME')[0].text, code)
-                    ] = self.create_hash_code(record.xpath('NAME')[0].text, edrpou)
+                ] = self.create_hash_code(record.xpath('NAME')[0].text, edrpou)
 
     def save_to_db(self, records):
         self.bylaw = None
@@ -368,7 +378,6 @@ class Parser(BusinessConverter):
             self.add_signers(record, edrpou)
             self.add_termination_started(record, edrpou)
 
-
         if len(self.bulk_manager._update_queues['business_register.Company']) > 0:
             self.bulk_manager._commit_update(Company, ['name', 'short_name', 'company_type', 'edrpou'])
         self.bulk_manager._commit_create(Company)
@@ -396,7 +405,7 @@ class Parser(BusinessConverter):
                 branch.parent = company_create_dict[self.branch_to_parent[branch.hash_code]]
 
         branch_to_parent = {}
-        
+
         for assignee in self.bulk_manager._create_queues['business_register.Assignee']:
             if assignee.hash_code in company_update_dict:
                 assignee.company = company_update_dict[assignee.hash_code]

@@ -1,33 +1,18 @@
 from rest_framework import serializers
 
-from business_register.models.company_models import(
-    Bylaw, CompanyType, Assignee, BancruptcyReadjustment, CompanyDetail,
-    CompanyToKved, ExchangeDataCompany, FounderFull, Predecessor,
-    CompanyToPredecessor, Signer, TerminationStarted, Company
+from business_register.models.company_models import (
+    BancruptcyReadjustment, CompanyDetail,
+    ExchangeDataCompany, TerminationStarted, Company, FounderFull
 )
 
 
-class BylawSerializer(serializers.Serializer):
-    name = serializers.CharField(max_length=100)
-
-
-class CompanyTypeSerializer(serializers.Serializer):
-    name = serializers.CharField(max_length=100)
-
-
-class AssigneeSerializer(serializers.Serializer):
-    name = serializers.CharField(max_length=100)
-
-
 class BancruptcyReadjustmentSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = BancruptcyReadjustment
         fields = ('op_date', 'reason', 'sbj_state', 'head_name')
 
 
 class CompanyDetailSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = CompanyDetail
         fields = (
@@ -36,14 +21,6 @@ class CompanyDetailSerializer(serializers.ModelSerializer):
             'managing_paper', 'terminated_info', 'termination_cancel_info',
             'vp_dates'
         )
-
-
-class CompanyToKvedSerializer(serializers.ModelSerializer):
-    kved = serializers.CharField(max_length=500)
-
-    class Meta:
-        model = CompanyToKved
-        fields = ('kved', 'primary_kved')
 
 
 class ExchangeDataCompanySerializer(serializers.ModelSerializer):
@@ -58,26 +35,13 @@ class ExchangeDataCompanySerializer(serializers.ModelSerializer):
         )
 
 
-class FounderFullSerializer(serializers.Serializer):
-    name = serializers.CharField(max_length=1500)
-
-
-class PredecessorSerializer(serializers.ModelSerializer):
+class FounderSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Predecessor
-        fields = ('id', 'name', 'code')
-
-
-class CompanyToPredecessorSerializer(serializers.Serializer):
-    predecessor = serializers.CharField(max_length=100)
-
-
-class SignerSerializer(serializers.Serializer):
-    name = serializers.CharField(max_length=300)
+        model = FounderFull
+        fields = ('name', 'edrpou', 'equity')
 
 
 class TerminationStartedSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = TerminationStarted
         fields = ('op_date', 'reason', 'sbj_state', 'signer_name', 'creditor_reg_end_date')
@@ -85,19 +49,20 @@ class TerminationStartedSerializer(serializers.ModelSerializer):
 
 class CompanySerializer(serializers.ModelSerializer):
     name = serializers.CharField(max_length=500)
+    short_name = serializers.CharField(max_length=500)
     company_type = serializers.StringRelatedField()
     bylaw = serializers.StringRelatedField()
-    status = serializers.CharField(max_length=100)
-    authority = serializers.CharField(max_length=500)
-    parent = serializers.CharField(max_length=500)
-    assignees = AssigneeSerializer(many=True)
+    status = serializers.StringRelatedField()
+    authority = serializers.StringRelatedField()
+    parent = serializers.StringRelatedField()
+    assignees = serializers.StringRelatedField(many=True)
     bancruptcy_readjustment = BancruptcyReadjustmentSerializer(many=True)
     company_detail = CompanyDetailSerializer(many=True)
-    kveds = CompanyToKvedSerializer(many=True)
+    kveds = serializers.StringRelatedField(many=True)
     exchange_data = ExchangeDataCompanySerializer(many=True)
-    founders = FounderFullSerializer(many=True)
-    predecessors = CompanyToPredecessorSerializer(many=True)
-    signers = SignerSerializer(many=True)
+    founders = FounderSerializer(many=True)
+    predecessors = serializers.StringRelatedField(many=True)
+    signers = serializers.StringRelatedField(many=True)
     termination_started = TerminationStartedSerializer(many=True)
 
     class Meta:
