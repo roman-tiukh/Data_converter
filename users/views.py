@@ -83,7 +83,7 @@ class CustomRegisterView(views.APIView):
 
         # create a letter to the candidate to confirm the email
         domain = re.sub(r'/$', '', settings.FRONTEND_SITE_URL)
-        confirm_link = f'{domain}/api/custom/registration-confirm/{user.id}/{user.confirm_code}/'
+        confirm_link = f'{domain}/auth/sign-up/confirmation/{user.id}/{user.confirm_code}/'
         message = REGISTRATION_CONFIRM_MSG.format(first_name=user.first_name, confirm_link=confirm_link)
         # send mail
         if settings.SEND_MAIL_BY_POSTMAN:

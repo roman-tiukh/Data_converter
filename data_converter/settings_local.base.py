@@ -17,8 +17,8 @@ DEBUG = True
 
 # SITE URLS
 # For development mode
-FRONTEND_SITE_URL = 'http://127.0.0.1:8000'
-BACKEND_SITE_URL = 'http://127.0.0.1:8000'
+FRONTEND_SITE_URL = 'http://localhost:3000'
+BACKEND_SITE_URL = 'http://localhost:8000'
 # For production mode
 # FRONTEND_SITE_URL = 'https://dataocean.us'
 # BACKEND_SITE_URL = 'https://ipa.dataocean.us'

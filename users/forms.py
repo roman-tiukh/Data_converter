@@ -1,5 +1,4 @@
 import re
-
 from django.contrib.auth.forms import PasswordResetForm
 from django.core.mail import send_mail as send_backend_mail
 from django.conf import settings
@@ -28,7 +27,7 @@ class CustomPasswordResetForm(PasswordResetForm):
         if DataOceanUser.objects.filter(email=context['email']).exists():
             # create a letter to the user to confirm the password reset
             domain = re.sub(r'/$', '', settings.FRONTEND_SITE_URL)
-            confirm_link = f"{domain}/api/rest-auth/password/reset/confirm/{context['uid']}/{context['token']}"
+            confirm_link = f"{domain}/auth/restore-pass/confirmation/{context['uid']}/{context['token']}/"
             message = PASSWORD_RESET_MSG.format(confirm_link=confirm_link)
             # send mail
             if settings.SEND_MAIL_BY_POSTMAN:
