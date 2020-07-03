@@ -13,7 +13,6 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-
 from django.contrib import admin
 from django.conf import settings
 from django.views.generic import TemplateView
@@ -28,8 +27,7 @@ from business_register.views.rfop_views import RfopView, FopView
 from business_register.views.ruo_views import RuoView
 from location_register.views.ratu_viewsets import RegionView, CityView, StreetView, CityDistrictView, DistrictView
 from location_register.views.drv_viewsets import DrvBuildingViewSet
-from users.views import CurrentUserProfileView
-
+from users.views import CurrentUserProfileView, CustomRegisterView, CustomRegisterConfirmView
 
 router = routers.DefaultRouter()
 
@@ -57,7 +55,10 @@ urlpatterns = [
     path('api/accounts/profile/', TemplateView.as_view(template_name='users/profile.html')),
     path('api/accounts/', include('allauth.urls')),
 
-    path('api/rest-auth/registration/', include('rest_auth.registration.urls')),
+    path('api/custom/registration/', CustomRegisterView.as_view(), name='custom_registration'),
+    path('api/custom/registration-confirm/<int:user_id>/<str:confirm_code>', CustomRegisterConfirmView.as_view(), name='custom_registration_confirm'),
+
+    # path('api/rest-auth/registration/', include('rest_auth.registration.urls')),
     path('api/rest-auth/profile/', CurrentUserProfileView.as_view()),
     path('api/rest-auth/', include('rest_auth.urls')),
 

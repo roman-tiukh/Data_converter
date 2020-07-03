@@ -50,3 +50,14 @@ class DataOceanUser(AbstractUser):
 
     def __str__(self):
         return self.email
+
+
+class CandidateUserModel(models.Model):
+    email = models.EmailField(_('email address'), unique=True)
+    password = models.CharField(_('password'), max_length=128)
+    first_name = models.CharField(_('first name'), max_length=30)
+    last_name = models.CharField(_('last name'), max_length=150)
+    expire_at = models.DateTimeField(_('expire at'), null=True, blank=True)
+
+    def __str__(self):
+        return self.email

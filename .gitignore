@@ -1,4 +1,4 @@
-*.pyc
+*.py[cod]
 *.log
 *.dll
 *.lib
@@ -8,29 +8,16 @@
 .DS_Store
 /.env
 celerybeat-schedule
-/web/docker_django/private_files/
-/web/docker_django/allstatic/
-/config/certbot/conf/
-/data/
 /.idea
 Thumbs.db
 __pycache__
 /__pycache__
 __pycache__/
 media/
-/web/docker_django/system/settings/settings_local.py
-/web/docker_django/system/settings/settings_test.py
-media/django_cache
 django_cache
-static/img/background/
-static/img/tables/
-/web/static/calendar/js/events.json
 /venv/
 /.venv/
-/data_converter/settings_local.py
-# /web/docker_django/development
-# web/docker_django/system/cryptography/
-# web/docker_django/system/cryptography/EUSignCP.py
+settings_local.py
 config.py
 ratu/sanding.py
 /.vscode/

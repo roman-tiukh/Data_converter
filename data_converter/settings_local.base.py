@@ -15,6 +15,19 @@ SECRET_KEY = '89di$5_t-fo8f*z0!kvbli20gcz^6f)8&2!e1g3o4pbe7v(h^q'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+# SITE URLS
+# For development mode
+FRONTEND_SITE_URL = 'http://127.0.0.1:8000'
+BACKEND_SITE_URL = 'http://127.0.0.1:8000'
+# For production mode
+# FRONTEND_SITE_URL = 'https://dataocean.us'
+# BACKEND_SITE_URL = 'https://ipa.dataocean.us'
+
+# Custom user registration
+CANDIDATE_EXPIRE_MINUTES = 5
+# Send user_registration/reset_password email by POSTMAN or EMAIL_BACKEND
+SEND_MAIL_BY_POSTMAN = False
+
 # AUTHORIZATION TOKEN FOR POSTMAN
 POSTMAN_TOKEN = 'e7937e4b5a309177b85fad8715bcbd451fdcb67f91696e1968f8dd188ada70a1'
 
