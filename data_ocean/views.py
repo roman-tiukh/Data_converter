@@ -6,9 +6,11 @@ from rest_framework import permissions, viewsets
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 
-from data_ocean.models import Register
-from data_ocean.serializers import RegisterSerializer
 from data_ocean.filters import RegisterFilter
+from data_ocean.models import Register
+from rest_framework.filters import SearchFilter
+from django_filters.rest_framework import DjangoFilterBackend
+from data_ocean.serializers import RegisterSerializer
 
 # SchemaView for drf-yasg API documentation
 SchemaView = get_schema_view(
@@ -43,6 +45,8 @@ class RegisterView(viewsets.ReadOnlyModelViewSet):
     queryset = Register.objects.all()
     serializer_class = RegisterSerializer
     filterset_class = RegisterFilter
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    search_fields = ['name', 'source_register_id']
    
 class CachedViewMixin:
     @method_decorator(cache_page(60*15))
