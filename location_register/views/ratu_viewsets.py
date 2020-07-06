@@ -26,4 +26,3 @@ class CityDistrictView(CachedViewMixin, viewsets.ReadOnlyModelViewSet):
 class StreetView(CachedViewMixin, viewsets.ReadOnlyModelViewSet):
     queryset = Street.objects.all()
     serializer_class = StreetSerializer
-
