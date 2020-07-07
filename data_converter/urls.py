@@ -21,7 +21,7 @@ from rest_auth.views import PasswordResetConfirmView
 from rest_framework import routers
 
 from data_ocean.views import RegisterView, SchemaView
-from business_register.views.company_views import CompanyView
+from business_register.views.company_views import CompanyView, HistoricalCompanyView
 from business_register.views.kved_views import KvedView
 from business_register.views.rfop_views import RfopView, FopView
 from business_register.views.ruo_views import RuoView
@@ -43,6 +43,7 @@ router.register(r'district', DistrictView, basename='district')
 router.register(r'drvbuilding', DrvBuildingViewSet, basename='drvbuilding')
 router.register(r'company', CompanyView, basename='company')
 router.register(r'register', RegisterView, basename='register')
+router.register(r'historicalcompany', HistoricalCompanyView, basename='historicalcompany')
 
 urlpatterns = [
 
