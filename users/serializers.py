@@ -2,6 +2,8 @@ from rest_framework.authtoken.models import Token
 from rest_auth.registration.serializers import RegisterSerializer
 from rest_framework import serializers
 from rest_auth.serializers import LoginSerializer, PasswordResetSerializer
+from django.utils.translation import ugettext_lazy as _
+from difflib import SequenceMatcher
 from .forms import CustomPasswordResetForm
 from .models import DataOceanUser
 
@@ -25,6 +27,24 @@ class CustomRegisterSerializer(RegisterSerializer):
             'password1': self.validated_data.get('password1', ''),
             'password2': self.validated_data.get('password2', ''),
         }
+
+    def validate(self, data):
+        super(CustomRegisterSerializer, self).validate(data)
+
+        # Custom Similarity Validator
+
+        max_similarity = 0.7
+        cmp_attrs = {
+            'email': 'Email',
+            'first_name': 'First Name',
+            'last_name': 'Last Name',
+        }
+
+        for (k, v) in cmp_attrs.items():
+            if SequenceMatcher(a=data['password1'].lower(), b=data[k].lower()).quick_ratio() >= max_similarity:
+                raise serializers.ValidationError(_(f'Your password can’t be too similar to your {v}.'))
+
+        return data
 
 
 class CustomLoginSerializer(LoginSerializer):
