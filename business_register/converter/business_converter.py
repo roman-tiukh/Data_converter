@@ -23,8 +23,8 @@ class BusinessConverter(Converter):
         self.all_taxpayer_types_dict = self.put_all_objects_to_dict("name", "data_ocean", "TaxpayerType")
 
     def put_all_objects_to_dict(self, key_field, app_name, model_name):
-        return {getattr(obj, key_field): obj
-                for obj in apps.get_model(app_name, model_name).objects.all()}
+        return {getattr(obj, key_field): obj for obj in apps.get_model(app_name,
+                                                                       model_name).objects.all()}
 
     def get_kved_from_DB(self, kved_code_from_record):
         """
@@ -44,6 +44,7 @@ class BusinessConverter(Converter):
             return new_status
         return self.all_statuses_dict[status_from_record]
 
+
     def save_or_get_authority(self, authority_from_record):
         """
         retreiving authority from DB or storing the new one
@@ -53,6 +54,7 @@ class BusinessConverter(Converter):
             self.all_authorities_dict[authority_from_record] = new_authority
             return new_authority
         return self.all_authorities_dict[authority_from_record]
+
 
     def save_or_get_taxpayer_type(self, taxpayer_type_from_record):
         """

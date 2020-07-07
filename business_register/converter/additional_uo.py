@@ -1,8 +1,7 @@
 from lxml import etree
 
 from business_register.converter.business_converter import BusinessConverter
-from business_register.models.company_models import Company, FounderNew
-
+from business_register.models.company_models import Company, FounderNew, FounderFull
 
 def add_founders_info(records):
     for record in records:
@@ -44,7 +43,7 @@ def add_founders_info(records):
 
 
 class FoundersUpdater(BusinessConverter):
-    LOCAL_FILE_NAME = '/unzipped_xml/ltds_1.xml'
+    LOCAL_FILE_NAME = ''
     CHUNK_SIZE = 500
     RECORD_TAG = 'DATA_RECORD'
     record = []
@@ -61,6 +60,3 @@ class FoundersUpdater(BusinessConverter):
             i += 1
             print(f'N{i}')
         print('All the records checked')
-
-
-FoundersUpdater().parse_file()
