@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     'django.contrib.sites',
     'django_celery_beat',
     'django_extensions',
+    'django_filters',
     'drf_yasg',
     'corsheaders',
     'rest_framework',
@@ -131,7 +132,8 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         # 'rest_framework.permissions.AllowAny',
         'rest_framework.permissions.IsAuthenticated',
-    ]
+    ],
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
 }
 
 AUTH_USER_MODEL = 'users.DataOceanUser'
