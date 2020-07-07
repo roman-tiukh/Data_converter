@@ -222,11 +222,20 @@ class Parser(BusinessConverter):
         second = splitted[1].strip()
         edrpou = second if len(second) == 8 and second.isdigit() else None
         equity = None
+        piece = None
         for s in splitted:
             if s.startswith(' розмір внеску до статутного фонду') and s.endswith('грн.'):
+                piece = s
                 equity = float(re.findall("\d+\.\d+", s)[0])
                 break
-        return name, edrpou, equity
+        address = string.replace(name, '')
+        if edrpou:
+            address = address.replace(edrpou, '')
+        if piece:
+            address = address.replace(piece, '')
+        if len(address) < 15:
+            address = None
+        return name, edrpou, address, equity
 
     def add_founders(self, record, edrpou):
         if len(record.xpath('FOUNDERS')[0]) > 0:
@@ -234,7 +243,8 @@ class Parser(BusinessConverter):
                 founder = FounderFull()
                 # checking if there is additional data except name
                 if ',' in item.text:
-                    founder.name, founder.edrpou, founder.equity = self.extract_founder_data(item.text)
+                    founder.name, founder.edrpou, founder.address, founder.equity = \
+                        self.extract_founder_data(item.text)
                 else:
                     founder.name = item.text
                 founder.hash_code = self.create_hash_code(record.xpath('NAME')[0].text, edrpou)
