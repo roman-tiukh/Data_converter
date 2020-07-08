@@ -14,7 +14,16 @@ class PepAssetsSearcher:
         self.nodes = []
         self.links = []
 
-    def find_pep_companies(self, pep_name):
+    def find_founded_companies(self, company):
+        founder_of = FounderFull.objects.filter(edrpou=company.edrpou)
+        if not founder_of:
+            return 'no other companies are founded by these companies'
+        for founder in founder_of:
+            self.nodes.append(founder.company)
+            self.links.append(Link(company.id, founder.company.id))
+            self.find_founded_companies(founder.company)
+
+    def find_person_companies(self, pep_name):
         # TODO: retreive a public person object from another DB
         pep = pep_name
         self.nodes.append(pep)
@@ -28,11 +37,3 @@ class PepAssetsSearcher:
         print(f'There are {len(self.nodes) - 1} companies linked with this person')
         return self.nodes, self.links
 
-    def find_founded_companies(self, company):
-        founder_of = FounderFull.objects.filter(edrpou=company.edrpou)
-        if not founder_of:
-            return 'no other companies are founded by these companies'
-        for founder in founder_of:
-            self.nodes.append(founder.company)
-            self.links.append(Link(company.id, founder.company.id))
-            self.find_founded_companies(founder.company)

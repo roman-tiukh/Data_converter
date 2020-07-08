@@ -33,6 +33,7 @@ class Company(DataOceanModel):  # constraint for not null in both name & short_n
 class Assignee(DataOceanModel):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='assignees')
     name = models.CharField(max_length=610, null=True)
+    edrpou = models.CharField(max_length=11, null=True)
     hash_code = models.CharField(max_length=510)
 
 
@@ -43,6 +44,9 @@ class BancruptcyReadjustment(DataOceanModel):
     sbj_state = models.CharField(max_length=345, null=True)
     head_name = models.CharField(max_length=515, null=True)
     hash_code = models.CharField(max_length=510)
+
+    def __str__(self):
+        return self.sbj_state
 
 
 class CompanyDetail(DataOceanModel):
@@ -80,7 +84,7 @@ class ExchangeDataCompany(DataOceanModel):
     hash_code = models.CharField(max_length=510)
 
     def __str__(self):
-        return self.authority
+        return self.authority.name
 
 
 class FounderFull(DataOceanModel):
@@ -125,9 +129,6 @@ class Signer(DataOceanModel):
     hash_code = models.CharField(max_length=510)
     history = HistoricalRecords()
 
-    def __str__(self):
-        return self.name
-
 
 class TerminationStarted(DataOceanModel):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='termination_started')
@@ -137,3 +138,6 @@ class TerminationStarted(DataOceanModel):
     signer_name = models.CharField(max_length=480, null=True)
     creditor_reg_end_date = models.DateTimeField(null=True)
     hash_code = models.CharField(max_length=510)
+
+    def __str__(self):
+        return self.sbj_state

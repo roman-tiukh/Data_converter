@@ -1,6 +1,5 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import generics, viewsets
-from rest_framework.pagination import PageNumberPagination
+from rest_framework import viewsets
 from rest_framework.response import Response
 
 from business_register.models.kved_models import Kved

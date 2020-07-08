@@ -131,12 +131,13 @@ class Parser(BusinessConverter):
         company_detail.hash_code = self.create_hash_code(record.xpath('NAME')[0].text, edrpou)
         self.bulk_manager.add_create(company_detail)
 
-    def add_assignees(self, record, edrpou):
+    def add_assignees(self, record, hashcode):
         if len(record.xpath('ASSIGNEES')[0]) > 0:
             for item in record.xpath('ASSIGNEES')[0]:
                 assignee = Assignee()
-                assignee.name = item.text
-                assignee.hash_code = self.create_hash_code(record.xpath('NAME')[0].text, edrpou)
+                assignee.name = item.xpath('NAME')[0].text
+                assignee.edrpou = item.xpath('CODE')[0].text
+                assignee.hash_code = hashcode
                 self.bulk_manager.add_create(assignee)
 
     def add_bancruptcy_readjustment(self, record, edrpou):
@@ -313,7 +314,6 @@ class Parser(BusinessConverter):
                 #     print('create')
                 branch = self.branch_create(item, code)
                 self.branch_bulk_manager.add_create(branch)
-                print('create')
 
                 self.add_company_to_kved_branch(
                     item.xpath('ACTIVITY_KINDS')[0],
@@ -374,10 +374,8 @@ class Parser(BusinessConverter):
             company = self.company_create(record, edrpou, registration_date, registration_info)
             self.bulk_manager.add_create(company)
 
-            print('create')
-
             self.add_branches(record, edrpou)
-            self.add_assignees(record, edrpou)
+            self.add_assignees(record, company.hash_code)
             self.add_company_detail(record, edrpou)
             self.add_company_to_kved(record.xpath(
                 'ACTIVITY_KINDS')[0], record.xpath('NAME')[0].text, edrpou)
