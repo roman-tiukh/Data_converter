@@ -43,7 +43,7 @@ router.register(r'district', DistrictView, basename='district')
 router.register(r'drvbuilding', DrvBuildingViewSet, basename='drvbuilding')
 router.register(r'company', CompanyView, basename='company')
 router.register(r'register', RegisterView, basename='register')
-router.register(r'historicalcompany', HistoricalCompanyView, basename='historicalcompany')
+router.register(r'historical-company', HistoricalCompanyView, basename='historical_company')
 
 urlpatterns = [
 
