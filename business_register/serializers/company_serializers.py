@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from business_register.models.company_models import (
     BancruptcyReadjustment, CompanyDetail,
-    ExchangeDataCompany, TerminationStarted, Company, FounderFull
+    ExchangeDataCompany, TerminationStarted, Company, FounderFull, HistoricalCompany
 )
 
 
@@ -74,4 +74,10 @@ class CompanySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Company
+        fields = '__all__'
+
+
+class HistoricalCompanySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HistoricalCompany
         fields = '__all__'
