@@ -124,7 +124,6 @@ USE_TZ = True
 
 LOCALE_PATHS = [
     os.path.join(BASE_DIR, "locale"),
-    os.path.join(BASE_DIR, "data_converter/tpl/rest_auth", "locale"),
 ]
 
 # Static files (CSS, JavaScript, Images)
