@@ -1,6 +1,7 @@
 from business_register.converter.business_converter import BusinessConverter
 from business_register.models.rfop_models import (ExchangeDataFop, Fop,
                                                   FopToKved)
+from django.conf import settings
 from data_ocean.converter import BulkCreateUpdateManager
 from data_ocean.models import Register
 from data_ocean.utils import get_first_word, cut_first_word, format_date_to_yymmdd
@@ -11,13 +12,13 @@ class FopConverter(BusinessConverter):
     def __init__(self):
         self.API_ADDRESS_FOR_DATASET = Register.objects.get(source_register_id=
                                                             "1c7f3815-3259-45e0-bdf1-64dca07ddc10").api_address
-        self.CHUNK_SIZE = 500
+        self.LOCAL_FOLDER = settings.LOCAL_FOLDER
+        self.LOCAL_FILE_NAME = settings.LOCAL_FILE_NAME_FOP
+        self.CHUNK_SIZE = settings.CHUNK_SIZE_FOP
+        self.RECORD_TAG = 'SUBJECT'
         self.bulk_manager = BulkCreateUpdateManager(1000000)
         self.all_fop_kveds = []
         self.all_fop_exchange_data = []
-        self.LOCAL_FOLDER = 'unzipped_xml'
-        self.LOCAL_FILE_NAME = '/fop.xml'
-        self.RECORD_TAG = 'SUBJECT'
         self.all_fops_dict = self.put_all_objects_to_dict('hash_code', 'business_register', 'Fop')
         super().__init__()
 
@@ -60,11 +61,12 @@ class FopConverter(BusinessConverter):
     # putting all kveds into a list
     def add_fop_kveds_to_list(self, fop_kveds, hash_code):
         for activity in fop_kveds:
-            info = activity.xpath('CODE')
+            info = activity.xpath('NAME')
             if not info:
                 continue
-            kved_code = info[0].text
-            kved = self.get_kved_from_DB(kved_code)
+            kved_name = info[0].text
+            if kved_name:
+                kved = self.get_kved_from_DB(kved_name)
             primary = activity.xpath('PRIMARY')[0].text == "так"
             self.all_fop_kveds.append({"hash_code": hash_code, "kved": kved, "primary": primary})
 

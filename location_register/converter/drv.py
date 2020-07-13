@@ -1,15 +1,13 @@
 # Drv means 'Державний реєстр виборців' - the source for the addresses data
-import re
 
 from zeep import Client, Settings
 from zeep.helpers import serialize_object
 
-from data_ocean.converter import Converter
 from business_register.converter.business_converter import BusinessConverter
+from data_ocean.utils import clean_name, change_to_full_name
 from location_register.models.drv_models import (DrvAto, DrvBuilding,
                                                  DrvCouncil, DrvDistrict,
                                                  DrvRegion, DrvStreet, ZipCode)
-from data_ocean.utils import clean_name, change_to_full_name
 
 
 class DrvConverter(BusinessConverter):

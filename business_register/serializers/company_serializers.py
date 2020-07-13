@@ -38,6 +38,7 @@ class ExchangeDataCompanySerializer(serializers.ModelSerializer):
 class FounderSerializer(serializers.ModelSerializer):
     # retreiving id only for founder that is company
     id_if_company = serializers.SerializerMethodField()
+
     class Meta:
         model = FounderFull
         fields = ('name', 'edrpou', 'equity', 'id_if_company')
@@ -47,6 +48,7 @@ class FounderSerializer(serializers.ModelSerializer):
             company = Company.objects.filter(edrpou=founderfull.edrpou).first()
             if company:
                 return company.id
+
 
 class TerminationStartedSerializer(serializers.ModelSerializer):
     class Meta:

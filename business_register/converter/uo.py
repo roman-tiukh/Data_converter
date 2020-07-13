@@ -1,12 +1,13 @@
 import re
 
+from django.conf import settings
+
 from business_register.converter.business_converter import BusinessConverter
 from business_register.models.company_models import (
     Assignee, BancruptcyReadjustment, Bylaw, Company, CompanyDetail, CompanyToKved,
     CompanyToPredecessor, CompanyType, ExchangeDataCompany, FounderFull, Predecessor,
     Signer, TerminationStarted
 )
-from django.conf import settings
 from data_ocean.converter import BulkCreateUpdateManager
 from data_ocean.utils import cut_first_word, format_date_to_yymmdd, get_first_word
 
@@ -156,15 +157,19 @@ class Parser(BusinessConverter):
             self.bulk_manager.add_create(bancruptcy_readjustment)
 
     def add_company_to_kved(self, activity_kinds, name, edrpou):
-        if len(activity_kinds) > 0:
-            for item in activity_kinds:
-                company_to_kved = CompanyToKved()
-                if item.xpath('CODE'):
-                    company_to_kved.kved = self.get_kved_from_DB(item.xpath('CODE')[0].text)
-                    company_to_kved.primary_kved = True if item.xpath(
-                        'PRIMARY')[0].text == "так" else False
-                    company_to_kved.hash_code = self.create_hash_code(name, edrpou)
-                    self.bulk_manager.add_create(company_to_kved)
+        if len(activity_kinds) <= 0:
+            return
+        for item in activity_kinds:
+            if not item.xpath('NAME'):
+                continue
+            kved_name = item.xpath('NAME')[0].text
+            if not kved_name:
+                continue
+            company_to_kved = CompanyToKved()
+            company_to_kved.kved = self.get_kved_from_DB(kved_name)
+            company_to_kved.primary_kved = item.xpath('PRIMARY')[0].text == "так"
+            company_to_kved.hash_code = self.create_hash_code(name, edrpou)
+            self.bulk_manager.add_create(company_to_kved)
 
     def add_company_to_kved_branch(self, activity_kinds, name, code):
         if len(activity_kinds) > 0:

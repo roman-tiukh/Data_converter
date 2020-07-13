@@ -1,4 +1,6 @@
-import re
+import logging
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 from django.apps import apps
 
@@ -17,7 +19,7 @@ class BusinessConverter(Converter):
         declaring as class fields for global access and initializing dictionaries with all kveds, /
         statuses, authorities and taxpayer_types from DB
         """
-        self.all_kveds_dict = self.put_all_objects_to_dict("code", "business_register", "Kved")
+        self.all_kveds_dict = self.put_all_objects_to_dict("name", "business_register", "Kved")
         self.all_statuses_dict = self.put_all_objects_to_dict("name", "data_ocean", "Status")
         self.all_authorities_dict = self.put_all_objects_to_dict("name", "data_ocean", "Authority")
         self.all_taxpayer_types_dict = self.put_all_objects_to_dict("name", "data_ocean", "TaxpayerType")
@@ -26,13 +28,15 @@ class BusinessConverter(Converter):
         return {getattr(obj, key_field): obj for obj in apps.get_model(app_name,
                                                                        model_name).objects.all()}
 
-    def get_kved_from_DB(self, kved_code_from_record):
+    def get_kved_from_DB(self, kved_name_from_record):
         """
         retreiving kved from DB
         """
-        if kved_code_from_record in self.all_kveds_dict:
-            return self.all_kveds_dict[kved_code_from_record]
-        return Kved.objects.get(code='EMP')
+        kved_name = kved_name_from_record.lower()
+        if kved_name in self.all_kveds_dict:
+            return self.all_kveds_dict[kved_name]
+        logger.info('Kved name is not valid: ' + kved_name_from_record)
+        return Kved.objects.get(name='not_valid')
 
     def save_or_get_status(self, status_from_record):
         """
@@ -44,7 +48,6 @@ class BusinessConverter(Converter):
             return new_status
         return self.all_statuses_dict[status_from_record]
 
-
     def save_or_get_authority(self, authority_from_record):
         """
         retreiving authority from DB or storing the new one
@@ -54,7 +57,6 @@ class BusinessConverter(Converter):
             self.all_authorities_dict[authority_from_record] = new_authority
             return new_authority
         return self.all_authorities_dict[authority_from_record]
-
 
     def save_or_get_taxpayer_type(self, taxpayer_type_from_record):
         """
