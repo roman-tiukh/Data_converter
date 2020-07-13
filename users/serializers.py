@@ -43,7 +43,7 @@ class CustomRegisterSerializer(RegisterSerializer):
 
         for (k, v) in cmp_attrs.items():
             if SequenceMatcher(a=data['password1'].lower(), b=data[k].lower()).quick_ratio() >= max_similarity:
-                err_msg = _('Your password can’t be too similar to your ')
+                err_msg = _('Your password can’t be too similar to')
                 err_msg_result = format_lazy('{err_msg} {v}.', err_msg=err_msg, v=v)
                 raise serializers.ValidationError(err_msg_result)
 

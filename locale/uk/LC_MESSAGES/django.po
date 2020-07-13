@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-07-09 21:11+0300\n"
+"POT-Creation-Date: 2020-07-13 18:28+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -20,6 +20,10 @@ msgstr ""
 "11 ? 0 : n % 1 == 0 && n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % "
 "100 > 14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || "
 "(n % 100 >=11 && n % 100 <=14 )) ? 2: 3);\n"
+
+#: data_converter/settings.py:114
+msgid "Ukrainian"
+msgstr "Українська"
 
 #: users/models.py:18
 msgid "The Email must be set"
@@ -53,17 +57,17 @@ msgstr "прізвище"
 msgid "expire at"
 msgstr "діє до"
 
-#: users/serializers.py:39
+#: users/serializers.py:40
 msgid "First Name"
 msgstr "Ім'я"
 
-#: users/serializers.py:40
+#: users/serializers.py:41
 msgid "Last Name"
 msgstr "Прізвище"
 
-#: users/serializers.py:45
-msgid "Your password can’t be too similar to your "
-msgstr "Ваш пароль не може бути надто схожим на ваш "
+#: users/serializers.py:46
+msgid "Your password can’t be too similar to"
+msgstr "Ваш пароль не може бути надто схожим на"
 
 #: users/views.py:65
 msgid "User with this email is already exists"
