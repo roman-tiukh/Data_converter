@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-07-13 18:58+0000\n"
+"POT-Creation-Date: 2020-07-13 22:43+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -27,87 +27,87 @@ msgstr "Українська"
 
 #: users/lc_messages/uk/rest_auth.py:5
 msgid "View is not defined, pass it as a context variable"
-msgstr ""
+msgstr "View не визначено, передайте його як змінну контексту"
 
 #: users/lc_messages/uk/rest_auth.py:9
 msgid "Define adapter_class in view"
-msgstr ""
+msgstr "Визначте adapter_class у view"
 
 #: users/lc_messages/uk/rest_auth.py:13
 msgid "Define callback_url in view"
-msgstr ""
+msgstr "Визначте callback_url у view"
 
 #: users/lc_messages/uk/rest_auth.py:17
 msgid "Define client_class in view"
-msgstr ""
+msgstr "Визначте client_class у view"
 
 #: users/lc_messages/uk/rest_auth.py:21
 msgid "Incorrect input. access_token or code is required."
-msgstr ""
+msgstr "Некоректне введення. Необхідний токен доступу або код."
 
 #: users/lc_messages/uk/rest_auth.py:25
 msgid "Incorrect value"
-msgstr ""
+msgstr "Некоректне значення"
 
 #: users/lc_messages/uk/rest_auth.py:29
 msgid "User is already registered with this e-mail address."
-msgstr ""
+msgstr "Користувач уже зареєстрований з цією електронною адресою."
 
 #: users/lc_messages/uk/rest_auth.py:33
 msgid "A user is already registered with this e-mail address."
-msgstr ""
+msgstr "Користувач уже зареєстрований з цією електронною адресою."
 
 #: users/lc_messages/uk/rest_auth.py:37
 msgid "The two password fields didn't match."
-msgstr ""
+msgstr "Два поля паролів не збіглись."
 
 #: users/lc_messages/uk/rest_auth.py:41
 msgid "Verification e-mail sent."
-msgstr ""
+msgstr "Електронна пошта для підтвердження надіслана."
 
 #: users/lc_messages/uk/rest_auth.py:45
 msgid "ok"
-msgstr ""
+msgstr "так"
 
 #: users/lc_messages/uk/rest_auth.py:49
 msgid "Must include \"email\" and \"password\"."
-msgstr ""
+msgstr "Потрібно включати \"email\" та \"password\"."
 
 #: users/lc_messages/uk/rest_auth.py:53
 msgid "Must include \"username\" and \"password\"."
-msgstr ""
+msgstr "Потрібно включати \"username\" та \"password\"."
 
 #: users/lc_messages/uk/rest_auth.py:57
 msgid "Must include either \"username\" or \"email\" and \"password\"."
-msgstr ""
+msgstr "Потрібно включати або \"username\" або \"email\" та \"password\"."
 
 #: users/lc_messages/uk/rest_auth.py:61
 msgid "User account is disabled."
-msgstr ""
+msgstr "Обліковий запис користувача відключено."
 
 #: users/lc_messages/uk/rest_auth.py:65
 msgid "Unable to log in with provided credentials."
-msgstr ""
+msgstr "Не вдається увійти за допомогою наданих облікових даних."
 
 #: users/lc_messages/uk/rest_auth.py:69
 msgid "E-mail is not verified."
-msgstr ""
+msgstr "Електронна пошта не перевірена."
 
 #: users/lc_messages/uk/rest_auth.py:73
 msgid "Successfully logged out."
-msgstr ""
+msgstr "Успішний вихід."
 
 #: users/lc_messages/uk/rest_auth.py:77
 msgid "Password reset e-mail has been sent."
-msgstr ""
+msgstr "Електронна пошта для відновлення пароля надіслана."
 
 #: users/lc_messages/uk/rest_auth.py:81
 msgid "Password has been reset with the new password."
-msgstr ""
+msgstr "Пароль було скинуто з новим паролем."
 
 #: users/lc_messages/uk/rest_auth.py:85
 msgid "New password has been saved."
-msgstr ""
+msgstr "Новий пароль збережено."
 
 #: users/models.py:18
 msgid "The Email must be set"
