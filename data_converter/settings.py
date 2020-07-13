@@ -122,7 +122,10 @@ USE_L10N = True
 
 USE_TZ = True
 
-LOCALE_PATHS = [os.path.join(BASE_DIR, "locale"), ]
+LOCALE_PATHS = [
+    os.path.join(BASE_DIR, "locale"),
+    os.path.join(BASE_DIR, "data_converter/tpl/rest_auth", "locale"),
+]
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.0/howto/static-files/

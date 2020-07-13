@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-07-08 20:53+0300\n"
+"POT-Creation-Date: 2020-07-13 19:35+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -20,86 +20,86 @@ msgstr ""
 "11 ? 0 : n % 1 == 0 && n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % "
 "100 > 14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || "
 "(n % 100 >=11 && n % 100 <=14 )) ? 2: 3);\n"
-#: rest_auth/registration/serializers.py:67
+#: data_converter/tpl/rest_auth/rest_auth_uk.py:5
 msgid "View is not defined, pass it as a context variable"
 msgstr "View не визначено, передайте його як змінну контексту"
 
-#: rest_auth/registration/serializers.py:72
+#: data_converter/tpl/rest_auth/rest_auth_uk.py:9
 msgid "Define adapter_class in view"
 msgstr "Визначте adapter_class у view"
 
-#: rest_auth/registration/serializers.py:91
+#: data_converter/tpl/rest_auth/rest_auth_uk.py:13
 msgid "Define callback_url in view"
 msgstr "Визначте callback_url у view"
 
-#: rest_auth/registration/serializers.py:95
+#: data_converter/tpl/rest_auth/rest_auth_uk.py:17
 msgid "Define client_class in view"
 msgstr "Визначте client_class у view"
 
-#: rest_auth/registration/serializers.py:116
+#: data_converter/tpl/rest_auth/rest_auth_uk.py:21
 msgid "Incorrect input. access_token or code is required."
 msgstr "Некоректне введення. Необхідний токен доступу або код."
 
-#: rest_auth/registration/serializers.py:125
+#: data_converter/tpl/rest_auth/rest_auth_uk.py:25
 msgid "Incorrect value"
 msgstr "Некоректне значення"
 
-#: rest_auth/registration/serializers.py:139
+#: data_converter/tpl/rest_auth/rest_auth_uk.py:29
 msgid "User is already registered with this e-mail address."
 msgstr "Користувач уже зареєстрований з цією електронною адресою."
 
-#: rest_auth/registration/serializers.py:185
+#: data_converter/tpl/rest_auth/rest_auth_uk.py:33
 msgid "A user is already registered with this e-mail address."
 msgstr "Користувач уже зареєстрований з цією електронною адресою."
 
-#: rest_auth/registration/serializers.py:193
+#: data_converter/tpl/rest_auth/rest_auth_uk.py:37
 msgid "The two password fields didn't match."
 msgstr "Два поля паролів не збіглись."
 
-#: rest_auth/registration/views.py:51
+#: data_converter/tpl/rest_auth/rest_auth_uk.py:41
 msgid "Verification e-mail sent."
 msgstr "Електронна пошта для підтвердження надіслана."
 
-#: rest_auth/registration/views.py:98
+#: data_converter/tpl/rest_auth/rest_auth_uk.py:45
 msgid "ok"
 msgstr "так"
 
-#: rest_auth/serializers.py:33
+#: data_converter/tpl/rest_auth/rest_auth_uk.py:49
 msgid "Must include \"email\" and \"password\"."
 msgstr "Потрібно включати \"email\" та \"password\"."
 
-#: rest_auth/serializers.py:44
+#: data_converter/tpl/rest_auth/rest_auth_uk.py:53
 msgid "Must include \"username\" and \"password\"."
 msgstr "Потрібно включати \"username\" та \"password\"."
 
-#: rest_auth/serializers.py:57
+#: data_converter/tpl/rest_auth/rest_auth_uk.py:57
 msgid "Must include either \"username\" or \"email\" and \"password\"."
 msgstr "Потрібно включати або \"username\" або \"email\" та \"password\"."
 
-#: rest_auth/serializers.py:98
+#: data_converter/tpl/rest_auth/rest_auth_uk.py:61
 msgid "User account is disabled."
 msgstr "Обліковий запис користувача відключено."
 
-#: rest_auth/serializers.py:101
+#: data_converter/tpl/rest_auth/rest_auth_uk.py:65
 msgid "Unable to log in with provided credentials."
 msgstr "Не вдається увійти за допомогою наданих облікових даних."
 
-#: rest_auth/serializers.py:110
+#: data_converter/tpl/rest_auth/rest_auth_uk.py:69
 msgid "E-mail is not verified."
 msgstr "Електронна пошта не перевірена."
 
-#: rest_auth/views.py:137
+#: data_converter/tpl/rest_auth/rest_auth_uk.py:73
 msgid "Successfully logged out."
 msgstr "Успішний вихід."
 
-#: rest_auth/views.py:190
+#: data_converter/tpl/rest_auth/rest_auth_uk.py:77
 msgid "Password reset e-mail has been sent."
 msgstr "Електронна пошта для відновлення пароля надіслана."
 
-#: rest_auth/views.py:216
+#: data_converter/tpl/rest_auth/rest_auth_uk.py:81
 msgid "Password has been reset with the new password."
 msgstr "Пароль було скинуто з новим паролем."
 
-#: rest_auth/views.py:238
+#: data_converter/tpl/rest_auth/rest_auth_uk.py:85
 msgid "New password has been saved."
 msgstr "Новий пароль збережено."
