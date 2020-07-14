@@ -58,25 +58,39 @@ class TerminationStartedSerializer(serializers.ModelSerializer):
 
 class CompanySerializer(serializers.ModelSerializer):
     name = serializers.CharField(max_length=500)
-    short_name = serializers.CharField(max_length=500)
+    edrpou = serializers.CharField(max_length=260)
+    founders = FounderSerializer(many=True)
+    founder_of = serializers.SerializerMethodField()
+    parent = serializers.StringRelatedField()
+    predecessors = serializers.StringRelatedField(many=True)
     company_type = serializers.StringRelatedField()
-    bylaw = serializers.StringRelatedField()
     status = serializers.StringRelatedField()
     authority = serializers.StringRelatedField()
-    parent = serializers.StringRelatedField()
     assignees = serializers.StringRelatedField(many=True)
+    signers = serializers.StringRelatedField(many=True)
+    kveds = serializers.StringRelatedField(many=True)
+    bylaw = serializers.StringRelatedField()
     bancruptcy_readjustment = BancruptcyReadjustmentSerializer(many=True)
     company_detail = CompanyDetailSerializer(many=True)
-    kveds = serializers.StringRelatedField(many=True)
     exchange_data = ExchangeDataCompanySerializer(many=True)
-    founders = FounderSerializer(many=True)
-    predecessors = serializers.StringRelatedField(many=True)
-    signers = serializers.StringRelatedField(many=True)
     termination_started = TerminationStartedSerializer(many=True)
 
     class Meta:
         model = Company
-        fields = '__all__'
+        fields = ('name', 'address', 'edrpou', 'founders', 'founder_of', 'parent', 'company_type',
+                  'status', 'predecessors', 'authority', 'signers', 'assignees',
+                  'bancruptcy_readjustment', 'termination_started', 'company_detail', 'kveds',
+                  'bylaw', 'exchange_data')
+
+    # getting a list of ids companies that are founded by this company
+    def get_founder_of(self, company):
+        founder_of = FounderFull.objects.filter(edrpou=company.edrpou)
+        if not founder_of:
+            return
+        founded_companies = []
+        for founder in founder_of:
+            founded_companies.append(founder.company.id)
+        return founded_companies
 
 
 class HistoricalCompanySerializer(serializers.ModelSerializer):

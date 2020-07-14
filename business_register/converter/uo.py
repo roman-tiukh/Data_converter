@@ -241,6 +241,8 @@ class Parser(BusinessConverter):
             address = address.replace(piece, '')
         if len(address) < 15:
             address = None
+        if len(address) > 200:
+            address = None
         return name, edrpou, address, equity
 
     def add_founders(self, record, edrpou):
