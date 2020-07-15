@@ -89,7 +89,12 @@ class CompanySerializer(serializers.ModelSerializer):
             return
         founded_companies = []
         for founder in founder_of:
-            founded_companies.append(founder.company.id)
+            founded_company_as_founder_of = self.get_founder_of(founder.company)
+            founded_companies.append({
+                'id': founder.company.id,
+                'name': founder.company.name,
+                'founder_of': founded_company_as_founder_of
+            })
         return founded_companies
 
 
