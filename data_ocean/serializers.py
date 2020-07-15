@@ -25,4 +25,14 @@ class TaxpayerTypeSerializer(serializers.ModelSerializer):
 class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = Register
-        fields = ['id', 'name', 'source_name', 'url_address', 'api_address', 'source_register_id', 'source_last_update']
+        fields = [
+            'id',
+            'name',
+            'source_name',
+            'url_address',
+            'api_address',
+            'source_register_id',
+            'source_last_update',
+            'data_ocean_list',
+            'data_ocean_retrieve',
+        ]
