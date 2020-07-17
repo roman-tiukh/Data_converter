@@ -92,7 +92,7 @@ class FounderFull(DataOceanModel):
     name = models.TextField(null=True)
     edrpou = models.CharField(max_length=9, null=True)
     equity = models.FloatField(null=True)
-    address = models.CharField(max_length=200, null=True)
+    address = models.CharField(max_length=505, null=True)
     hash_code = models.CharField(max_length=510)
     history = HistoricalRecords()
 
