@@ -118,7 +118,7 @@ class CompanyConverter(BusinessConverter):
             address = address.replace(element_with_equity, '')
         if len(address) < 15:
             address = None
-        if len(address) > 200:
+        if address is not None and len(address) > 200:
             logger.info(f'big address? {address}')
         return name, edrpou, address, equity
 
