@@ -16,7 +16,7 @@ class Company(DataOceanModel):  # constraint for not null in both name & short_n
     INVALID = 'invalid'  # constant for empty edrpou fild etc.
     name = models.CharField(max_length=500, null=True)
     short_name = models.CharField(max_length=500, null=True)
-    company_type = models.ForeignKey(CompanyType, on_delete=models.CASCADE)
+    company_type = models.ForeignKey(CompanyType, on_delete=models.CASCADE, null=True)
     edrpou = models.CharField(max_length=260, db_index=True)
     authorized_capital = models.FloatField(null=True)
     address = models.CharField(max_length=1000, null=True)
