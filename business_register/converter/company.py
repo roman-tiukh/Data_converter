@@ -89,6 +89,13 @@ class CompanyConverter(BusinessConverter):
 
     def extract_founder_data(self, founder_info):
         info_to_list = founder_info.split(', ')
+        if len(info_to_list) < 2:
+            logger.warning(f"Помилка при split(', ')? LENGTH={len(info_to_list)}")
+            logger.warning(f'БУЛО:')
+            logger.warning(f'founder_info : {founder_info}')
+            logger.warning(f'СТАЛО:')
+            logger.warning(f'info_to_list: {info_to_list}')
+            return info_to_list[0], None, None, None
         # getting first element that is a name
         name = info_to_list[0]
         # checking if second element is a EDRPOU code
@@ -124,7 +131,7 @@ class CompanyConverter(BusinessConverter):
             #     print(f'ADDRESS  : {address}')
             #     print(f'ADDR.FIX : {addr}')
             address = None
-        if address is not None and len(address) > 200:
+        if address is not None and len(address) > 500:
             logger.warning(f'Big address? LENGTH={len(address)}')
             logger.warning(f'EDRPOU : {edrpou}')
             logger.warning(f'ADDRESS: {address}')
