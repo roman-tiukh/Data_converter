@@ -337,7 +337,9 @@ class CompanyConverter(BusinessConverter):
             short_name = record.xpath('SHORT_NAME')[0].text
             if short_name:
                 short_name = short_name.lower()
-            company_type = self.save_or_get_company_type(record.xpath('OPF')[0].text)
+            company_type = record.xpath('OPF')[0].text
+            if company_type:
+                company_type = self.save_or_get_company_type(company_type)
             edrpou = record.xpath('EDRPOU')[0].text or Company.INVALID
             code = name + edrpou
             address = record.xpath('ADDRESS')[0].text
