@@ -77,10 +77,12 @@ class CompanySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Company
-        fields = ('name', 'address', 'edrpou', 'founders', 'founder_of', 'parent', 'company_type',
-                  'status', 'predecessors', 'authority', 'signers', 'assignees',
-                  'bancruptcy_readjustment', 'termination_started', 'company_detail', 'kveds',
-                  'bylaw', 'exchange_data')
+        fields = (
+            'id', 'name', 'address', 'edrpou', 'founders', 'founder_of', 'parent', 'company_type',
+            'status', 'predecessors', 'authority', 'signers', 'assignees',
+            'bancruptcy_readjustment', 'termination_started', 'company_detail', 'kveds',
+            'bylaw', 'exchange_data'
+        )
 
     # getting a list of ids companies that are founded by this company
     def get_founder_of(self, company):
