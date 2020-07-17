@@ -82,9 +82,6 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-
 LOCAL_FILE_NAME_KOATUU = ''
 LOCATION_KOATUU_LOCAL_FILE_NAME = ''
 LOCAL_FOLDER = ''
@@ -124,6 +121,7 @@ ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 
 # business_register/converter/company.py
 UO_CHUNK_SIZE = 100
+CHUNK_SIZE_UO = 100
 
 # celery settings
 CELERY_BROKER_URL = 'redis://localhost:6379/2' # redis://:password@hostname:port/db_number
@@ -190,7 +188,7 @@ LOGGING = {
             'formatter': 'verbose',
         },
         'production_logfile': {
-            'level': 'ERROR',
+            'level': 'WARNING',
             'filters': ['require_debug_false'],
             'class': 'logging.handlers.RotatingFileHandler',
             'filename': 'django_production.log',
@@ -199,14 +197,14 @@ LOGGING = {
             'formatter': 'verbose',
         },
         'sentry': {
-            'level': 'WARNING',
+            'level': 'ERROR',
             'class': 'raven.contrib.django.raven_compat.handlers.SentryHandler',
         }
     },
     'loggers': {
         'django.request': {
             'handlers': ['production_logfile'],
-            'level': 'ERROR',
+            'level': 'WARNING',
             'propagate': False,
         },
         'location_register': {

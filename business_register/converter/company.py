@@ -101,7 +101,7 @@ class CompanyConverter(BusinessConverter):
                     # getting the name with commas inside
                     info_to_new_list = founder_info.split(string)
                     name = info_to_new_list[0]
-                    logger.info(f'name with a comma inside? See a founder with edrpou {edrpou}')
+                    logger.warning(f'name with a comma inside? See a founder with edrpou {edrpou}')
                     break
         equity = None
         element_with_equity = None
@@ -116,10 +116,18 @@ class CompanyConverter(BusinessConverter):
             address = address.replace(edrpou, '')
         if element_with_equity:
             address = address.replace(element_with_equity, '')
-        if len(address) < 15:
+        if address is not None and len(address) < 15:
+            # addr = address.strip(" ,")
+            # if addr:
+            #     print(f'Small address? LENGTH={len(address)}')
+            #     print(f'EDRPOU   : {edrpou}')
+            #     print(f'ADDRESS  : {address}')
+            #     print(f'ADDR.FIX : {addr}')
             address = None
-        if len(address) > 200:
-            logger.info(f'big address? {address}')
+        if address is not None and len(address) > 200:
+            logger.warning(f'Big address? LENGTH={len(address)}')
+            logger.warning(f'EDRPOU : {edrpou}')
+            logger.warning(f'ADDRESS: {address}')
         return name, edrpou, address, equity
 
     def add_founders(self, founders_from_record, code):
