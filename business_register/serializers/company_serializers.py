@@ -65,7 +65,8 @@ class CompanyShortSerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
         fields = (
-            'id', 'name', 'short_name', 'company_type', 'edrpou', 'status',
+            'id', 'name', 'short_name', 'company_type',
+            'edrpou', 'status', 'founder_of_count',
         )
 
 
