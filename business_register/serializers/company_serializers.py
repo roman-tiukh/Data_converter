@@ -17,10 +17,8 @@ class CompanyDetailSerializer(serializers.ModelSerializer):
         model = CompanyDetail
         fields = (
             'founding_document_number',
-            'executive_power', 'superior_management', 'authorized_capital',
-            'managing_paper', 'terminated_info', 'termination_cancel_info',
-            'vp_dates'
-        )
+            'executive_power', 'superior_management', 'managing_paper', 'terminated_info',
+            'termination_cancel_info', 'vp_dates')
 
 
 class ExchangeDataCompanySerializer(serializers.ModelSerializer):
@@ -61,6 +59,7 @@ class CompanySerializer(serializers.ModelSerializer):
     edrpou = serializers.CharField(max_length=260)
     founders = FounderSerializer(many=True)
     founder_of = serializers.SerializerMethodField()
+    authorized_capital = serializers.FloatField()
     parent = serializers.StringRelatedField()
     predecessors = serializers.StringRelatedField(many=True)
     company_type = serializers.StringRelatedField()
@@ -78,10 +77,10 @@ class CompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
         fields = (
-            'id', 'name', 'address', 'edrpou', 'founders', 'founder_of', 'parent', 'company_type',
-            'status', 'predecessors', 'authority', 'signers', 'assignees',
-            'bancruptcy_readjustment', 'termination_started', 'company_detail', 'kveds',
-            'bylaw', 'exchange_data'
+            'id', 'name', 'address', 'edrpou', 'founders', 'founder_of', 'authorized_capital',
+            'parent', 'company_type', 'status', 'predecessors', 'authority', 'signers',
+            'assignees', 'bancruptcy_readjustment', 'termination_started', 'company_detail',
+            'kveds', 'bylaw', 'exchange_data'
         )
 
     # getting a list of ids companies that are founded by this company
