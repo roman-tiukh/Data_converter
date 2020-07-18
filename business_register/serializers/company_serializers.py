@@ -54,6 +54,21 @@ class TerminationStartedSerializer(serializers.ModelSerializer):
         fields = ('op_date', 'reason', 'sbj_state', 'signer_name', 'creditor_reg_end_date')
 
 
+class CompanyShortSerializer(serializers.ModelSerializer):
+    company_type = serializers.StringRelatedField()
+    status = serializers.StringRelatedField()
+    founder_of_count = serializers.SerializerMethodField()
+
+    def get_founder_of_count(self, company):
+        return FounderFull.objects.filter(edrpou=company.edrpou).count()
+
+    class Meta:
+        model = Company
+        fields = (
+            'id', 'name', 'short_name', 'company_type', 'edrpou', 'status',
+        )
+
+
 class CompanySerializer(serializers.ModelSerializer):
     name = serializers.CharField(max_length=500)
     edrpou = serializers.CharField(max_length=260)
@@ -86,16 +101,11 @@ class CompanySerializer(serializers.ModelSerializer):
     # getting a list of ids companies that are founded by this company
     def get_founder_of(self, company):
         founder_of = FounderFull.objects.filter(edrpou=company.edrpou)
-        if not founder_of:
-            return
         founded_companies = []
         for founder in founder_of:
-            founded_company_as_founder_of = self.get_founder_of(founder.company)
-            founded_companies.append({
-                'id': founder.company.id,
-                'name': founder.company.name,
-                'founder_of': founded_company_as_founder_of
-            })
+            founded_companies.append(
+                CompanyShortSerializer(founder.company).data
+            )
         return founded_companies
 
 
