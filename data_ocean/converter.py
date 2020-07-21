@@ -19,7 +19,7 @@ class Converter:
     DOWNLOAD_FOLDER = "download/"  # folder to downloaded files
     URLS_DICT = {}  # control remote dataset files update
 
-    #lets have all supporting functions at the beginning
+    # lets have all supporting functions at the beginning
     def get_urls(self):
         # returns actual dataset urls
         response = requests.get(self.API_ADDRESS_FOR_DATASET)
@@ -200,10 +200,10 @@ class Converter:
             None
         print('All the records have been rewritten.')
 
-    def process_full(self): # It's temporary method name, in the future this 'process' will be one
+    def process_full(self):  # It's temporary method name, in the future this 'process' will be one
         i = 0
         records = etree.Element('RECORDS')
-        for _, elem in etree.iterparse(self.LOCAL_FOLDER + self.LOCAL_FILE_NAME, tag = self.RECORD_TAG):
+        for _, elem in etree.iterparse(self.LOCAL_FOLDER + self.LOCAL_FILE_NAME, tag=self.RECORD_TAG):
             if len(records) < self.CHUNK_SIZE:
                 # for text in elem.iter():
                 #     print('\t%28s\t%s' % (text.tag, text.text))
@@ -215,7 +215,9 @@ class Converter:
                 self.save_to_db(records)
                 records.clear()
         print('All the records have been rewritten.')
+
     print('Converter has imported.')
+
 
 class BulkCreateUpdateManager(object):  # https://www.caktusgroup.com/blog/2019/01/09/django-bulk-inserts/
     """
@@ -228,20 +230,20 @@ class BulkCreateUpdateManager(object):  # https://www.caktusgroup.com/blog/2019/
     """
 
     def __init__(self, chunk_size=200):
-        self._create_queues = defaultdict(list)
-        self._update_queues = defaultdict(list)
+        self.create_queues = defaultdict(list)
+        self.update_queues = defaultdict(list)
         self.chunk_size = chunk_size
         self.create_first = False
         self.update_first = False
 
-    def _commit_create(self, model_class):
+    def commit_create(self, model_class):
         model_key = model_class._meta.label
-        model_class.objects.bulk_create(self._create_queues[model_key])
+        model_class.objects.bulk_create(self.create_queues[model_key])
         self.create_first = True
 
-    def _commit_update(self, model_class, fields):
+    def commit_update(self, model_class, fields):
         model_key = model_class._meta.label
-        model_class.objects.bulk_update(self._update_queues[model_key], fields)
+        model_class.objects.bulk_update(self.update_queues[model_key], fields)
         self.update_first = True
 
     def add_create(self, obj):
@@ -251,13 +253,12 @@ class BulkCreateUpdateManager(object):  # https://www.caktusgroup.com/blog/2019/
         """
         model_class = type(obj)
         model_key = model_class._meta.label
-
         if self.create_first:
-            self._create_queues[model_key] = []
+            self.create_queues[model_key] = []
             self.create_first = False
-        self._create_queues[model_key].append(obj)
-        if len(self._create_queues[model_key]) >= self.chunk_size:
-            self._commit_create(model_class)
+        self.create_queues[model_key].append(obj)
+        if len(self.create_queues[model_key]) >= self.chunk_size:
+            self.commit_create(model_class)
 
     def add_update(self, obj):
         """
@@ -266,19 +267,18 @@ class BulkCreateUpdateManager(object):  # https://www.caktusgroup.com/blog/2019/
         """
         model_class = type(obj)
         model_key = model_class._meta.label
-
         if self.update_first:
-            self._update_queues[model_key] = []
+            self.update_queues[model_key] = []
             self.update_first = False
-        self._update_queues[model_key].append(obj)
-        if len(self._update_queues[model_key]) >= self.chunk_size:
-            self._commit_update(model_class)
+        self.update_queues[model_key].append(obj)
+        if len(self.update_queues[model_key]) >= self.chunk_size:
+            self.commit_update(model_class)
 
     def done(self):
         """
         Always call this upon completion to make sure the final partial chunk
         is saved.
         """
-        for model_name, objs in self._create_queues.items():
+        for model_name, objs in self.create_queues.items():
             if len(objs) > 0:
                 self._commit(apps.get_model(model_name))

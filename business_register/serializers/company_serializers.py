@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from business_register.models.company_models import (
     BancruptcyReadjustment, CompanyDetail,
-    ExchangeDataCompany, TerminationStarted, Company, FounderFull, HistoricalCompany
+    ExchangeDataCompany, TerminationStarted, Company, Founder, HistoricalCompany
 )
 
 
@@ -38,7 +38,7 @@ class FounderSerializer(serializers.ModelSerializer):
     id_if_company = serializers.SerializerMethodField()
 
     class Meta:
-        model = FounderFull
+        model = Founder
         fields = ('name', 'edrpou', 'equity', 'id_if_company')
 
     def get_id_if_company(self, founderfull):
@@ -60,7 +60,7 @@ class CompanyShortSerializer(serializers.ModelSerializer):
     founder_of_count = serializers.SerializerMethodField()
 
     def get_founder_of_count(self, company):
-        return FounderFull.objects.filter(edrpou=company.edrpou).count()
+        return Founder.objects.filter(edrpou=company.edrpou).count()
 
     class Meta:
         model = Company
@@ -101,7 +101,7 @@ class CompanySerializer(serializers.ModelSerializer):
 
     # getting a list of ids companies that are founded by this company
     def get_founder_of(self, company):
-        founder_of = FounderFull.objects.filter(edrpou=company.edrpou)
+        founder_of = Founder.objects.filter(edrpou=company.edrpou)
         founded_companies = []
         for founder in founder_of:
             founded_companies.append(

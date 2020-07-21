@@ -1,7 +1,7 @@
 from lxml import etree
 
 from business_register.converter.business_converter import BusinessConverter
-from business_register.models.company_models import Company, FounderNew, FounderFull
+from business_register.models.company_models import Company, FounderNew, Founder
 
 def add_founders_info(records):
     for record in records:
