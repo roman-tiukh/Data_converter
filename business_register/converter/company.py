@@ -10,7 +10,7 @@ from django.conf import settings
 from business_register.converter.business_converter import BusinessConverter
 from business_register.models.company_models import (
     Assignee, BancruptcyReadjustment, Bylaw, Company, CompanyDetail, CompanyToKved,
-    CompanyToPredecessor, CompanyType, ExchangeDataCompany, FounderFull, Predecessor,
+    CompanyToPredecessor, CompanyType, ExchangeDataCompany, Founder, Predecessor,
     Signer, TerminationStarted
 )
 from data_ocean.converter import BulkCreateUpdateManager
@@ -26,16 +26,15 @@ class CompanyConverter(BusinessConverter):
         self.RECORD_TAG = 'SUBJECT'
         self.bulk_manager = BulkCreateUpdateManager(100000)
         self.branch_bulk_manager = BulkCreateUpdateManager(100000)
-        self.all_companies_dict = self.put_all_objects_to_dict('hash_code', 'business_register',
-                                                               'Company')
         self.all_bylaw_dict = self.put_all_objects_to_dict("name", "business_register", "Bylaw")
         self.all_company_type_dict = self.put_all_objects_to_dict('name', "business_register",
                                                                   "CompanyType")
         self.all_predecessors_dict = self.put_all_objects_to_dict("name", "business_register",
                                                                   "Predecessor")
-        self.company_update_dict = {}
-        self.company_create_dict = {}
+        self.all_companies_dict = {}
         self.branch_to_parent = {}
+        self.all_company_founders = []
+
         super().__init__()
 
     def save_or_get_company_type(self, type_from_record):
@@ -71,31 +70,25 @@ class CompanyConverter(BusinessConverter):
     def initialize_company(self, name, short_name, company_type, edrpou, authorized_capital,
                            address, status, bylaw, registration_date, registration_info,
                            contact_info, authority, code):
-        company = Company()
-        company.name = name
-        company.short_name = short_name
-        company.company_type = company_type
-        company.edrpou = edrpou
-        company.authorized_capital = authorized_capital
-        company.address = address
-        company.status = status
-        company.bylaw = bylaw
-        company.registration_date = registration_date
-        company.registration_info = registration_info
-        company.contact_info = contact_info
-        company.authority = authority
-        company.hash_code = code
+        company = Company(name=name,
+                          short_name=short_name,
+                          company_type=company_type,
+                          edrpou=edrpou,
+                          authorized_capital=authorized_capital,
+                          address=address,
+                          status=status,
+                          bylaw=bylaw,
+                          registration_date=registration_date,
+                          registration_info=registration_info,
+                          contact_info=contact_info,
+                          authority=authority,
+                          code=code)
         return company
 
     def extract_founder_data(self, founder_info):
-        info_to_list = founder_info.split(', ')
-        if len(info_to_list) < 2:
-            logger.warning(f"Помилка при split(', ')? LENGTH={len(info_to_list)}")
-            logger.warning(f'БУЛО:')
-            logger.warning(f'founder_info : {founder_info}')
-            logger.warning(f'СТАЛО:')
-            logger.warning(f'info_to_list: {info_to_list}')
-            return info_to_list[0], None, None, None
+        info_to_list = founder_info.split(',')
+        # deleting spaces between strings if exist
+        info_to_list = [string.strip() for string in info_to_list]
         # getting first element that is a name
         name = info_to_list[0]
         # checking if second element is a EDRPOU code
@@ -108,14 +101,15 @@ class CompanyConverter(BusinessConverter):
                     # getting the name with commas inside
                     info_to_new_list = founder_info.split(string)
                     name = info_to_new_list[0]
-                    logger.warning(f'name with a comma inside? See a founder with edrpou {edrpou}')
+                    logger.warning(f'See the founder with info: {founder_info}')
                     break
         equity = None
         element_with_equity = None
+        # usually equity is at the end of the record
         for string in info_to_list:
             if string.startswith('розмір внеску до статутного фонду') and string.endswith('грн.'):
                 element_with_equity = string
-                equity = float(re.findall("\d+\.\d+", string)[0])
+                equity = float(re.findall('\d+\.\d+', string)[0])
                 break
         # deleting all info except the address
         address = founder_info.replace(name, '')
@@ -123,49 +117,67 @@ class CompanyConverter(BusinessConverter):
             address = address.replace(edrpou, '')
         if element_with_equity:
             address = address.replace(element_with_equity, '')
-        if address is not None and len(address) < 15:
-            # addr = address.strip(" ,")
-            # if addr:
-            #     print(f'Small address? LENGTH={len(address)}')
-            #     print(f'EDRPOU   : {edrpou}')
-            #     print(f'ADDRESS  : {address}')
-            #     print(f'ADDR.FIX : {addr}')
+        if address and len(address) < 15:
             address = None
-        if address is not None and len(address) > 500:
-            logger.warning(f'Big address? LENGTH={len(address)}')
-            logger.warning(f'EDRPOU : {edrpou}')
-            logger.warning(f'ADDRESS: {address}')
+        if address and len(address) > 100:
+            logger.warning(f'See the founder with info: {founder_info}')
         return name, edrpou, address, equity
 
-    def add_founders(self, founders_from_record, code):
+    def save_or_update_founders(self, founders_from_record, company):
+        already_stored_founders = list(Founder.objects.filter(company=company))
         for item in founders_from_record:
-            founder = FounderFull()
+            founder = Founder()
             # checking if there is additional data except name
+            founder.info = item.text
             if ',' in item.text:
-                name, founder.edrpou, founder.address, founder.equity = \
-                    self.extract_founder_data(item.text)
-                founder.name = name.lower()
+                name, edrpou, address, equity = self.extract_founder_data(item.text)
+                name = name.lower()
             else:
-                founder.name = item.text.lower()
-            founder.hash_code = code
-            self.bulk_manager.add_create(founder)
+                name = item.text.lower()
+                edrpou, equity, address = None, None, None
+            already_stored = False
+            for stored_founder in already_stored_founders:
+                if stored_founder.name == name:
+                    already_stored = True
+                    update_fields = []
+                    if stored_founder.edrpou != edrpou:
+                        update_fields.append('edrpou')
+                        already_stored.edrpou = edrpou
+                    if stored_founder.equity != equity:
+                        update_fields.append('equity')
+                        already_stored.equity = equity
+                    if stored_founder.address != address:
+                        update_fields.append('address')
+                        already_stored.address = founder.address
+                    if update_fields:
+                        stored_founder.save(update_fields=update_fields)
+                    already_stored_founders.remove(stored_founder)
+                    break
+            if not already_stored:
+                Founder.objects.create(company=company, name=name, edrpou=edrpou, equity=equity,
+                                       address=address)
+            # self.bulk_manager.add_create(founder)
+        if len(already_stored_founders):
+            for outdated_founder in already_stored_founders:
+                # or we should set deleted_at field?
+                outdated_founder.delete()
 
-    # def branch_create(self, item, code):
-    #     branch = Company()
-    #     branch.name = item.xpath('NAME')[0].text
-    #     branch.short_name = code
-    #     branch.address = item.xpath('ADDRESS')[0].text
-    #     if item.xpath('CREATE_DATE')[0].text:
-    #         branch.registration_date = format_date_to_yymmdd(
-    #             item.xpath('CREATE_DATE')[0].text
-    #         ) or None
-    #     branch.contact_info = item.xpath('CONTACTS')[0].text
-    #     branch.authority = self.authority
-    #     branch.bylaw = self.bylaw
-    #     branch.company_type = self.company_type
-    #     branch.status = self.status
-    #     branch.hash_code = self.create_hash_code(branch.name, code)
-    #     return branch
+    def branch_create(self, item, code):
+        branch = Company()
+        branch.name = item.xpath('NAME')[0].text
+        branch.short_name = code
+        branch.address = item.xpath('ADDRESS')[0].text
+        if item.xpath('CREATE_DATE')[0].text:
+            branch.registration_date = format_date_to_yymmdd(
+                item.xpath('CREATE_DATE')[0].text
+            ) or None
+        branch.contact_info = item.xpath('CONTACTS')[0].text
+        branch.authority = self.authority
+        branch.bylaw = self.bylaw
+        branch.company_type = self.company_type
+        branch.status = self.status
+        branch.hash_code = self.create_hash_code(branch.name, code)
+        return branch
 
     def add_company_detail(self, founding_document_number, executive_power, superior_management,
                            managing_paper, terminated_info, termination_cancel_info, vp_dates,
@@ -305,13 +317,14 @@ class CompanyConverter(BusinessConverter):
             termination_started.hash_code = code
             self.bulk_manager.add_create(termination_started)
 
-    # def add_branches(self, record, edrpou):
-    #     for item in record.xpath('BRANCHES')[0]:
-    #         code = item.xpath('CODE')[0].text or Company.INVALID
-    #         self.save_or_get_authority('EMP')
-    #         self.save_or_get_bylaw('EMP')
-    #         self.save_or_get_company_type('EMP')
-    #         self.save_or_get_status('EMP')
+    def add_branches(self, record, edrpou):
+        for item in record.xpath('BRANCHES')[0]:
+            code = item.xpath('CODE')[0].text or Company.INVALID
+            self.save_or_get_authority('EMP')
+            self.save_or_get_bylaw('EMP')
+            self.save_or_get_company_type('EMP')
+            self.save_or_get_status('EMP')
+
     # try:
     #     branch = Company.objects.filter(
     #         hash_code=self.create_hash_code(item.xpath('NAME')[0].text, code)).first()
@@ -365,15 +378,13 @@ class CompanyConverter(BusinessConverter):
             executive_power = record.xpath('EXECUTIVE_POWER')[0].text
             if executive_power:
                 executive_power = executive_power.lower()
-            if len(record.xpath('FOUNDERS')[0]):
-                self.add_founders(record.xpath('FOUNDERS')[0], code)
-            if len(record.xpath('ACTIVITY_KINDS')[0]):
-                self.add_company_to_kved(record.xpath('ACTIVITY_KINDS')[0], code)
+            # if len(record.xpath('ACTIVITY_KINDS')[0]):
+            #     self.add_company_to_kved(record.xpath('ACTIVITY_KINDS')[0], code)
             superior_management = record.xpath('SUPERIOR_MANAGEMENT')[0].text
             if superior_management:
                 superior_management = superior_management.lower()
-            if len(record.xpath('SIGNERS')[0]):
-                self.add_signers(record.xpath('SIGNERS')[0], code)
+            # if len(record.xpath('SIGNERS')[0]):
+            #     self.add_signers(record.xpath('SIGNERS')[0], code)
             authorized_capital = record.xpath('AUTHORIZED_CAPITAL')[0].text
             if authorized_capital:
                 authorized_capital = authorized_capital.replace(',', '.')
@@ -391,14 +402,14 @@ class CompanyConverter(BusinessConverter):
             # TODO: refactor branches storing
             # if len(record.xpath('BRANCHES')[0]):
             #     self.add_branches(record.xpath('BRANCHES')[0], code)
-            if record.xpath('TERMINATION_STARTED_INFO/OP_DATE'):
-                self.add_termination_started(record, code)
-            if record.xpath('BANKRUPTCY_READJUSTMENT_INFO/OP_DATE'):
-                self.add_bancruptcy_readjustment(record, code)
-            if len(record.xpath('PREDECESSORS')[0]):
-                self.add_company_to_predecessors(record.xpath('PREDECESSORS')[0], code)
-            if len(record.xpath('ASSIGNEES')[0]):
-                self.add_assignees(record.xpath('ASSIGNEES')[0], code)
+            # if record.xpath('TERMINATION_STARTED_INFO/OP_DATE'):
+            #     self.add_termination_started(record, code)
+            # if record.xpath('BANKRUPTCY_READJUSTMENT_INFO/OP_DATE'):
+            #     self.add_bancruptcy_readjustment(record, code)
+            # if len(record.xpath('PREDECESSORS')[0]):
+            #     self.add_company_to_predecessors(record.xpath('PREDECESSORS')[0], code)
+            # if len(record.xpath('ASSIGNEES')[0]):
+            #     self.add_assignees(record.xpath('ASSIGNEES')[0], code)
             terminated_info = record.xpath('TERMINATED_INFO')[0].text
             if terminated_info:
                 terminated_info = terminated_info.lower()
@@ -406,30 +417,62 @@ class CompanyConverter(BusinessConverter):
             if termination_cancel_info:
                 termination_cancel_info = termination_cancel_info.lower()
             contact_info = record.xpath('CONTACTS')[0].text
-            if record.xpath('EXCHANGE_DATA')[0]:
-                self.add_exchange_data(record.xpath('EXCHANGE_DATA')[0], code)
+            # if record.xpath('EXCHANGE_DATA')[0]:
+            #     self.add_exchange_data(record.xpath('EXCHANGE_DATA')[0], code)
             vp_dates = record.xpath('VP_DATES')[0].text
             authority = self.save_or_get_authority(record.xpath('CURRENT_AUTHORITY')[0].text)
-            company = self.initialize_company(name, short_name, company_type, edrpou,
-                                              authorized_capital, address, status, bylaw,
-                                              registration_date, registration_info, contact_info,
-                                              authority, code)
-            self.add_company_detail(founding_document_number, executive_power, superior_management, managing_paper,
-                                    terminated_info, termination_cancel_info, vp_dates, code)
-            self.bulk_manager.add_create(company)
-        # if len(self.bulk_manager._update_queues['business_register.Company']):
-        #     self.bulk_manager._commit_update(Company, ['name', 'short_name', 'company_type', 'edrpou'])
-        self.bulk_manager._commit_create(Company)
-        company_update_dict = {}
-        company_create_dict = {}
-
-        for company in self.bulk_manager._update_queues['business_register.Company']:
-            company_update_dict[company.hash_code] = company
-        for company in self.bulk_manager._create_queues['business_register.Company']:
-            company_create_dict[company.hash_code] = company
-
-        self.bulk_manager._update_queues['business_register.Company'] = []
-        self.bulk_manager._create_queues['business_register.Company'] = []
+            # self.add_company_detail(founding_document_number, executive_power, superior_management, managing_paper,
+            #                         terminated_info, termination_cancel_info, vp_dates, code)
+            company = Company.objects.filter(code=code).first()
+            if not company:
+                company = self.initialize_company(name, short_name, company_type, edrpou,
+                                                  authorized_capital, address, status, bylaw,
+                                                  registration_date, registration_info, contact_info,
+                                                  authority, code)
+                company.save()
+                # self.bulk_manager.add_create(company)
+            else:
+                update_fields = []
+                if company.name != name:
+                    update_fields.append('name')
+                if company.short_name != short_name:
+                    update_fields.append('short_name')
+                if company.company_type != company_type:
+                    update_fields.append('company_type')
+                if company.authorized_capital != authorized_capital:
+                    update_fields.append('authorized_capital')
+                if company.address != address:
+                    update_fields.append('address')
+                if company.status != status:
+                    update_fields.append('status')
+                if company.bylaw != bylaw:
+                    update_fields.append('bylaw')
+                if company.registration_date and \
+                        str(company.registration_date) != registration_date:
+                    update_fields.append('registration_date')
+                if company.registration_info != registration_info:
+                    update_fields.append('registration_info')
+                if company.contact_info != contact_info:
+                    update_fields.append('contact_info')
+                if company.authority != authority:
+                    update_fields.append('authority')
+                if len(update_fields):
+                    company.save(update_fields=update_fields)
+                #             self.bulk_manager.add_update(already_stored_company)
+        # if len(self.bulk_manager.update_queues['business_register.Company']):
+        #     self.bulk_manager.commit_update(Company, ['name', 'short_name', 'company_type',
+        #                                               'authorized_capital', 'address', 'status',
+        #                                               'bylaw', 'registration_date',
+        #                                               'registration_info', 'contact_info',
+        #                                               'authority'])
+        # if len(self.bulk_manager.create_queues['business_register.Company']):
+        #     self.bulk_manager.commit_create(Company)
+        if len(record.xpath('FOUNDERS')[0]):
+            self.save_or_update_founders(record.xpath('FOUNDERS')[0], company)
+        # for company in self.bulk_manager.create_queues['business_register.Company']:
+        #     self.all_companies_dict[company.company_code] = company
+        # self.bulk_manager.update_queues['business_register.Company'] = []
+        # self.bulk_manager.create_queues['business_register.Company'] = []
 
         # for branch in self.branch_bulk_manager._create_queues['business_register.Company']:
         #     if self.branch_to_parent[branch.hash_code] in company_update_dict:
@@ -445,114 +488,93 @@ class CompanyConverter(BusinessConverter):
         #
         # branch_to_parent = {}
 
-        for assignee in self.bulk_manager._create_queues['business_register.Assignee']:
-            if assignee.hash_code in company_update_dict:
-                assignee.company = company_update_dict[assignee.hash_code]
-            else:
-                assignee.company = company_create_dict[assignee.hash_code]
+        # for assignee in self.bulk_manager.create_queues['business_register.Assignee']:
+        #     assignee.company = self.all_companies_dict[assignee.company_code]
+        #
+        # for company_to_kved in self.bulk_manager.create_queues['business_register.CompanyToKved']:
+        #     company_to_kved.company = self.all_companies_dict[company_to_kved.company_code]
+        #
+        # for exchange_data in \
+        #         self.bulk_manager.create_queues['business_register.ExchangeDataCompany']:
+        #     exchange_data.company = self.all_companies_dict[exchange_data.company_code]
+        #
+        # for founder in self.bulk_manager.create_queues['business_register.FounderFull']:
+        #     founder.company = self.all_companies_dict[founder.company_code]
+        #
+        # for bancruptcy_readjustment in \
+        #         self.bulk_manager.create_queues['business_register.BancruptcyReadjustment']:
+        #     bancruptcy_readjustment.company = \
+        #         self.all_companies_dict[bancruptcy_readjustment.company_code]
+        #
+        # for company_detail in self.bulk_manager.create_queues['business_register.CompanyDetail']:
+        #     company_detail.company = self.all_companies_dict[company_detail.company_code]
+        #
+        # for company_to_predecessor in \
+        #         self.bulk_manager.create_queues['business_register.CompanyToPredecessor']:
+        #     company_to_predecessor.company = \
+        #         self.all_companies_dict[company_to_predecessor.company_code]
+        #
+        # for signer in self.bulk_manager.create_queues['business_register.Signer']:
+        #     signer.company = self.all_companies_dict[signer.company_code]
+        #
+        # for termination_started in \
+        #         self.bulk_manager.create_queues['business_register.TerminationStarted']:
+        #     termination_started.company = self.all_companies_dict[termination_started.company_code]
+        #
+        # self.bulk_manager.commit_create(Assignee)
+        # self.bulk_manager.commit_create(Founder)
+        # self.bulk_manager.commit_create(BancruptcyReadjustment)
+        # self.bulk_manager.commit_create(CompanyDetail)
+        # self.bulk_manager.commit_create(CompanyToKved)
+        # self.bulk_manager.commit_create(ExchangeDataCompany)
+        # self.bulk_manager.commit_create(CompanyToPredecessor)
+        # self.bulk_manager.commit_create(Signer)
+        # self.bulk_manager.commit_create(TerminationStarted)
+        # if len(self.branch_bulk_manager.update_queues['business_register.Company']) > 0:
+        #     self.branch_bulk_manager.commit_update(Company, ['name', 'short_name'])
+        # self.branch_bulk_manager.commit_create(Company)
 
-        for company_to_kved in self.bulk_manager._create_queues['business_register.CompanyToKved']:
-            if company_to_kved.hash_code in company_update_dict:
-                company_to_kved.company = company_update_dict[company_to_kved.hash_code]
-            else:
-                company_to_kved.company = company_create_dict[company_to_kved.hash_code]
+        # company_update_dict = {}
+        # company_create_dict = {}
 
-        for exchange_data in self.bulk_manager._create_queues['business_register.ExchangeDataCompany']:
-            if exchange_data.hash_code in company_update_dict:
-                exchange_data.company = company_update_dict[exchange_data.hash_code]
-            else:
-                exchange_data.company = company_create_dict[exchange_data.hash_code]
-
-        for founder in self.bulk_manager._create_queues['business_register.FounderFull']:
-            if founder.hash_code in company_update_dict:
-                founder.company = company_update_dict[founder.hash_code]
-            else:
-                founder.company = company_create_dict[founder.hash_code]
-
-        for bancruptcy_readjustment in self.bulk_manager._create_queues['business_register.BancruptcyReadjustment']:
-            if bancruptcy_readjustment.hash_code in company_update_dict:
-                bancruptcy_readjustment.company = company_update_dict[bancruptcy_readjustment.hash_code]
-            else:
-                bancruptcy_readjustment.company = company_create_dict[bancruptcy_readjustment.hash_code]
-
-        for company_detail in self.bulk_manager._create_queues['business_register.CompanyDetail']:
-            if company_detail.hash_code in company_update_dict:
-                company_detail.company = company_update_dict[company_detail.hash_code]
-            else:
-                company_detail.company = company_create_dict[company_detail.hash_code]
-
-        for company_to_predecessor in self.bulk_manager._create_queues['business_register.CompanyToPredecessor']:
-            if company_to_predecessor.hash_code in company_update_dict:
-                company_to_predecessor.company = company_update_dict[company_to_predecessor.hash_code]
-            else:
-                company_to_predecessor.company = company_create_dict[company_to_predecessor.hash_code]
-
-        for signer in self.bulk_manager._create_queues['business_register.Signer']:
-            if signer.hash_code in company_update_dict:
-                signer.company = company_update_dict[signer.hash_code]
-            else:
-                signer.company = company_create_dict[signer.hash_code]
-
-        for termination_started in self.bulk_manager._create_queues['business_register.TerminationStarted']:
-            if termination_started.hash_code in company_update_dict:
-                termination_started.company = company_update_dict[termination_started.hash_code]
-            else:
-                termination_started.company = company_create_dict[termination_started.hash_code]
-
-        self.bulk_manager._commit_create(Assignee)
-        self.bulk_manager._commit_create(FounderFull)
-        self.bulk_manager._commit_create(BancruptcyReadjustment)
-        self.bulk_manager._commit_create(CompanyDetail)
-        self.bulk_manager._commit_create(CompanyToKved)
-        self.bulk_manager._commit_create(ExchangeDataCompany)
-        self.bulk_manager._commit_create(CompanyToPredecessor)
-        self.bulk_manager._commit_create(Signer)
-        self.bulk_manager._commit_create(TerminationStarted)
-        if len(self.branch_bulk_manager._update_queues['business_register.Company']) > 0:
-            self.branch_bulk_manager._commit_update(Company, ['name', 'short_name'])
-        self.branch_bulk_manager._commit_create(Company)
-
-        company_update_dict = {}
-        company_create_dict = {}
-
-        for company in self.branch_bulk_manager._update_queues['business_register.Company']:
-            company_update_dict[company.hash_code] = company
-        for company in self.branch_bulk_manager._create_queues['business_register.Company']:
-            company_create_dict[company.hash_code] = company
-
-        self.bulk_manager._create_queues['business_register.Assignee'] = []
-        self.bulk_manager._create_queues['business_register.FounderFull'] = []
-        self.bulk_manager._create_queues['business_register.BancruptcyReadjustment'] = []
-        self.bulk_manager._create_queues['business_register.CompanyDetail'] = []
-        self.bulk_manager._create_queues['business_register.CompanyToKved'] = []
-        self.bulk_manager._create_queues['business_register.ExchangeDataCompany'] = []
-        self.bulk_manager._create_queues['business_register.CompanyToPredecessor'] = []
-        self.bulk_manager._create_queues['business_register.Signer'] = []
-        self.bulk_manager._create_queues['business_register.TerminationStarted'] = []
-        self.branch_bulk_manager._update_queues['business_register.Company'] = []
-        self.branch_bulk_manager._create_queues['business_register.Company'] = []
-
-        for company_to_kved in self.branch_bulk_manager._create_queues['business_register.CompanyToKved']:
-            if company_to_kved.hash_code in company_update_dict:
-                company_to_kved.company = company_update_dict[company_to_kved.hash_code]
-            else:
-                company_to_kved.company = company_create_dict[company_to_kved.hash_code]
-
-        for exchange_data in self.branch_bulk_manager._create_queues['business_register.ExchangeDataCompany']:
-            if exchange_data.hash_code in company_update_dict:
-                exchange_data.company = company_update_dict[exchange_data.hash_code]
-            else:
-                exchange_data.company = company_create_dict[exchange_data.hash_code]
-
-        for signer in self.branch_bulk_manager._create_queues['business_register.Signer']:
-            if signer.hash_code in company_update_dict:
-                signer.company = company_update_dict[signer.hash_code]
-            else:
-                signer.company = company_create_dict[signer.hash_code]
-
-        self.branch_bulk_manager._commit_create(CompanyToKved)
-        self.branch_bulk_manager._commit_create(ExchangeDataCompany)
-        self.branch_bulk_manager._commit_create(Signer)
-        self.branch_bulk_manager._create_queues['business_register.CompanyToKved'] = []
-        self.branch_bulk_manager._create_queues['business_register.ExchangeDataCompany'] = []
-        self.branch_bulk_manager._create_queues['business_register.Signer'] = []
+        # for company in self.branch_bulk_manager.update_queues['business_register.Company']:
+        #     company_update_dict[company.company_code] = company
+        # for company in self.branch_bulk_manager.create_queues['business_register.Company']:
+        #     company_create_dict[company.company_code] = company
+        #
+        # self.bulk_manager.create_queues['business_register.Assignee'] = []
+        # self.bulk_manager.create_queues['business_register.FounderFull'] = []
+        # self.bulk_manager.create_queues['business_register.BancruptcyReadjustment'] = []
+        # self.bulk_manager.create_queues['business_register.CompanyDetail'] = []
+        # self.bulk_manager.create_queues['business_register.CompanyToKved'] = []
+        # self.bulk_manager.create_queues['business_register.ExchangeDataCompany'] = []
+        # self.bulk_manager.create_queues['business_register.CompanyToPredecessor'] = []
+        # self.bulk_manager.create_queues['business_register.Signer'] = []
+        # self.bulk_manager.create_queues['business_register.TerminationStarted'] = []
+        # self.branch_bulk_manager.update_queues['business_register.Company'] = []
+        # self.branch_bulk_manager.create_queues['business_register.Company'] = []
+        #
+        # for company_to_kved in self.branch_bulk_manager.create_queues['business_register.CompanyToKved']:
+        #     if company_to_kved.company_code in company_update_dict:
+        #         company_to_kved.company = company_update_dict[company_to_kved.company_code]
+        #     else:
+        #         company_to_kved.company = company_create_dict[company_to_kved.company_code]
+        #
+        # for exchange_data in self.branch_bulk_manager.create_queues['business_register.ExchangeDataCompany']:
+        #     if exchange_data.company_code in company_update_dict:
+        #         exchange_data.company = company_update_dict[exchange_data.company_code]
+        #     else:
+        #         exchange_data.company = company_create_dict[exchange_data.company_code]
+        #
+        # for signer in self.branch_bulk_manager.create_queues['business_register.Signer']:
+        #     if signer.company_code in company_update_dict:
+        #         signer.company = company_update_dict[signer.company_code]
+        #     else:
+        #         signer.company = company_create_dict[signer.company_code]
+        #
+        # self.branch_bulk_manager.commit_create(CompanyToKved)
+        # self.branch_bulk_manager.commit_create(ExchangeDataCompany)
+        # self.branch_bulk_manager.commit_create(Signer)
+        # self.branch_bulk_manager.create_queues['business_register.CompanyToKved'] = []
+        # self.branch_bulk_manager.create_queues['business_register.ExchangeDataCompany'] = []
+        # self.branch_bulk_manager.create_queues['business_register.Signer'] = []

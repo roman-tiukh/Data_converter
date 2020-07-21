@@ -1,4 +1,4 @@
-from business_register.models.company_models import FounderFull
+from business_register.models.company_models import Founder
 
 
 class Link:
@@ -15,7 +15,7 @@ class PepAssetsSearcher:
         self.links = []
 
     def find_founded_companies(self, company):
-        founder_of = FounderFull.objects.filter(edrpou=company.edrpou)
+        founder_of = Founder.objects.filter(edrpou=company.edrpou)
         if not founder_of:
             return 'no other companies are founded by these companies'
         for founder in founder_of:
@@ -27,7 +27,7 @@ class PepAssetsSearcher:
         # TODO: retreive a public person object from another DB
         pep = pep_name
         self.nodes.append(pep)
-        founder_of = FounderFull.objects.filter(name=pep_name)
+        founder_of = Founder.objects.filter(name=pep_name)
         if not founder_of:
             return 'no companies are founded by this person'
         for founder in founder_of:

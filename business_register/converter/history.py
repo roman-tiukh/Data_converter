@@ -32,7 +32,7 @@ class AddressHistorical(Converter):
             except AttributeError:
                 company.id = 0 #for changed records that can't be assigned to existing company
             company.history_type = HistoryTypes.UPDATE
-            company.hash_code = record.xpath('NAME')[0].text + record.xpath('EDRPOU')[0].text
+            company.code = record.xpath('NAME')[0].text + record.xpath('EDRPOU')[0].text
             company.created_at = datetime.datetime.now()
             self.create_queues.append(company)
         self.HistoricalCompany.objects.bulk_create(self.create_queues)
@@ -67,7 +67,7 @@ class SignerHistorical(Converter):
             except AttributeError:
                 signer.id = 0 #for changed records that can't be assigned to existing company
             signer.history_type = HistoryTypes.UPDATE
-            signer.hash_code = record.xpath('NAME')[0].text + record.xpath('EDRPOU')[0].text
+            signer.code = record.xpath('NAME')[0].text + record.xpath('EDRPOU')[0].text
             signer.created_at = datetime.datetime.now()
             self.create_queues.append(signer)
         self.HistoricalSigner.objects.bulk_create(self.create_queues)
@@ -102,7 +102,7 @@ class FounderHistorical(Converter):
             except AttributeError:
                 founder.id = 0 #for changed records that can't be assigned to existing company
             founder.history_type = HistoryTypes.UPDATE
-            founder.hash_code = record.xpath('NAME')[0].text + record.xpath('EDRPOU')[0].text
+            founder.code = record.xpath('NAME')[0].text + record.xpath('EDRPOU')[0].text
             founder.created_at = datetime.datetime.now()
             self.create_queues.append(founder)
         self.HistoricalFounderFull.objects.bulk_create(self.create_queues)
@@ -133,7 +133,7 @@ class NameHistorical(Converter):
             except AttributeError:
                 company.id = 0 #for changed records that can't be assigned to existing company
             company.history_type = HistoryTypes.UPDATE
-            company.hash_code = record.xpath('NAME')[0].text + record.xpath('EDRPOU')[0].text
+            company.code = record.xpath('NAME')[0].text + record.xpath('EDRPOU')[0].text
             company.created_at = datetime.datetime.now()
             self.create_queues.append(company)
         self.HistoricalCompany.objects.bulk_create(self.create_queues)
@@ -169,7 +169,7 @@ class ShortNameHistorical(Converter):
             except AttributeError:
                 company.id = 0 #for changed records that can't be assigned to existing company
             company.history_type = HistoryTypes.UPDATE
-            company.hash_code = name + record.xpath('EDRPOU')[0].text
+            company.code = name + record.xpath('EDRPOU')[0].text
             company.created_at = datetime.datetime.now()
             self.create_queues.append(company)
         self.HistoricalCompany.objects.bulk_create(self.create_queues)
@@ -207,7 +207,7 @@ class CapitalHistorical(Converter):
             except AttributeError:
                 company_detail.id = 0 #for changed records that can't be assigned
             company_detail.history_type = HistoryTypes.UPDATE
-            company_detail.hash_code = record.xpath('NAME')[0].text + record.xpath('EDRPOU')[0].text
+            company_detail.code = record.xpath('NAME')[0].text + record.xpath('EDRPOU')[0].text
             company_detail.created_at = datetime.datetime.now()
             self.create_queues.append(company_detail)
         self.HistoricalCompanyDetail.objects.bulk_create(self.create_queues)
@@ -244,8 +244,8 @@ class BranchHistorical(Converter):
             except AttributeError:
                 branch.id = 0 #for changed records that can't be assigned to existing company
             branch.history_type = HistoryTypes.UPDATE
-            branch.hash_code = record.xpath('BRANCH_NAME')[0].text +\
-                branch.short_name
+            branch.code = record.xpath('BRANCH_NAME')[0].text + \
+                                  branch.short_name
             branch.created_at = datetime.datetime.now()
             self.create_queues.append(branch)
         self.HistoricalCompany.objects.bulk_create(self.create_queues)
@@ -299,7 +299,7 @@ class InfoHistorical(Converter):
             except AttributeError:
                 company.id = 0 #for changed records that can't be assigned to existing company
             company.history_type = HistoryTypes.UPDATE
-            company.hash_code = record.xpath('NAME')[0].text + record.xpath('EDRPOU')[0].text
+            company.code = record.xpath('NAME')[0].text + record.xpath('EDRPOU')[0].text
             company.created_at = datetime.datetime.now()
             self.create_queues.append(company)
         self.HistoricalCompany.objects.bulk_create(self.create_queues)
