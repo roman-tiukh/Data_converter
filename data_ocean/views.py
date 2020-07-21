@@ -42,7 +42,7 @@ class Views (GenericAPIView):
 
 
 class RegisterView(viewsets.ReadOnlyModelViewSet):
-    queryset = Register.objects.all()
+    queryset = Register.objects.order_by('id')
     serializer_class = RegisterSerializer
     filterset_class = RegisterFilter
     filter_backends = [DjangoFilterBackend, SearchFilter]

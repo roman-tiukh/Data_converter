@@ -24,6 +24,6 @@ class CityDistrictView(CachedViewMixin, viewsets.ReadOnlyModelViewSet):
     serializer_class = CityDistrictSerializer
     
 class StreetView(CachedViewMixin, viewsets.ReadOnlyModelViewSet):
-    queryset = Street.objects.all()
+    queryset = Street.objects.order_by('name')
     serializer_class = StreetSerializer
 

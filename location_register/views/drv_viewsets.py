@@ -5,7 +5,7 @@ from rest_framework import generics, viewsets
 
 
 class DrvBuildingViewSet(CachedViewMixin, viewsets.ReadOnlyModelViewSet):
-    queryset = DrvBuilding.objects.all()
+    queryset = DrvBuilding.objects.order_by('code')
     serializer_class = DrvBuildingSerializer
 
    
