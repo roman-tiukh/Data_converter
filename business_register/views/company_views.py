@@ -9,7 +9,7 @@ from data_ocean.views import CachedViewMixin
 
 class CompanyView(CachedViewMixin, viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
-    queryset = Company.objects.order_by('id')
+    queryset = Company.objects.all()
     serializer_class = CompanySerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_class = CompanyFilterSet

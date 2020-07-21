@@ -7,7 +7,7 @@ from business_register.serializers.kved_serializers import KvedDetailSerializer
 
 
 class KvedView(viewsets.ReadOnlyModelViewSet):
-    queryset = Kved.objects.exclude(is_valid=False).order_by('code')
+    queryset = Kved.objects.exclude(is_valid=False)
     serializer_class = KvedDetailSerializer
 
     def list(self, request):
