@@ -11,3 +11,11 @@ class CompanyFilterSet(filters.FilterSet):
         fields = {
             'edrpou': ['exact'],
         }
+
+
+class KvedFilterSet(filters.FilterSet):
+    code = filters.CharFilter(lookup_expr='icontains')
+    name = filters.CharFilter(lookup_expr='icontains')
+
+    class Meta:
+        model = Company
