@@ -27,7 +27,7 @@ class Company(DataOceanModel):  # constraint for not null in both name & short_n
     contact_info = models.CharField(max_length=310, null=True)
     authority = models.ForeignKey(Authority, on_delete=models.CASCADE)
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True)
-    hash_code = models.CharField(max_length=510)
+    code = models.CharField(max_length=510)
     history = HistoricalRecords()
 
 
@@ -35,7 +35,7 @@ class Assignee(DataOceanModel):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='assignees')
     name = models.CharField(max_length=610, null=True)
     edrpou = models.CharField(max_length=11, null=True)
-    hash_code = models.CharField(max_length=510)
+    history = HistoricalRecords()
 
 
 class BancruptcyReadjustment(DataOceanModel):
@@ -44,7 +44,6 @@ class BancruptcyReadjustment(DataOceanModel):
     reason = models.TextField(null=True)
     sbj_state = models.CharField(max_length=345, null=True)
     head_name = models.CharField(max_length=515, null=True)
-    hash_code = models.CharField(max_length=510)
 
     def __str__(self):
         return self.sbj_state
@@ -59,7 +58,6 @@ class CompanyDetail(DataOceanModel):
     terminated_info = models.CharField(max_length=600, null=True)
     termination_cancel_info = models.CharField(max_length=570, null=True)
     vp_dates = models.TextField(null=True)
-    hash_code = models.CharField(max_length=510)
     history = HistoricalRecords()
 
 
@@ -67,7 +65,6 @@ class CompanyToKved(DataOceanModel):  # constraint for only only one truth in pr
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='kveds')
     kved = models.ForeignKey(Kved, on_delete=models.CASCADE)
     primary_kved = models.BooleanField(default=False)
-    hash_code = models.CharField(max_length=510)
 
     def __str__(self):
         return f"{self.kved} (зазначений як основний)" if self.primary_kved else f"{self.kved}"
@@ -81,19 +78,18 @@ class ExchangeDataCompany(DataOceanModel):
     start_number = models.CharField(max_length=555, null=True)
     end_date = models.DateField(null=True)
     end_number = models.CharField(max_length=555, null=True)
-    hash_code = models.CharField(max_length=510)
 
     def __str__(self):
         return self.authority.name
 
 
-class FounderFull(DataOceanModel):
+class Founder(DataOceanModel):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='founders')
+    info = models.CharField(max_length=2015)
     name = models.TextField(null=True)
     edrpou = models.CharField(max_length=9, null=True)
     equity = models.FloatField(null=True)
     address = models.CharField(max_length=2015, null=True)
-    hash_code = models.CharField(max_length=510)
     history = HistoricalRecords()
 
 
@@ -111,13 +107,12 @@ class FounderNew(DataOceanModel):
 
 class Predecessor(DataOceanModel):  # constraint for not null in both fields
     name = models.CharField(max_length=500, null=True)
-    code = models.CharField(max_length=405, null=True)
+    edrpou = models.CharField(max_length=405, null=True)
 
 
 class CompanyToPredecessor(DataOceanModel):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='predecessors')
     predecessor = models.ForeignKey(Predecessor, on_delete=models.CASCADE)
-    hash_code = models.CharField(max_length=510)
 
     def __str__(self):
         return self.predecessor.name
@@ -126,7 +121,6 @@ class CompanyToPredecessor(DataOceanModel):
 class Signer(DataOceanModel):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='signers')
     name = models.CharField(max_length=390, null=True)
-    hash_code = models.CharField(max_length=510)
     history = HistoricalRecords()
 
 
@@ -137,7 +131,6 @@ class TerminationStarted(DataOceanModel):
     sbj_state = models.CharField(max_length=530, null=True)
     signer_name = models.CharField(max_length=480, null=True)
     creditor_reg_end_date = models.DateField(null=True)
-    hash_code = models.CharField(max_length=510)
 
     def __str__(self):
         return self.sbj_state
