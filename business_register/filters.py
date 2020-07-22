@@ -19,3 +19,4 @@ class KvedFilterSet(filters.FilterSet):
 
     class Meta:
         model = Company
+        fields = ()
