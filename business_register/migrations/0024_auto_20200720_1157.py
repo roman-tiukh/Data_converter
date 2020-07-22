@@ -93,6 +93,15 @@ class Migration(migrations.Migration):
             name='hash_code',
         ),
 
+        migrations.RemoveField(
+            model_name='founderfull',
+            name='hash_code',
+        ),
+        migrations.RemoveField(
+            model_name='historicalfounderfull',
+            name='hash_code',
+        ),
+
         migrations.RenameModel('FounderFull', 'Founder'),
 
         migrations.RenameModel('HistoricalFounderFull', 'HistoricalFounder'),
@@ -100,12 +109,25 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='historicalassignee',
             name='company',
-            field=models.ForeignKey(blank=True, db_constraint=False, null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='+', to='business_register.Company'),
+            field=models.ForeignKey(blank=True, db_constraint=False, null=True,
+                                    on_delete=django.db.models.deletion.DO_NOTHING, related_name='+',
+                                    to='business_register.Company'),
         ),
         migrations.AddField(
             model_name='historicalassignee',
             name='history_user',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+',
+                                    to=settings.AUTH_USER_MODEL),
+        ),
+        migrations.AddField(
+            model_name='historicalfounder',
+            name='info',
+            field=models.CharField(max_length=2015, default='default'),
+        ),
+        migrations.AddField(
+            model_name='founder',
+            name='info',
+            field=models.CharField(max_length=2015, default='default'),
         ),
 
     ]
