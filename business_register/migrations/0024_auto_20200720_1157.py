@@ -14,23 +14,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.CreateModel(
-            name='Founder',
-            fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True, null=True)),
-                ('deleted_at', models.DateTimeField(null=True)),
-                ('info', models.CharField(max_length=2015)),
-                ('name', models.TextField(null=True)),
-                ('edrpou', models.CharField(max_length=9, null=True)),
-                ('equity', models.FloatField(null=True)),
-                ('address', models.CharField(max_length=2015, null=True)),
-            ],
-            options={
-                'abstract': False,
-            },
-        ),
+
         migrations.CreateModel(
             name='HistoricalAssignee',
             fields=[
@@ -52,38 +36,7 @@ class Migration(migrations.Migration):
             },
             bases=(simple_history.models.HistoricalChanges, models.Model),
         ),
-        migrations.CreateModel(
-            name='HistoricalFounder',
-            fields=[
-                ('id', models.IntegerField(auto_created=True, blank=True, db_index=True, verbose_name='ID')),
-                ('created_at', models.DateTimeField(blank=True, editable=False)),
-                ('updated_at', models.DateTimeField(blank=True, editable=False, null=True)),
-                ('deleted_at', models.DateTimeField(null=True)),
-                ('info', models.CharField(max_length=2015)),
-                ('name', models.TextField(null=True)),
-                ('edrpou', models.CharField(max_length=9, null=True)),
-                ('equity', models.FloatField(null=True)),
-                ('address', models.CharField(max_length=2015, null=True)),
-                ('history_id', models.AutoField(primary_key=True, serialize=False)),
-                ('history_date', models.DateTimeField()),
-                ('history_change_reason', models.CharField(max_length=100, null=True)),
-                ('history_type', models.CharField(choices=[('+', 'Created'), ('~', 'Changed'), ('-', 'Deleted')], max_length=1)),
-            ],
-            options={
-                'verbose_name': 'historical founder',
-                'ordering': ('-history_date', '-history_id'),
-                'get_latest_by': 'history_date',
-            },
-            bases=(simple_history.models.HistoricalChanges, models.Model),
-        ),
-        migrations.RemoveField(
-            model_name='historicalfounderfull',
-            name='company',
-        ),
-        migrations.RemoveField(
-            model_name='historicalfounderfull',
-            name='history_user',
-        ),
+
         migrations.RenameField(
             model_name='company',
             old_name='hash_code',
@@ -139,22 +92,11 @@ class Migration(migrations.Migration):
             model_name='terminationstarted',
             name='hash_code',
         ),
-        migrations.DeleteModel(
-            name='FounderFull',
-        ),
-        migrations.DeleteModel(
-            name='HistoricalFounderFull',
-        ),
-        migrations.AddField(
-            model_name='historicalfounder',
-            name='company',
-            field=models.ForeignKey(blank=True, db_constraint=False, null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='+', to='business_register.Company'),
-        ),
-        migrations.AddField(
-            model_name='historicalfounder',
-            name='history_user',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to=settings.AUTH_USER_MODEL),
-        ),
+
+        migrations.RenameModel('FounderFull', 'Founder'),
+
+        migrations.RenameModel('HistoricalFounderFull', 'HistoricalFounder'),
+
         migrations.AddField(
             model_name='historicalassignee',
             name='company',
@@ -165,9 +107,5 @@ class Migration(migrations.Migration):
             name='history_user',
             field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to=settings.AUTH_USER_MODEL),
         ),
-        migrations.AddField(
-            model_name='founder',
-            name='company',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='founders', to='business_register.Company'),
-        ),
+
     ]
