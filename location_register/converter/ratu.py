@@ -3,7 +3,7 @@ from django.conf import settings
 from data_ocean.converter import Converter, BulkCreateUpdateManager
 from data_ocean.models import Register
 from data_ocean.utils import clean_name, change_to_full_name
-from location_register.models.ratu_models import Region, District, City, CityDistrict, Street
+from location_register.models.ratu_models import RatuRegion, RatuDistrict, RatuCity, RatuCityDistrict, RatuStreet
 
 
 class RatuConverter(Converter):
@@ -15,11 +15,11 @@ class RatuConverter(Converter):
 
     # list of models for clearing DB
     tables = [
-        Region,
-        District,
-        City,
-        CityDistrict,
-        Street
+        RatuRegion,
+        RatuDistrict,
+        RatuCity,
+        RatuCityDistrict,
+        RatuStreet
     ]
 
     # format record's data
@@ -61,7 +61,7 @@ class RatuConverter(Converter):
     def save_to_region_table(self, record):
         record['OBL_NAME'] = change_to_full_name(record['OBL_NAME'])
         if record['OBL_NAME'] not in self.region_dict:
-            region = Region(
+            region = RatuRegion(
                 name=record['OBL_NAME']
             )
             region.save()
@@ -76,15 +76,15 @@ class RatuConverter(Converter):
             district_name = clean_name(record['REGION_NAME'])
             district_name = change_to_full_name(district_name)
         else:
-            district_name = District.EMPTY_FIELD
+            district_name = RatuDistrict.EMPTY_FIELD
         if [region.id, district_name] not in self.district_list:
-            district = District(
+            district = RatuDistrict(
                 region=region,
                 name=district_name
             )
             district.save()
             self.district_list.insert(0, [region.id, district_name])
-        district = District.objects.get(
+        district = RatuDistrict.objects.get(
             name=district_name,
             region=region.id
         )
@@ -95,16 +95,16 @@ class RatuConverter(Converter):
         if record['CITY_NAME']:
             city_name = clean_name(record['CITY_NAME'])
         else:
-            city_name = City.EMPTY_FIELD
+            city_name = RatuCity.EMPTY_FIELD
         if [region.id, district.id, city_name] not in self.city_list:
-            city = City(
+            city = RatuCity(
                 region=region,
                 district=district,
                 name=city_name
             )
             city.save()
             self.city_list.insert(0, [region.id, district.id, city_name])
-        city = City.objects.get(
+        city = RatuCity.objects.get(
             name=city_name,
             region=region.id,
             district=district.id
@@ -116,9 +116,9 @@ class RatuConverter(Converter):
         if record['CITY_REGION_NAME']:
             citydistrict_name = clean_name(record['CITY_REGION_NAME'])
         else:
-            citydistrict_name = CityDistrict.EMPTY_FIELD
+            citydistrict_name = RatuCityDistrict.EMPTY_FIELD
         if [region.id, district.id, city.id, citydistrict_name] not in self.citydistrict_list:
-            citydistrict = CityDistrict(
+            citydistrict = RatuCityDistrict(
                 region=region,
                 district=district,
                 city=city,
@@ -126,7 +126,7 @@ class RatuConverter(Converter):
             )
             citydistrict.save()
             self.citydistrict_list.insert(0, [region.id, district.id, city.id, citydistrict_name])
-        citydistrict = CityDistrict.objects.get(
+        citydistrict = RatuCityDistrict.objects.get(
             name=citydistrict_name,
             region=region.id,
             district=district.id,
@@ -137,7 +137,7 @@ class RatuConverter(Converter):
     # writing entry to street table
     def save_to_street_table(self, record, region, district, city, citydistrict):
         if record['STREET_NAME']:
-            street = Street(
+            street = RatuStreet(
                 region=region,
                 district=district,
                 city=city,

@@ -19,6 +19,11 @@ class Converter:
     DOWNLOAD_FOLDER = "download/"  # folder to downloaded files
     URLS_DICT = {}  # control remote dataset files update
 
+
+    def load_json(self, json_file):
+        with open(json_file) as file:
+            return json.load(file)
+
     # lets have all supporting functions at the beginning
     def get_urls(self):
         # returns actual dataset urls
