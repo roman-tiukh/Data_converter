@@ -18,6 +18,16 @@ class KvedFilterSet(filters.FilterSet):
     code = filters.CharFilter(lookup_expr='icontains')
     name = filters.CharFilter(lookup_expr='icontains')
 
+    o = filters.OrderingFilter(
+        fields=(
+            ('code', 'code'),
+            ('name', 'name'),
+            ('group__name', 'group'),
+            ('division__name', 'division'),
+            ('section__name', 'section'),
+        ),
+    )
+
     class Meta:
         model = Kved
         fields = ()
