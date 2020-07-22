@@ -1,5 +1,6 @@
 from django_filters import rest_framework as filters
 from .models.company_models import Company
+from .models.kved_models import Kved
 
 
 class CompanyFilterSet(filters.FilterSet):
@@ -18,5 +19,5 @@ class KvedFilterSet(filters.FilterSet):
     name = filters.CharFilter(lookup_expr='icontains')
 
     class Meta:
-        model = Company
+        model = Kved
         fields = ()
