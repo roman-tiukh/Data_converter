@@ -1,6 +1,7 @@
 from django.db import models
 
 from data_ocean.models import DataOceanModel
+from location_register.models.koatuu_models import KoatuuCategory
 
 
 class RatuRegion(DataOceanModel):
@@ -15,15 +16,11 @@ class RatuDistrict(DataOceanModel):
     koatuu = models.CharField(max_length=10, unique=True, null=True)
 
 
-class RatuCategory(DataOceanModel):
-    name = (models.CharField(max_length=5, unique=True, null=True))
-
-
 class RatuCity(DataOceanModel):
     EMPTY_FIELD = 'empty field'
     region = models.ForeignKey(RatuRegion, on_delete=models.CASCADE)
     district = models.ForeignKey(RatuDistrict, on_delete=models.CASCADE)
-    category = models.ForeignKey(RatuCategory, on_delete=models.CASCADE, null=True)
+    category = models.ForeignKey(KoatuuCategory, on_delete=models.CASCADE, null=True)
     name = models.CharField(max_length=100)
     koatuu = models.CharField(max_length=10, unique=True, null=True)
 
@@ -33,7 +30,7 @@ class RatuCityDistrict(DataOceanModel):
     region = models.ForeignKey(RatuRegion, on_delete=models.CASCADE)
     district = models.ForeignKey(RatuDistrict, on_delete=models.CASCADE)
     city = models.ForeignKey(RatuCity, on_delete=models.CASCADE)
-    category = models.ForeignKey(RatuCategory, on_delete=models.CASCADE, null=True)
+    category = models.ForeignKey(KoatuuCategory, on_delete=models.CASCADE, null=True)
     name = models.CharField(max_length=100)
     koatuu = models.CharField(max_length=10, unique=True, null=True)
 

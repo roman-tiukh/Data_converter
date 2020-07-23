@@ -55,10 +55,6 @@ class Migration(migrations.Migration):
             options={'ordering': ['id']},
         ),
         migrations.AlterModelOptions(
-            name='ratucategory',
-            options={'ordering': ['id']},
-        ),
-        migrations.AlterModelOptions(
             name='ratucity',
             options={'ordering': ['id']},
         ),

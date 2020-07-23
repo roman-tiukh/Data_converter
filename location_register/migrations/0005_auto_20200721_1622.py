@@ -5,7 +5,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('location_register', '0004_auto_20200630_1348'),
     ]
@@ -14,7 +13,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='KoatuuCity',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False,
+                                        verbose_name='ID')),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True, null=True)),
                 ('deleted_at', models.DateTimeField(null=True)),
@@ -28,25 +28,13 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='KoatuuRegion',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False,
+                                        verbose_name='ID')),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True, null=True)),
                 ('deleted_at', models.DateTimeField(null=True)),
                 ('name', models.CharField(max_length=30, unique=True)),
                 ('code', models.CharField(max_length=10, null=True, unique=True)),
-            ],
-            options={
-                'abstract': False,
-            },
-        ),
-        migrations.CreateModel(
-            name='RatuCategory',
-            fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True, null=True)),
-                ('deleted_at', models.DateTimeField(null=True)),
-                ('name', models.CharField(max_length=5, null=True, unique=True)),
             ],
             options={
                 'abstract': False,
@@ -79,13 +67,16 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='KoatuuDistrict',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False,
+                                        verbose_name='ID')),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True, null=True)),
                 ('deleted_at', models.DateTimeField(null=True)),
                 ('name', models.CharField(max_length=100)),
                 ('code', models.CharField(max_length=10, null=True, unique=True)),
-                ('region', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='location_register.KoatuuRegion')),
+                ('region',
+                 models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,
+                                   to='location_register.KoatuuRegion')),
             ],
             options={
                 'abstract': False,
@@ -94,16 +85,23 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='KoatuuCityDistrict',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False,
+                                        verbose_name='ID')),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True, null=True)),
                 ('deleted_at', models.DateTimeField(null=True)),
                 ('name', models.CharField(max_length=100)),
                 ('code', models.CharField(max_length=10, null=True, unique=True)),
-                ('category', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='location_register.KoatuuCategory')),
-                ('city', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='location_register.KoatuuCity')),
-                ('district', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='location_register.KoatuuDistrict')),
-                ('region', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='location_register.KoatuuRegion')),
+                ('category', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE,
+                                               to='location_register.KoatuuCategory')),
+                ('city',
+                 models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,
+                                   to='location_register.KoatuuCity')),
+                ('district', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE,
+                                               to='location_register.KoatuuDistrict')),
+                ('region',
+                 models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,
+                                   to='location_register.KoatuuRegion')),
             ],
             options={
                 'abstract': False,
@@ -112,26 +110,31 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='koatuucity',
             name='category',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='location_register.KoatuuCategory'),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE,
+                                    to='location_register.KoatuuCategory'),
         ),
         migrations.AddField(
             model_name='koatuucity',
             name='district',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='location_register.KoatuuDistrict'),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE,
+                                    to='location_register.KoatuuDistrict'),
         ),
         migrations.AddField(
             model_name='koatuucity',
             name='region',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='location_register.KoatuuRegion'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,
+                                    to='location_register.KoatuuRegion'),
         ),
         migrations.AlterField(
             model_name='ratucity',
             name='category',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='location_register.RatuCategory'),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE,
+                                    to='location_register.KoatuuCategory'),
         ),
         migrations.AlterField(
             model_name='ratucitydistrict',
             name='category',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='location_register.RatuCategory'),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE,
+                                    to='location_register.KoatuuCategory'),
         ),
     ]
