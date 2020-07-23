@@ -1,9 +1,9 @@
 from django.contrib import admin
 
-from location_register.models.ratu_models import Region, District, City, CityDistrict, Street
+from location_register.models.ratu_models import RatuRegion, RatuDistrict, RatuCity, RatuCityDistrict, RatuStreet
 
-admin.site.register(Region)
-admin.site.register(District)
-admin.site.register(City)
-admin.site.register(CityDistrict)
-admin.site.register(Street)
+admin.site.register(RatuRegion)
+admin.site.register(RatuDistrict)
+admin.site.register(RatuCity)
+admin.site.register(RatuCityDistrict)
+admin.site.register(RatuStreet)

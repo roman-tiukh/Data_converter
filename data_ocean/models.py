@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.timezone import now
 
 class DataOceanModel(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
@@ -8,6 +9,9 @@ class DataOceanModel(models.Model):
     class Meta:
         abstract = True
         ordering = ['id']
+
+    def soft_delete(self):
+        self.deleted_at = now()
 
     def __str__(self):
         return self.name

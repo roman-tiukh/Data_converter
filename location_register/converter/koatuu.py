@@ -3,7 +3,7 @@ import logging
 from django.conf import settings
 
 from data_ocean.converter import Converter
-from location_register.models.ratu_models import Region, District, City, CityDistrict, Category
+from location_register.models.ratu_models import RatuRegion, RatuDistrict, RatuCity, RatuCityDistrict, RatuCategory
 
 
 # Standard instance of a logger with __name__
@@ -61,7 +61,7 @@ class KoatuuConverter(Converter):
     # creating a dictionary out off the values, which already exists in citydistrict table
     def create_dictionary_for_citydistrict_table(self):# table_model is a model from ratu_models
         koatuu_dict = {}
-        table_model_objects = CityDistrict.objects.all()
+        table_model_objects = RatuCityDistrict.objects.all()
         for table_record in table_model_objects: # dictionary for keeping whole model class objects
             if table_record.name:
                 unit_name = table_record.name + str(table_record.city_id)
@@ -97,17 +97,18 @@ class KoatuuConverter(Converter):
 
     # getting id value from category table
     def get_category_id(self, string):
-        id_number = Category.objects.get(name=string or 'null').id
+        id_number = RatuCategory.objects.get(name=string or 'null').id
         return id_number
 
     # storing data to all tables
-    def save_to_db(self, data):
+    def save_to_db(self, json_file):
+        data = self.load_json(json_file)
         try:
             self.save_to_region_table(data)
             self.save_to_district_table(data)
             self.save_to_city_or_citydistrict(data)
-            self.writing_category_null_id(City)
-            self.writing_category_null_id(CityDistrict)
+            self.writing_category_null_id(RatuCity)
+            self.writing_category_null_id(RatuCityDistrict)
         except TypeError:
             logger.exception('Tried to iterate NonType object')
         else:
@@ -115,7 +116,7 @@ class KoatuuConverter(Converter):
 
     # writing entry to koatuu field in region table
     def save_to_region_table(self, data):
-        region_dict = self.create_dictionary_for(Region)
+        region_dict = self.create_dictionary_for(RatuRegion)
         for object_koatuu in data:
             if object_koatuu[self.LEVEL_ONE] and not object_koatuu[self.LEVEL_TWO]:
                 object_region_name = self.get_lowercase_words_before_virgule(
@@ -129,9 +130,9 @@ class KoatuuConverter(Converter):
 
     # writing entry to koatuu field in district table and level_two records of city_table
     def save_to_district_table(self, data):
-        region_dict = self.create_dictionary_for(Region)
-        district_dict = self.create_dictionary_for_district_table(District)
-        city_dict = self.create_dictionary_for_city_table(City)
+        region_dict = self.create_dictionary_for(RatuRegion)
+        district_dict = self.create_dictionary_for_district_table(RatuDistrict)
+        city_dict = self.create_dictionary_for_city_table(RatuCity)
         for object_koatuu in data:
             if object_koatuu[self.LEVEL_ONE] and not object_koatuu[self.LEVEL_TWO]:
                 object_region_name = self.get_lowercase_words_before_virgule(
@@ -159,10 +160,10 @@ class KoatuuConverter(Converter):
 
     # processing entry to koatuu field in city_table and citydistrict_table
     def save_to_city_or_citydistrict(self, data):
-        region_dict = self.create_dictionary_for(Region)
-        district_dict = self.create_dictionary_for_district_table(District)
-        city_dict_for_district_table = self.create_dictionary_for_district_table(City)
-        city_dict = self.create_dictionary_for_city_table(City)
+        region_dict = self.create_dictionary_for(RatuRegion)
+        district_dict = self.create_dictionary_for_district_table(RatuDistrict)
+        city_dict_for_district_table = self.create_dictionary_for_district_table(RatuCity)
+        city_dict = self.create_dictionary_for_city_table(RatuCity)
         citydistrict_dict = self.create_dictionary_for_citydistrict_table()
         # getting values in json file Koatuu
         for object_koatuu in data:

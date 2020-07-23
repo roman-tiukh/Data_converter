@@ -1,5 +1,7 @@
 import logging
 
+from django.utils.timezone import now
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
@@ -24,8 +26,8 @@ class CompanyConverter(BusinessConverter):
         self.LOCAL_FOLDER = settings.LOCAL_FOLDER
         self.CHUNK_SIZE = settings.CHUNK_SIZE_UO
         self.RECORD_TAG = 'SUBJECT'
-        self.bulk_manager = BulkCreateUpdateManager(100000)
-        self.branch_bulk_manager = BulkCreateUpdateManager(100000)
+        self.bulk_manager = BulkCreateUpdateManager(self.CHUNK_SIZE * 5)
+        self.branch_bulk_manager = BulkCreateUpdateManager(self.CHUNK_SIZE * 5)
         self.all_bylaw_dict = self.put_all_objects_to_dict("name", "business_register", "Bylaw")
         self.all_company_type_dict = self.put_all_objects_to_dict('name', "business_register",
                                                                   "CompanyType")
@@ -67,24 +69,6 @@ class CompanyConverter(BusinessConverter):
             self.predecessor = self.all_predecessors_dict[item.xpath('NAME')[0].text]
             return self.predecessor
 
-    def initialize_company(self, name, short_name, company_type, edrpou, authorized_capital,
-                           address, status, bylaw, registration_date, registration_info,
-                           contact_info, authority, code):
-        company = Company(name=name,
-                          short_name=short_name,
-                          company_type=company_type,
-                          edrpou=edrpou,
-                          authorized_capital=authorized_capital,
-                          address=address,
-                          status=status,
-                          bylaw=bylaw,
-                          registration_date=registration_date,
-                          registration_info=registration_info,
-                          contact_info=contact_info,
-                          authority=authority,
-                          code=code)
-        return company
-
     def extract_founder_data(self, founder_info):
         info_to_list = founder_info.split(',')
         # deleting spaces between strings if exist
@@ -101,7 +85,7 @@ class CompanyConverter(BusinessConverter):
                     # getting the name with commas inside
                     info_to_new_list = founder_info.split(string)
                     name = info_to_new_list[0]
-                    logger.warning(f'See the founder with info: {founder_info}')
+                    logger.warning(f'Нестандартний запис: {founder_info}')
                     break
         equity = None
         element_with_equity = None
@@ -119,16 +103,15 @@ class CompanyConverter(BusinessConverter):
             address = address.replace(element_with_equity, '')
         if address and len(address) < 15:
             address = None
-        if address and len(address) > 100:
-            logger.warning(f'See the founder with info: {founder_info}')
+        if address and len(address) > 200:
+            logger.warning(f'Завелика адреса: {address} із запису: {founder_info}')
         return name, edrpou, address, equity
 
     def save_or_update_founders(self, founders_from_record, company):
         already_stored_founders = list(Founder.objects.filter(company=company))
         for item in founders_from_record:
-            founder = Founder()
             # checking if there is additional data except name
-            founder.info = item.text
+            info = item.text
             if ',' in item.text:
                 name, edrpou, address, equity = self.extract_founder_data(item.text)
                 name = name.lower()
@@ -136,31 +119,33 @@ class CompanyConverter(BusinessConverter):
                 name = item.text.lower()
                 edrpou, equity, address = None, None, None
             already_stored = False
-            for stored_founder in already_stored_founders:
-                if stored_founder.name == name:
-                    already_stored = True
-                    update_fields = []
-                    if stored_founder.edrpou != edrpou:
-                        update_fields.append('edrpou')
-                        already_stored.edrpou = edrpou
-                    if stored_founder.equity != equity:
-                        update_fields.append('equity')
-                        already_stored.equity = equity
-                    if stored_founder.address != address:
-                        update_fields.append('address')
-                        already_stored.address = founder.address
-                    if update_fields:
-                        stored_founder.save(update_fields=update_fields)
-                    already_stored_founders.remove(stored_founder)
-                    break
+            if len(already_stored_founders):
+                for stored_founder in already_stored_founders:
+                    if stored_founder.name == name:
+                        already_stored = True
+                        update_fields = []
+                        if stored_founder.edrpou != edrpou:
+                            update_fields.append('edrpou')
+                            stored_founder.edrpou = edrpou
+                        if stored_founder.equity != equity:
+                            update_fields.append('equity')
+                            stored_founder.equity = equity
+                        if stored_founder.address != address:
+                            update_fields.append('address')
+                            stored_founder.address = founder.address
+                        if update_fields:
+                            stored_founder.save(update_fields=update_fields)
+                        already_stored_founders.remove(stored_founder)
+                        break
             if not already_stored:
-                Founder.objects.create(company=company, name=name, edrpou=edrpou, equity=equity,
-                                       address=address)
-            # self.bulk_manager.add_create(founder)
+                # Founder.objects.create(company=company, info=info, name=name, edrpou=edrpou, equity=equity,
+                #                        address=address)
+                founder = Founder(company=company, info=info, name=name, edrpou=edrpou,
+                                  equity=equity, address=address)
+                self.bulk_manager.add_create(founder)
         if len(already_stored_founders):
             for outdated_founder in already_stored_founders:
-                # or we should set deleted_at field?
-                outdated_founder.delete()
+                outdated_founder.soft_delete()
 
     def branch_create(self, item, code):
         branch = Company()
@@ -425,10 +410,19 @@ class CompanyConverter(BusinessConverter):
             #                         terminated_info, termination_cancel_info, vp_dates, code)
             company = Company.objects.filter(code=code).first()
             if not company:
-                company = self.initialize_company(name, short_name, company_type, edrpou,
-                                                  authorized_capital, address, status, bylaw,
-                                                  registration_date, registration_info, contact_info,
-                                                  authority, code)
+                company = Company(name=name,
+                                  short_name=short_name,
+                                  company_type=company_type,
+                                  edrpou=edrpou,
+                                  authorized_capital=authorized_capital,
+                                  address=address,
+                                  status=status,
+                                  bylaw=bylaw,
+                                  registration_date=registration_date,
+                                  registration_info=registration_info,
+                                  contact_info=contact_info,
+                                  authority=authority,
+                                  code=code)
                 company.save()
                 # self.bulk_manager.add_create(company)
             else:
@@ -458,7 +452,9 @@ class CompanyConverter(BusinessConverter):
                     update_fields.append('authority')
                 if len(update_fields):
                     company.save(update_fields=update_fields)
-                #             self.bulk_manager.add_update(already_stored_company)
+                    # self.bulk_manager.add_update(company)
+            if len(record.xpath('FOUNDERS')[0]):
+                self.save_or_update_founders(record.xpath('FOUNDERS')[0], company)
         # if len(self.bulk_manager.update_queues['business_register.Company']):
         #     self.bulk_manager.commit_update(Company, ['name', 'short_name', 'company_type',
         #                                               'authorized_capital', 'address', 'status',
@@ -467,8 +463,10 @@ class CompanyConverter(BusinessConverter):
         #                                               'authority'])
         # if len(self.bulk_manager.create_queues['business_register.Company']):
         #     self.bulk_manager.commit_create(Company)
-        if len(record.xpath('FOUNDERS')[0]):
-            self.save_or_update_founders(record.xpath('FOUNDERS')[0], company)
+        if len(self.bulk_manager.create_queues['business_register.Founder']):
+            self.bulk_manager.commit_create(Founder)
+        self.bulk_manager.create_queues['business_register.Founder'] = []
+
         # for company in self.bulk_manager.create_queues['business_register.Company']:
         #     self.all_companies_dict[company.company_code] = company
         # self.bulk_manager.update_queues['business_register.Company'] = []
@@ -522,7 +520,6 @@ class CompanyConverter(BusinessConverter):
         #     termination_started.company = self.all_companies_dict[termination_started.company_code]
         #
         # self.bulk_manager.commit_create(Assignee)
-        # self.bulk_manager.commit_create(Founder)
         # self.bulk_manager.commit_create(BancruptcyReadjustment)
         # self.bulk_manager.commit_create(CompanyDetail)
         # self.bulk_manager.commit_create(CompanyToKved)
@@ -543,7 +540,6 @@ class CompanyConverter(BusinessConverter):
         #     company_create_dict[company.company_code] = company
         #
         # self.bulk_manager.create_queues['business_register.Assignee'] = []
-        # self.bulk_manager.create_queues['business_register.FounderFull'] = []
         # self.bulk_manager.create_queues['business_register.BancruptcyReadjustment'] = []
         # self.bulk_manager.create_queues['business_register.CompanyDetail'] = []
         # self.bulk_manager.create_queues['business_register.CompanyToKved'] = []

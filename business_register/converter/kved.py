@@ -65,12 +65,11 @@ class KvedConverter(Converter):
                              class_data['className'].lower())
 
     # storing data to all tables
-    def save_to_db(self, file):
+    def save_to_db(self, json_file):
         kved_not_valid = Kved.objects.filter(name='not_valid').first()
         if not kved_not_valid:
             self.save_default_kved()
-        with open(file) as f:
-            data = json.load(f)
+        data = self.load_json(json_file)
         # getting a value from json file, because it is put into a list
         sections = data['sections'][0]
         try:
