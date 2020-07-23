@@ -30,7 +30,8 @@ INSTALL ON UBUNTU 18.04 (DEV)
 - $ python3.7 --version
 - $ sudo apt install python3.7-dev python3.7-venv
 
-###### Create Your_Fork on GitHub from: https://github.com/3v-workspace/Data_converter
+###### Create Your_Fork on GitHub from official repo 
+- https://github.com/3v-workspace/Data_converter
 
 ###### Clone Your_Fork repo & create virtual environment & install requirements
 - $ git clone https://github.com/Your_Fork/Data_converter.git
@@ -51,6 +52,9 @@ INSTALL ON UBUNTU 18.04 (DEV)
 ###### Migrate
 - (.venv)$ ./manage.py migrate
 
+###### Create Superuser
+- (.venv)$ ./manage.py createsuperuser
+
 ###### Load fixtures
 - (.venv)$ ./manage.py loaddata category
 - (.venv)$ ./manage.py loaddata register
@@ -65,7 +69,6 @@ INSTALL ON UBUNTU 18.04 (DEV)
 -----------------------------------------------------------------------------------------------------
 User API endpoint
 -----------------------------------------------------------------------------------------------------
-- Social Registration: `/api/accounts/signup/`
 - Social Login: `/api/accounts/login/`
 - Social Logout: `/api/accounts/logout/`
 -----------------------------------------------------------------------------------------------------
@@ -84,43 +87,80 @@ User API endpoint
 -----------------------------------------------------------------------------------------------------
 Setup Google Login
 -----------------------------------------------------------------------------------------------------
-To add Google login on your app, you’ll need to set up OAuth application via Google Developers Console:
-https://console.developers.google.com/
+**To add Google login on your app, you’ll need to set up OAuth application via Google Developers Console:**
+- https://console.developers.google.com/
 
 Getting started
 - Go to Dashboard, create a NEW PROJECT
-- Name your new project, preferably your website or app name. User will be able to see this project name when we redirect them to Google login page.
-- Click “CREATE” to proceed.
 
-APIs Credentials
-- Back to “Dashboard”, go to “Credentials” on left panel.
-- Create credentials. On the dropdown, choose “OAuth Client ID” option.
+  ![](development/readme/google-login_01.jpg)
+
+- Name your new project. User will be able to see this project name when we redirect them to Google login page.
+
+  ![](development/readme/google-login_02.jpg)
 
 OAuth consent screen
-- Make sure you fill out the “OAuth Consent Screen” form.
-- You’ll only need to provide “Application name”, “Email” and click “SAVE”.
+- Choose External User type.
+
+  ![](development/readme/google-login_03.jpg)
+
+- You’ll only need to provide "Application name", "Email" and click "SAVE".
+
+  ![](development/readme/google-login_04.jpg)
+
+APIs Credentials
+- Create credentials. On the dropdown, choose "OAuth Client ID" option.
+
+  ![](development/readme/google-login_05.jpg)
 
 Create OAuth client ID
-- Now, you can create your OAuth Client ID by filling out these details;
-- Authorized Javascript origins (http://127.0.0.1:8000)
-- Authorized redirect URL (http://127.0.0.1:8000/accounts/google/login/callback/)
+- Now, you can create your OAuth Client ID:
+
+  ![](development/readme/google-login_06.jpg)
+
+- Filling out these details
+  - Authorized Javascript origins: http://127.0.0.1:8000
+  - Authorized redirect URL: http://127.0.0.1:8000/accounts/google/login/callback/
 
 Obtain OAuth client
-- Once you click “CREATE”, you will be able to obtain your “client ID” and “client Secret”.
+- Once you click "CREATE", you will be able to obtain your "Client ID" and "Client Secret".
+
+  ![](development/readme/google-login_07.jpg)
+
 - You’ll need this information to proceed the next steps
 
+**Go to your admin site:**
+- http://127.0.0.1:8000/admin/
 
 Add a site
-On the SITES section, click “sites” and fill out the details and click “Save”:
-Domain name: 127.0.0.1:8000
-Display name: 127.0.0.1:8000
+- On the SITES section, click "SITES":
+
+  ![](development/readme/google-login_08.jpg)
+
+- Fill out the details and click "Save"
+  - Domain name: 127.0.0.1:8000
+  - Display name: 127.0.0.1:8000
+  
+  ![](development/readme/google-login_09.jpg)
 
 Add social applications
-Back to admin homepage, under “SOCIAL ACCOUNTS” section, click “Social applications” to fill out these settings:
-Provider: Google
-Name: Google API
-Client id: (refer step 7, your OAuth details)
-Secret key: (refer step 7, your OAuth details)
+- Back to admin homepage, under "SOCIAL ACCOUNTS" section, click "Social applications":
 
-See the result
+  ![](development/readme/google-login_10.jpg)
 
+- Fill out these settings
+  - Provider: Google
+  - Name: MySocialLocalApp
+  - Client id: your "Client ID"
+  - Secret key: your "Client Secret"
+
+  ![](development/readme/google-login_11.jpg)
+
+- Add site
+
+  ![](development/readme/google-login_12.jpg)
+
+  ![](development/readme/google-login_13.jpg)
+
+**Check Google Login result**
+- http://127.0.0.1:8000/api/accounts/login/
