@@ -23,17 +23,14 @@ from rest_framework import routers
 from data_ocean.views import RegisterView, SchemaView
 from business_register.views.company_views import CompanyView, HistoricalCompanyView
 from business_register.views.kved_views import KvedView
-from business_register.views.rfop_views import RfopView, FopView
-from business_register.views.ruo_views import RuoView
+from business_register.views.fop_views import FopView
 from location_register.views.ratu_viewsets import RegionView, CityView, StreetView, CityDistrictView, DistrictView
 from location_register.views.drv_viewsets import DrvBuildingViewSet
 from users.views import CustomRegisterView, CustomRegisterConfirmView
 
 router = routers.DefaultRouter()
 
-router.register(r'rfop', RfopView, basename='rfop')
 router.register(r'fop', FopView, basename='fop')
-router.register(r'ruo', RuoView, basename='ruo')
 router.register(r'kved', KvedView, basename='kved')
 router.register(r'region', RegionView, basename='region')
 router.register(r'city', CityView, basename='city')

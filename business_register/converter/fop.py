@@ -1,6 +1,10 @@
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 from business_register.converter.business_converter import BusinessConverter
-from business_register.models.rfop_models import (ExchangeDataFop, Foxp,
-                                                  FopToKved)
+from business_register.models.fop_models import (ExchangeDataFop, Fop,
+                                                 FopToKved)
 from django.conf import settings
 from data_ocean.converter import BulkCreateUpdateManager
 from data_ocean.models import Register
@@ -19,13 +23,13 @@ class FopConverter(BusinessConverter):
         self.bulk_manager = BulkCreateUpdateManager(1000000)
         self.all_fop_kveds = []
         self.all_fop_exchange_data = []
-        self.all_fops_dict = self.put_all_objects_to_dict('hash_code', 'business_register', 'Fop')
+        self.all_fops_dict = self.put_all_objects_to_dict('code', 'business_register', 'Fop')
         super().__init__()
 
-    def update_fop_fields(self, hash_code, status, registration_date, registration_info,
+    def update_fop_fields(self, code, status, registration_date, registration_info,
                           estate_manager, termination_date, terminated_info,
                           termination_cancel_info, contact_info, vp_dates, authority):
-        fop = self.all_fops_dict[hash_code]
+        fop = self.all_fops_dict[code]
         fop.status = status
         fop.registration_date = registration_date
         fop.registration_info = registration_info
@@ -38,11 +42,11 @@ class FopConverter(BusinessConverter):
         fop.authority = authority
         return fop
 
-    def create_new_fop(self, hash_code, fullname, address, status, registration_date,
+    def create_new_fop(self, code, fullname, address, status, registration_date,
                        registration_info, estate_manager, termination_date, terminated_info,
                        termination_cancel_info, contact_info, vp_dates, authority):
         fop = Fop(
-            hash_code=hash_code,
+            code=code,
             fullname=fullname,
             address=address,
             status=status,
@@ -58,7 +62,7 @@ class FopConverter(BusinessConverter):
         return fop
 
     # putting all kveds into a list
-    def add_fop_kveds_to_list(self, fop_kveds, hash_code):
+    def add_fop_kveds_to_list(self, fop_kveds, code):
         for activity in fop_kveds:
             info = activity.xpath('NAME')
             if not info:
@@ -67,10 +71,10 @@ class FopConverter(BusinessConverter):
             if kved_name:
                 kved = self.get_kved_from_DB(kved_name)
             primary = activity.xpath('PRIMARY')[0].text == "так"
-            self.all_fop_kveds.append({"hash_code": hash_code, "kved": kved, "primary": primary})
+            self.all_fop_kveds.append({"code": code, "kved": kved, "primary": primary})
 
     # putting all exchange data into a list
-    def add_exchange_data_to_list(self, exchange_data, hash_code):
+    def add_exchange_data_to_list(self, exchange_data, code):
         for answer in exchange_data:
             info = answer.xpath('AUTHORITY_NAME')
             if not info:
@@ -97,7 +101,7 @@ class FopConverter(BusinessConverter):
             if end_number_info:
                 end_number = end_number_info[0].text
             self.all_fop_exchange_data.append({
-                "hash_code": hash_code,
+                "code": code,
                 "authority": authority,
                 "taxpayer_type": taxpayer_type,
                 "start_date": start_date,
@@ -106,12 +110,12 @@ class FopConverter(BusinessConverter):
                 "end_number": end_number
             })
 
-    def find_stored_fop(self, hash_code):
+    def find_stored_fop(self, code):
         for fop in self.bulk_manager.update_queues['business_register.Fop']:
-            if fop.hash_code == hash_code:
+            if fop.code == code:
                 return fop
         for fop in self.bulk_manager.create_queues['business_register.Fop']:
-            if fop.hash_code == hash_code:
+            if fop.code == code:
                 return fop
 
     def add_fop_to_kved_to_bulk(self, fop, kved, primary_kved):
@@ -120,7 +124,7 @@ class FopConverter(BusinessConverter):
 
     def save_fop_kveds_to_db(self):
         for dictionary in self.all_fop_kveds:
-            fop = self.find_stored_fop(dictionary["hash_code"])
+            fop = self.find_stored_fop(dictionary["code"])
             kved = dictionary["kved"]
             if kved.code == 'EMP':
                 continue
@@ -151,7 +155,7 @@ class FopConverter(BusinessConverter):
         # variable for having the exchange_data from the same fop
         previous_fop = None
         for dictionary in self.all_fop_exchange_data:
-            fop = self.find_stored_fop(dictionary["hash_code"])
+            fop = self.find_stored_fop(dictionary["code"])
             authority = dictionary["authority"]
             taxpayer_type = dictionary["taxpayer_type"]
             start_date = dictionary["start_date"]
@@ -187,6 +191,14 @@ class FopConverter(BusinessConverter):
 
     def save_to_db(self, records):
         for record in records:
+            fullname = record.xpath('NAME')[0].text
+            if not fullname:
+                logger.warning(f'ФОП без прізвища: {record}')
+                continue
+            address = record.xpath('ADDRESS')[0].text
+            if not address:
+                address = 'EMPTY'
+            code = fullname + address
             registration_text = record.xpath('REGISTRATION')[0].text
             termination_text = record.xpath('TERMINATED_INFO')[0].text
             status = self.save_or_get_status(record.xpath('STAN')[0].text)
@@ -206,31 +218,26 @@ class FopConverter(BusinessConverter):
             contact_info = record.xpath('CONTACTS')[0].text
             vp_dates = record.xpath('VP_DATES')[0].text
             authority = self.save_or_get_authority(record.xpath('CURRENT_AUTHORITY')[0].text)
-            fullname = record.xpath('NAME')[0].text
-            address = record.xpath('ADDRESS')[0].text
-            if not address:
-                address = 'EMPTY'
-            hash_code = fullname + address
             fop_kveds = record.xpath('ACTIVITY_KINDS')[0]
             if len(fop_kveds):
-                self.add_fop_kveds_to_list(fop_kveds, hash_code)
+                self.add_fop_kveds_to_list(fop_kveds, code)
             exchange_data = record.xpath('EXCHANGE_DATA')[0]
             if len(exchange_data):
-                self.add_exchange_data_to_list(exchange_data, hash_code)
-            if hash_code in self.all_fops_dict:
+                self.add_exchange_data_to_list(exchange_data, code)
+            if code in self.all_fops_dict:
                 # TODO: make a decision: our algorithm when Fop changes fullname or address?
-                fop = self.update_fop_fields(hash_code, status, registration_date,
+                fop = self.update_fop_fields(code, status, registration_date,
                                              registration_info, estate_manager, termination_date,
                                              terminated_info, termination_cancel_info,
                                              contact_info, vp_dates, authority)
                 self.bulk_manager.add_update(fop)
             else:
-                fop = self.create_new_fop(hash_code, fullname, address, status, registration_date,
+                fop = self.create_new_fop(code, fullname, address, status, registration_date,
                                           registration_info, estate_manager, termination_date,
                                           terminated_info, termination_cancel_info, contact_info,
                                           vp_dates, authority)
                 self.bulk_manager.add_create(fop)
-                self.all_fops_dict[hash_code] = fop
+                self.all_fops_dict[code] = fop
         if self.bulk_manager.update_queues['business_register.Fop']:
             self.bulk_manager.commit_update(Fop, ['status', 'registration_date',
                                                   'termination_date', 'terminated_info',

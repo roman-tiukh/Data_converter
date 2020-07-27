@@ -1,16 +1,7 @@
 from rest_framework import serializers
 
-from business_register.models.rfop_models import Rfop, ExchangeDataFop
+from business_register.models.fop_models import ExchangeDataFop
 from data_ocean.serializers import StatusSerializer, AuthoritySerializer
-
-
-class RfopSerializer(serializers.Serializer):
-    state = serializers.CharField(max_length=100)
-    kved = serializers.CharField()
-
-    class Meta:
-        model = Rfop
-        fields = ('id', 'state', 'kved', 'fullname', 'address')
 
 
 class ExchangeDataFopSerializer(serializers.ModelSerializer):

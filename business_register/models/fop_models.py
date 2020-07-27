@@ -1,26 +1,13 @@
 from django.db import models
 from simple_history.models import HistoricalRecords
 
-# we can keep this model for training purpose
 from business_register.models.kved_models import Kved
-from business_register.models.ruo_models import State
 from data_ocean.models import DataOceanModel, Status, Authority, TaxpayerType
-
-
-class Rfop(DataOceanModel):
-    state = models.ForeignKey(State, on_delete=models.CASCADE)
-    kved = models.ForeignKey(Kved, on_delete=models.CASCADE)
-    fullname = models.CharField(max_length=100, null=True)
-    address = models.CharField(max_length=300, null=True)
-
-    def __str__(self):
-        return self.fullname
 
 
 class Fop(DataOceanModel):
     # default value when there is no fullname
     INVALID = "Invalid"
-    hash_code = models.CharField(max_length=600, db_index=True)
     fullname = models.CharField(max_length=100)
     address = models.CharField(max_length=500, null=True)
     status = models.ForeignKey(Status, on_delete=models.CASCADE)
@@ -33,10 +20,12 @@ class Fop(DataOceanModel):
     contact_info = models.CharField(max_length=200, null=True)
     vp_dates = models.CharField(max_length=140, null=True)
     authority = models.ForeignKey(Authority, on_delete=models.CASCADE)
+    code = models.CharField(max_length=600, db_index=True)
     history = HistoricalRecords()
 
     def __str__(self):
         return self.fullname
+
 
 class FopToKved(DataOceanModel):
     fop = models.ForeignKey(Fop, related_name='kveds', on_delete=models.CASCADE, db_index=True)
