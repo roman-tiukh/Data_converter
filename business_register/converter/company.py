@@ -1,7 +1,5 @@
 import logging
 
-from django.utils.timezone import now
-
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
