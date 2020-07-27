@@ -24,7 +24,7 @@ from data_ocean.views import RegisterView, SchemaView
 from business_register.views.company_views import CompanyView, HistoricalCompanyView
 from business_register.views.kved_views import KvedView
 from business_register.views.fop_views import FopView
-from location_register.views.ratu_viewsets import RegionView, CityView, StreetView, CityDistrictView, DistrictView
+from location_register.views.ratu_viewsets import RatuRegionView, RatuCityView, RatuStreetView, RatuCityDistrictView, RatuDistrictView
 from location_register.views.drv_viewsets import DrvBuildingViewSet
 from users.views import CustomRegisterView, CustomRegisterConfirmView
 
@@ -32,11 +32,11 @@ router = routers.DefaultRouter()
 
 router.register(r'fop', FopView, basename='fop')
 router.register(r'kved', KvedView, basename='kved')
-router.register(r'region', RegionView, basename='region')
-router.register(r'city', CityView, basename='city')
-router.register(r'street', StreetView, basename='street')
-router.register(r'citydistrict', CityDistrictView, basename='citydistrict')
-router.register(r'district', DistrictView, basename='district')
+router.register(r'region', RatuRegionView, basename='region')
+router.register(r'city', RatuCityView, basename='city')
+router.register(r'street', RatuStreetView, basename='street')
+router.register(r'citydistrict', RatuCityDistrictView, basename='citydistrict')
+router.register(r'district', RatuDistrictView, basename='district')
 router.register(r'drvbuilding', DrvBuildingViewSet, basename='drvbuilding')
 router.register(r'company', CompanyView, basename='company')
 router.register(r'register', RegisterView, basename='register')
