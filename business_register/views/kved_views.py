@@ -7,7 +7,7 @@ from business_register.serializers.kved_serializers import KvedDetailSerializer
 
 
 class KvedView(viewsets.ReadOnlyModelViewSet):
-    queryset = Kved.objects.exclude(is_valid=False)
+    queryset = Kved.objects.select_related('group', 'division', 'section').exclude(is_valid=False)
     serializer_class = KvedDetailSerializer
     filter_backends = (DjangoFilterBackend, SearchFilter)
     filterset_class = KvedFilterSet

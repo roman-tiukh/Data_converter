@@ -7,22 +7,22 @@ from location_register.models.ratu_models import RatuRegion, RatuDistrict, RatuC
 
 
 class RatuConverter(Converter):
-    API_ADDRESS_FOR_DATASET = Register.objects.get(
-        source_register_id=settings.LOCATION_RATU_SOURCE_REGISTER_ID
+    def __init__(self):
+        self.API_ADDRESS_FOR_DATASET = Register.objects.get(
+            source_register_id=settings.LOCATION_RATU_SOURCE_REGISTER_ID
         ).api_address
-    LOCAL_FILE_NAME = "ratu.xml"
-    CHUNK_SIZE = 200
+        self.LOCAL_FOLDER = settings.LOCAL_FOLDER
+        self.LOCAL_FILE_NAME = settings.LOCAL_FILE_NAME_RATU
+        self.CHUNK_SIZE = settings.CHUNK_SIZE_RATU
+        self.bulk_manager = BulkCreateUpdateManager(self.CHUNK_SIZE)
+        self.region_dict = {}  # dictionary uses for keeping whole model class objects
+        self.district_list = list()  # lists use for keeping cells content
+        self.city_list = list()
+        self.citydistrict_list = list()
+        super().__init__()
 
-    # list of models for clearing DB
-    tables = [
-        RatuRegion,
-        RatuDistrict,
-        RatuCity,
-        RatuCityDistrict,
-        RatuStreet
-    ]
+        # format record's data
 
-    # format record's data
     record = {
         'RECORD': '',
         'OBL_NAME': '',

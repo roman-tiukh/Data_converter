@@ -2,44 +2,44 @@ from rest_framework import serializers
 from location_register.models.ratu_models import RatuRegion, RatuDistrict, RatuCity, RatuCityDistrict, RatuStreet
 
 
-class RegionSerializer(serializers.ModelSerializer):
+class RatuRegionSerializer(serializers.ModelSerializer):
     class Meta:
         model = RatuRegion
         fields = ('id', 'name', 'koatuu')
 
 
-class DistrictSerializer(serializers.ModelSerializer):
-    region = serializers.CharField(max_length=30)
+class RatuDistrictSerializer(serializers.ModelSerializer):
+    region = serializers.StringRelatedField()
 
     class Meta:
         model = RatuDistrict
         fields = ('id', 'region', 'name', 'koatuu')
 
 
-class CitySerializer(serializers.ModelSerializer):
-    region = serializers.CharField(max_length=30)
-    district = serializers.CharField(max_length=100)
+class RatuCitySerializer(serializers.ModelSerializer):
+    region = serializers.StringRelatedField()
+    district = serializers.StringRelatedField()
 
     class Meta:
         model = RatuCity
         fields = ('id', 'region', 'district', 'name', 'koatuu')
 
 
-class CityDistrictSerializer(serializers.ModelSerializer):
-    region = serializers.CharField(max_length=30)
-    district = serializers.CharField(max_length=100)
-    city = serializers.CharField(max_length=100)
+class RatuCityDistrictSerializer(serializers.ModelSerializer):
+    region = serializers.StringRelatedField()
+    district = serializers.StringRelatedField()
+    city = serializers.StringRelatedField()
 
     class Meta:
         model = RatuCityDistrict
         fields = ('id', 'region', 'district', 'city', 'name', 'koatuu')
 
 
-class StreetSerializer(serializers.ModelSerializer):
-    region = serializers.CharField(max_length=30)
-    district = serializers.CharField(max_length=100)
-    city = serializers.CharField(max_length=100)
-    citydistrict = serializers.CharField(max_length=100)
+class RatuStreetSerializer(serializers.ModelSerializer):
+    region = serializers.StringRelatedField()
+    district = serializers.StringRelatedField()
+    city = serializers.StringRelatedField()
+    citydistrict = serializers.StringRelatedField()
 
     class Meta:
         model = RatuStreet

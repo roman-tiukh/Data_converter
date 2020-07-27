@@ -4,12 +4,16 @@ from location_register.models.drv_models import DrvBuilding
 
 
 class DrvBuildingSerializer(serializers.Serializer):
-
-    region = serializers.CharField()
-    district = serializers.CharField()
-    council = serializers.CharField()
-    ato = serializers.CharField()
-    street = serializers.CharField()
-    zip_code = serializers.CharField()
+    region = serializers.StringRelatedField()
+    district = serializers.StringRelatedField()
+    council = serializers.StringRelatedField()
+    ato = serializers.StringRelatedField()
+    street = serializers.StringRelatedField()
+    zip_code = serializers.StringRelatedField()
     code = serializers.CharField()
-    number = serializers.CharField() 
+    number = serializers.CharField()
+
+    class Meta:
+        model = DrvBuilding
+        fields = ('id', 'region', 'district', 'council', 'ato', 'street', 'zip_code', 'code',
+                  'number')
