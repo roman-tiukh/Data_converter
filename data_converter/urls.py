@@ -43,6 +43,7 @@ router.register(r'register', RegisterView, basename='register')
 router.register(r'historical-company', HistoricalCompanyView, basename='historical_company')
 
 urlpatterns = [
+    path('api/stats/', include('stats.urls')),
 
     path('admin/', admin.site.urls),
 
