@@ -42,6 +42,7 @@ class Company(DataOceanModel):  # constraint for not null in both name & short_n
 
     class Meta:
         verbose_name = 'компанія/організація'
+        ordering = ['id']
 
 
 class Assignee(DataOceanModel):
