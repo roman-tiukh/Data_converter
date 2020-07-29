@@ -3,12 +3,6 @@ from rest_framework import serializers
 from business_register.models.kved_models import Kved
 
 
-class KvedSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Kved
-        fields = ['id', 'code', 'name']
-
-
 class KvedDetailSerializer(serializers.ModelSerializer):
     group = serializers.StringRelatedField()
     division = serializers.StringRelatedField()
