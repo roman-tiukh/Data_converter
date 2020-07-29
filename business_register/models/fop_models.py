@@ -7,7 +7,6 @@ from data_ocean.models import DataOceanModel, Status, Authority, TaxpayerType
 
 class Fop(DataOceanModel):
     # default value when there is no fullname
-    INVALID = "Invalid"
     fullname = models.CharField("повне ім'я", max_length=100)
     address = models.CharField('адреса', max_length=500, null=True)
     status = models.ForeignKey(Status, on_delete=models.CASCADE, verbose_name='статус')
@@ -47,7 +46,7 @@ class FopToKved(DataOceanModel):
 class ExchangeDataFop(DataOceanModel):
     fop = models.ForeignKey(Fop, related_name='exchange_data', on_delete=models.CASCADE,
                             db_index=True, verbose_name='ФОП')
-    authority = models.ForeignKey(Authority, on_delete=models.CASCADE,
+    authority = models.ForeignKey(Authority, null=True, on_delete=models.CASCADE,
                                   verbose_name='орган реєстрації')
     taxpayer_type = models.ForeignKey(TaxpayerType, null=True, on_delete=models.CASCADE,
                                       verbose_name='тип платника податків')

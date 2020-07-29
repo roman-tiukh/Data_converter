@@ -20,7 +20,7 @@ class BusinessConverter(Converter):
         declaring as class fields for global access and initializing dictionaries with all kveds, /
         statuses, authorities and taxpayer_types from DB
         """
-        self.all_kveds_dict = self.put_all_objects_to_dict("name", "business_register", "Kved")
+        self.all_kveds_dict = self.put_all_kveds_to_dict()
         self.all_statuses_dict = self.put_all_objects_to_dict("name", "data_ocean", "Status")
         self.all_authorities_dict = self.put_all_objects_to_dict("name", "data_ocean", "Authority")
         self.all_taxpayer_types_dict = self.put_all_objects_to_dict("name", "data_ocean", "TaxpayerType")
@@ -28,19 +28,22 @@ class BusinessConverter(Converter):
     def find_edrpou(self, string_to_check):
         return len(string_to_check) == 8 and string_to_check.isdigit()
 
+    def put_all_kveds_to_dict(self):
+        return {kved.code+kved.name: kved for kved in Kved.objects.all()}
+
     def put_all_objects_to_dict(self, key_field, app_name, model_name):
         return {getattr(obj, key_field): obj for obj in apps.get_model(app_name,
                                                                        model_name).objects.all()}
 
-    def get_kved_from_DB(self, kved_name_from_record):
+    def get_kved_from_DB(self, kved_code_from_record, kved_name_from_record):
         """
         retreiving kved from DB
         """
-        kved_name = kved_name_from_record.lower()
-        if kved_name in self.all_kveds_dict:
-            return self.all_kveds_dict[kved_name]
+        kved_key = kved_code_from_record + kved_name_from_record.lower()
+        if kved_key in self.all_kveds_dict:
+            return self.all_kveds_dict[kved_key]
         logger.info('Kved name is not valid: ' + kved_name_from_record)
-        return Kved.objects.get(name='not_valid')
+        return self.all_kveds_dict['not_validnot_valid']
 
     def save_or_get_status(self, status_from_record):
         """

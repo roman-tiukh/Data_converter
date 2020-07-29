@@ -426,27 +426,38 @@ class CompanyConverter(BusinessConverter):
             else:
                 update_fields = []
                 if company.name != name:
+                    company.name = name
                     update_fields.append('name')
                 if company.short_name != short_name:
+                    company.short_name = short_name
                     update_fields.append('short_name')
                 if company.company_type != company_type:
+                    company.company_type = company_type
                     update_fields.append('company_type')
                 if company.authorized_capital != authorized_capital:
+                    company.authorized_capital = authorized_capital
                     update_fields.append('authorized_capital')
                 if company.address != address:
+                    company.address = address
                     update_fields.append('address')
                 if company.status != status:
+                    company.status = status
                     update_fields.append('status')
                 if company.bylaw != bylaw:
+                    company.bylaw = bylaw
                     update_fields.append('bylaw')
                 if company.registration_date and \
                         str(company.registration_date) != registration_date:
+                    company.registration_date = registration_date
                     update_fields.append('registration_date')
                 if company.registration_info != registration_info:
+                    company.registration_info = registration_info
                     update_fields.append('registration_info')
                 if company.contact_info != contact_info:
+                    company.contact_info = contact_info
                     update_fields.append('contact_info')
                 if company.authority != authority:
+                    company.authority = authority
                     update_fields.append('authority')
                 if len(update_fields):
                     company.save(update_fields=update_fields)
