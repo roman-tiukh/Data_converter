@@ -13,7 +13,7 @@ from business_register.models.company_models import (
     CompanyToPredecessor, CompanyType, ExchangeDataCompany, Founder, Predecessor,
     Signer, TerminationStarted
 )
-from data_ocean.converter import BulkCreateUpdateManager
+from data_ocean.converter import BulkCreateManager
 from data_ocean.utils import cut_first_word, format_date_to_yymmdd, get_first_word
 
 
@@ -24,8 +24,8 @@ class CompanyConverter(BusinessConverter):
         self.LOCAL_FOLDER = settings.LOCAL_FOLDER
         self.CHUNK_SIZE = settings.CHUNK_SIZE_UO
         self.RECORD_TAG = 'SUBJECT'
-        self.bulk_manager = BulkCreateUpdateManager(self.CHUNK_SIZE * 5)
-        self.branch_bulk_manager = BulkCreateUpdateManager(self.CHUNK_SIZE * 5)
+        self.bulk_manager = BulkCreateManager(self.CHUNK_SIZE * 5)
+        self.branch_bulk_manager = BulkCreateManager(self.CHUNK_SIZE * 5)
         self.all_bylaw_dict = self.put_all_objects_to_dict("name", "business_register", "Bylaw")
         self.all_company_type_dict = self.put_all_objects_to_dict('name', "business_register",
                                                                   "CompanyType")
@@ -140,7 +140,7 @@ class CompanyConverter(BusinessConverter):
                 #                        address=address)
                 founder = Founder(company=company, info=info, name=name, edrpou=edrpou,
                                   equity=equity, address=address)
-                self.bulk_manager.add_create(founder)
+                self.bulk_manager.add(founder)
         if len(already_stored_founders):
             for outdated_founder in already_stored_founders:
                 outdated_founder.soft_delete()
@@ -174,7 +174,7 @@ class CompanyConverter(BusinessConverter):
         company_detail.termination_cancel_info = termination_cancel_info
         company_detail.vp_dates = vp_dates
         company_detail.hash_code = code
-        self.bulk_manager.add_create(company_detail)
+        self.bulk_manager.add(company_detail)
 
     def add_assignees(self, assignees_from_record, code):
         for item in assignees_from_record:
@@ -182,7 +182,7 @@ class CompanyConverter(BusinessConverter):
             assignee.name = item.xpath('NAME')[0].text.lower()
             assignee.edrpou = item.xpath('CODE')[0].text
             assignee.hash_code = code
-            self.bulk_manager.add_create(assignee)
+            self.bulk_manager.add(assignee)
 
     def add_bancruptcy_readjustment(self, record, code):
         bancruptcy_readjustment = BancruptcyReadjustment()
@@ -198,7 +198,7 @@ class CompanyConverter(BusinessConverter):
             if head_name:
                 bancruptcy_readjustment.head_name = head_name
             bancruptcy_readjustment.hash_code = code
-            self.bulk_manager.add_create(bancruptcy_readjustment)
+            self.bulk_manager.add(bancruptcy_readjustment)
 
     def add_company_to_kved(self, kveds_from_record, code):
         for item in kveds_from_record:
@@ -211,7 +211,7 @@ class CompanyConverter(BusinessConverter):
             company_to_kved.kved = self.get_kved_from_DB(kved_name)
             company_to_kved.primary_kved = item.xpath('PRIMARY')[0].text == "так"
             company_to_kved.hash_code = code
-            self.bulk_manager.add_create(company_to_kved)
+            self.bulk_manager.add(company_to_kved)
 
     def add_company_to_kved_branch(self, kveds_from_record, code):
         for item in kveds_from_record:
@@ -224,7 +224,7 @@ class CompanyConverter(BusinessConverter):
             company_to_kved.kved = self.get_kved_from_DB(kved_name)
             company_to_kved.primary_kved = item.xpath('PRIMARY')[0].text == "так"
             company_to_kved.hash_code = code
-            self.branch_bulk_manager.add_create(company_to_kved)
+            self.branch_bulk_manager.add(company_to_kved)
 
     def add_exchange_data(self, exchange_data, code):
         for item in exchange_data:
@@ -244,7 +244,7 @@ class CompanyConverter(BusinessConverter):
                         item.xpath('END_DATE')[0].text) or None
                 exchange_answer.end_number = item.xpath('END_NUM')[0].text
                 exchange_answer.hash_code = code
-                self.bulk_manager.add_create(exchange_answer)
+                self.bulk_manager.add(exchange_answer)
 
     def add_exchange_data_branch(self, exchange_data, name, code):
         if len(exchange_data) > 0:
@@ -264,7 +264,7 @@ class CompanyConverter(BusinessConverter):
                             item.xpath('END_DATE')[0].text) or None
                     exchange_answer.end_number = item.xpath('END_NUM')[0].text
                     exchange_answer.hash_code = self.create_hash_code(name, code)
-                    self.branch_bulk_manager.add_create(exchange_answer)
+                    self.branch_bulk_manager.add(exchange_answer)
 
     def add_company_to_predecessors(self, predecessors_from_record, code):
         for item in predecessors_from_record:
@@ -272,14 +272,14 @@ class CompanyConverter(BusinessConverter):
                 company_to_predecessor = CompanyToPredecessor()
                 company_to_predecessor.predecessor = self.save_or_get_predecessor(item)
                 company_to_predecessor.hash_code = code
-                self.bulk_manager.add_create(company_to_predecessor)
+                self.bulk_manager.add(company_to_predecessor)
 
     def add_signers(self, signers_from_record, code):
         for item in signers_from_record:
             signer = Signer()
             signer.name = item.text.lower()
             signer.hash_code = code
-            self.bulk_manager.add_create(signer)
+            self.bulk_manager.add(signer)
 
     def add_termination_started(self, record, code):
         if record.xpath('TERMINATION_STARTED_INFO/OP_DATE'):
@@ -298,7 +298,7 @@ class CompanyConverter(BusinessConverter):
                 termination_started.creditor_reg_end_date = format_date_to_yymmdd(
                     record.xpath('TERMINATION_STARTED_INFO/CREDITOR_REQ_END_DATE')[0].text) or '01.01.1990'
             termination_started.hash_code = code
-            self.bulk_manager.add_create(termination_started)
+            self.bulk_manager.add(termination_started)
 
     def add_branches(self, record, edrpou):
         for item in record.xpath('BRANCHES')[0]:
@@ -473,7 +473,7 @@ class CompanyConverter(BusinessConverter):
         # if len(self.bulk_manager.create_queues['business_register.Company']):
         #     self.bulk_manager.commit_create(Company)
         if len(self.bulk_manager.create_queues['business_register.Founder']):
-            self.bulk_manager.commit_create(Founder)
+            self.bulk_manager.commit(Founder)
         self.bulk_manager.create_queues['business_register.Founder'] = []
 
         # for company in self.bulk_manager.create_queues['business_register.Company']:

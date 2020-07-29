@@ -6,7 +6,6 @@ from data_ocean.models import DataOceanModel, Status, Authority, TaxpayerType
 
 
 class Fop(DataOceanModel):
-    # default value when there is no fullname
     fullname = models.CharField("повне ім'я", max_length=100)
     address = models.CharField('адреса', max_length=500, null=True)
     status = models.ForeignKey(Status, on_delete=models.CASCADE, verbose_name='статус')
@@ -17,7 +16,7 @@ class Fop(DataOceanModel):
     terminated_info = models.CharField(max_length=300, null=True)
     termination_cancel_info = models.CharField(max_length=275, null=True)
     contact_info = models.CharField('контакти', max_length=200, null=True)
-    vp_dates = models.CharField(max_length=140, null=True)
+    vp_dates = models.CharField(max_length=240, null=True)
     authority = models.ForeignKey(Authority, on_delete=models.CASCADE,
                                   verbose_name='орган реєстрації')
     code = models.CharField(max_length=600, db_index=True)

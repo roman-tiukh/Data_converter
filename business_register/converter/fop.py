@@ -6,7 +6,7 @@ from business_register.converter.business_converter import BusinessConverter
 from business_register.models.fop_models import (ExchangeDataFop, Fop,
                                                  FopToKved)
 from django.conf import settings
-from data_ocean.converter import BulkCreateUpdateManager
+from data_ocean.converter import BulkCreateManager
 from data_ocean.models import Register
 from data_ocean.utils import get_first_word, cut_first_word, format_date_to_yymmdd
 
@@ -20,7 +20,7 @@ class FopConverter(BusinessConverter):
         self.LOCAL_FILE_NAME = settings.LOCAL_FILE_NAME_FOP
         self.CHUNK_SIZE = settings.CHUNK_SIZE_FOP
         self.RECORD_TAG = 'SUBJECT'
-        self.bulk_manager = BulkCreateUpdateManager(self.CHUNK_SIZE * 100)
+        self.bulk_manager = BulkCreateManager(self.CHUNK_SIZE * 5)
         self.new_fops_foptokveds = {}
         self.new_fops_exchange_data = {}
         super().__init__()
@@ -78,7 +78,7 @@ class FopConverter(BusinessConverter):
                         break
             if not alredy_stored:
                 fop_to_kved = FopToKved(fop=fop, kved=kved, primary_kved=is_primary)
-                self.bulk_manager.add_create(fop_to_kved)
+                self.bulk_manager.add(fop_to_kved)
         if len(already_stored_foptokveds):
             for outdated_foptokved in already_stored_foptokveds:
                 outdated_foptokved.soft_delete()
@@ -148,7 +148,7 @@ class FopConverter(BusinessConverter):
                                                 taxpayer_type=taxpayer_type,
                                                 start_date=start_date, start_number=start_number,
                                                 end_date=end_date, end_number=end_number)
-                self.bulk_manager.add_create(exchange_data)
+                self.bulk_manager.add(exchange_data)
 
     def save_to_db(self, records):
         for record in records:
@@ -199,7 +199,7 @@ class FopConverter(BusinessConverter):
                     vp_dates=vp_dates,
                     authority=authority,
                     code=code)
-                self.bulk_manager.add_create(fop)
+                self.bulk_manager.add(fop)
                 if len(fop_kveds):
                     self.add_fop_kveds_to_dict(fop_kveds, code)
                 if len(exchange_data):
@@ -244,28 +244,27 @@ class FopConverter(BusinessConverter):
                 if len(exchange_data):
                     self.update_fop_exchange_data(exchange_data, fop)
         if len(self.bulk_manager.create_queues['business_register.Fop']):
-            self.bulk_manager.commit_create(Fop)
-        for fop in self.bulk_manager.create_queues['business_register.Fop']:
+            self.bulk_manager.commit(Fop)
+        stored_new_fops = self.bulk_manager.stored_objects['business_register.Fop']
+        for fop in stored_new_fops:
             if fop.code not in self.new_fops_foptokveds:
                 continue
             foptokveds = self.new_fops_foptokveds[fop.code]
             for foptokved in foptokveds:
                 foptokved.fop = fop
-                self.bulk_manager.add_create(foptokved)
+                self.bulk_manager.add(foptokved)
         self.new_fops_foptokveds = {}
-        if len(self.bulk_manager.create_queues['business_register.FopToKved']):
-            self.bulk_manager.commit_create(FopToKved)
-        self.bulk_manager.create_queues['business_register.FopToKved'] = []
-        for fop in self.bulk_manager.create_queues['business_register.Fop']:
+        for fop in stored_new_fops:
             if fop.code not in self.new_fops_exchange_data:
                 continue
             fop_exchangedata = self.new_fops_exchange_data[fop.code]
             for exchangedata in fop_exchangedata:
                 exchangedata.fop = fop
-                self.bulk_manager.add_create(exchangedata)
+                self.bulk_manager.add(exchangedata)
         self.new_fops_exchange_data = {}
-        if len(self.bulk_manager.create_queues['business_register.ExchangeDataFop']):
-            self.bulk_manager.commit_create(ExchangeDataFop)
-        self.bulk_manager.create_queues['business_register.Fop'] = []
+        self.bulk_manager.done()
+        stored_new_fops = []
+        self.bulk_manager.stored_objects['business_register.FopToKved'] = []
+        self.bulk_manager.stored_objects['business_register.ExchangeDataFop'] = []
 
     print("For storing run FopConverter().process_full()")

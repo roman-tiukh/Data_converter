@@ -1,6 +1,6 @@
 from django.conf import settings
 
-from data_ocean.converter import Converter, BulkCreateUpdateManager
+from data_ocean.converter import Converter, BulkCreateManager
 from data_ocean.models import Register
 from data_ocean.utils import clean_name, change_to_full_name
 from location_register.models.ratu_models import RatuRegion, RatuDistrict, RatuCity, RatuCityDistrict, RatuStreet
@@ -14,7 +14,7 @@ class RatuConverter(Converter):
         self.LOCAL_FOLDER = settings.LOCAL_FOLDER
         self.LOCAL_FILE_NAME = settings.LOCAL_FILE_NAME_RATU
         self.CHUNK_SIZE = settings.CHUNK_SIZE_RATU
-        self.bulk_manager = BulkCreateUpdateManager(self.CHUNK_SIZE)
+        self.bulk_manager = BulkCreateManager(self.CHUNK_SIZE)
         self.region_dict = {}  # dictionary uses for keeping whole model class objects
         self.district_list = list()  # lists use for keeping cells content
         self.city_list = list()
@@ -44,7 +44,7 @@ class RatuConverter(Converter):
     city_list = list()
     citydistrict_list = list()
 
-    bulk_manager = BulkCreateUpdateManager(CHUNK_SIZE)
+    bulk_manager = BulkCreateManager(CHUNK_SIZE)
 
     # writing entry to db
     def save_to_db(self, record):
@@ -144,7 +144,7 @@ class RatuConverter(Converter):
                 citydistrict=citydistrict,
                 name=record['STREET_NAME'].lower()
             )
-            self.bulk_manager.add_create(street)
+            self.bulk_manager.add(street)
 
     print(
         'Ratu already imported.',

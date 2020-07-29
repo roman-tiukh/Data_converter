@@ -55,6 +55,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'stats.middleware.ApiUsageMiddleware'
 ]
 
 
@@ -190,3 +191,10 @@ REST_AUTH_SERIALIZERS = {
     'USER_DETAILS_SERIALIZER': 'users.serializers.DataOceanUserSerializer',
     'PASSWORD_RESET_SERIALIZER': 'users.serializers.CustomPasswordResetSerializer',
 }
+
+STATS_API_USAGE_REFERER_BLACKLIST = [
+    'dataocean.us',
+    'ipa.dataocean.us',
+    'dp.dataocean.us',
+    'localhost',
+]
