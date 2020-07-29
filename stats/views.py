@@ -1,6 +1,8 @@
 from datetime import timedelta, datetime
 from django.db.models import Count
 from django.utils import timezone
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from rest_framework import generics
 from rest_framework import views
 from rest_framework.response import Response
@@ -49,3 +51,7 @@ class TopKvedsView(generics.ListAPIView):
         count_kved=Count('kved')
     ).order_by('-count_kved')[:10])
     serializer_class = TopKvedSerializer
+
+    @method_decorator(cache_page(60 * 60 * 24))
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)

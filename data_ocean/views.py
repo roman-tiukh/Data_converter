@@ -47,7 +47,8 @@ class RegisterView(viewsets.ReadOnlyModelViewSet):
     filterset_class = RegisterFilter
     filter_backends = [DjangoFilterBackend, SearchFilter]
     search_fields = ['name', 'source_register_id']
-   
+
+
 class CachedViewMixin:
     @method_decorator(cache_page(60*15))
     def dispatch(self, *args, **kwargs):
