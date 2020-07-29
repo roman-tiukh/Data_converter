@@ -51,6 +51,7 @@ class TopKvedsView(generics.ListAPIView):
         count_kved=Count('kved')
     ).order_by('-count_kved')[:10])
     serializer_class = TopKvedSerializer
+    pagination_class = None
 
     @method_decorator(cache_page(60 * 60 * 24))
     def get(self, request, *args, **kwargs):
