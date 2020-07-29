@@ -209,8 +209,8 @@ class Converter:
         records = etree.Element('RECORDS')
         for _, elem in etree.iterparse(self.LOCAL_FOLDER + self.LOCAL_FILE_NAME, tag=self.RECORD_TAG):
             if len(records) < self.CHUNK_SIZE:
-                for text in elem.iter():
-                    print('\t%28s\t%s' % (text.tag, text.text))
+                # for text in elem.iter():
+                #     print('\t%28s\t%s' % (text.tag, text.text))
                 records.append(elem)
                 i = i + 1
                 print(i,
@@ -223,7 +223,7 @@ class Converter:
     print('Converter has imported.')
 
 
-class BulkCreateUpdateManager(object):  # https://www.caktusgroup.com/blog/2019/01/09/django-bulk-inserts/
+class BulkCreateManager(object):  # https://www.caktusgroup.com/blog/2019/01/09/django-bulk-inserts/
     """
     This helper class keeps track of ORM objects to be created for multiple
     model classes, and automatically creates those objects with `bulk_create`
@@ -233,50 +233,28 @@ class BulkCreateUpdateManager(object):  # https://www.caktusgroup.com/blog/2019/
     call `done()` to ensure the final set of objects is created for all models.
     """
 
-    def __init__(self, chunk_size=200):
+    def __init__(self, chunk_size):
         self.create_queues = defaultdict(list)
-        self.update_queues = defaultdict(list)
+        self.stored_objects = defaultdict(list)
         self.chunk_size = chunk_size
-        self.create_first = False
-        self.update_first = False
 
-    def commit_create(self, model_class):
+    def commit(self, model_class):
         model_key = model_class._meta.label
         model_class.objects.bulk_create(self.create_queues[model_key])
-        self.create_first = True
+        for stored_object in self.create_queues[model_key]:
+            self.stored_objects[model_key].append(stored_object)
+        self.create_queues[model_key] = []
 
-    def commit_update(self, model_class, fields):
-        model_key = model_class._meta.label
-        model_class.objects.bulk_update(self.update_queues[model_key], fields)
-        self.update_first = True
-
-    def add_create(self, obj):
+    def add(self, obj):
         """
         Add an object to the queue to be created, and call bulk_create if we
         have enough objs.
         """
         model_class = type(obj)
         model_key = model_class._meta.label
-        if self.create_first:
-            self.create_queues[model_key] = []
-            self.create_first = False
         self.create_queues[model_key].append(obj)
         if len(self.create_queues[model_key]) >= self.chunk_size:
-            self.commit_create(model_class)
-
-    def add_update(self, obj):
-        """
-        Add an object to the queue to be updated, and call bulk_update if we
-        have enough objs.
-        """
-        model_class = type(obj)
-        model_key = model_class._meta.label
-        if self.update_first:
-            self.update_queues[model_key] = []
-            self.update_first = False
-        self.update_queues[model_key].append(obj)
-        if len(self.update_queues[model_key]) >= self.chunk_size:
-            self.commit_update(model_class)
+            self.commit(model_class)
 
     def done(self):
         """
@@ -285,4 +263,4 @@ class BulkCreateUpdateManager(object):  # https://www.caktusgroup.com/blog/2019/
         """
         for model_name, objs in self.create_queues.items():
             if len(objs) > 0:
-                self._commit(apps.get_model(model_name))
+                self.commit(apps.get_model(model_name))
