@@ -19,7 +19,6 @@ class Converter:
     DOWNLOAD_FOLDER = "download/"  # folder to downloaded files
     URLS_DICT = {}  # control remote dataset files update
 
-
     def load_json(self, json_file):
         with open(json_file) as file:
             return json.load(file)
@@ -210,8 +209,8 @@ class Converter:
         records = etree.Element('RECORDS')
         for _, elem in etree.iterparse(self.LOCAL_FOLDER + self.LOCAL_FILE_NAME, tag=self.RECORD_TAG):
             if len(records) < self.CHUNK_SIZE:
-                # for text in elem.iter():
-                #     print('\t%28s\t%s' % (text.tag, text.text))
+                for text in elem.iter():
+                    print('\t%28s\t%s' % (text.tag, text.text))
                 records.append(elem)
                 i = i + 1
                 print(i,
