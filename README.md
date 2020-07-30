@@ -44,10 +44,11 @@ INSTALL ON UBUNTU 18.04 (DEV)
 ###### Create your settings_local.py
 - Copy **`data_converter/settings_local.base.py`** to **`data_converter/settings_local.py`**
 
-###### Setup your settings in settings_local.py
-- Setup your settings in DATABASES section 
-- Setup your settings in MAIL section (if use SMTP)
-- ...
+###### Setup your settings in settings_local.py 
+- Set your credentials from PostgreSQL in DATABASES section
+  - "NAME": "your_db_name",
+  - "USER": "your_db_user",
+  - "PASSWORD": "your_db_password",
 
 ###### Migrate
 - (.venv)$ ./manage.py migrate
@@ -65,12 +66,12 @@ INSTALL ON UBUNTU 18.04 (DEV)
 ###### Run server
 - (.venv)$ ./manage.py runserver 127.0.0.1:8000
 
+These were the minimum requirements to get the project up and running quickly.
+
+The rest of the settings are intended for connecting additional features.
 
 -----------------------------------------------------------------------------------------------------
 User API endpoint
------------------------------------------------------------------------------------------------------
-- Social Login: `/api/accounts/login/`
-- Social Logout: `/api/accounts/logout/`
 -----------------------------------------------------------------------------------------------------
 - Registration (with email send): `/api/rest-auth/registration/`
 - Registration Confirm: `/api/rest-auth/registration-confirm/<int:user_id>/<str:confirm_code>/`
@@ -83,70 +84,41 @@ User API endpoint
 - User list: `/api/users/`
 - User Details: `/api/rest-auth/user/`
 -----------------------------------------------------------------------------------------------------
+This user API endpoint works after "Setup Google Login" 
+- Social Login: `/api/accounts/login/`
+- Social Logout: `/api/accounts/logout/`
+-----------------------------------------------------------------------------------------------------
 
 -----------------------------------------------------------------------------------------------------
-Setup Redis
+Local settings options  
 -----------------------------------------------------------------------------------------------------
-###### Install Redis
-- $ sudo apt update
-- $ sudo apt install redis-server
 
-###### Declare an init system for running Redis as a service
-- $ sudo nano /etc/redis/redis.conf
-  - change "supervised no" to "supervised systemd", save & exit
+- CANDIDATE_EXPIRE_MINUTES
+  - When registering a user, the candidate receives an email with a confirmation link. This variable sets the expiration time for this link. The default is 5 minutes.
 
-###### Restart service & Check Status
-- $ sudo systemctl restart redis.service
-- $ sudo systemctl status redis
+- SEND_MAIL_BY_POSTMAN
+  - When registering a user or reset password, an email is sent. If this variable is TRUE, the email will be sent via POSTMAN, if FALSE, the EMAIL_BACKEND variable is used. The default is FALSE.
+- POSTMAN_TOKEN
+  - your Authentication token from https://postman.org.ua/
 
-If you prefer to start Redis manually each time the server boots, use the following command:
-  - $ sudo systemctl disable redis
+- EMAIL_BACKEND (https://docs.djangoproject.com/en/3.0/topics/email/#email-backends)
+  - Django comes with several backends for sending email. In this project the default is console.EmailBackend (writes to stdout). 
+  - If you want to send real letters, you need to use class smtp.EmailBackend and configure the SMTP server.
 
-###### Connect to the server using a client and test
-- $ redis-cli
-- 127.0.0.1:6379> ping
-  - PONG
-- 127.0.0.1:6379> set test "It's working!"
-  - OK
-- 127.0.0.1:6379> get test
-  - "It's working!"
-- 127.0.0.1:6379> exit
-- $ sudo systemctl restart redis
-- $ redis-cli
-- 127.0.0.1:6379> get test
-  - "It's working!"
-- 127.0.0.1:6379> exit
+- CORS_ORIGIN_WHITELIST (https://github.com/adamchainz/django-cors-headers)
+  - A list of origins that are authorized to make cross-site HTTP requests
 
-###### Bind to localhost
-- $ sudo nano /etc/redis/redis.conf
-  - uncomment string "bind 127.0.0.1 ::1", save & exit
-- $ sudo systemctl restart redis
-- $ sudo netstat -lnp | grep redis
-  - tcp 0 0 127.0.0.1:6379 0.0.0.0:* LISTEN 14222/redis-server  
-  - tcp6 0 0 ::1:6379 :::* LISTEN 14222/redis-server  
+- CSRF_TRUSTED_ORIGINS (https://docs.djangoproject.com/en/3.0/ref/settings/#csrf-trusted-origins)
+  - A list of hosts which are trusted origins for unsafe requests, e.g. POST
 
-###### Password setup
-- $ sudo nano /etc/redis/redis.conf
-  - uncomment string "requirepass foobared" and set your password instead "foobared", save & exit
-- $ sudo systemctl restart redis.service
+- CACHES (https://docs.djangoproject.com/en/3.0/topics/cache/)
+  - To cache something is to save the result of an expensive calculation so that you don’t have to perform the calculation next time. The default is Dummy caching (for development, implements the cache interface without doing anything).
+  - If you want to use real caching, follow the directions in the "Setup Redis" section, comment out the "Dummy Cache for developing" block, uncomment the "REDIS cache configs" block and set your_redis_password.
 
-###### Auth test
-- $ redis-cli
-- 127.0.0.1:6379> set key1 10
-  - (error) NOAUTH Authentication required.
-- 127.0.0.1:6379> auth your_redis_password
-  - OK
-- 127.0.0.1:6379> set key1 10
-  - OK
-- 127.0.0.1:6379> get key1
-  - "10"
-- 127.0.0.1:6379> exit
-
-###### Set CACHES section in settings_local.base.py
-- uncomment "REDIS cache configs" block, set your redis_password
-- comment "Dummy Cache for developing" block
-- restart Django project
-
+To monitor errors with logging and receiving errors by email, follow the directions in the "SENTRY" section, uncomment and configure these 3 blocks:
+- sentry_sdk.init
+- RAVEN_CONFIG (https://raven.readthedocs.io/en/stable/integrations/django.html)
+- LOGGING (https://docs.djangoproject.com/en/3.0/topics/logging/)
 
 -----------------------------------------------------------------------------------------------------
 Setup Google Login
@@ -228,3 +200,88 @@ Add social applications
 
 **Check Google Login result**
 - http://127.0.0.1:8000/api/accounts/login/
+
+-----------------------------------------------------------------------------------------------------
+Setup Redis
+-----------------------------------------------------------------------------------------------------
+###### Install Redis
+- $ sudo apt update
+- $ sudo apt install redis-server
+
+###### Declare an init system for running Redis as a service
+- $ sudo nano /etc/redis/redis.conf
+  - change "supervised no" to "supervised systemd", save & exit
+
+###### Restart service & Check Status
+- $ sudo systemctl restart redis.service
+- $ sudo systemctl status redis
+
+If you prefer to start Redis manually each time the server boots, use the following command:
+  - $ sudo systemctl disable redis
+
+###### Connect to the server using a client and test
+- $ redis-cli
+- 127.0.0.1:6379> ping
+  - PONG
+- 127.0.0.1:6379> set test "It's working!"
+  - OK
+- 127.0.0.1:6379> get test
+  - "It's working!"
+- 127.0.0.1:6379> exit
+- $ sudo systemctl restart redis
+- $ redis-cli
+- 127.0.0.1:6379> get test
+  - "It's working!"
+- 127.0.0.1:6379> exit
+
+###### Bind to localhost
+- $ sudo nano /etc/redis/redis.conf
+  - uncomment string "bind 127.0.0.1 ::1", save & exit
+- $ sudo systemctl restart redis
+- $ sudo netstat -lnp | grep redis
+  - tcp 0 0 127.0.0.1:6379 0.0.0.0:* LISTEN 14222/redis-server  
+  - tcp6 0 0 ::1:6379 :::* LISTEN 14222/redis-server  
+
+###### Password setup
+- $ sudo nano /etc/redis/redis.conf
+  - uncomment string "requirepass foobared" and set your_redis_password instead "foobared", save & exit
+- $ sudo systemctl restart redis.service
+
+###### Auth test
+- $ redis-cli
+- 127.0.0.1:6379> set key1 10
+  - (error) NOAUTH Authentication required.
+- 127.0.0.1:6379> auth your_redis_password
+  - OK
+- 127.0.0.1:6379> set key1 10
+  - OK
+- 127.0.0.1:6379> get key1
+  - "10"
+- 127.0.0.1:6379> exit
+
+###### Set CACHES to Redis in settings_local.py
+- uncomment "REDIS cache configs" block, set your_redis_password
+- comment "Dummy Cache for developing" block
+- restart Django project
+
+-----------------------------------------------------------------------------------------------------
+POSTMAN
+-----------------------------------------------------------------------------------------------------
+Postman is information SAAS-system for guaranteed message send.
+- Register on the POSTMAN official site: 
+  - https://postman.org.ua/
+- Create new project and get your Authentication token
+
+-----------------------------------------------------------------------------------------------------
+SENTRY
+-----------------------------------------------------------------------------------------------------
+Sentry is error monitoring that helps software teams discover, triage, and prioritize errors in real-time.
+- Register on the Sentry official site 
+  - https://sentry.io/
+- Create new project and get your_DSN
+
+-----------------------------------------------------------------------------------------------------
+Debugging in VSCode
+-----------------------------------------------------------------------------------------------------
+Official documentation:
+- https://code.visualstudio.com/docs/editor/debugging

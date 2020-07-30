@@ -124,12 +124,12 @@ UO_CHUNK_SIZE = 100
 CHUNK_SIZE_UO = 100
 
 # celery settings
-CELERY_BROKER_URL = 'redis://localhost:6379/2' # redis://:password@hostname:port/db_number
-CELERY_BROKER_TRANSPORT_OPTIONS = {'visibility_timeout': 3600}
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/2'
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
+# CELERY_BROKER_URL = 'redis://localhost:6379/2' # redis://:password@hostname:port/db_number
+# CELERY_BROKER_TRANSPORT_OPTIONS = {'visibility_timeout': 3600}
+# CELERY_RESULT_BACKEND = 'redis://localhost:6379/2'
+# CELERY_ACCEPT_CONTENT = ['json']
+# CELERY_TASK_SERIALIZER = 'json'
+# CELERY_RESULT_SERIALIZER = 'json'
 
 # use CELERY_BEAT_SHEDULE to set periodic tasks in code, without admin aplication/ periodic tasks
 # CELERY_BEAT_SCHEDULE = {
@@ -144,76 +144,76 @@ CELERY_RESULT_SERIALIZER = 'json'
 # }
 
 # sentry configarution
-sentry_sdk.init(
-    # create your sentry account and add your own dsn <account_dsn>
-    # dsn.example="https://d47c87c1d55f4f30ba48ace8394efb0f@o411563.ingest.sentry.io/5286958"
-    dsn="<account_dsn>",
-    integrations=[DjangoIntegration(), CeleryIntegration(), RedisIntegration()],
+# sentry_sdk.init(
+#     # create your sentry account and add your own dsn <account_dsn>
+#     # dsn.example="https://d47c87c1d55f4f30ba48ace8394efb0f@o411563.ingest.sentry.io/5286958"
+#     dsn="<account_dsn>",
+#     integrations=[DjangoIntegration(), CeleryIntegration(), RedisIntegration()],
+#
+#     # If you wish to associate users to errors (assuming you are using
+#     # django.contrib.auth) you may enable sending PII data.
+#     send_default_pii=False
+# )
 
-    # If you wish to associate users to errors (assuming you are using
-    # django.contrib.auth) you may enable sending PII data.
-    send_default_pii=False
-)
-
-RAVEN_CONFIG = {
-    # format 'dsn':'https://<public_key>@sentry.io/<project_id>
-    "dsn":"<account_dsn>" # create your sentry account and add your own dsn
-}
+# RAVEN_CONFIG = {
+#     # format 'dsn':'https://<public_key>@sentry.io/<project_id>
+#     "dsn":"<account_dsn>" # create your sentry account and add your own dsn
+# }
 
 #Settings to enable custome logging
 DEBUG_PROPAGATE_EXCEPTIONS = True
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
-            'style': '{',
-        }
-    },
-    'filters': {
-        'require_debug_true': {
-            '()': 'django.utils.log.RequireDebugTrue',
-        },
-        'require_debug_false': {
-            '()': 'django.utils.log.RequireDebugFalse',
-        },
-    },
-    'handlers': {
-        'console': {
-            'level': 'INFO',
-            'class': 'logging.StreamHandler',
-            'filters': ['require_debug_true'],
-            'formatter': 'verbose',
-        },
-        'production_logfile': {
-            'level': 'WARNING',
-            'filters': ['require_debug_false'],
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': 'django_production.log',
-            'maxBytes' : 1024*1024*100, # 100MB
-            'backupCount' : 5,
-            'formatter': 'verbose',
-        },
-        'sentry': {
-            'level': 'ERROR',
-            'class': 'raven.contrib.django.raven_compat.handlers.SentryHandler',
-        }
-    },
-    'loggers': {
-        'django.request': {
-            'handlers': ['production_logfile'],
-            'level': 'WARNING',
-            'propagate': False,
-        },
-        'location_register': {
-            'handlers': ['console', 'production_logfile', 'sentry'],
-            'level': 'INFO',
-        },
-        'business_register': {
-            'handlers': ['console', 'production_logfile', 'sentry'],
-            'level': 'INFO',
-        },
-    }
-}
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'formatters': {
+#         'verbose': {
+#             'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+#             'style': '{',
+#         }
+#     },
+#     'filters': {
+#         'require_debug_true': {
+#             '()': 'django.utils.log.RequireDebugTrue',
+#         },
+#         'require_debug_false': {
+#             '()': 'django.utils.log.RequireDebugFalse',
+#         },
+#     },
+#     'handlers': {
+#         'console': {
+#             'level': 'INFO',
+#             'class': 'logging.StreamHandler',
+#             'filters': ['require_debug_true'],
+#             'formatter': 'verbose',
+#         },
+#         'production_logfile': {
+#             'level': 'WARNING',
+#             'filters': ['require_debug_false'],
+#             'class': 'logging.handlers.RotatingFileHandler',
+#             'filename': 'django_production.log',
+#             'maxBytes' : 1024*1024*100, # 100MB
+#             'backupCount' : 5,
+#             'formatter': 'verbose',
+#         },
+#         'sentry': {
+#             'level': 'ERROR',
+#             'class': 'raven.contrib.django.raven_compat.handlers.SentryHandler',
+#         }
+#     },
+#     'loggers': {
+#         'django.request': {
+#             'handlers': ['production_logfile'],
+#             'level': 'WARNING',
+#             'propagate': False,
+#         },
+#         'location_register': {
+#             'handlers': ['console', 'production_logfile', 'sentry'],
+#             'level': 'INFO',
+#         },
+#         'business_register': {
+#             'handlers': ['console', 'production_logfile', 'sentry'],
+#             'level': 'INFO',
+#         },
+#     }
+# }
