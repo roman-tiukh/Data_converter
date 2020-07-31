@@ -156,6 +156,9 @@ class FopConverter(BusinessConverter):
             if not fullname:
                 logger.warning(f'ФОП без прізвища: {record}')
                 continue
+            if len(fullname) > 100:
+                logger.warning(f'ФОП із задовгим прізвищем: {record}')
+                continue
             if fullname:
                 fullname = fullname.lower()
             address = record.xpath('ADDRESS')[0].text

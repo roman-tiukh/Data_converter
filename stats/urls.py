@@ -1,7 +1,8 @@
 from django.urls import path
 
 from . import views
-from .views import TopKvedsView, CompanyTypeCountView, RegisteredCompaniesCountView, RegisteredFopsCountView
+from .views import (TopKvedsView, CompanyTypeCountView, RegisteredCompaniesCountView,
+                    RegisteredFopsCountView)
 
 urlpatterns = [
     path('api-usage/me/', views.ApiUsageMeView.as_view()),

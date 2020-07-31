@@ -10,7 +10,7 @@ from rest_framework import views
 # from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from business_register.models.company_models import Company, CompanyToKved
+from business_register.models.company_models import Company, CompanyToKved, CompanyType
 from business_register.models.fop_models import Fop
 from stats import logic
 from stats.serializers import TopKvedSerializer, CompanyTypeCountSerializer
@@ -49,7 +49,7 @@ class ApiUsageMeView(views.APIView):
         }, status=200)
 
 
-class TopKvedView(generics.ListAPIView):
+class TopKvedsView(generics.ListAPIView):
     # permission_classes = [AllowAny]
     queryset = (CompanyToKved.objects.select_related(
         'kved', 'kved__group', 'kved__section', 'kved__division',

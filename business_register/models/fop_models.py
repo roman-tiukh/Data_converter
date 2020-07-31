@@ -6,7 +6,7 @@ from data_ocean.models import DataOceanModel, Status, Authority, TaxpayerType
 
 
 class Fop(DataOceanModel):
-    fullname = models.CharField("повне ім'я", max_length=100)
+    fullname = models.CharField("повне ім'я", max_length=175)
     address = models.CharField('адреса', max_length=500, null=True)
     status = models.ForeignKey(Status, on_delete=models.CASCADE, verbose_name='статус')
     registration_date = models.DateField('дата реєстрації', null=True)
@@ -19,7 +19,7 @@ class Fop(DataOceanModel):
     vp_dates = models.CharField(max_length=240, null=True)
     authority = models.ForeignKey(Authority, on_delete=models.CASCADE,
                                   verbose_name='орган реєстрації')
-    code = models.CharField(max_length=600, db_index=True)
+    code = models.CharField(max_length=675, db_index=True)
     history = HistoricalRecords()
 
     class Meta:
