@@ -7,13 +7,13 @@ from django.views.decorators.cache import cache_page
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics
 from rest_framework import views
-from rest_framework.response import Response
 # from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
 
 from business_register.models.company_models import Company, CompanyToKved
 from business_register.models.fop_models import Fop
 from stats import logic
-from stats.serializers import TopKvedSerializer
+from stats.serializers import TopKvedSerializer, CompanyTypeCountSerializer
 from .filters import RegisteredCompaniesCountFilterSet, RegisteredFopsCountFilterSet
 from .models import ApiUsageTracking
 
@@ -49,14 +49,33 @@ class ApiUsageMeView(views.APIView):
         }, status=200)
 
 
-class TopKvedsView(generics.ListAPIView):
+class TopKvedView(generics.ListAPIView):
     # permission_classes = [AllowAny]
     queryset = (CompanyToKved.objects.select_related(
         'kved', 'kved__group', 'kved__section', 'kved__division',
-    ).values('kved').annotate(
-        count_kved=Count('kved')
-    ).order_by('-count_kved')[:10])
+    ).exclude(
+        kved__code='not_valid'
+    ).values(
+        'kved'
+    ).annotate(
+        count_companies_with_kved=Count('kved')
+    ).order_by('-count_companies_with_kved')[:10])
     serializer_class = TopKvedSerializer
+    pagination_class = None
+
+    @method_decorator(cache_page(60 * 60 * 24))
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+
+class CompanyTypeCountView(generics.ListAPIView):
+    # permission_classes = [AllowAny]
+    queryset = (CompanyType.objects.prefetch_related(
+        'company_set'
+    ).annotate(
+        count_companies=Count('company')
+    ).order_by('-count_companies'))
+    serializer_class = CompanyTypeCountSerializer
     pagination_class = None
 
     @method_decorator(cache_page(60 * 60 * 24))
