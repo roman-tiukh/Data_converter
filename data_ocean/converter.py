@@ -226,24 +226,16 @@ class Converter:
 class BulkCreateManager(object):  # https://www.caktusgroup.com/blog/2019/01/09/django-bulk-inserts/
     """
     This helper class keeps track of ORM objects to be created for multiple
-    model classes, and automatically creates those objects with `bulk_create`
-    when the number of objects accumulated for a given model class exceeds
-    `chunk_size`.
-    Upon completion of the loop that's `add()`ing objects, the developer must
-    call `done()` to ensure the final set of objects is created for all models.
+    model classes.
+    The developer must clear all queues after all objects are created for all models.
     """
 
-    def __init__(self, chunk_size):
-        self.create_queues = defaultdict(list)
-        self.stored_objects = defaultdict(list)
-        self.chunk_size = chunk_size
+    def __init__(self):
+        self.queues = defaultdict(list)
 
     def commit(self, model_class):
         model_key = model_class._meta.label
-        model_class.objects.bulk_create(self.create_queues[model_key])
-        for stored_object in self.create_queues[model_key]:
-            self.stored_objects[model_key].append(stored_object)
-        self.create_queues[model_key] = []
+        model_class.objects.bulk_create(self.queues[model_key])
 
     def add(self, obj):
         """
@@ -252,15 +244,4 @@ class BulkCreateManager(object):  # https://www.caktusgroup.com/blog/2019/01/09/
         """
         model_class = type(obj)
         model_key = model_class._meta.label
-        self.create_queues[model_key].append(obj)
-        if len(self.create_queues[model_key]) >= self.chunk_size:
-            self.commit(model_class)
-
-    def done(self):
-        """
-        Always call this upon completion to make sure the final partial chunk
-        is saved.
-        """
-        for model_name, objs in self.create_queues.items():
-            if len(objs) > 0:
-                self.commit(apps.get_model(model_name))
+        self.queues[model_key].append(obj)
