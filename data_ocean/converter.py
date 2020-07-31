@@ -1,14 +1,18 @@
 import codecs
 import json
+import logging
 import os
+import traceback
 import zipfile
 from collections import defaultdict
 from xml.etree.ElementTree import iterparse
-
 import requests
 import xmltodict
 from django.apps import apps
 from lxml import etree
+
+
+logger = logging.getLogger(__name__)
 
 
 class Converter:
@@ -204,22 +208,39 @@ class Converter:
             None
         print('All the records have been rewritten.')
 
-    def process_full(self):  # It's temporary method name, in the future this 'process' will be one
-        i = 0
+    def process_full(self, start_index=0):  # It's temporary method name, in the future this 'process' will be one
         records = etree.Element('RECORDS')
-        for _, elem in etree.iterparse(self.LOCAL_FOLDER + self.LOCAL_FILE_NAME, tag=self.RECORD_TAG):
-            if len(records) < self.CHUNK_SIZE:
+        elements = etree.iterparse(self.LOCAL_FOLDER + self.LOCAL_FILE_NAME, tag=self.RECORD_TAG)
+
+        for _ in range(start_index):
+            next(elements)
+
+        i = 0
+        chunk_start_index = 0
+        for _, elem in elements:
+            records_len = len(records)
+            if records_len == 0:
+                chunk_start_index = i
+
+            if records_len < self.CHUNK_SIZE:
                 # for text in elem.iter():
                 #     print('\t%28s\t%s' % (text.tag, text.text))
                 records.append(elem)
-                i = i + 1
-                print(i,
-                      'record\n\n................................................................................................')
+                i += 1
+                # print(i, 'record\n\n...........................................')
             else:
-                self.save_to_db(records)
+                print(f'>>> Start save to db records {chunk_start_index}-{i}')
+                try:
+                    self.save_to_db(records)
+                except Exception as e:
+                    msg = f'!!! Save to db failed at index = {chunk_start_index}. Error: {str(e)}'
+                    logger.error(msg)
+                    traceback.print_exc()
+                    print(msg)
+                    exit(1)
                 records.clear()
+                print('>>> Saved successfully')
         print('All the records have been rewritten.')
-
     print('Converter has imported.')
 
 
