@@ -215,8 +215,8 @@ class Converter:
         for _ in range(start_index):
             next(elements)
 
-        i = 0
-        chunk_start_index = 0
+        i = start_index
+        chunk_start_index = i
         for _, elem in elements:
             records_len = len(records)
             if records_len == 0:
