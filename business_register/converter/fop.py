@@ -20,7 +20,7 @@ class FopConverter(BusinessConverter):
         self.LOCAL_FILE_NAME = settings.LOCAL_FILE_NAME_FOP
         self.CHUNK_SIZE = settings.CHUNK_SIZE_FOP
         self.RECORD_TAG = 'SUBJECT'
-        self.bulk_manager = BulkCreateManager(self.CHUNK_SIZE * 5)
+        self.bulk_manager = BulkCreateManager()
         self.new_fops_foptokveds = {}
         self.new_fops_exchange_data = {}
         super().__init__()
@@ -156,6 +156,9 @@ class FopConverter(BusinessConverter):
             if not fullname:
                 logger.warning(f'ФОП без прізвища: {record}')
                 continue
+            if len(fullname) > 100:
+                logger.warning(f'ФОП із задовгим прізвищем: {record}')
+                continue
             if fullname:
                 fullname = fullname.lower()
             address = record.xpath('ADDRESS')[0].text
@@ -243,10 +246,9 @@ class FopConverter(BusinessConverter):
                     self.update_fop_kveds(fop_kveds, fop)
                 if len(exchange_data):
                     self.update_fop_exchange_data(exchange_data, fop)
-        if len(self.bulk_manager.create_queues['business_register.Fop']):
+        if len(self.bulk_manager.queues['business_register.Fop']):
             self.bulk_manager.commit(Fop)
-        stored_new_fops = self.bulk_manager.stored_objects['business_register.Fop']
-        for fop in stored_new_fops:
+        for fop in self.bulk_manager.queues['business_register.Fop']:
             if fop.code not in self.new_fops_foptokveds:
                 continue
             foptokveds = self.new_fops_foptokveds[fop.code]
@@ -254,7 +256,7 @@ class FopConverter(BusinessConverter):
                 foptokved.fop = fop
                 self.bulk_manager.add(foptokved)
         self.new_fops_foptokveds = {}
-        for fop in stored_new_fops:
+        for fop in self.bulk_manager.queues['business_register.Fop']:
             if fop.code not in self.new_fops_exchange_data:
                 continue
             fop_exchangedata = self.new_fops_exchange_data[fop.code]
@@ -262,9 +264,11 @@ class FopConverter(BusinessConverter):
                 exchangedata.fop = fop
                 self.bulk_manager.add(exchangedata)
         self.new_fops_exchange_data = {}
-        self.bulk_manager.done()
-        stored_new_fops = []
-        self.bulk_manager.stored_objects['business_register.FopToKved'] = []
-        self.bulk_manager.stored_objects['business_register.ExchangeDataFop'] = []
-
+        self.bulk_manager.queues['business_register.Fop'] = []
+        if len(self.bulk_manager.queues['business_register.FopToKved']):
+            self.bulk_manager.commit(FopToKved)
+        if len(self.bulk_manager.queues['business_register.ExchangeDataFop']):
+            self.bulk_manager.commit(ExchangeDataFop)
+        self.bulk_manager.queues['business_register.FopToKved'] = []
+        self.bulk_manager.queues['business_register.ExchangeDataFop'] = []
     print("For storing run FopConverter().process_full()")

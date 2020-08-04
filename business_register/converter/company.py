@@ -472,9 +472,9 @@ class CompanyConverter(BusinessConverter):
         #                                               'authority'])
         # if len(self.bulk_manager.create_queues['business_register.Company']):
         #     self.bulk_manager.commit_create(Company)
-        if len(self.bulk_manager.create_queues['business_register.Founder']):
+        if len(self.bulk_manager.queues['business_register.Founder']):
             self.bulk_manager.commit(Founder)
-        self.bulk_manager.create_queues['business_register.Founder'] = []
+        self.bulk_manager.queues['business_register.Founder'] = []
 
         # for company in self.bulk_manager.create_queues['business_register.Company']:
         #     self.all_companies_dict[company.company_code] = company

@@ -1,14 +1,18 @@
 import codecs
 import json
+import logging
 import os
+import traceback
 import zipfile
 from collections import defaultdict
 from xml.etree.ElementTree import iterparse
-
 import requests
 import xmltodict
 from django.apps import apps
 from lxml import etree
+
+
+logger = logging.getLogger(__name__)
 
 
 class Converter:
@@ -204,46 +208,55 @@ class Converter:
             None
         print('All the records have been rewritten.')
 
-    def process_full(self):  # It's temporary method name, in the future this 'process' will be one
-        i = 0
+    def process_full(self, start_index=0):  # It's temporary method name, in the future this 'process' will be one
         records = etree.Element('RECORDS')
-        for _, elem in etree.iterparse(self.LOCAL_FOLDER + self.LOCAL_FILE_NAME, tag=self.RECORD_TAG):
-            if len(records) < self.CHUNK_SIZE:
+        elements = etree.iterparse(self.LOCAL_FOLDER + self.LOCAL_FILE_NAME, tag=self.RECORD_TAG)
+
+        for _ in range(start_index):
+            next(elements)
+
+        i = start_index
+        chunk_start_index = i
+        for _, elem in elements:
+            records_len = len(records)
+            if records_len == 0:
+                chunk_start_index = i
+
+            if records_len < self.CHUNK_SIZE:
                 # for text in elem.iter():
                 #     print('\t%28s\t%s' % (text.tag, text.text))
                 records.append(elem)
-                i = i + 1
-                print(i,
-                      'record\n\n................................................................................................')
+                i += 1
+                # print(i, 'record\n\n...........................................')
             else:
-                self.save_to_db(records)
+                print(f'>>> Start save to db records {chunk_start_index}-{i}')
+                try:
+                    self.save_to_db(records)
+                except Exception as e:
+                    msg = f'!!! Save to db failed at index = {chunk_start_index}. Error: {str(e)}'
+                    logger.error(msg)
+                    traceback.print_exc()
+                    print(msg)
+                    exit(1)
                 records.clear()
+                print('>>> Saved successfully')
         print('All the records have been rewritten.')
-
     print('Converter has imported.')
 
 
 class BulkCreateManager(object):  # https://www.caktusgroup.com/blog/2019/01/09/django-bulk-inserts/
     """
     This helper class keeps track of ORM objects to be created for multiple
-    model classes, and automatically creates those objects with `bulk_create`
-    when the number of objects accumulated for a given model class exceeds
-    `chunk_size`.
-    Upon completion of the loop that's `add()`ing objects, the developer must
-    call `done()` to ensure the final set of objects is created for all models.
+    model classes.
+    The developer must clear all queues after all objects are created for all models.
     """
 
-    def __init__(self, chunk_size):
-        self.create_queues = defaultdict(list)
-        self.stored_objects = defaultdict(list)
-        self.chunk_size = chunk_size
+    def __init__(self):
+        self.queues = defaultdict(list)
 
     def commit(self, model_class):
         model_key = model_class._meta.label
-        model_class.objects.bulk_create(self.create_queues[model_key])
-        for stored_object in self.create_queues[model_key]:
-            self.stored_objects[model_key].append(stored_object)
-        self.create_queues[model_key] = []
+        model_class.objects.bulk_create(self.queues[model_key])
 
     def add(self, obj):
         """
@@ -252,15 +265,4 @@ class BulkCreateManager(object):  # https://www.caktusgroup.com/blog/2019/01/09/
         """
         model_class = type(obj)
         model_key = model_class._meta.label
-        self.create_queues[model_key].append(obj)
-        if len(self.create_queues[model_key]) >= self.chunk_size:
-            self.commit(model_class)
-
-    def done(self):
-        """
-        Always call this upon completion to make sure the final partial chunk
-        is saved.
-        """
-        for model_name, objs in self.create_queues.items():
-            if len(objs) > 0:
-                self.commit(apps.get_model(model_name))
+        self.queues[model_key].append(obj)
