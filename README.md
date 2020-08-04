@@ -41,7 +41,7 @@ INSTALL ON UBUNTU 18.04 (DEV)
 - (.venv)$ `pip install -U pip setuptools wheel`
 - (.venv)$ `pip install -r requirements.txt` 
 
-###### Create your settings_local.py
+###### Create your settings_local.py 
 - Copy **data_converter/settings_local.base.py** to **data_converter/settings_local.py**
 
 ###### Setup your settings in settings_local.py 
