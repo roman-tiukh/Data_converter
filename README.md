@@ -84,6 +84,8 @@ User API endpoint
 - User list: `/api/users/`
 - User Details: `/api/rest-auth/user/`
 -----------------------------------------------------------------------------------------------------
+- Endpoint for email sending from Landing page: `/api/landing_mail/`
+-----------------------------------------------------------------------------------------------------
 This user API endpoint works after "Setup Google Login" 
 - Social Login: `/api/accounts/login/`
 - Social Logout: `/api/accounts/logout/`
@@ -104,6 +106,9 @@ Local settings options
 - EMAIL_BACKEND (https://docs.djangoproject.com/en/3.0/topics/email/#email-backends)
   - Django comes with several backends for sending email. In this project the default is console.EmailBackend (writes to stdout). 
   - If you want to send real letters, you need to use class smtp.EmailBackend and configure the SMTP server.
+  
+- SUPPORT_EMAIL
+  - Email for letters from Landing page.
 
 - CORS_ORIGIN_WHITELIST (https://github.com/adamchainz/django-cors-headers)
   - A list of origins that are authorized to make cross-site HTTP requests
