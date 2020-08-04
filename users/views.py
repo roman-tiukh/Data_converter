@@ -13,7 +13,7 @@ from django.utils import timezone
 from django.conf import settings
 from data_ocean.postman import send_plain_mail
 from .models import DataOceanUser, CandidateUserModel
-from .serializers import DataOceanUserSerializer, CustomRegisterSerializer
+from .serializers import DataOceanUserSerializer, CustomRegisterSerializer, LandingMailSerializer
 
 
 REGISTRATION_CONFIRM_SUBJECT = 'Підтвердження реєстрації на Data Ocean'
@@ -159,3 +159,41 @@ class CustomRegisterConfirmView(views.APIView):
             )
 
         return Response(DataOceanUserSerializer(real_user).data, status=200)
+
+
+class LandingMailView(views.APIView):
+    permission_classes = (AllowAny,)
+
+    def post(self, request: Request, *args, **kwargs):
+        serializer = LandingMailSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=400)
+
+        name = serializer.validated_data.get('name')
+        email = serializer.validated_data.get('email')
+        subject = serializer.validated_data.get('subject')
+        message = serializer.validated_data.get('message')
+
+        # create a letter to the candidate to confirm the email
+        msg = f'{name}, \r\n{email}, \r\n{message}'
+
+        # send mail
+        if not settings.SUPPORT_EMAIL:
+            return Response({'detail': _('Email not sent. Try again later.')}, status=503)
+
+        if settings.SEND_MAIL_BY_POSTMAN:
+            # use POSTMAN
+            send_status_code = send_plain_mail(settings.SUPPORT_EMAIL, subject, msg)
+            if send_status_code != 201:
+                return Response({'detail': _('Email not sent. Try again later.')}, status=503)
+        else:
+            # use EMAIL_BACKEND
+            send_mail(
+                subject=subject,
+                message=msg,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=(settings.SUPPORT_EMAIL, ),
+                fail_silently=True,
+            )
+
+        return Response({"email": email, }, status=200)

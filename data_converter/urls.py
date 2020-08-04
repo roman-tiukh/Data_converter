@@ -27,7 +27,7 @@ from data_ocean.views import RegisterView, SchemaView
 from location_register.views.drv_viewsets import DrvBuildingViewSet
 from location_register.views.ratu_viewsets import RatuRegionView, RatuCityView, RatuStreetView, RatuCityDistrictView, \
     RatuDistrictView
-from users.views import CustomRegisterView, CustomRegisterConfirmView
+from users.views import CustomRegisterView, CustomRegisterConfirmView, LandingMailView
 
 router = routers.DefaultRouter()
 
@@ -72,6 +72,8 @@ urlpatterns = [
     path('api/users/', include('users.urls')),
 
     path('api/', include(router.urls)),
+
+    path('api/landing_mail/', LandingMailView.as_view(), name='landing_mail'),
 
     re_path(
         r'^schema/swagger(?P<format>\.json|\.yaml)$',
