@@ -40,6 +40,10 @@ class Company(DataOceanModel):  # constraint for not null in both name & short_n
     code = models.CharField(max_length=510)
     history = HistoricalRecords()
 
+    @property
+    def is_closed(self):
+        return self.status.name in ('припинено', 'в стані припинення',)
+
     class Meta:
         verbose_name = 'компанія/організація'
         ordering = ['id']
