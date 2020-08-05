@@ -64,3 +64,10 @@ class TokenSerializer(serializers.ModelSerializer):
 
 class CustomPasswordResetSerializer(PasswordResetSerializer):
     password_reset_form_class = CustomPasswordResetForm
+
+
+class LandingMailSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=100)
+    email = serializers.EmailField()
+    subject = serializers.CharField(max_length=150)
+    message = serializers.CharField(max_length=500)

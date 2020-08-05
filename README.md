@@ -5,66 +5,66 @@ INSTALL ON UBUNTU 18.04 (DEV)
 -------------------------------------------------------------------------------------------------------------------------
 
 ###### System update and packages install 
-- $ sudo apt update && sudo apt upgrade
-- $ sudo apt install dkms linux-headers-generic
-- $ sudo apt install python3-setuptools python3-distutils python3-venv libpq-dev
-- $ sudo apt install mc htop git
+- $ `sudo apt update && sudo apt upgrade`
+- $ `sudo apt install dkms linux-headers-generic`
+- $ `sudo apt install python3-setuptools python3-distutils python3-venv libpq-dev`
+- $ `sudo apt install mc htop git`
 
 ###### Install PostgreSQL
-- $ sudo apt update
-- $ sudo apt install postgresql postgresql-contrib
-- $ psql --version
+- $ `sudo apt update`
+- $ `sudo apt install postgresql postgresql-contrib`
+- $ `psql --version`
 
 ###### Create db & user
-- $ sudo -u postgres psql
-- postgres=# create database your_db_name;
-- postgres=# create user your_db_user with password 'your_db_password';
-- postgres=# grant all on database your_db_name to your_db_user;
-- postgres=# /q
+- $ `sudo -u postgres psql`
+- postgres=# `create database your_db_name;`
+- postgres=# `create user your_db_user with password 'your_db_password';`
+- postgres=# `grant all on database your_db_name to your_db_user;`
+- postgres=# `/q`
 
 ###### Install Python 3.7
-- $ sudo apt install software-properties-common
-- $ sudo add-apt-repository ppa:deadsnakes/ppa
-- $ sudo apt update
-- $ sudo apt install python3.7
-- $ python3.7 --version
-- $ sudo apt install python3.7-dev python3.7-venv
+- $ `sudo apt install software-properties-common`
+- $ `sudo add-apt-repository ppa:deadsnakes/ppa`
+- $ `sudo apt update`
+- $ `sudo apt install python3.7`
+- $ `python3.7 --version`
+- $ `sudo apt install python3.7-dev python3.7-venv`
 
 ###### Create Your_Fork on GitHub from official repo 
 - https://github.com/3v-workspace/Data_converter
 
 ###### Clone Your_Fork repo & create virtual environment & install requirements
-- $ git clone https://github.com/Your_Fork/Data_converter.git
-- $ cd Data_converter
-- $ python3.7 -m venv .venv
-- $ source .venv/bin/activate
-- (.venv)$ pip install -U pip setuptools wheel
-- (.venv)$ pip install -r requirements.txt 
+- $ `git clone https://github.com/Your_Fork/Data_converter.git`
+- $ `cd Data_converter`
+- $ `python3.7 -m venv .venv`
+- $ `source .venv/bin/activate`
+- (.venv)$ `pip install -U pip setuptools wheel`
+- (.venv)$ `pip install -r requirements.txt` 
 
-###### Create your settings_local.py
-- Copy **`data_converter/settings_local.base.py`** to **`data_converter/settings_local.py`**
+###### Create your settings_local.py 
+- Copy **data_converter/settings_local.base.py** to **data_converter/settings_local.py**
 
 ###### Setup your settings in settings_local.py 
 - Set your credentials from PostgreSQL in DATABASES section
-  - "NAME": "your_db_name",
-  - "USER": "your_db_user",
-  - "PASSWORD": "your_db_password",
+  - "NAME": `"your_db_name"`,
+  - "USER": `"your_db_user"`,
+  - "PASSWORD": `"your_db_password"`,
 
 ###### Migrate
-- (.venv)$ ./manage.py migrate
+- (.venv)$ `./manage.py migrate`
 
 ###### Create Superuser
-- (.venv)$ ./manage.py createsuperuser
+- (.venv)$ `./manage.py createsuperuser`
 
 ###### Load fixtures
-- (.venv)$ ./manage.py loaddata category
-- (.venv)$ ./manage.py loaddata register
+- (.venv)$ `./manage.py loaddata category`
+- (.venv)$ `./manage.py loaddata register`
 
 ###### Collect static files
-- (.venv)$ ./manage.py collectstatic
+- (.venv)$ `./manage.py collectstatic`
 
 ###### Run server
-- (.venv)$ ./manage.py runserver 127.0.0.1:8000
+- (.venv)$ `./manage.py runserver 127.0.0.1:8000`
 
 These were the minimum requirements to get the project up and running quickly.
 
@@ -83,6 +83,8 @@ User API endpoint
 -----------------------------------------------------------------------------------------------------
 - User list: `/api/users/`
 - User Details: `/api/rest-auth/user/`
+-----------------------------------------------------------------------------------------------------
+- Endpoint for email sending from Landing page: `/api/landing_mail/`
 -----------------------------------------------------------------------------------------------------
 This user API endpoint works after "Setup Google Login" 
 - Social Login: `/api/accounts/login/`
@@ -104,6 +106,9 @@ Local settings options
 - EMAIL_BACKEND (https://docs.djangoproject.com/en/3.0/topics/email/#email-backends)
   - Django comes with several backends for sending email. In this project the default is console.EmailBackend (writes to stdout). 
   - If you want to send real letters, you need to use class smtp.EmailBackend and configure the SMTP server.
+  
+- SUPPORT_EMAIL
+  - Email for letters from Landing page.
 
 - CORS_ORIGIN_WHITELIST (https://github.com/adamchainz/django-cors-headers)
   - A list of origins that are authorized to make cross-site HTTP requests
@@ -155,8 +160,8 @@ Create OAuth client ID
   ![](development/readme/google-login_06.jpg)
 
 - Filling out these details
-  - Authorized Javascript origins: http://127.0.0.1:8000
-  - Authorized redirect URL: http://127.0.0.1:8000/accounts/google/login/callback/
+  - Authorized Javascript origins: `http://127.0.0.1:8000`
+  - Authorized redirect URL: `http://127.0.0.1:8000/accounts/google/login/callback/`
 
 Obtain OAuth client
 - Once you click "CREATE", you will be able to obtain your "Client ID" and "Client Secret".
@@ -174,8 +179,8 @@ Add a site
   ![](development/readme/google-login_08.jpg)
 
 - Fill out the details and click "Save"
-  - Domain name: 127.0.0.1:8000
-  - Display name: 127.0.0.1:8000
+  - Domain name: `127.0.0.1:8000`
+  - Display name: `127.0.0.1:8000`
   
   ![](development/readme/google-login_09.jpg)
 
@@ -185,10 +190,10 @@ Add social applications
   ![](development/readme/google-login_10.jpg)
 
 - Fill out these settings
-  - Provider: Google
-  - Name: MySocialLocalApp
-  - Client id: your "Client ID"
-  - Secret key: your "Client Secret"
+  - Provider: `Google`
+  - Name: `MySocialLocalApp`
+  - Client id: `your "Client ID"`
+  - Secret key: `your "Client Secret"`
 
   ![](development/readme/google-login_11.jpg)
 
@@ -205,59 +210,59 @@ Add social applications
 Setup Redis
 -----------------------------------------------------------------------------------------------------
 ###### Install Redis
-- $ sudo apt update
-- $ sudo apt install redis-server
+- $ `sudo apt update`
+- $ `sudo apt install redis-server`
 
 ###### Declare an init system for running Redis as a service
-- $ sudo nano /etc/redis/redis.conf
+- $ `sudo nano /etc/redis/redis.conf`
   - change "supervised no" to "supervised systemd", save & exit
 
 ###### Restart service & Check Status
-- $ sudo systemctl restart redis.service
-- $ sudo systemctl status redis
+- $ `sudo systemctl restart redis.service`
+- $ `sudo systemctl status redis`
 
 If you prefer to start Redis manually each time the server boots, use the following command:
-  - $ sudo systemctl disable redis
+  - $ `sudo systemctl disable redis`
 
 ###### Connect to the server using a client and test
-- $ redis-cli
-- 127.0.0.1:6379> ping
+- $ `redis-cli`
+- 127.0.0.1:6379> `ping`
   - PONG
-- 127.0.0.1:6379> set test "It's working!"
+- 127.0.0.1:6379> `set test "It's working!"`
   - OK
-- 127.0.0.1:6379> get test
+- 127.0.0.1:6379> `get test`
   - "It's working!"
-- 127.0.0.1:6379> exit
-- $ sudo systemctl restart redis
-- $ redis-cli
-- 127.0.0.1:6379> get test
+- 127.0.0.1:6379> `exit`
+- $ `sudo systemctl restart redis`
+- $ `redis-cli`
+- 127.0.0.1:6379> `get test`
   - "It's working!"
-- 127.0.0.1:6379> exit
+- 127.0.0.1:6379> `exit`
 
 ###### Bind to localhost
-- $ sudo nano /etc/redis/redis.conf
+- $ `sudo nano /etc/redis/redis.conf`
   - uncomment string "bind 127.0.0.1 ::1", save & exit
-- $ sudo systemctl restart redis
-- $ sudo netstat -lnp | grep redis
+- $ `sudo systemctl restart redis`
+- $ `sudo netstat -lnp | grep redis`
   - tcp 0 0 127.0.0.1:6379 0.0.0.0:* LISTEN 14222/redis-server  
   - tcp6 0 0 ::1:6379 :::* LISTEN 14222/redis-server  
 
 ###### Password setup
-- $ sudo nano /etc/redis/redis.conf
+- $ `sudo nano /etc/redis/redis.conf`
   - uncomment string "requirepass foobared" and set your_redis_password instead "foobared", save & exit
-- $ sudo systemctl restart redis.service
+- $ `sudo systemctl restart redis.service`
 
 ###### Auth test
-- $ redis-cli
-- 127.0.0.1:6379> set key1 10
+- $ `redis-cli`
+- 127.0.0.1:6379> `set key1 10`
   - (error) NOAUTH Authentication required.
-- 127.0.0.1:6379> auth your_redis_password
+- 127.0.0.1:6379> `auth your_redis_password`
   - OK
-- 127.0.0.1:6379> set key1 10
+- 127.0.0.1:6379> `set key1 10`
   - OK
-- 127.0.0.1:6379> get key1
+- 127.0.0.1:6379> `get key1`
   - "10"
-- 127.0.0.1:6379> exit
+- 127.0.0.1:6379> `exit`
 
 ###### Set CACHES to Redis in settings_local.py
 - uncomment "REDIS cache configs" block, set your_redis_password
