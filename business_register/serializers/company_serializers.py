@@ -58,15 +58,19 @@ class CompanyShortSerializer(serializers.ModelSerializer):
     company_type = serializers.StringRelatedField()
     status = serializers.StringRelatedField()
     founder_of_count = serializers.SerializerMethodField()
+    is_closed = serializers.SerializerMethodField()
 
     def get_founder_of_count(self, company):
         return Founder.objects.filter(edrpou=company.edrpou).count()
+
+    def get_is_closed(self, company):
+        return company.status.name == 'припинено'
 
     class Meta:
         model = Company
         fields = (
             'id', 'name', 'short_name', 'company_type',
-            'edrpou', 'status', 'founder_of_count',
+            'edrpou', 'status', 'founder_of_count', 'is_closed',
         )
 
 
