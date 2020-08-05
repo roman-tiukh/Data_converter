@@ -70,11 +70,13 @@ class TopKvedsView(generics.ListAPIView):
 
 class CompanyTypeCountView(generics.ListAPIView):
     # permission_classes = [AllowAny]
-    queryset = (CompanyType.objects.prefetch_related(
-        'company_set'
-    ).annotate(
-        count_companies=Count('company')
-    ).order_by('-count_companies'))
+
+    queryset = (
+        CompanyType.objects.annotate(
+            count_companies=Count('company')
+        ).order_by('-count_companies')
+    )
+
     serializer_class = CompanyTypeCountSerializer
     pagination_class = None
 
