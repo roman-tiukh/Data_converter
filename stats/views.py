@@ -87,7 +87,7 @@ class CompanyTypeCountView(generics.ListAPIView):
 
 class RegisteredCompaniesCountView(generics.GenericAPIView):
     # permission_classes = [AllowAny]
-    queryset = Company.objects.exclude(registration_date__isnull=True)
+    queryset = Company.objects.all()
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RegisteredCompaniesCountFilterSet
 
@@ -101,7 +101,7 @@ class RegisteredCompaniesCountView(generics.GenericAPIView):
 
 class RegisteredFopsCountView(generics.GenericAPIView):
     # permission_classes = [AllowAny]
-    queryset = Fop.objects.exclude(registration_date__isnull=True)
+    queryset = Fop.objects.all()
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RegisteredFopsCountFilterSet
 
