@@ -42,7 +42,7 @@ class Company(DataOceanModel):  # constraint for not null in both name & short_n
 
     @property
     def is_closed(self):
-        return self.status.name in ('припинено', 'в стані припинення',)
+        return self.status.name == 'припинено'
 
     class Meta:
         verbose_name = 'компанія/організація'
