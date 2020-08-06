@@ -66,7 +66,7 @@ class CompanyShortSerializer(serializers.ModelSerializer):
         model = Company
         fields = (
             'id', 'name', 'short_name', 'company_type',
-            'edrpou', 'status', 'founder_of_count',
+            'edrpou', 'status', 'founder_of_count', 'is_closed',
         )
 
 
@@ -80,7 +80,6 @@ class CompanySerializer(serializers.ModelSerializer):
     predecessors = serializers.StringRelatedField(many=True)
     company_type = serializers.StringRelatedField()
     status = serializers.StringRelatedField()
-    is_closed = serializers.SerializerMethodField()
     authority = serializers.StringRelatedField()
     assignees = serializers.StringRelatedField(many=True)
     signers = serializers.StringRelatedField(many=True)
@@ -109,9 +108,6 @@ class CompanySerializer(serializers.ModelSerializer):
                 CompanyShortSerializer(founder.company).data
             )
         return founded_companies
-
-    def get_is_closed(self, company):
-        return company.status.name == 'припинено'
 
 
 class HistoricalCompanySerializer(serializers.ModelSerializer):
