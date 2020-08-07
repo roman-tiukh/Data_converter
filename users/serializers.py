@@ -12,7 +12,10 @@ from .models import DataOceanUser
 class DataOceanUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = DataOceanUser
-        fields = ('id', 'last_name', 'first_name', 'email', 'organization', 'position', 'date_of_birth')
+        fields = (
+            'id', 'last_name', 'first_name', 'email',
+            'organization', 'position', 'date_of_birth', 'language'
+        )
 
 
 class CustomRegisterSerializer(RegisterSerializer):
