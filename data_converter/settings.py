@@ -113,6 +113,7 @@ LANGUAGE_CODE = 'uk'
 
 LANGUAGES = [
     ('uk', _('Ukrainian')),
+    ('en', _('English')),
 ]
 
 TIME_ZONE = 'UTC'

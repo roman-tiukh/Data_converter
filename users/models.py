@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.base_user import BaseUserManager
 from django.utils.translation import ugettext_lazy as _
+from django.conf import settings
 
 
 class DataOceanUserManager(BaseUserManager):
@@ -42,6 +43,13 @@ class DataOceanUser(AbstractUser):
     organization = models.CharField(max_length=255, default='', blank=True)
     position = models.CharField(max_length=150, default='', blank=True)
     date_of_birth = models.DateField(default=None, null=True, blank=True)
+    language = models.CharField(
+        _('language'),
+        max_length=2,
+        choices=settings.LANGUAGES,
+        default=settings.LANGUAGE_CODE,
+        blank=True,
+    )
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['last_name', 'first_name']
