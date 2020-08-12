@@ -1,7 +1,4 @@
-from django.db.models import Subquery, OuterRef, Count
 from rest_framework import serializers
-
-from business_register.models.company_models import Founder
 from business_register.models.pep_models import Pep, PepRelatedPerson, CompanyLinkWithPep
 from business_register.serializers.company_serializers import CompanyShortSerializer
 
