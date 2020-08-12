@@ -8,14 +8,14 @@ from data_ocean.views import CachedViewMixin
 from rest_framework.filters import SearchFilter
 
 
-class CompanyView(CachedViewMixin, viewsets.ReadOnlyModelViewSet):
+class CompanyViewSet(CachedViewMixin, viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
     queryset = Company.objects.select_related(
         'parent', 'company_type', 'status', 'authority', 'bylaw',
     ).prefetch_related(
         'founders', 'predecessors', 'assignees', 'signers', 'kveds', 'termination_started',
-        'bancruptcy_readjustment', 'company_detail', 'exchange_data',
-    ).all()
+        'bancruptcy_readjustment', 'company_detail', 'exchange_data', 'relationships_with_peps',
+    ).exclude(from_antac_only=True)
     serializer_class = CompanySerializer
     filter_backends = (DjangoFilterBackend, SearchFilter)
     filterset_class = CompanyFilterSet

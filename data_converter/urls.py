@@ -20,9 +20,10 @@ from django.views.generic import TemplateView
 from rest_auth.views import PasswordResetConfirmView
 from rest_framework import routers
 
-from business_register.views.company_views import CompanyView, HistoricalCompanyView
-from business_register.views.fop_views import FopView
-from business_register.views.kved_views import KvedView
+from business_register.views.company_views import CompanyViewSet, HistoricalCompanyView
+from business_register.views.fop_views import FopViewSet
+from business_register.views.kved_views import KvedViewSet
+from business_register.views.pep_views import PepViewSet
 from data_ocean.views import RegisterView, SchemaView
 from location_register.views.drv_viewsets import DrvBuildingViewSet
 from location_register.views.ratu_viewsets import RatuRegionView, RatuCityView, RatuStreetView, RatuCityDistrictView, \
@@ -31,17 +32,18 @@ from users.views import CustomRegisterView, CustomRegisterConfirmView, LandingMa
 
 router = routers.DefaultRouter()
 
-router.register(r'fop', FopView, basename='fop')
-router.register(r'kved', KvedView, basename='kved')
+router.register(r'fop', FopViewSet, basename='fop')
+router.register(r'kved', KvedViewSet, basename='kved')
 router.register(r'region', RatuRegionView, basename='region')
 router.register(r'city', RatuCityView, basename='city')
 router.register(r'street', RatuStreetView, basename='street')
 router.register(r'citydistrict', RatuCityDistrictView, basename='citydistrict')
 router.register(r'district', RatuDistrictView, basename='district')
 router.register(r'drvbuilding', DrvBuildingViewSet, basename='drvbuilding')
-router.register(r'company', CompanyView, basename='company')
+router.register(r'company', CompanyViewSet, basename='company')
 router.register(r'register', RegisterView, basename='register')
 router.register(r'historical-company', HistoricalCompanyView, basename='historical_company')
+router.register(r'pep', PepViewSet, basename='pep')
 
 urlpatterns = [
     path('api/stats/', include('stats.urls')),

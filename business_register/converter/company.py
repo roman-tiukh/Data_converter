@@ -24,8 +24,8 @@ class CompanyConverter(BusinessConverter):
         self.LOCAL_FOLDER = settings.LOCAL_FOLDER
         self.CHUNK_SIZE = settings.CHUNK_SIZE_UO
         self.RECORD_TAG = 'SUBJECT'
-        self.bulk_manager = BulkCreateManager(self.CHUNK_SIZE * 5)
-        self.branch_bulk_manager = BulkCreateManager(self.CHUNK_SIZE * 5)
+        self.bulk_manager = BulkCreateManager()
+        self.branch_bulk_manager = BulkCreateManager()
         self.all_bylaw_dict = self.put_all_objects_to_dict("name", "business_register", "Bylaw")
         self.all_company_type_dict = self.put_all_objects_to_dict('name', "business_register",
                                                                   "CompanyType")
@@ -130,7 +130,7 @@ class CompanyConverter(BusinessConverter):
                             stored_founder.equity = equity
                         if stored_founder.address != address:
                             update_fields.append('address')
-                            stored_founder.address = founder.address
+                            stored_founder.address = address
                         if update_fields:
                             stored_founder.save(update_fields=update_fields)
                         already_stored_founders.remove(stored_founder)
