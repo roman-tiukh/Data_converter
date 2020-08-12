@@ -5,8 +5,8 @@ from business_register.models.company_models import Company
 
 
 class Pep(DataOceanModel):
-    fullname = models.CharField("повне ім'я", max_length=75)
-    fullname_eng = models.CharField("повне ім'я англійською", max_length=75)
+    fullname = models.CharField("повне ім'я", max_length=75, db_index=True)
+    fullname_eng = models.CharField("повне ім'я англійською", max_length=75, db_index=True)
     fullname_transcriptions_eng = models.TextField('варіанти написання повного імені англійською')
     last_job_title = models.CharField('остання посада', max_length=340, null=True)
     last_job_title_eng = models.CharField('остання посада англійською', max_length=340, null=True)
