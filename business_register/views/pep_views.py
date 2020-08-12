@@ -10,7 +10,7 @@ from rest_framework.filters import SearchFilter
 
 class PepViewSet(CachedViewMixin, viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
-    queryset = Pep.objects.prefetch_related('related_persons', 'related_companies').all()
+    queryset = Pep.objects.all()
     serializer_class = PepSerializer
     filter_backends = (DjangoFilterBackend, SearchFilter)
     filterset_class = PepFilterSet
