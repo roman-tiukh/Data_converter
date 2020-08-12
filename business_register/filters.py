@@ -1,6 +1,7 @@
 from django_filters import rest_framework as filters
-from .models.company_models import Company
-from .models.fop_models import Fop
+from business_register.models.company_models import Company
+from business_register.models.fop_models import Fop
+from business_register.models.pep_models import Pep
 
 from .models.kved_models import Kved
 
@@ -47,3 +48,14 @@ class KvedFilterSet(filters.FilterSet):
     class Meta:
         model = Kved
         fields = ()
+
+
+class PepFilterSet(filters.FilterSet):
+    fullname = filters.CharFilter(lookup_expr='icontains')
+    fullname_transcriptions_eng = filters.CharFilter(lookup_expr='icontains')
+
+    class Meta:
+        model = Pep
+        fields = {
+            'last_job_title': ['exact', 'contains'],
+        }

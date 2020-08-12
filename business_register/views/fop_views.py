@@ -8,7 +8,7 @@ from data_ocean.views import CachedViewMixin
 from rest_framework.filters import SearchFilter
 
 
-class FopView(CachedViewMixin, viewsets.ReadOnlyModelViewSet):
+class FopViewSet(CachedViewMixin, viewsets.ReadOnlyModelViewSet):
     queryset = Fop.objects.select_related(
         'status', 'authority'
     ).prefetch_related(

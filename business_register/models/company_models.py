@@ -25,18 +25,19 @@ class Company(DataOceanModel):  # constraint for not null in both name & short_n
     short_name = models.CharField('коротка назва', max_length=500, null=True)
     company_type = models.ForeignKey(CompanyType, on_delete=models.CASCADE, null=True,
                                      verbose_name='організаційно-правова форма')
-    edrpou = models.CharField('код ЄДРПОУ', max_length=260, db_index=True)
+    edrpou = models.CharField('код ЄДРПОУ', max_length=260, null=True, db_index=True)
     authorized_capital = models.FloatField('статутний капітал', null=True)
     address = models.CharField('адреса', max_length=1000, null=True)
-    status = models.ForeignKey(Status, on_delete=models.CASCADE, verbose_name='статус')
-    bylaw = models.ForeignKey(Bylaw, on_delete=models.CASCADE, verbose_name='статут')
+    status = models.ForeignKey(Status, on_delete=models.CASCADE, null=True, verbose_name='статус')
+    bylaw = models.ForeignKey(Bylaw, on_delete=models.CASCADE, null=True, verbose_name='статут')
     registration_date = models.DateField('дата реєстрації', null=True)
     registration_info = models.CharField('реєстраційні дані', max_length=450, null=True)
     contact_info = models.CharField('контакти', max_length=310, null=True)
-    authority = models.ForeignKey(Authority, on_delete=models.CASCADE,
+    authority = models.ForeignKey(Authority, on_delete=models.CASCADE, null=True,
                                   verbose_name='орган реєстрації')
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True,
                                verbose_name='є підрозділом компанії/організації')
+    from_antac_only = models.BooleanField(null=True)
     code = models.CharField(max_length=510)
     history = HistoricalRecords()
 

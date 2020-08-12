@@ -14,7 +14,7 @@ class RatuConverter(Converter):
         self.LOCAL_FOLDER = settings.LOCAL_FOLDER
         self.LOCAL_FILE_NAME = settings.LOCAL_FILE_NAME_RATU
         self.CHUNK_SIZE = settings.CHUNK_SIZE_RATU
-        self.bulk_manager = BulkCreateManager(self.CHUNK_SIZE)
+        self.bulk_manager = BulkCreateManager()
         self.region_dict = {}  # dictionary uses for keeping whole model class objects
         self.district_list = list()  # lists use for keeping cells content
         self.city_list = list()
@@ -37,14 +37,6 @@ class RatuConverter(Converter):
         if file.upper().find('ATU') >= 0:
             new_filename = 'ratu.xml'
         return new_filename
-
-    # creating dictionary & lists for registration items that had writed to db
-    region_dict = {}  # dictionary uses for keeping whole model class objects
-    district_list = list()  # lists use for keeping cells content
-    city_list = list()
-    citydistrict_list = list()
-
-    bulk_manager = BulkCreateManager(CHUNK_SIZE)
 
     # writing entry to db
     def save_to_db(self, record):
@@ -145,6 +137,9 @@ class RatuConverter(Converter):
                 name=record['STREET_NAME'].lower()
             )
             self.bulk_manager.add(street)
+        if len(self.bulk_manager.queues['location_register.RatuStreet']):
+            self.bulk_manager.commit(RatuStreet)
+        self.bulk_manager.queues['location_register.RatuStreet'] = []
 
     print(
         'Ratu already imported.',
