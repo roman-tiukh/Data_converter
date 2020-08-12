@@ -3,6 +3,8 @@
 from zeep import Client, Settings
 from zeep.helpers import serialize_object
 
+from data_ocean.utils import change_to_full_name
+
 from business_register.converter.business_converter import BusinessConverter
 from data_ocean.utils import clean_name, change_to_full_name
 from location_register.models.drv_models import (DrvAto, DrvBuilding,
@@ -20,10 +22,9 @@ class DrvConverter(BusinessConverter):
 
         """
         self.all_regions_dict = self.put_all_objects_to_dict('name', 'location_register', 'DrvRegion')
-        self.all_atos_dict = self.put_all_objects_to_dict('code','location_register', 'DrvAto')
-        self.all_zipcodes_dict =  self.put_all_objects_to_dict('code', 'location_register', 'ZipCode')
+        self.all_atos_dict = self.put_all_objects_to_dict('code', 'location_register', 'DrvAto')
+        self.all_zipcodes_dict = self.put_all_objects_to_dict('code', 'location_register', 'ZipCode')
         super().__init__()
-
 
     def parse_regions_data(self):
         client = Client(self.WSDL_URL, service_name='GetRegionsService', settings=self.SETTINGS)
@@ -56,7 +57,7 @@ class DrvConverter(BusinessConverter):
             print(f'Дані регіону {region.name} збережено')
             atos_data_list = self.parse_atos_data(region)
             self.save_ato_data(atos_data_list, region)
-    
+
     def parse_atos_data(self, region):
         client = Client(self.WSDL_URL, service_name='GetATUUService', settings=self.SETTINGS)
         response = client.service.ATUUQuery(ATOParams=region.code)
@@ -68,8 +69,8 @@ class DrvConverter(BusinessConverter):
     def save_ato_data(self, atos_data_list, region):
         for dictionary in atos_data_list:
             district_name = dictionary['ATO_Raj']
-            district_name =  change_to_full_name(district_name)
-            district_name =  clean_name(district_name)
+            district_name = change_to_full_name(district_name)
+            district_name = clean_name(district_name)
             council_name = dictionary['ATO_Rad']
             ato_name = dictionary['ATO_Name']
             ato_name = clean_name(ato_name)
@@ -85,9 +86,9 @@ class DrvConverter(BusinessConverter):
                 council.save()
             if ato_code in self.all_atos_dict:
                 ato = self.all_atos_dict[ato_code]
-                ato.region=region
-                ato.district=district
-                ato.council=council
+                ato.region = region
+                ato.district = district
+                ato.council = council
                 ato.name = ato_name
             else:
                 ato = DrvAto(region=region, district=district, council=council, name=ato_name, code=ato_code)
@@ -96,7 +97,7 @@ class DrvConverter(BusinessConverter):
             print(f'Дані населеного пункту {ato.name} збережено')
             streets_data_list = self.parse_streets_data(ato)
             self.save_street_data(streets_data_list, region, district, council, ato)
-    
+
     def parse_streets_data(self, ato):
         client = Client(self.WSDL_URL, service_name='GetAdrRegService', settings=self.SETTINGS)
         response = client.service.AdrRegQuery(AdrRegParams=ato.code)
@@ -110,26 +111,26 @@ class DrvConverter(BusinessConverter):
             # converting an integer value to string for comparing with codes from DB that are strings 
             code = str(dictionary['Geon_Id'])
             name = dictionary['Geon_Name']
-            name =  change_to_full_name(name)
+            name = change_to_full_name(name)
             previous_name = dictionary['Geon_OldNames']
             if previous_name:
-                previous_name = self.change_to_full_street_name(previous_name)
+                previous_name = change_to_full_name(previous_name)
             buildings_info = dictionary['BUILDS']
             number_of_buildings = None
-            buildings_data_list =  None
+            buildings_data_list = None
             if buildings_info:
                 number_of_buildings = dictionary['BUILDS']['BUILDS_COUNT']
                 buildings_data_list = dictionary['BUILDS']['BUILD']
             street = DrvStreet.objects.filter(code=code).first()
             if not street:
-                street = DrvStreet(region=region, 
-                                district=district, 
-                                council=council, 
-                                ato=ato, 
-                                code=code, 
-                                name=name, 
-                                previous_name=previous_name, 
-                                number_of_buildings=number_of_buildings)
+                street = DrvStreet(region=region,
+                                   district=district,
+                                   council=council,
+                                   ato=ato,
+                                   code=code,
+                                   name=name,
+                                   previous_name=previous_name,
+                                   number_of_buildings=number_of_buildings)
             else:
                 street.name = name
                 street.previous_name = previous_name
@@ -148,7 +149,7 @@ class DrvConverter(BusinessConverter):
             corps = dictionary['Bld_Korp']
             if corps:
                 # uniting the building`s number and corps with '\'
-                number = number +'/' + corps
+                number = number + '/' + corps
             zipcode = dictionary['Bld_Ind']
             if zipcode in self.all_zipcodes_dict:
                 zipcode = self.all_zipcodes_dict[zipcode]
@@ -158,17 +159,17 @@ class DrvConverter(BusinessConverter):
                 self.all_zipcodes_dict[zipcode.code] = zipcode
             building = DrvBuilding.objects.filter(code=code).first()
             if not building:
-                building = DrvBuilding(region=region, 
-                                district=district, 
-                                council=council, 
-                                ato=ato, 
-                                street=street,
-                                zip_code=zipcode,
-                                code=code, 
-                                number=number)
+                building = DrvBuilding(region=region,
+                                       district=district,
+                                       council=council,
+                                       ato=ato,
+                                       street=street,
+                                       zip_code=zipcode,
+                                       code=code,
+                                       number=number)
             else:
                 building.number = number
-                building.zipcode=zipcode
+                building.zipcode = zipcode
             building.save()
 
     def process(self):

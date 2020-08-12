@@ -162,6 +162,10 @@ class Converter:
             table.objects.all().delete()
             print('Old data have deleted.')
 
+    def put_all_objects_to_dict(self, key_field, app_name, model_name):
+        return {getattr(obj, key_field): obj for obj in apps.get_model(app_name,
+                                                                       model_name).objects.all()}
+
     def process(self):
         # parsing sours file in flow
         # get an iterable

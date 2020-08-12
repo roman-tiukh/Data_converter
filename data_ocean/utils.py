@@ -15,6 +15,7 @@ def clean_name(name):
 # a dictionary for storing all abbreviations and full forms
 SHORT_TO_FULL_DICT = {
     'р-н': 'район',
+    'р-ну': 'району',
     'вул.': 'вулиця ',
     'бульв.': 'бульвар ',
     'просп.': 'проспект ',
@@ -37,6 +38,11 @@ def change_to_full_name(name):
 # extracting the first word
 def get_first_word(string):
     return string.split()[0]
+
+
+# getting all words before slash and changing string to lowercase
+def get_lowercase_substring_before_slash(string):
+    return string.split('/')[0].lower()
 
 
 # extracting all words except first

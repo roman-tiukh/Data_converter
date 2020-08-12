@@ -31,10 +31,6 @@ class BusinessConverter(Converter):
     def put_all_kveds_to_dict(self):
         return {kved.code+kved.name: kved for kved in Kved.objects.all()}
 
-    def put_all_objects_to_dict(self, key_field, app_name, model_name):
-        return {getattr(obj, key_field): obj for obj in apps.get_model(app_name,
-                                                                       model_name).objects.all()}
-
     def get_kved_from_DB(self, kved_code_from_record, kved_name_from_record):
         """
         retreiving kved from DB

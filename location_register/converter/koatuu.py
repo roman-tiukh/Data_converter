@@ -3,16 +3,16 @@ import logging
 from django.conf import settings
 
 from data_ocean.converter import Converter
-from location_register.models.ratu_models import RatuRegion, RatuDistrict, RatuCity, RatuCityDistrict, RatuCategory
+from location_register.models.ratu_models import RatuRegion, RatuDistrict, RatuCity, RatuCityDistrict
+from location_register.models.koatuu_models import (KoatuuFirstLevel, KoatuuSecondLevel, KoatuuThirdLevel,
+                                                    KoatuuFourthLevel, KoatuuCategory)
+from data_ocean.utils import clean_name, change_to_full_name, get_lowercase_substring_before_slash
 
-
-# Standard instance of a logger with __name__
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
 class KoatuuConverter(Converter):
-
     # paths for the local souce file
     LOCAL_FILE_NAME = settings.LOCATION_KOATUU_LOCAL_FILE_NAME
 
@@ -29,10 +29,10 @@ class KoatuuConverter(Converter):
         return string.lower().split('/')[0]
 
     # creating a dictionary out off the values, which already exists in region table
-    def create_dictionary_for(self, table_model):# table_medel is one model from ratu_models
+    def create_dictionary_for(self, table_model):  # table_medel is one model from ratu_models
         koatuu_dict = {}
         table_model_objects = table_model.objects.all()
-        for table_record in table_model_objects: # dictionary for keeping whole model class objects
+        for table_record in table_model_objects:  # dictionary for keeping whole model class objects
             if table_record.name:
                 unit_name = table_record.name
                 koatuu_dict[unit_name] = table_record
@@ -41,8 +41,8 @@ class KoatuuConverter(Converter):
     # creating a dictionary out off the values, which already exists in city table
     def create_dictionary_for_city_table(self, table_model):
         koatuu_dict = {}
-        table_model_objects = table_model.objects.all() # table_model is a model from ratu_models
-        for table_record in table_model_objects: # dictionary for keeping whole model class objects
+        table_model_objects = table_model.objects.all()  # table_model is a model from ratu_models
+        for table_record in table_model_objects:  # dictionary for keeping whole model class objects
             if table_record.name:
                 unit_name = table_record.name + str(table_record.district_id)
                 koatuu_dict[unit_name] = table_record
@@ -51,18 +51,18 @@ class KoatuuConverter(Converter):
     # creating a dictionary out off the values, which already exists in district y city table
     def create_dictionary_for_district_table(self, table_model):
         koatuu_dict = {}
-        table_model_objects = table_model.objects.all() # table_model is a model from ratu_models
-        for table_record in table_model_objects: # dictionary for keeping whole model class objects
+        table_model_objects = table_model.objects.all()  # table_model is a model from ratu_models
+        for table_record in table_model_objects:  # dictionary for keeping whole model class objects
             if table_record.name:
                 unit_name = table_record.name + str(table_record.region_id)
                 koatuu_dict[unit_name] = table_record
         return koatuu_dict
 
     # creating a dictionary out off the values, which already exists in citydistrict table
-    def create_dictionary_for_citydistrict_table(self):# table_model is a model from ratu_models
+    def create_dictionary_for_citydistrict_table(self):  # table_model is a model from ratu_models
         koatuu_dict = {}
         table_model_objects = RatuCityDistrict.objects.all()
-        for table_record in table_model_objects: # dictionary for keeping whole model class objects
+        for table_record in table_model_objects:  # dictionary for keeping whole model class objects
             if table_record.name:
                 unit_name = table_record.name + str(table_record.city_id)
                 koatuu_dict[unit_name] = table_record
@@ -75,7 +75,7 @@ class KoatuuConverter(Converter):
             region_dict,
             object_district_name,
             koatuu_value
-        ):
+    ):
         district_items_list = []
         if object_region_name not in region_dict:
             return
@@ -97,22 +97,8 @@ class KoatuuConverter(Converter):
 
     # getting id value from category table
     def get_category_id(self, string):
-        id_number = RatuCategory.objects.get(name=string or 'null').id
+        id_number = KoatuuCategory.objects.get(code=string).id
         return id_number
-
-    # storing data to all tables
-    def save_to_db(self, json_file):
-        data = self.load_json(json_file)
-        try:
-            self.save_to_region_table(data)
-            self.save_to_district_table(data)
-            self.save_to_city_or_citydistrict(data)
-            self.writing_category_null_id(RatuCity)
-            self.writing_category_null_id(RatuCityDistrict)
-        except TypeError:
-            logger.exception('Tried to iterate NonType object')
-        else:
-            logger.info("Koatuu values saved")
 
     # writing entry to koatuu field in region table
     def save_to_region_table(self, data):
@@ -138,7 +124,7 @@ class KoatuuConverter(Converter):
                 object_region_name = self.get_lowercase_words_before_virgule(
                     object_koatuu[self.OBJECT_NAME])
             if object_koatuu[self.LEVEL_ONE] and object_koatuu[
-                    self.LEVEL_TWO] and not object_koatuu[self.LEVEL_THREE]:
+                self.LEVEL_TWO] and not object_koatuu[self.LEVEL_THREE]:
                 # koatuu_value is position in koatuu number wich defines district or city record
                 koatuu_value = str(object_koatuu[self.LEVEL_TWO])
                 object_district_name = self.get_lowercase_words_before_virgule(
@@ -171,7 +157,7 @@ class KoatuuConverter(Converter):
                 object_region_name = self.get_lowercase_words_before_virgule(
                     object_koatuu[self.OBJECT_NAME])
             if object_koatuu[self.LEVEL_ONE] and object_koatuu[
-                    self.LEVEL_TWO] and not object_koatuu[self.LEVEL_THREE]:
+                self.LEVEL_TWO] and not object_koatuu[self.LEVEL_THREE]:
                 # koatuu_value is position in koatuu number wich defines district or city record
                 koatuu_value = str(object_koatuu[self.LEVEL_TWO])
                 object_district_name = self.get_lowercase_words_before_virgule(
@@ -181,7 +167,7 @@ class KoatuuConverter(Converter):
                 city_items_list = self.create_city_items_list(
                     city_dict_for_district_table, district_items_list, koatuu_value)
             if object_koatuu[self.LEVEL_ONE] and object_koatuu[self.LEVEL_TWO] and object_koatuu[
-                    self.LEVEL_THREE] and not object_koatuu[self.LEVEL_FOUR]:
+                self.LEVEL_THREE] and not object_koatuu[self.LEVEL_FOUR]:
                 object_city_name = self.get_lowercase_words_before_virgule(
                     object_koatuu[self.OBJECT_NAME])
                 object_level_three = object_koatuu[self.LEVEL_THREE]
@@ -203,7 +189,7 @@ class KoatuuConverter(Converter):
                     category_level_three
                 )
             if object_koatuu[self.LEVEL_ONE] and object_koatuu[self.LEVEL_TWO] and object_koatuu[
-                    self.LEVEL_THREE] and not object_koatuu[self.LEVEL_FOUR]:
+                self.LEVEL_THREE] and not object_koatuu[self.LEVEL_FOUR]:
                 object_citydistrict_name = self.get_lowercase_words_before_virgule(
                     object_koatuu[self.OBJECT_NAME])
                 object_level_four = object_koatuu[self.LEVEL_FOUR]
@@ -235,7 +221,7 @@ class KoatuuConverter(Converter):
             up_level_dict,
             level_dict,
             category
-        ):
+    ):
         for object_name in level_items_list:
             if object_name not in up_level_dict:
                 return
@@ -257,3 +243,199 @@ class KoatuuConverter(Converter):
         for table_record in table_model_objects:
             table_record.category_id = category
             table_record.save()
+
+    # storing data to all tables
+    def save_to_db(self, json_file):
+        data = self.load_json(json_file)
+        try:
+            self.save_to_region_table(data)
+            self.save_to_district_table(data)
+            self.save_to_city_or_citydistrict(data)
+            self.writing_category_null_id(RatuCity)
+            self.writing_category_null_id(RatuCityDistrict)
+        except TypeError:
+            logger.exception('Tried to iterate NonType object')
+        else:
+            logger.info("Koatuu values saved")
+
+
+class NewKoatuuConverter(Converter):
+
+    def __init__(self):
+        self.LOCAL_FILE_NAME = settings.LOCATION_KOATUU_LOCAL_FILE_NAME
+        self.all_first_level_places = self.put_all_objects_to_dict('code', 'location_register',
+                                                                   'KoatuuFirstLevel')
+        self.all_second_level_places = self.put_all_objects_to_dict('code', 'location_register',
+                                                                    'KoatuuSecondLevel')
+        self.all_third_level_places = self.put_all_objects_to_dict('code', 'location_register',
+                                                                   'KoatuuThirdLevel')
+        self.all_fourth_level_places = self.put_all_objects_to_dict('code', 'location_register',
+                                                                    'KoatuuFourthLevel')
+        self.all_categories = self.put_all_objects_to_dict('code', 'location_register',
+                                                           'KoatuuCategory')
+        # a dictionary for storing all abbreviations and full forms of KOATUU categories
+        self.KOATUU_CATEGORY_DICT = {
+            'С': 'село',
+            'Щ': 'селище',
+            'Т': 'селище міського типу ',
+            'М': 'місто',
+            'Р': 'район міста'
+        }
+
+    def save_or_get_category(self, category_code):
+        if category_code not in self.all_categories:
+            name = self.KOATUU_CATEGORY_DICT[category_code]
+            category = KoatuuCategory.objects.create(name=name, code=category_code)
+            self.all_categories[category_code] = category
+        return self.all_categories[category_code]
+
+    def save_or_update_first_level(self, name, first_level_code):
+        if first_level_code not in self.all_first_level_places:
+            first_level = KoatuuFirstLevel.objects.create(name=name, code=first_level_code)
+            self.all_first_level_places[first_level_code] = first_level
+            logger.warning(f'Збережено новий регіон у КОАТУУ із назвою: {name}')
+        else:
+            first_level = self.all_first_level_places[first_level_code]
+            if first_level.name != name:
+                logger.warning(f'Не збігаються код або назва регіону у КОАТУУ: {first_level}')
+
+    def save_or_update_second_level(self, first_level_code, category, name, second_level_code):
+        first_level = self.all_first_level_places[first_level_code]
+        if second_level_code not in self.all_second_level_places:
+            second_level = KoatuuSecondLevel.objects.create(first_level=first_level,
+                                                            category=category,
+                                                            name=name,
+                                                            code=second_level_code)
+            self.all_second_level_places[second_level_code] = second_level
+        else:
+            second_level = self.all_second_level_places[second_level_code]
+            update_fields = []
+            if second_level.first_level != first_level:
+                second_level.first_level = first_level
+                update_fields.append('first_level')
+            if second_level.category != category:
+                second_level.category = category
+                update_fields.append('category')
+            if second_level.name != name:
+                second_level.name = name
+                update_fields.append('name')
+            if len(update_fields):
+                second_level.save(update_fields=update_fields)
+
+    def save_or_update_third_level(self, first_level_code, second_level_code, category, name,
+                                   third_level_code):
+        first_level = self.all_first_level_places[first_level_code]
+        second_level = self.all_second_level_places[second_level_code]
+        if third_level_code not in self.all_third_level_places:
+            third_level = KoatuuThirdLevel.objects.create(first_level=first_level,
+                                                          second_level=second_level,
+                                                          category=category,
+                                                          name=name,
+                                                          code=third_level_code)
+            self.all_third_level_places[third_level_code] = third_level
+        else:
+            third_level = self.all_third_level_places[third_level_code]
+            update_fields = []
+            if third_level.first_level != first_level:
+                third_level.first_level = first_level
+                update_fields.append('first_level')
+            if third_level.second_level != second_level:
+                third_level.second_level = second_level
+                update_fields.append('second_level')
+            if third_level.category != category:
+                third_level.category = category
+                update_fields.append('category')
+            if third_level.name != name:
+                third_level.name = name
+                update_fields.append('name')
+            if len(update_fields):
+                third_level.save(update_fields=update_fields)
+
+    def save_or_update_fourth_level(self, first_level_code, second_level_code, third_level_code,
+                                    category, name, fourth_level_code):
+        first_level = self.all_first_level_places[first_level_code]
+        second_level = self.all_second_level_places[second_level_code]
+        third_level = self.all_third_level_places[third_level_code]
+        if fourth_level_code not in self.all_fourth_level_places:
+            fourth_level = KoatuuFourthLevel.objects.create(first_level=first_level,
+                                                            second_level=second_level,
+                                                            third_level=third_level,
+                                                            category=category,
+                                                            name=name, code=fourth_level_code)
+            self.all_fourth_level_places[fourth_level_code] = fourth_level
+        else:
+            fourth_level = self.all_fourth_level_places[fourth_level_code]
+            update_fields = []
+            if fourth_level.first_level != first_level:
+                fourth_level.first_level = first_level
+                update_fields.append('first_level')
+            if fourth_level.second_level != second_level:
+                fourth_level.second_level = second_level
+                update_fields.append('second_level')
+            if fourth_level.third_level != third_level:
+                fourth_level.third_level = third_level
+                update_fields.append('third_level')
+            if fourth_level.category != category:
+                fourth_level.category = category
+                update_fields.append('category')
+            if fourth_level.name != name:
+                fourth_level.name = name
+                update_fields.append('name')
+            if len(update_fields):
+                fourth_level.save(update_fields=update_fields)
+
+    def save_to_db(self, json_file):
+        data = self.load_json(json_file)
+        for object_koatuu in data:
+            first_level_code = object_koatuu['Перший рівень']
+            # checking that all codes are strings, not integers that happens
+            if not isinstance(first_level_code, str):
+                first_level_code = str(first_level_code)
+            second_level_code = object_koatuu['Другий рівень']
+            if not isinstance(second_level_code, str):
+                second_level_code = str(second_level_code)
+            third_level_code = object_koatuu['Третій рівень']
+            if not isinstance(third_level_code, str):
+                third_level_code = str(third_level_code)
+            fourth_level_code = object_koatuu['Четвертий рівень']
+            if not isinstance(fourth_level_code, str):
+                fourth_level_code = str(fourth_level_code)
+            category_code = object_koatuu['Категорія']
+            category = None
+            if category_code:
+                category = self.save_or_get_category(category_code)
+            name = object_koatuu["Назва об'єкта українською мовою"]
+            if first_level_code and not second_level_code:
+                name = clean_name(
+                    get_lowercase_substring_before_slash(name)
+                )
+                self.save_or_update_first_level(name, first_level_code)
+                continue
+            if first_level_code and second_level_code and not third_level_code:
+                name = change_to_full_name(
+                    clean_name(
+                        get_lowercase_substring_before_slash(name))
+                )
+                self.save_or_update_second_level(first_level_code, category, name,
+                                                 second_level_code)
+                continue
+            if (first_level_code and second_level_code and third_level_code and
+                    not fourth_level_code):
+                name = change_to_full_name(
+                    clean_name(
+                        get_lowercase_substring_before_slash(name))
+                )
+                self.save_or_update_third_level(first_level_code, second_level_code, category,
+                                                name, third_level_code)
+                continue
+            if (first_level_code and second_level_code and third_level_code and
+                    fourth_level_code):
+                # omitting the incorrect record from data.gov.ua
+                # ToDo: get explanation from the government
+                if third_level_code == '2320381000':
+                    logger.warning(f'Код третього рівня не існує в json: {object_koatuu}')
+                    continue
+                name = name.lower()
+                self.save_or_update_fourth_level(first_level_code, second_level_code,
+                                                 third_level_code, category, name,
+                                                 fourth_level_code)
