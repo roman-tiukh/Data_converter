@@ -121,7 +121,7 @@ class Founder(DataOceanModel):
                                 verbose_name='є засновником компанії/організації')
     info = models.CharField('наявні дані', max_length=2015)
     name = models.TextField("назва/повне ім'я", null=True)
-    edrpou = models.CharField('код ЄДРПОУ', max_length=9, null=True)
+    edrpou = models.CharField('код ЄДРПОУ', max_length=9, null=True, db_index=True)
     equity = models.FloatField('участь в статутному капіталі', null=True)
     address = models.CharField('адреса', max_length=2015, null=True)
     history = HistoricalRecords()

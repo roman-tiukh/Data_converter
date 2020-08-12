@@ -1,4 +1,7 @@
+from django.db.models import Subquery, OuterRef, Count
 from rest_framework import serializers
+
+from business_register.models.company_models import Founder
 from business_register.models.pep_models import Pep, PepRelatedPerson, CompanyLinkWithPep
 from business_register.serializers.company_serializers import CompanyShortSerializer
 
@@ -12,6 +15,7 @@ class RelatedPersonSerializer(serializers.ModelSerializer):
 
 class CompanyLinkWithPepSerializer(serializers.ModelSerializer):
     company = CompanyShortSerializer()
+    # company = serializers.SerializerMethodField()
 
     class Meta:
         model = CompanyLinkWithPep
@@ -22,7 +26,12 @@ class CompanyLinkWithPepSerializer(serializers.ModelSerializer):
 
 class PepSerializer(serializers.ModelSerializer):
     related_persons = RelatedPersonSerializer(many=True)
-    related_companies = CompanyLinkWithPepSerializer(many=True)
+    # related_companies = CompanyLinkWithPepSerializer(many=True)
+    related_companies = serializers.SerializerMethodField()
+
+    def get_related_companies(self, obj):
+        qs = obj.related_companies.select_related('company', 'company__company_type', 'company__status').all()
+        return CompanyLinkWithPepSerializer(qs, many=True).data
 
     class Meta:
         model = Pep
