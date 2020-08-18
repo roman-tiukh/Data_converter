@@ -13,6 +13,7 @@ class RelatedPersonSerializer(serializers.ModelSerializer):
 
 class CompanyLinkWithPepSerializer(serializers.ModelSerializer):
     company = CompanyShortSerializer()
+
     # company = serializers.SerializerMethodField()
 
     class Meta:
@@ -34,9 +35,14 @@ class PepSerializer(serializers.ModelSerializer):
 
     def get_other_companies_founded_by_person_with_the_same_fullname(self, pep):
         founder_of = Founder.objects.filter(name__contains=pep.fullname)
+        if not len(founder_of):
+            return
         other_companies_founded_by_person_with_the_same_fullname = []
+        related_companies_id = []
+        for link in pep.related_companies.select_related('company').all():
+            related_companies_id.append(link.company.id)
         for founder in founder_of:
-            if founder.company not in pep.related_companies:
+            if founder.company.id not in related_companies_id:
                 other_companies_founded_by_person_with_the_same_fullname.append(
                     CompanyShortSerializer(founder.company).data
                 )
