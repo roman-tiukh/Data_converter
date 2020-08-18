@@ -11,7 +11,6 @@ import xmltodict
 from django.apps import apps
 from lxml import etree
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -227,8 +226,8 @@ class Converter:
                 chunk_start_index = i
 
             if records_len < self.CHUNK_SIZE:
-                # for text in elem.iter():
-                #     print('\t%28s\t%s' % (text.tag, text.text))
+                for text in elem.iter():
+                    print('\t%28s\t%s' % (text.tag, text.text))
                 records.append(elem)
                 i += 1
                 # print(i, 'record\n\n...........................................')
@@ -244,7 +243,10 @@ class Converter:
                     exit(1)
                 records.clear()
                 print('>>> Saved successfully')
+        if records_len:
+            self.save_to_db(records)
         print('All the records have been rewritten.')
+
     print('Converter has imported.')
 
 
