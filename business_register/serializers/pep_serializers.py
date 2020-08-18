@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from business_register.models.company_models import Founder
 from business_register.models.pep_models import Pep, PepRelatedPerson, CompanyLinkWithPep
 from business_register.serializers.company_serializers import CompanyShortSerializer
 
@@ -25,10 +26,21 @@ class PepSerializer(serializers.ModelSerializer):
     related_persons = RelatedPersonSerializer(many=True)
     # related_companies = CompanyLinkWithPepSerializer(many=True)
     related_companies = serializers.SerializerMethodField()
+    other_companies_founded_by_person_with_the_same_fullname = serializers.SerializerMethodField()
 
     def get_related_companies(self, obj):
         qs = obj.related_companies.select_related('company', 'company__company_type', 'company__status').all()
         return CompanyLinkWithPepSerializer(qs, many=True).data
+
+    def get_other_companies_founded_by_person_with_the_same_fullname(self, pep):
+        founder_of = Founder.objects.filter(name__contains=pep.fullname)
+        other_companies_founded_by_person_with_the_same_fullname = []
+        for founder in founder_of:
+            if founder.company not in pep.related_companies:
+                other_companies_founded_by_person_with_the_same_fullname.append(
+                    CompanyShortSerializer(founder.company).data
+                )
+        return other_companies_founded_by_person_with_the_same_fullname
 
     class Meta:
         model = Pep
@@ -39,5 +51,5 @@ class PepSerializer(serializers.ModelSerializer):
                   'criminal_proceedings', 'criminal_proceedings_eng', 'wanted', 'wanted_eng',
                   'date_of_birth', 'place_of_birth', 'place_of_birth_eng', 'is_dead',
                   'termination_date', 'reason_of_termination', 'reason_of_termination_eng',
-                  'related_persons', 'related_companies'
+                  'related_persons', 'related_companies', 'other_companies_founded_by_person_with_the_same_fullname',
                   )
