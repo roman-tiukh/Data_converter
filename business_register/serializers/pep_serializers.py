@@ -27,26 +27,27 @@ class PepSerializer(serializers.ModelSerializer):
     related_persons = RelatedPersonSerializer(many=True)
     # related_companies = CompanyLinkWithPepSerializer(many=True)
     related_companies = serializers.SerializerMethodField()
-    other_companies_founded_by_person_with_the_same_fullname = serializers.SerializerMethodField()
+    # other companies founded by persons with the same fullname as pep
+    check_companies = serializers.SerializerMethodField()
 
     def get_related_companies(self, obj):
         qs = obj.related_companies.select_related('company', 'company__company_type', 'company__status').all()
         return CompanyLinkWithPepSerializer(qs, many=True).data
 
-    def get_other_companies_founded_by_person_with_the_same_fullname(self, pep):
+    def get_check_companies(self, pep):
         founder_of = Founder.objects.filter(name__contains=pep.fullname)
         if not len(founder_of):
             return
-        other_companies_founded_by_person_with_the_same_fullname = []
+        check_companies = []
         related_companies_id = []
         for link in pep.related_companies.select_related('company').all():
             related_companies_id.append(link.company.id)
         for founder in founder_of:
             if founder.company.id not in related_companies_id:
-                other_companies_founded_by_person_with_the_same_fullname.append(
+                check_companies.append(
                     CompanyShortSerializer(founder.company).data
                 )
-        return other_companies_founded_by_person_with_the_same_fullname
+        return check_companies
 
     class Meta:
         model = Pep
@@ -57,5 +58,5 @@ class PepSerializer(serializers.ModelSerializer):
                   'criminal_proceedings', 'criminal_proceedings_eng', 'wanted', 'wanted_eng',
                   'date_of_birth', 'place_of_birth', 'place_of_birth_eng', 'is_dead',
                   'termination_date', 'reason_of_termination', 'reason_of_termination_eng',
-                  'related_persons', 'related_companies', 'other_companies_founded_by_person_with_the_same_fullname',
+                  'related_persons', 'related_companies', 'check_companies',
                   )
