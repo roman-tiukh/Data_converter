@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from business_register.models.company_models import Founder
 from business_register.models.pep_models import Pep, PepRelatedPerson, CompanyLinkWithPep
 from business_register.serializers.company_serializers import CompanyShortSerializer
 
@@ -12,6 +13,7 @@ class RelatedPersonSerializer(serializers.ModelSerializer):
 
 class CompanyLinkWithPepSerializer(serializers.ModelSerializer):
     company = CompanyShortSerializer()
+
     # company = serializers.SerializerMethodField()
 
     class Meta:
@@ -25,10 +27,27 @@ class PepSerializer(serializers.ModelSerializer):
     related_persons = RelatedPersonSerializer(many=True)
     # related_companies = CompanyLinkWithPepSerializer(many=True)
     related_companies = serializers.SerializerMethodField()
+    # other companies founded by persons with the same fullname as pep
+    check_companies = serializers.SerializerMethodField()
 
     def get_related_companies(self, obj):
         qs = obj.related_companies.select_related('company', 'company__company_type', 'company__status').all()
         return CompanyLinkWithPepSerializer(qs, many=True).data
+
+    def get_check_companies(self, pep):
+        founder_of = Founder.objects.filter(name__contains=pep.fullname)
+        if not len(founder_of):
+            return
+        check_companies = []
+        related_companies_id = []
+        for link in pep.related_companies.select_related('company').all():
+            related_companies_id.append(link.company_id)
+        for founder in founder_of:
+            if founder.company_id not in related_companies_id:
+                check_companies.append(
+                    CompanyShortSerializer(founder.company).data
+                )
+        return check_companies
 
     class Meta:
         model = Pep
@@ -39,5 +58,5 @@ class PepSerializer(serializers.ModelSerializer):
                   'criminal_proceedings', 'criminal_proceedings_eng', 'wanted', 'wanted_eng',
                   'date_of_birth', 'place_of_birth', 'place_of_birth_eng', 'is_dead',
                   'termination_date', 'reason_of_termination', 'reason_of_termination_eng',
-                  'related_persons', 'related_companies'
+                  'related_persons', 'related_companies', 'check_companies',
                   )
