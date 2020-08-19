@@ -41,9 +41,9 @@ class PepSerializer(serializers.ModelSerializer):
         check_companies = []
         related_companies_id = []
         for link in pep.related_companies.select_related('company').all():
-            related_companies_id.append(link.company.id)
+            related_companies_id.append(link.company_id)
         for founder in founder_of:
-            if founder.company.id not in related_companies_id:
+            if founder.company_id not in related_companies_id:
                 check_companies.append(
                     CompanyShortSerializer(founder.company).data
                 )
