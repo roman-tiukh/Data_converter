@@ -1,7 +1,7 @@
 from django.db import models
 from simple_history.models import HistoricalRecords
 from data_ocean.models import DataOceanModel
-from business_register.models.company_models import Company
+from business_register.models.company_models import Company, Founder
 
 
 class Pep(DataOceanModel):
@@ -46,6 +46,21 @@ class Pep(DataOceanModel):
                                                  max_length=125, null=True)
     code = models.CharField(max_length=135)
     history = HistoricalRecords(excluded_fields=['url', 'code'])
+
+    @property
+    def check_companies(self):
+        pep_name = ' '.join([x for x in [self.last_name, self.first_name, self.middle_name] if x])
+        founder_of = Founder.objects.filter(
+            name__contains=pep_name
+        ).select_related('company')
+        if not len(founder_of):
+            return []
+        check_companies = []
+        related_companies_id = self.related_companies.values_list('company_id', flat=True)
+        for founder in founder_of:
+            if founder.company_id not in related_companies_id:
+                check_companies.append(founder.company)
+        return check_companies
 
     class Meta:
         verbose_name = 'публічний діяч'

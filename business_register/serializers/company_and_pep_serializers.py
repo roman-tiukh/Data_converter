@@ -4,6 +4,7 @@ from business_register.models.company_models import (
     BancruptcyReadjustment, CompanyDetail,
     ExchangeDataCompany, TerminationStarted, Company, Founder, HistoricalCompany
 )
+from business_register.models.pep_models import CompanyLinkWithPep, Pep, PepRelatedPerson
 
 
 class BancruptcyReadjustmentSerializer(serializers.ModelSerializer):
@@ -12,7 +13,7 @@ class BancruptcyReadjustmentSerializer(serializers.ModelSerializer):
         fields = ('op_date', 'reason', 'sbj_state', 'head_name')
 
 
-class CompanyDetailSerializer(serializers.ModelSerializer):
+class CompanyDetailInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = CompanyDetail
         fields = (
@@ -34,18 +35,9 @@ class ExchangeDataCompanySerializer(serializers.ModelSerializer):
 
 
 class FounderSerializer(serializers.ModelSerializer):
-    # retrieving id only for founder that is company
-    id_if_company = serializers.SerializerMethodField()
-
     class Meta:
         model = Founder
         fields = ('name', 'edrpou', 'equity', 'id_if_company')
-
-    def get_id_if_company(self, founder):
-        if founder.edrpou:
-            company = Company.objects.filter(edrpou=founder.edrpou).first()
-            if company:
-                return company.id
 
 
 class TerminationStartedSerializer(serializers.ModelSerializer):
@@ -57,10 +49,8 @@ class TerminationStartedSerializer(serializers.ModelSerializer):
 class CountFoundedCompaniesSerializer(serializers.ModelSerializer):
     company_type = serializers.StringRelatedField()
     status = serializers.StringRelatedField()
-    founder_of_count = serializers.SerializerMethodField()
 
-    def get_founder_of_count(self, company):
-        return Founder.objects.filter(edrpou=company.edrpou).count()
+    # founder_of_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Company
@@ -89,7 +79,7 @@ class CompanyListSerializer(serializers.ModelSerializer):
     kveds = serializers.StringRelatedField(many=True)
     bylaw = serializers.StringRelatedField()
     bancruptcy_readjustment = BancruptcyReadjustmentSerializer(many=True)
-    company_detail = CompanyDetailSerializer(many=True)
+    company_detail = CompanyDetailInfoSerializer(many=True)
     exchange_data = ExchangeDataCompanySerializer(many=True)
     termination_started = TerminationStartedSerializer(many=True)
 
@@ -103,10 +93,33 @@ class CompanyListSerializer(serializers.ModelSerializer):
         )
 
 
+class PepShortSerializer(serializers.ModelSerializer):
+    # check_companies = CountFoundedCompaniesSerializer(many=True)
+
+    class Meta:
+        model = Pep
+        fields = (
+            'id', 'fullname', 'last_job_title', 'last_employer',
+            'is_pep', 'pep_type', 'url',
+            # 'related_persons', 'related_companies', 'check_companies',
+        )
+
+
+class CompanyLinkWithPepSerializer(serializers.ModelSerializer):
+    pep = PepShortSerializer()
+
+    class Meta:
+        model = CompanyLinkWithPep
+        fields = (
+            'pep', 'company_name_eng', 'company_short_name_eng', 'relationship_type',
+            'relationship_type_eng', 'start_date', 'end_date', 'is_state_company'
+        )
+
+
 class CompanyDetailSerializer(serializers.ModelSerializer):
     founders = FounderSerializer(many=True)
-    founder_of = serializers.SerializerMethodField()
-    relationships_with_peps = serializers.StringRelatedField(many=True)
+    founder_of = CountFoundedCompaniesSerializer(many=True)
+    relationships_with_peps = CompanyLinkWithPepSerializer(many=True)
     authorized_capital = serializers.FloatField()
     parent = serializers.StringRelatedField()
     predecessors = serializers.StringRelatedField(many=True)
@@ -118,19 +131,9 @@ class CompanyDetailSerializer(serializers.ModelSerializer):
     kveds = serializers.StringRelatedField(many=True)
     bylaw = serializers.StringRelatedField()
     bancruptcy_readjustment = BancruptcyReadjustmentSerializer(many=True)
-    company_detail = CompanyDetailSerializer(many=True)
+    company_detail = CompanyDetailInfoSerializer(many=True)
     exchange_data = ExchangeDataCompanySerializer(many=True)
     termination_started = TerminationStartedSerializer(many=True)
-
-    # getting a list of ids companies that are founded by this company
-    def get_founder_of(self, company):
-        founder_of = Founder.objects.filter(edrpou=company.edrpou)
-        founded_companies = []
-        for founder in founder_of:
-            founded_companies.append(
-                CountFoundedCompaniesSerializer(founder.company).data
-            )
-        return founded_companies
 
     class Meta:
         model = Company
@@ -147,3 +150,77 @@ class HistoricalCompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = HistoricalCompany
         fields = '__all__'
+
+
+class RelatedPersonSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PepRelatedPerson
+        fields = (
+            'id', 'fullname', 'fullname_eng', 'relationship_type', 'relationship_type_eng',
+            'is_pep', 'start_date', 'confirmation_date', 'end_date'
+        )
+
+
+class PepLinkWithCompanySerializer(serializers.ModelSerializer):
+    company = CompanyShortSerializer()
+
+    class Meta:
+        model = CompanyLinkWithPep
+        fields = (
+            'company', 'company_name_eng', 'company_short_name_eng',
+            'relationship_type', 'relationship_type_eng', 'start_date', 'end_date',
+            'is_state_company',
+        )
+
+
+class PepDetailLinkWithCompanySerializer(serializers.ModelSerializer):
+    company = CountFoundedCompaniesSerializer()
+
+    class Meta:
+        model = CompanyLinkWithPep
+        fields = (
+            'company', 'company_name_eng', 'company_short_name_eng', 'relationship_type',
+            'relationship_type_eng', 'start_date', 'end_date', 'is_state_company',
+        )
+
+
+class PepDetailSerializer(serializers.ModelSerializer):
+    related_persons = RelatedPersonSerializer(many=True)
+    related_companies = serializers.SerializerMethodField()
+    # other companies founded by persons with the same fullname as pep
+    check_companies = CountFoundedCompaniesSerializer(many=True)
+
+    def get_related_companies(self, obj):
+        queryset = obj.related_companies.select_related('company', 'company__company_type', 'company__status').all()
+        return PepDetailLinkWithCompanySerializer(queryset, many=True).data
+
+    class Meta:
+        model = Pep
+        fields = (
+            'id', 'fullname', 'fullname_eng', 'fullname_transcriptions_eng', 'last_job_title',
+            'last_job_title_eng', 'last_employer', 'last_employer_eng', 'is_pep', 'pep_type',
+            'pep_type_eng', 'url', 'info', 'info_eng', 'sanctions', 'sanctions_eng',
+            'criminal_record', 'criminal_record_eng', 'assets_info', 'assets_info_eng',
+            'criminal_proceedings', 'criminal_proceedings_eng', 'wanted', 'wanted_eng',
+            'date_of_birth', 'place_of_birth', 'place_of_birth_eng', 'is_dead',
+            'termination_date', 'reason_of_termination', 'reason_of_termination_eng',
+            'related_persons', 'related_companies', 'check_companies',
+        )
+
+
+class PepListSerializer(serializers.ModelSerializer):
+    related_persons = RelatedPersonSerializer(many=True)
+    related_companies = PepLinkWithCompanySerializer(many=True)
+
+    class Meta:
+        model = Pep
+        fields = (
+            'id', 'fullname', 'fullname_eng', 'fullname_transcriptions_eng', 'last_job_title',
+            'last_job_title_eng', 'last_employer', 'last_employer_eng', 'is_pep', 'pep_type',
+            'pep_type_eng', 'url', 'info', 'info_eng', 'sanctions', 'sanctions_eng',
+            'criminal_record', 'criminal_record_eng', 'assets_info', 'assets_info_eng',
+            'criminal_proceedings', 'criminal_proceedings_eng', 'wanted', 'wanted_eng',
+            'date_of_birth', 'place_of_birth', 'place_of_birth_eng', 'is_dead',
+            'termination_date', 'reason_of_termination', 'reason_of_termination_eng',
+            'related_persons', 'related_companies',
+        )

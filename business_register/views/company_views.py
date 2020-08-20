@@ -3,9 +3,9 @@ from rest_framework import viewsets
 from rest_framework.permissions import AllowAny
 from business_register.filters import CompanyFilterSet
 from business_register.models.company_models import Company, HistoricalCompany
-from business_register.serializers.company_serializers import (CompanyListSerializer,
-                                                               CompanyDetailSerializer,
-                                                               HistoricalCompanySerializer)
+from business_register.serializers.company_and_pep_serializers import (CompanyListSerializer,
+                                                                       CompanyDetailSerializer,
+                                                                       HistoricalCompanySerializer)
 from data_ocean.views import CachedViewMixin
 from rest_framework.filters import SearchFilter
 

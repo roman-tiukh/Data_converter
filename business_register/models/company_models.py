@@ -42,6 +42,18 @@ class Company(DataOceanModel):  # constraint for not null in both name & short_n
     history = HistoricalRecords()
 
     @property
+    def founder_of(self):
+        founder_of = Founder.objects.filter(edrpou=self.edrpou)
+        founded_companies = []
+        for founder in founder_of:
+            founded_companies.append(founder.company)
+        return founded_companies
+
+    @property
+    def founder_of_count(self):
+        return Founder.objects.filter(edrpou=self.edrpou).count()
+
+    @property
     def is_closed(self):
         return self.status.name == 'припинено'
 
@@ -124,6 +136,15 @@ class Founder(DataOceanModel):
     equity = models.FloatField('участь в статутному капіталі', null=True)
     address = models.CharField('адреса', max_length=2015, null=True)
     history = HistoricalRecords()
+
+    # retrieving id only for founder that is company
+    @property
+    def id_if_company(self):
+        if self.edrpou:
+            company = Company.objects.filter(edrpou=self.edrpou).first()
+            if company:
+                return company.id
+        return None
 
     class Meta:
         verbose_name = 'засновник'
