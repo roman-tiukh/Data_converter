@@ -101,7 +101,6 @@ class CompanyToKved(DataOceanModel):  # constraint for only only one truth in pr
         return f"{self.kved} (зазначений як основний)" if self.primary_kved else f"{self.kved}"
 
 
-
 class ExchangeDataCompany(DataOceanModel):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='exchange_data')
     authority = models.ForeignKey(Authority, on_delete=models.CASCADE,
@@ -120,8 +119,8 @@ class Founder(DataOceanModel):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='founders',
                                 verbose_name='є засновником компанії/організації')
     info = models.CharField('наявні дані', max_length=2015)
-    name = models.TextField("назва/повне ім'я", null=True)
-    edrpou = models.CharField('код ЄДРПОУ', max_length=9, null=True)
+    name = models.TextField("назва/повне ім'я", null=True, db_index=True)
+    edrpou = models.CharField('код ЄДРПОУ', max_length=9, null=True, db_index=True)
     equity = models.FloatField('участь в статутному капіталі', null=True)
     address = models.CharField('адреса', max_length=2015, null=True)
     history = HistoricalRecords()
@@ -129,18 +128,6 @@ class Founder(DataOceanModel):
     class Meta:
         verbose_name = 'засновник'
         verbose_name_plural = 'засновники'
-
-
-class FounderNew(DataOceanModel):
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='founders_new')
-    name = models.TextField(null=True)
-    edrpou = models.CharField(max_length=9, null=True)
-    equity = models.FloatField(null=True)
-
-    class Meta:
-        indexes = [
-            models.Index(fields=['name', 'company'], )
-        ]
 
 
 class Predecessor(DataOceanModel):  # constraint for not null in both fields

@@ -58,4 +58,6 @@ class PepFilterSet(filters.FilterSet):
         model = Pep
         fields = {
             'last_job_title': ['exact', 'contains'],
+            'is_pep': ['exact'],
+            'is_dead': ['exact'],
         }

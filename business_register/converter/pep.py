@@ -160,6 +160,9 @@ class PepConverter(BusinessConverter):
     def save_to_db(self, json_file):
         data = self.load_json(json_file)
         for pep_dict in data:
+            first_name = pep_dict['first_name'].lower()
+            middle_name = pep_dict['patronymic'].lower()
+            last_name = pep_dict['last_name'].lower()
             fullname = pep_dict['full_name'].lower()
             fullname_eng = pep_dict['full_name_en'].lower()
             fullname_transcriptions_eng = pep_dict['names'].lower()
@@ -222,6 +225,9 @@ class PepConverter(BusinessConverter):
             pep = Pep.objects.filter(code=code).first()
             if not pep:
                 pep = Pep.objects.create(
+                    first_name=first_name,
+                    middle_name=middle_name,
+                    last_name=last_name,
                     fullname=fullname,
                     fullname_eng=fullname_eng,
                     fullname_transcriptions_eng=fullname_transcriptions_eng,
@@ -256,6 +262,15 @@ class PepConverter(BusinessConverter):
                 )
             else:
                 update_fields = []
+                if pep.first_name != first_name:
+                    pep.first_name = first_name
+                    update_fields.append('first_name')
+                if pep.middle_name != middle_name:
+                    pep.middle_name = middle_name
+                    update_fields.append('middle_name')
+                if pep.last_name != last_name:
+                    pep.last_name = last_name
+                    update_fields.append('last_name')
                 if pep.fullname_transcriptions_eng != fullname_transcriptions_eng:
                     pep.fullname_transcriptions_eng = fullname_transcriptions_eng
                     update_fields.append('fullname_transcriptions_eng')

@@ -25,9 +25,13 @@ from business_register.views.fop_views import FopViewSet
 from business_register.views.kved_views import KvedViewSet
 from business_register.views.pep_views import PepViewSet
 from data_ocean.views import RegisterView, SchemaView
-from location_register.views.drv_viewsets import DrvBuildingViewSet
-from location_register.views.ratu_viewsets import RatuRegionView, RatuCityView, RatuStreetView, RatuCityDistrictView, \
-    RatuDistrictView
+from location_register.views.drv_views import DrvBuildingViewSet
+from location_register.views.ratu_views import (RatuRegionView, RatuCityView, RatuStreetView,
+                                                RatuCityDistrictView, RatuDistrictView)
+from location_register.views.koatuu_views import (KoatuuFirstLevelViewSet,
+                                                  KoatuuSecondLevelViewSet,
+                                                  KoatuuThirdLevelViewSet,
+                                                  KoatuuFourthLevelViewSet)
 from users.views import CustomRegisterView, CustomRegisterConfirmView, LandingMailView
 
 router = routers.DefaultRouter()
@@ -41,6 +45,10 @@ router.register(r'citydistrict', RatuCityDistrictView, basename='citydistrict')
 router.register(r'district', RatuDistrictView, basename='district')
 router.register(r'drvbuilding', DrvBuildingViewSet, basename='drvbuilding')
 router.register(r'company', CompanyViewSet, basename='company')
+router.register(r'koatuu-first-level', KoatuuFirstLevelViewSet, basename='koatuu_first_level')
+router.register(r'koatuu-second-level', KoatuuSecondLevelViewSet, basename='koatuu_second_level')
+router.register(r'koatuu-third-level', KoatuuThirdLevelViewSet, basename='koatuu_third_level')
+router.register(r'koatuu-fourth-level', KoatuuFourthLevelViewSet, basename='koatuu_fourth_level')
 router.register(r'register', RegisterView, basename='register')
 router.register(r'historical-company', HistoricalCompanyView, basename='historical_company')
 router.register(r'pep', PepViewSet, basename='pep')

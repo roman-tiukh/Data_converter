@@ -19,6 +19,7 @@ class KoatuuFirstLevel(DataOceanModel):
 
 class KoatuuSecondLevel(DataOceanModel):
     first_level = models.ForeignKey(KoatuuFirstLevel, on_delete=models.CASCADE,
+                                    related_name='second_level_places',
                                     verbose_name='перший рівень підпорядкованості')
     category = models.ForeignKey(KoatuuCategory, on_delete=models.CASCADE, null=True,
                                  verbose_name='категорія населеного пункта')
@@ -34,6 +35,7 @@ class KoatuuThirdLevel(DataOceanModel):
     first_level = models.ForeignKey(KoatuuFirstLevel, on_delete=models.CASCADE,
                                     verbose_name='перший рівень підпорядкованості')
     second_level = models.ForeignKey(KoatuuSecondLevel, on_delete=models.CASCADE, null=True,
+                                     related_name='third_level_places',
                                      verbose_name='другий рівень підпорядкованості')
     category = models.ForeignKey(KoatuuCategory, on_delete=models.CASCADE, null=True,
                                  verbose_name='категорія населеного пункта')
@@ -51,6 +53,7 @@ class KoatuuFourthLevel(DataOceanModel):
     second_level = models.ForeignKey(KoatuuSecondLevel, on_delete=models.CASCADE, null=True,
                                      verbose_name='другий рівень підпорядкованості')
     third_level = models.ForeignKey(KoatuuThirdLevel, on_delete=models.CASCADE,
+                                    related_name='fourth_level_places',
                                     verbose_name='третій рівень підпорядкованості')
     category = models.ForeignKey(KoatuuCategory, on_delete=models.CASCADE, null=True,
                                  verbose_name='категорія населеного пункта')
