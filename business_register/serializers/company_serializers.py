@@ -76,11 +76,37 @@ class CompanyShortSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'edrpou',)
 
 
-class CompanySerializer(serializers.ModelSerializer):
-    name = serializers.CharField(max_length=500)
-    edrpou = serializers.CharField(max_length=260)
+class CompanyListSerializer(serializers.ModelSerializer):
+    founders = FounderSerializer(many=True)
+    authorized_capital = serializers.FloatField()
+    parent = serializers.StringRelatedField()
+    predecessors = serializers.StringRelatedField(many=True)
+    company_type = serializers.StringRelatedField()
+    status = serializers.StringRelatedField()
+    authority = serializers.StringRelatedField()
+    assignees = serializers.StringRelatedField(many=True)
+    signers = serializers.StringRelatedField(many=True)
+    kveds = serializers.StringRelatedField(many=True)
+    bylaw = serializers.StringRelatedField()
+    bancruptcy_readjustment = BancruptcyReadjustmentSerializer(many=True)
+    company_detail = CompanyDetailSerializer(many=True)
+    exchange_data = ExchangeDataCompanySerializer(many=True)
+    termination_started = TerminationStartedSerializer(many=True)
+
+    class Meta:
+        model = Company
+        fields = (
+            'id', 'name', 'short_name', 'address', 'edrpou', 'founders',
+            'authorized_capital', 'parent', 'company_type', 'status', 'is_closed',
+            'predecessors', 'authority', 'signers', 'assignees', 'bancruptcy_readjustment',
+            'termination_started', 'company_detail', 'kveds', 'bylaw', 'exchange_data'
+        )
+
+
+class CompanyDetailSerializer(serializers.ModelSerializer):
     founders = FounderSerializer(many=True)
     founder_of = serializers.SerializerMethodField()
+    relationships_with_peps = serializers.StringRelatedField(many=True)
     authorized_capital = serializers.FloatField()
     parent = serializers.StringRelatedField()
     predecessors = serializers.StringRelatedField(many=True)
@@ -110,9 +136,10 @@ class CompanySerializer(serializers.ModelSerializer):
         model = Company
         fields = (
             'id', 'name', 'short_name', 'address', 'edrpou', 'founders', 'founder_of',
-            'authorized_capital', 'parent', 'company_type', 'status', 'is_closed',
-            'predecessors', 'authority', 'signers', 'assignees', 'bancruptcy_readjustment',
-            'termination_started', 'company_detail', 'kveds', 'bylaw', 'exchange_data'
+            'relationships_with_peps', 'authorized_capital', 'parent', 'company_type', 'status',
+            'is_closed', 'predecessors', 'authority', 'signers', 'assignees',
+            'bancruptcy_readjustment', 'termination_started', 'company_detail', 'kveds', 'bylaw',
+            'exchange_data'
         )
 
 
