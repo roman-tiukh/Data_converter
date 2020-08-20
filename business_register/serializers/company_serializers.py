@@ -54,7 +54,7 @@ class TerminationStartedSerializer(serializers.ModelSerializer):
         fields = ('op_date', 'reason', 'sbj_state', 'signer_name', 'creditor_reg_end_date')
 
 
-class CompanyShortSerializer(serializers.ModelSerializer):
+class CountFoundedCompaniesSerializer(serializers.ModelSerializer):
     company_type = serializers.StringRelatedField()
     status = serializers.StringRelatedField()
     founder_of_count = serializers.SerializerMethodField()
@@ -65,9 +65,15 @@ class CompanyShortSerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
         fields = (
-            'id', 'name', 'short_name', 'company_type',
-            'edrpou', 'status', 'founder_of_count', 'is_closed',
+            'id', 'name', 'short_name', 'company_type', 'edrpou', 'status', 'founder_of_count',
+            'is_closed',
         )
+
+
+class CompanyShortSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Company
+        fields = ('id', 'name', 'edrpou',)
 
 
 class CompanySerializer(serializers.ModelSerializer):
@@ -96,7 +102,7 @@ class CompanySerializer(serializers.ModelSerializer):
         founded_companies = []
         for founder in founder_of:
             founded_companies.append(
-                CompanyShortSerializer(founder.company).data
+                CountFoundedCompaniesSerializer(founder.company).data
             )
         return founded_companies
 
