@@ -34,16 +34,16 @@ class ExchangeDataCompanySerializer(serializers.ModelSerializer):
 
 
 class FounderSerializer(serializers.ModelSerializer):
-    # retreiving id only for founder that is company
+    # retrieving id only for founder that is company
     id_if_company = serializers.SerializerMethodField()
 
     class Meta:
         model = Founder
         fields = ('name', 'edrpou', 'equity', 'id_if_company')
 
-    def get_id_if_company(self, founderfull):
-        if founderfull.edrpou:
-            company = Company.objects.filter(edrpou=founderfull.edrpou).first()
+    def get_id_if_company(self, founder):
+        if founder.edrpou:
+            company = Company.objects.filter(edrpou=founder.edrpou).first()
             if company:
                 return company.id
 
@@ -90,15 +90,6 @@ class CompanySerializer(serializers.ModelSerializer):
     exchange_data = ExchangeDataCompanySerializer(many=True)
     termination_started = TerminationStartedSerializer(many=True)
 
-    class Meta:
-        model = Company
-        fields = (
-            'id', 'name', 'address', 'edrpou', 'founders', 'founder_of', 'authorized_capital',
-            'parent', 'company_type', 'status', 'is_closed', 'predecessors', 'authority',
-            'signers', 'assignees', 'bancruptcy_readjustment', 'termination_started',
-            'company_detail', 'kveds', 'bylaw', 'exchange_data'
-        )
-
     # getting a list of ids companies that are founded by this company
     def get_founder_of(self, company):
         founder_of = Founder.objects.filter(edrpou=company.edrpou)
@@ -108,6 +99,15 @@ class CompanySerializer(serializers.ModelSerializer):
                 CompanyShortSerializer(founder.company).data
             )
         return founded_companies
+
+    class Meta:
+        model = Company
+        fields = (
+            'id', 'name', 'short_name', 'address', 'edrpou', 'founders', 'founder_of',
+            'authorized_capital', 'parent', 'company_type', 'status', 'is_closed',
+            'predecessors', 'authority', 'signers', 'assignees', 'bancruptcy_readjustment',
+            'termination_started', 'company_detail', 'kveds', 'bylaw', 'exchange_data'
+        )
 
 
 class HistoricalCompanySerializer(serializers.ModelSerializer):

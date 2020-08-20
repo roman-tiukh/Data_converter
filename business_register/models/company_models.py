@@ -119,7 +119,7 @@ class Founder(DataOceanModel):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='founders',
                                 verbose_name='є засновником компанії/організації')
     info = models.CharField('наявні дані', max_length=2015)
-    name = models.TextField("назва/повне ім'я", null=True)
+    name = models.TextField("назва/повне ім'я", null=True, db_index=True)
     edrpou = models.CharField('код ЄДРПОУ', max_length=9, null=True, db_index=True)
     equity = models.FloatField('участь в статутному капіталі', null=True)
     address = models.CharField('адреса', max_length=2015, null=True)
