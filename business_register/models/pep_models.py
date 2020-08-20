@@ -45,7 +45,7 @@ class Pep(DataOceanModel):
     reason_of_termination_eng = models.CharField('причина припинення статусу публічного діяча англійською',
                                                  max_length=125, null=True)
     code = models.CharField(max_length=135)
-    history = HistoricalRecords()
+    history = HistoricalRecords(excluded_fields=['url', 'code'])
 
     class Meta:
         verbose_name = 'публічний діяч'
