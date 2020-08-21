@@ -43,6 +43,8 @@ class Company(DataOceanModel):  # constraint for not null in both name & short_n
 
     @property
     def founder_of(self):
+        if not self.edrpou:
+            return []
         founder_of = Founder.objects.filter(edrpou=self.edrpou)
         founded_companies = []
         for founder in founder_of:
@@ -51,6 +53,8 @@ class Company(DataOceanModel):  # constraint for not null in both name & short_n
 
     @property
     def founder_of_count(self):
+        if not self.edrpou:
+            return 0
         return Founder.objects.filter(edrpou=self.edrpou).count()
 
     @property
