@@ -50,13 +50,11 @@ class CountFoundedCompaniesSerializer(serializers.ModelSerializer):
     company_type = serializers.StringRelatedField()
     status = serializers.StringRelatedField()
 
-    # founder_of_count = serializers.SerializerMethodField()
-
     class Meta:
         model = Company
         fields = (
-            'id', 'name', 'short_name', 'company_type', 'edrpou', 'status', 'founder_of_count',
-            'is_closed',
+            'id', 'name', 'short_name', 'company_type', 'edrpou',
+            'status', 'founder_of_count', 'is_closed', 'from_antac_only',
         )
 
 

@@ -17,7 +17,7 @@ class CompanyViewSet(CachedViewMixin, viewsets.ReadOnlyModelViewSet):
     ).prefetch_related(
         'founders', 'predecessors', 'assignees', 'signers', 'kveds', 'termination_started',
         'bancruptcy_readjustment', 'company_detail', 'exchange_data', 'relationships_with_peps',
-    ).exclude(from_antac_only=True)
+    )
     serializer_class = CompanyListSerializer
     filter_backends = (DjangoFilterBackend, SearchFilter)
     filterset_class = CompanyFilterSet
@@ -27,6 +27,11 @@ class CompanyViewSet(CachedViewMixin, viewsets.ReadOnlyModelViewSet):
         if self.action == 'retrieve':
             return CompanyDetailSerializer
         return super().get_serializer_class()
+
+    def get_queryset(self):
+        if self.action == 'list':
+            return self.queryset.exclude(from_antac_only=True)
+        return self.queryset
 
 
 class HistoricalCompanyView(CachedViewMixin, viewsets.ReadOnlyModelViewSet):
