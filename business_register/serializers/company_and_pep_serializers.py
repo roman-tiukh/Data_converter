@@ -202,7 +202,7 @@ class PepDetailSerializer(serializers.ModelSerializer):
             'criminal_proceedings', 'criminal_proceedings_eng', 'wanted', 'wanted_eng',
             'date_of_birth', 'place_of_birth', 'place_of_birth_eng', 'is_dead',
             'termination_date', 'reason_of_termination', 'reason_of_termination_eng',
-            'related_persons', 'related_companies', 'check_companies',
+            'related_persons', 'related_companies', 'check_companies', 'created_at', 'updated_at',
         )
 
 
@@ -220,5 +220,5 @@ class PepListSerializer(serializers.ModelSerializer):
             'criminal_proceedings', 'criminal_proceedings_eng', 'wanted', 'wanted_eng',
             'date_of_birth', 'place_of_birth', 'place_of_birth_eng', 'is_dead',
             'termination_date', 'reason_of_termination', 'reason_of_termination_eng',
-            'related_persons', 'related_companies',
+            'related_persons', 'related_companies', 'created_at', 'updated_at',
         )
