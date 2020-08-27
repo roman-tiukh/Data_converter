@@ -53,11 +53,11 @@ class KvedFilterSet(filters.FilterSet):
 class PepFilterSet(filters.FilterSet):
     fullname = filters.CharFilter(lookup_expr='icontains')
     fullname_transcriptions_eng = filters.CharFilter(lookup_expr='icontains')
+    updated_at = filters.DateFromToRangeFilter()
 
     class Meta:
         model = Pep
         fields = {
-            'last_job_title': ['exact', 'contains'],
             'is_pep': ['exact'],
             'is_dead': ['exact'],
         }
