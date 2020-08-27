@@ -55,3 +55,23 @@ class Register(DataOceanModel):
 
     def __str__(self):
         return self.name
+
+
+class RegistryUpdaterModel(models.Model):
+
+    registry_name = models.CharField(max_length=20, db_index=True)
+
+    download_start = models.DateTimeField(auto_now_add=True)
+    download_finish = models.DateTimeField(null=True, blank=True)
+    download_status = models.BooleanField(blank=True, default=False)
+    download_message = models.CharField(max_length=255, null=True, blank=True)
+    download_file_name = models.CharField(max_length=255, null=True, blank=True)
+    download_file_length = models.PositiveIntegerField(blank=True, default=0)
+
+    update_start = models.DateTimeField(null=True, blank=True)
+    update_finish = models.DateTimeField(null=True, blank=True)
+    update_status = models.BooleanField(blank=True, default=False)
+    update_message = models.CharField(max_length=255, null=True, blank=True)
+
+    def __str__(self):
+        return self.registry_name
