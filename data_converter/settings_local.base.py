@@ -1,4 +1,6 @@
 import os
+from celery.schedules import crontab
+
 # sentry import configarution
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
@@ -48,8 +50,6 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
 ]
 
-
-
 DATABASES = {
     'default': {
         "ENGINE": "django.db.backends.postgresql",
@@ -85,7 +85,7 @@ CSRF_TRUSTED_ORIGINS = [
 
 LOCAL_FILE_NAME_KOATUU = ''
 LOCATION_KOATUU_LOCAL_FILE_NAME = ''
-LOCAL_FOLDER = ''
+LOCAL_FOLDER = 'unzipped_xml/'
 FILE_URL_KVED = ''
 LOCAL_FILE_NAME_KVED = ''
 LOCAL_FILE_NAME_UO_ADDRESS = ''
@@ -96,9 +96,19 @@ LOCAL_FILE_NAME_UO_SHORTNAME = ''
 LOCAL_FILE_NAME_UO_CAPITAL = ''
 LOCAL_FILE_NAME_UO_BRANCH = ''
 LOCAL_FILE_NAME_UO_INFO = ''
+LOCAL_FILE_NAME_FOP = ''
+
 LOCATION_KOATUU_SOURCE_REGISTER_ID = "dc081fb0-f504-4696-916c-a5b24312ab6e"
 LOCATION_RATU_SOURCE_REGISTER_ID = "a2d6c060-e7e6-4471-ac67-42cfa1742a19"
 LOCATION_KVED_SOURCE_REGISTER_ID = "e1afb81c-70e4-4009-96a0-b240c36e4603"
+
+BUSINESS_PEP_AUTH_USER = ''
+BUSINESS_PEP_AUTH_PASSWORD = ''
+BUSINESS_PEP_SOURCE_URL = 'https://pep.org.ua/opendata/persons/json'
+
+CHUNK_SIZE_FOP = 100
+
+REDIS_PASSWORD = 'You_Redis_Password'
 
 
 CACHES = {
@@ -108,7 +118,7 @@ CACHES = {
         # 'LOCATION': 'redis://127.0.0.1:6379/1',
         # 'OPTIONS': {
         #     "IGNORE_EXCEPTIONS": True,
-        #     # 'PASSWORD': 'XXXXXXXXX',
+        #     # 'PASSWORD': f'{REDIS_PASSWORD}',
         #     'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         # },
 
@@ -125,23 +135,27 @@ UO_CHUNK_SIZE = 100
 CHUNK_SIZE_UO = 100
 
 # celery settings
-# CELERY_BROKER_URL = 'redis://localhost:6379/2' # redis://:password@hostname:port/db_number
-# CELERY_BROKER_TRANSPORT_OPTIONS = {'visibility_timeout': 3600}
-# CELERY_RESULT_BACKEND = 'redis://localhost:6379/2'
+# CELERY_BROKER_URL = f'redis://:{REDIS_PASSWORD}@localhost:6379/2'
+# CELERY_BROKER_TRANSPORT_OPTIONS = {'visibility_timeout': 3600 * 24 * 5, 'max_retries': 0, }
+# CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 # CELERY_ACCEPT_CONTENT = ['json']
 # CELERY_TASK_SERIALIZER = 'json'
 # CELERY_RESULT_SERIALIZER = 'json'
+# CELERYD_MAX_TASKS_PER_CHILD = 1
+# FLOWER_BROKER = CELERY_RESULT_BACKEND
+# FLOWER_PORT = 5555
+
 
 # use CELERY_BEAT_SHEDULE to set periodic tasks in code, without admin aplication/ periodic tasks
 # CELERY_BEAT_SCHEDULE = {
-#     'fill_in_ratu_table':{
-#         'task': 'location_register.tasks.fill_in_ratu_table',
-#         'schedule': crontab(hour=14, minute=10, day_of_week=5),
+#     'test_task': {
+#         'task': 'data_ocean.tasks.test_task',
+#         'schedule': crontab(minute='*/1'),
 #     },
-#     'fill_in_koatuu_table':{
-#         'task': 'location_register.tasks.fill_in_koatuu_table',
-#         'schedule': crontab(hour=1, minute=10, day_of_week=6),
-#     }
+#     'update_pep': {
+#         'task': 'business_register.tasks.update_pep',
+#         'schedule': crontab(hour=10, minute=30),
+#     },
 # }
 
 # sentry configarution
