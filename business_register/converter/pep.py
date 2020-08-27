@@ -12,7 +12,6 @@ from business_register.converter.business_converter import BusinessConverter
 class PepConverter(BusinessConverter):
 
     def __init__(self):
-        self.all_peps_dict = self.put_all_objects_to_dict('code', 'business_register', 'Pep')
         super().__init__()
 
     def save_or_update_pep_related_companies(self, related_companies_list, pep):
@@ -216,15 +215,13 @@ class PepConverter(BusinessConverter):
             reason_of_termination_eng = pep_dict.get('reason_of_termination_en')
             if reason_of_termination_eng:
                 reason_of_termination_eng = reason_of_termination_eng.lower()
-            if pep_type:
-                code = fullname + pep_type
-            else:
-                code = fullname + 'EMPTY'
             related_companies_list = pep_dict.get('related_companies', [])
             related_persons_list = pep_dict.get('related_persons', [])
+            code = str(pep_dict.get('id'))
             pep = Pep.objects.filter(code=code).first()
             if not pep:
                 pep = Pep.objects.create(
+                    code=code,
                     first_name=first_name,
                     middle_name=middle_name,
                     last_name=last_name,
@@ -258,7 +255,6 @@ class PepConverter(BusinessConverter):
                     termination_date=termination_date,
                     reason_of_termination=reason_of_termination,
                     reason_of_termination_eng=reason_of_termination_eng,
-                    code=code
                 )
             else:
                 update_fields = []
