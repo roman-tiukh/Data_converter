@@ -5,6 +5,7 @@ from business_register.models.company_models import Company, Founder
 
 
 class Pep(DataOceanModel):
+    code = models.CharField(max_length=15, unique=True)
     first_name = models.CharField("ім'я", max_length=20)
     middle_name = models.CharField('по батькові', max_length=25)
     last_name = models.CharField('прізвище', max_length=30)
@@ -44,7 +45,6 @@ class Pep(DataOceanModel):
                                              max_length=125, null=True)
     reason_of_termination_eng = models.CharField('причина припинення статусу публічного діяча англійською',
                                                  max_length=125, null=True)
-    code = models.CharField(max_length=135)
     history = HistoricalRecords(excluded_fields=['url', 'code'])
 
     @property
