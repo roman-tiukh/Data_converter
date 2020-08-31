@@ -85,7 +85,7 @@ class DrvBuilding(DataOceanModel):
     zip_code = models.ForeignKey(ZipCode, on_delete=models.CASCADE,
                                  verbose_name='поштовий індекс')
     code = models.CharField('код', max_length=20, unique=True)
-    number = models.CharField(max_length=10)
+    number = models.CharField(max_length=18)
 
     class Meta:
         verbose_name = 'будинок'
