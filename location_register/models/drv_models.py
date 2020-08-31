@@ -51,8 +51,8 @@ class DrvStreet(DataOceanModel):
     council = models.ForeignKey(DrvCouncil, on_delete=models.CASCADE)
     ato = models.ForeignKey(DrvAto, on_delete=models.CASCADE)
     code = models.CharField('код', max_length=15, unique=True)
-    name = models.CharField('назва', max_length=100)
-    previous_name = models.CharField('попередня назва', max_length=100, null=True)
+    name = models.CharField('назва', max_length=155)
+    previous_name = models.CharField('попередня назва', max_length=155, null=True)
     number_of_buildings = models.PositiveIntegerField('кількість будинків', null=True)
 
     class Meta:
