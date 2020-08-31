@@ -3,6 +3,7 @@ from simple_history.models import HistoricalRecords
 
 from business_register.models.kved_models import Kved
 from data_ocean.models import Authority, DataOceanModel, Status, TaxpayerType
+from location_register.models.address_models import Country
 
 
 class Bylaw(DataOceanModel):
@@ -27,6 +28,8 @@ class Company(DataOceanModel):  # constraint for not null in both name & short_n
                                      verbose_name='організаційно-правова форма')
     edrpou = models.CharField('код ЄДРПОУ', max_length=260, null=True, db_index=True)
     authorized_capital = models.FloatField('статутний капітал', null=True)
+    country = models.ForeignKey(Country, max_length=60, on_delete=models.CASCADE, null=True,
+                                verbose_name='країна')
     address = models.CharField('адреса', max_length=1000, null=True)
     status = models.ForeignKey(Status, on_delete=models.CASCADE, null=True, verbose_name='статус')
     bylaw = models.ForeignKey(Bylaw, on_delete=models.CASCADE, null=True, verbose_name='статут')

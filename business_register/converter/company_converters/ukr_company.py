@@ -7,17 +7,18 @@ import re
 
 from django.conf import settings
 
-from business_register.converter.business_converter import BusinessConverter
 from business_register.models.company_models import (
     Assignee, BancruptcyReadjustment, Bylaw, Company, CompanyDetail, CompanyToKved,
-    CompanyToPredecessor, CompanyType, ExchangeDataCompany, Founder, Predecessor,
+    CompanyToPredecessor, ExchangeDataCompany, Founder, Predecessor,
     Signer, TerminationStarted
 )
+from business_register.converter.company_converters.company import CompanyConverter
 from data_ocean.converter import BulkCreateManager
-from data_ocean.utils import cut_first_word, format_date_to_yymmdd, get_first_word
+from data_ocean.utils import (cut_first_word, format_date_to_yymmdd, get_first_word,
+                              convert_to_string_if_exists)
 
 
-class CompanyConverter(BusinessConverter):
+class UkrCompanyConverter(CompanyConverter):
 
     def __init__(self):
         self.LOCAL_FILE_NAME = settings.LOCAL_FILE_NAME_UO
@@ -27,24 +28,12 @@ class CompanyConverter(BusinessConverter):
         self.bulk_manager = BulkCreateManager()
         self.branch_bulk_manager = BulkCreateManager()
         self.all_bylaw_dict = self.put_all_objects_to_dict("name", "business_register", "Bylaw")
-        self.all_company_type_dict = self.put_all_objects_to_dict('name', "business_register",
-                                                                  "CompanyType")
         self.all_predecessors_dict = self.put_all_objects_to_dict("name", "business_register",
                                                                   "Predecessor")
         self.all_companies_dict = {}
         self.branch_to_parent = {}
         self.all_company_founders = []
-
         super().__init__()
-
-    def save_or_get_company_type(self, type_from_record):
-        company_type = type_from_record.lower()
-        if company_type not in self.all_company_type_dict:
-            company_type = CompanyType.objects.create(name=company_type)
-            self.all_company_type_dict[company_type] = company_type
-            return company_type
-        else:
-            return self.all_company_type_dict[company_type]
 
     def save_or_get_bylaw(self, bylaw_from_record):
         if bylaw_from_record not in self.all_bylaw_dict:
@@ -408,19 +397,20 @@ class CompanyConverter(BusinessConverter):
             #                         terminated_info, termination_cancel_info, vp_dates, code)
             company = Company.objects.filter(code=code).first()
             if not company:
-                company = Company(name=name,
-                                  short_name=short_name,
-                                  company_type=company_type,
-                                  edrpou=edrpou,
-                                  authorized_capital=authorized_capital,
-                                  address=address,
-                                  status=status,
-                                  bylaw=bylaw,
-                                  registration_date=registration_date,
-                                  registration_info=registration_info,
-                                  contact_info=contact_info,
-                                  authority=authority,
-                                  code=code)
+                company = Company(
+                    name=name,
+                    short_name=short_name,
+                    company_type=company_type,
+                    edrpou=edrpou,
+                    authorized_capital=authorized_capital,
+                    status=status,
+                    bylaw=bylaw,
+                    registration_date=registration_date,
+                    registration_info=registration_info,
+                    contact_info=contact_info,
+                    authority=authority,
+                    code=code
+                )
                 company.save()
                 # self.bulk_manager.add_create(company)
             else:
@@ -446,8 +436,7 @@ class CompanyConverter(BusinessConverter):
                 if company.bylaw != bylaw:
                     company.bylaw = bylaw
                     update_fields.append('bylaw')
-                if company.registration_date and \
-                        str(company.registration_date) != registration_date:
+                if convert_to_string_if_exists(company.registration_date) != registration_date:
                     company.registration_date = registration_date
                     update_fields.append('registration_date')
                 if company.registration_info != registration_info:
@@ -459,7 +448,7 @@ class CompanyConverter(BusinessConverter):
                 if company.authority != authority:
                     company.authority = authority
                     update_fields.append('authority')
-                if len(update_fields):
+                if update_fields:
                     company.save(update_fields=update_fields)
                     # self.bulk_manager.add_update(company)
             if len(record.xpath('FOUNDERS')[0]):

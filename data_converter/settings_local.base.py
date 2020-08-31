@@ -130,7 +130,7 @@ CACHES = {
 LOGIN_REDIRECT_URL = '/'
 ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 
-# business_register/converter/company.py
+# business_register/converter/ukr_company.py
 UO_CHUNK_SIZE = 100
 CHUNK_SIZE_UO = 100
 

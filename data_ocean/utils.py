@@ -53,5 +53,15 @@ def cut_first_word(string):
 
 # deleting ';' from a string, then converting it to the datetime format 'Y-m-d'
 def format_date_to_yymmdd(str_ddmmyy):
-    ddmmyy = str_ddmmyy.replace(";", "")
-    return datetime.datetime.strptime(ddmmyy, "%d.%m.%Y").strftime("%Y-%m-%d")
+    if ';' in str_ddmmyy:
+        str_ddmmyy = str_ddmmyy.replace(";", "")
+    if '/' in str_ddmmyy:
+        str_ddmmyy = str_ddmmyy.replace("/", ".")
+    return datetime.datetime.strptime(str_ddmmyy, "%d.%m.%Y").strftime("%Y-%m-%d")
+
+
+# checking if exists, then converting to string
+def convert_to_string_if_exists(value):
+    if value:
+        return str(value)
+    return None

@@ -3,8 +3,6 @@ import logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-from django.apps import apps
-
 from business_register.models.kved_models import Kved
 from data_ocean.converter import Converter
 from data_ocean.models import Authority, Status, TaxpayerType
@@ -24,6 +22,7 @@ class BusinessConverter(Converter):
         self.all_statuses_dict = self.put_all_objects_to_dict("name", "data_ocean", "Status")
         self.all_authorities_dict = self.put_all_objects_to_dict("name", "data_ocean", "Authority")
         self.all_taxpayer_types_dict = self.put_all_objects_to_dict("name", "data_ocean", "TaxpayerType")
+        super().__init__()
 
     def find_edrpou(self, string_to_check):
         return len(string_to_check) == 8 and string_to_check.isdigit()
