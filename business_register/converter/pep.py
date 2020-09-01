@@ -1,12 +1,14 @@
 import logging
-
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
-
+from django.utils import timezone
 from business_register.models.company_models import Company
 from business_register.models.pep_models import Pep, PepRelatedPerson, CompanyLinkWithPep
-
 from business_register.converter.business_converter import BusinessConverter
+from data_ocean.downloader import Downloader
+from data_ocean.models import RegistryUpdaterModel
+from requests.auth import HTTPBasicAuth
+from django.conf import settings
 
 
 class PepConverter(BusinessConverter):
@@ -156,7 +158,17 @@ class PepConverter(BusinessConverter):
                     end_date=end_date
                 )
 
-    def save_to_db(self, json_file):
+    def save_to_db(self, json_file, log_id=None):
+
+        if log_id:
+            print(f'save_to_db: log_id = {log_id}.')
+            upd_obj = RegistryUpdaterModel.objects.filter(id=log_id).first()
+            if not upd_obj:
+                print(f"Can't find log record id={log_id} in db!")
+                return
+            upd_obj.update_start = timezone.now()
+            upd_obj.save()
+
         data = self.load_json(json_file)
         for pep_dict in data:
             first_name = pep_dict['first_name'].lower()
@@ -358,3 +370,15 @@ class PepConverter(BusinessConverter):
                 self.save_or_update_pep_related_persons(related_persons_list, pep)
             if len(related_companies_list):
                 self.save_or_update_pep_related_companies(related_companies_list, pep)
+
+        if log_id:
+            upd_obj.update_finish = timezone.now()
+            upd_obj.update_status = True
+            upd_obj.save()
+
+
+class PepDownloader(Downloader):
+    url = settings.BUSINESS_PEP_SOURCE_URL
+    auth = HTTPBasicAuth(settings.BUSINESS_PEP_AUTH_USER, settings.BUSINESS_PEP_AUTH_PASSWORD)
+    chunk_size = 16 * 1024 * 1024
+    reg_name = 'business_pep'
