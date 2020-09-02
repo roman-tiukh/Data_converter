@@ -1,0 +1,16 @@
+server {
+
+    server_name {{ dp_domain }};
+
+    root /home/{{ app_user }}/{{ app_folder }}/build;
+
+    access_log /home/{{ app_user }}/logs/{{ dp_logs_dir }}/nginx-access.log;
+    error_log /home/{{ app_user }}/logs/{{ dp_logs_dir }}/nginx-error.log;
+
+    index index.html;
+
+    location / {
+        try_files $uri /index.html = 404;
+    }
+
+}

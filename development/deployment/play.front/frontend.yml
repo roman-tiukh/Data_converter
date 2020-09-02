@@ -1,0 +1,162 @@
+---
+- hosts: do-test
+  remote_user: ubuntu
+  become: yes
+
+  vars:
+    app_user: "ubuntu"
+    app_folder: "DataOcean"
+    git_repo: "https://github.com/3v-workspace/DataOcean.git"
+
+    landing_domain: "dataocean.us"
+    landing_logs_dir: "dataoceanlanding"
+
+    dp_domain: "dp.dataocean.us"
+    dp_logs_dir: "dataocean"
+
+    cert_email: "pydev777@gmail.com"
+
+
+  tasks:
+
+  - name: Ping START
+    ping:
+
+  - name: Update APT Cache
+    apt:
+      update_cache: yes
+
+  - name: Install software
+    apt:
+      name: "{{ packages }}"
+      state: latest
+      update_cache: yes
+    vars:
+      packages:
+      - acl
+      - gcc
+      - g++
+      - make
+      - curl
+      - dirmngr
+      - apt-transport-https
+      - lsb-release
+      - ca-certificates
+      - mc
+      - tmux
+
+  - name: Add apt key for nodesource
+    apt_key:
+      url: "https://deb.nodesource.com/gpgkey/nodesource.gpg.key"
+      state: present
+
+  - name: Add repo for nodesource
+    apt_repository:
+      repo: "deb https://deb.nodesource.com/node_12.x bionic main"
+      state: present
+      update_cache: yes
+
+  - name: Install the nodejs
+    apt:
+      name: nodejs
+      state: present
+
+  - name: Copy GitHub deploy key to server
+    copy:
+      src: templates/github.ssh
+      dest: "/home/{{ app_user }}/"
+    become_user: "{{ app_user }}"
+
+  - name: Clone repo
+    git:
+      repo: "{{ git_repo }}"
+      dest: "/home/{{ app_user }}/{{ app_folder }}/"
+      key_file: "/home/{{ app_user }}/github.ssh/github_do_rsa"
+    become_user: "{{ app_user }}"
+
+  - name: Copy auto-update script
+    copy:
+      src: templates/scripts/cron_do_up.sh
+      dest: "/home/{{ app_user }}/"
+      mode: '755'
+    become_user: "{{ app_user }}"
+
+  - name: Copy rebuild script
+    copy:
+      src: templates/scripts/rebuild_only.sh
+      dest: "/home/{{ app_user }}/"
+      mode: '755'
+    become_user: "{{ app_user }}"
+
+  - name: Run rebuild script
+    shell: "sh rebuild_only.sh >> ~/rebuild_only.log 2>&1"
+    become_user: "{{ app_user }}"
+
+  - name: Create log directory "/home/{{ app_user }}/logs/{{ dp_logs_dir }}"
+    file:
+      path: "/home/{{ app_user }}/logs/{{ dp_logs_dir }}"
+      state: directory
+    become_user: "{{ app_user }}"
+
+  - name: Create log directory "/home/{{ app_user }}/logs/{{ landing_logs_dir }}"
+    file:
+      path: "/home/{{ app_user }}/logs/{{ landing_logs_dir }}"
+      state: directory
+    become_user: "{{ app_user }}"
+
+  - name: Install nginx
+    apt:
+      name: nginx
+      state: latest
+      update_cache: yes
+
+  - name: Create config "/etc/nginx/sites-available/{{ landing_domain }}"
+    template:
+      src: "templates/nginx/landing.j2"
+      dest: "/etc/nginx/sites-available/{{ landing_domain }}"
+      mode: +r
+
+  - name: Create symlink for nginx config {{ landing_domain }}
+    file:
+      src: "/etc/nginx/sites-available/{{ landing_domain }}"
+      dest: "/etc/nginx/sites-enabled/{{ landing_domain }}"
+      state: link
+
+  - name: Create config "/etc/nginx/sites-available/{{ dp_domain }}"
+    template:
+      src: "templates/nginx/dp.j2"
+      dest: "/etc/nginx/sites-available/{{ dp_domain }}"
+      mode: +r
+
+  - name: Create symlink for nginx config {{ dp_domain }}
+    file:
+      src: "/etc/nginx/sites-available/{{ dp_domain }}"
+      dest: "/etc/nginx/sites-enabled/{{ dp_domain }}"
+      state: link
+
+  - name: Check nginx configs
+    shell: "/usr/sbin/nginx -t"
+
+  - name: Restart nginx and enable on boot
+    systemd:
+      name: nginx
+      state: restarted
+      enabled: yes
+      daemon_reload: yes
+
+  - name: Install certbot
+    snap:
+      name: certbot
+      classic: yes
+
+  - name: Get & autorenew certificates & redirect to https
+    shell: "certbot --nginx --agree-tos --eff-email -n -m {{ cert_email }} -d {{ landing_domain }} -d {{ dp_domain }}"
+
+  - name: Set autoupdate to cron
+    cron:
+      name: "Update every 30 minutes"
+      minute: "*/30"
+      job: "sh cron_do_up.sh >> ~/cron_do_up.log 2>&1"
+    become_user: "{{ app_user }}"
+
+...

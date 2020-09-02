@@ -1,0 +1,252 @@
+---
+- hosts: do-test
+  remote_user: ubuntu
+  become: yes
+
+  vars:
+    domain_name: "ipa.dataocean.us"
+    python_version: "3.7"
+    git_repo: "https://github.com/3v-workspace/Data_converter.git"
+    app_folder: "docean"
+    app_proj_name: "Data_converter"
+    app_username: "ubuntu"
+    app_settings_path: "data_converter"
+    svc_conf_templates: "templates"
+    gunicorn_workers_count: 5
+    cert_email: "pydev777@gmail.com"
+
+
+  tasks:
+
+  - name: Ping START
+    ping:
+
+  - name: Update APT Cache
+    apt:
+      update_cache: yes
+
+  - name: Install software {{ ansible_kernel }}
+    apt:
+      name: "{{ packages }}"
+      state: latest
+      update_cache: yes
+    vars:
+      packages:
+      - acl
+      - dkms
+      - build-essential
+      - linux-headers-generic
+#      - "linux-headers-{{ ansible_kernel }}"
+      - mc
+      - tmux
+
+  - name: Install software-properties-common
+    apt:
+      name: software-properties-common
+      state: latest
+      update_cache: yes
+
+  - name: Add deadsnakes repo
+    apt_repository:
+      repo: "ppa:deadsnakes/ppa"
+
+  - name: Install python 3.7
+    apt:
+      name: "{{ packages }}"
+      state: latest
+      update_cache: yes
+    vars:
+      packages:
+      - python3-setuptools
+      - python3-distutils
+      - python3-venv
+      - python3.7
+      - python3.7-venv
+      - python3.7-dev
+
+  - name: Install PostgreSQL
+    apt:
+      name: "{{ packages }}"
+      state: latest
+      update_cache: yes
+    vars:
+      packages:
+      - libpq-dev
+      - postgresql
+      - postgresql-contrib
+
+  - name: Install Redis
+    apt:
+      name: redis-server
+      state: latest
+      update_cache: yes
+
+  - name: Create directory "/home/{{ app_username }}/{{ app_folder }}"
+    file:
+      path: "/home/{{ app_username }}/{{ app_folder }}"
+      state: directory
+    become_user: "{{ app_username }}"
+
+  - name: Create directory "/home/{{ app_username }}/{{ app_folder }}/src"
+    file:
+      path: "/home/{{ app_username }}/{{ app_folder }}/src"
+      state: directory
+    become_user: "{{ app_username }}"
+
+  - name: Clone git repository to "/home/{{ app_username }}/{{ app_folder }}/src/{{ app_proj_name }}"
+    git:
+      repo: "{{ git_repo }}"
+      dest: "/home/{{ app_username }}/{{ app_folder }}/src/{{ app_proj_name }}"
+    become_user: "{{ app_username }}"
+
+  - name: Make "manage.py" executable
+    file:
+      path: "/home/{{ app_username }}/{{ app_folder }}/src/{{ app_proj_name }}/manage.py"
+      mode: +x
+
+  - name: Create venv and install/upgrade package
+    pip:
+      chdir: "/home/{{ app_username }}/{{ app_folder }}"
+      name:
+        - pip
+        - setuptools
+        - wheel
+      virtualenv: "."
+      virtualenv_command: "/usr/bin/python3.7 -m venv"
+      extra_args: --upgrade
+    become_user: "{{ app_username }}"
+
+  - name: Install requirements.txt into venv
+    pip:
+      chdir: "/home/{{ app_username }}/{{ app_folder }}"
+      requirements: "/home/{{ app_username }}/{{ app_folder }}/src/{{ app_proj_name }}/requirements.txt"
+      virtualenv: "."
+    become_user: "{{ app_username }}"
+
+  - name: Copy prepared settings_local.py to remote host
+    copy:
+      src: "templates/settings/settings_local.py"
+      dest: "/home/{{ app_username }}/{{ app_folder }}/src/{{ app_proj_name }}/{{ app_settings_path }}/"
+      mode: '0664'
+    become_user: "{{ app_username }}"
+
+  - name: Create "allstatic" directories into "/home/{{ app_username }}/{{ app_folder }}"
+    file:
+      path: "/home/{{ app_username }}/{{ app_folder }}/allstatic"
+      state: directory
+    become_user: "{{ app_username }}"
+
+  - name: Install gunicorn into virtualenv
+    pip:
+      name: gunicorn
+      chdir: "/home/{{ app_username }}/{{ app_folder }}"
+      virtualenv: "."
+    become_user: "{{ app_username }}"
+
+  - name: Create directory "run" into "/home/{{ app_username }}/{{ app_folder }}"
+    file:
+      path: "/home/{{ app_username }}/{{ app_folder }}/run"
+      state: directory
+    become_user: "{{ app_username }}"
+
+  - name: Create directory "logs" into "/home/{{ app_username }}/{{ app_folder }}"
+    file:
+      path: "/home/{{ app_username }}/{{ app_folder }}/logs"
+      state: directory
+    become_user: "{{ app_username }}"
+
+  - name: Create log file "/home/{{ app_username }}/{{ app_folder }}/logs/gunicorn_supervisor.log"
+    file:
+      path: "/home/{{ app_username }}/{{ app_folder }}/logs/gunicorn_supervisor.log"
+      state: touch
+    become_user: "{{ app_username }}"
+
+  - name: Create gunicorn_start script
+    template:
+      src: "templates/gunicorn/gunicorn_start.j2"
+      dest: "/home/{{ app_username }}/{{ app_folder }}/bin/gunicorn_start"
+      mode: '775'
+    become_user: "{{ app_username }}"
+
+  - name: Install Supervisor
+    apt:
+      name: supervisor
+      state: latest
+
+  - name: Create config "/etc/supervisor/conf.d/{{ app_folder }}.conf"
+    template:
+      src: "templates/supervisor/supervisor.conf.j2"
+      dest: "/etc/supervisor/conf.d/{{ app_folder }}.conf"
+      mode: +r
+
+  - name: Supervisor supervisorctl reread for "{{ app_folder }}"
+    supervisorctl:
+      name: "{{ app_folder }}"
+      state: present
+
+  - name: Supervisor supervisorctl update for "{{ app_folder }}"
+    supervisorctl:
+      name: "{{ app_folder }}"
+      state: restarted
+
+  - name: Install nginx
+    apt:
+      name: nginx
+      state: latest
+      update_cache: yes
+
+  - name: Create config "/etc/nginx/sites-available/{{ domain_name }}"
+    template:
+      src: "templates/nginx/nginx.j2"
+      dest: "/etc/nginx/sites-available/{{ domain_name }}"
+      mode: +r
+
+  - name: Create symlink for nginx config {{ landing_domain }}
+    file:
+      src: "/etc/nginx/sites-available/{{ domain_name }}"
+      dest: "/etc/nginx/sites-enabled/{{ domain_name }}"
+      state: link
+
+  - name: Check nginx configs
+    shell: "/usr/sbin/nginx -t"
+
+  - name: Nginx restart & boot enabled
+    service:
+      name: nginx
+      state: restarted
+      enabled: yes
+
+  - name: Django "collectstatic"
+    django_manage:
+      command: collectstatic
+      app_path: "/home/{{ app_username }}/{{ app_folder }}/src/{{ app_proj_name }}"
+      virtualenv: "/home/{{ app_username }}/{{ app_folder }}"
+    become_user: "{{ app_username }}"
+
+#  - name: Django "migrate"
+#    django_manage:
+#      command: migrate
+#      app_path: "/home/{{ app_username }}/{{ app_folder }}/src/{{ app_proj_name }}"
+#      virtualenv: "/home/{{ app_username }}/{{ app_folder }}"
+#    become_user: "{{ app_username }}"
+
+  - name: Supervisor supervisorctl update for "{{ app_folder }}"
+    supervisorctl:
+      name: "{{ app_folder }}"
+      state: restarted
+
+  - name: Nginx restart
+    service:
+      name: nginx
+      state: restarted
+
+  - name: Install certbot
+    snap:
+      name: certbot
+      classic: yes
+
+  - name: Get & autorenew certificates & redirect to https
+    shell: "certbot --nginx --agree-tos --eff-email -n -m {{ cert_email }} -d {{ domain_name }}"
+
+
+...
