@@ -1,0 +1,6 @@
+[program:{{ app_folder }}]
+command=/home/{{ app_username }}/{{ app_folder }}/bin/gunicorn_start
+user={{ app_username }}
+stdout_logfile=/home/{{ app_username }}/{{ app_folder }}/logs/gunicorn_supervisor.log
+redirect_stderr=true
+environment=LANG=en_US.UTF-8,LC_ALL=en_US.UTF-8

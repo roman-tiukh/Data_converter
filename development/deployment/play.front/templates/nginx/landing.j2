@@ -1,0 +1,28 @@
+server {
+
+    server_name {{ landing_domain }};
+
+    root /home/{{ app_user }}/{{ app_folder }};
+
+    access_log /home/{{ app_user }}/logs/{{ landing_logs_dir }}/nginx-access-landing.log;
+    error_log /home/{{ app_user }}/logs/{{ landing_logs_dir }}/nginx-error-landing.log;
+
+    index index.html;
+
+    location /pep/ {
+        try_files $uri /antac_graph/index.html = 404;
+    }
+
+    location /pep/static/ {
+        alias /home/{{ app_user }}/{{ app_folder }}/antac_graph/static/;
+    }
+
+    location / {
+        try_files $uri /landing/index.html = 404;
+    }
+
+    location /static/ {
+        alias /home/{{ app_user }}/{{ app_folder }}/landing/static/;
+    }
+
+}
