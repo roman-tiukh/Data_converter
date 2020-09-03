@@ -13,10 +13,12 @@ from rest_framework.filters import SearchFilter
 class CompanyViewSet(CachedViewMixin, viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
     queryset = Company.objects.select_related(
-        'parent', 'company_type', 'status', 'authority', 'bylaw',
+        'parent', 'company_type', 'status', 'authority', 'bylaw', 'country',
     ).prefetch_related(
         'founders', 'predecessors', 'assignees', 'signers', 'kveds', 'termination_started',
         'bancruptcy_readjustment', 'company_detail', 'exchange_data', 'relationships_with_peps',
+    ).filter(
+        country_id__isnull=True
     )
     serializer_class = CompanyListSerializer
     filter_backends = (DjangoFilterBackend, SearchFilter)

@@ -65,6 +65,7 @@ class CompanyShortSerializer(serializers.ModelSerializer):
 
 
 class CompanyListSerializer(serializers.ModelSerializer):
+    country = serializers.StringRelatedField()
     founders = FounderSerializer(many=True)
     authorized_capital = serializers.FloatField()
     parent = serializers.StringRelatedField()
@@ -84,7 +85,7 @@ class CompanyListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
         fields = (
-            'id', 'name', 'short_name', 'address', 'edrpou', 'founders',
+            'id', 'name', 'short_name', 'address', 'country', 'edrpou', 'founders',
             'authorized_capital', 'parent', 'company_type', 'status', 'is_closed',
             'predecessors', 'authority', 'signers', 'assignees', 'bancruptcy_readjustment',
             'termination_started', 'company_detail', 'kveds', 'bylaw', 'exchange_data'
@@ -115,6 +116,7 @@ class CompanyLinkWithPepSerializer(serializers.ModelSerializer):
 
 
 class CompanyDetailSerializer(serializers.ModelSerializer):
+    country = serializers.StringRelatedField()
     founders = FounderSerializer(many=True)
     founder_of = CountFoundedCompaniesSerializer(many=True)
     relationships_with_peps = CompanyLinkWithPepSerializer(many=True)
@@ -136,7 +138,7 @@ class CompanyDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
         fields = (
-            'id', 'name', 'short_name', 'address', 'edrpou', 'founders', 'founder_of',
+            'id', 'name', 'short_name', 'address', 'country', 'edrpou', 'founders', 'founder_of',
             'relationships_with_peps', 'authorized_capital', 'parent', 'company_type', 'status',
             'is_closed', 'predecessors', 'authority', 'signers', 'assignees',
             'bancruptcy_readjustment', 'termination_started', 'company_detail', 'kveds', 'bylaw',
