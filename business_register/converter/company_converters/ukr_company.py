@@ -37,24 +37,20 @@ class UkrCompanyConverter(CompanyConverter):
 
     def save_or_get_bylaw(self, bylaw_from_record):
         if bylaw_from_record not in self.all_bylaw_dict:
-            bylaw = Bylaw.objects.create(name=bylaw_from_record)
-            self.all_bylaw_dict[bylaw_from_record] = bylaw
-            return bylaw
-        else:
-            return self.all_bylaw_dict[bylaw_from_record]
+            new_bylaw = Bylaw.objects.create(name=bylaw_from_record)
+            self.all_bylaw_dict[bylaw_from_record] = new_bylaw
+            return new_bylaw
+        return self.all_bylaw_dict[bylaw_from_record]
 
     def save_or_get_predecessor(self, item):
-        if not item.xpath('NAME')[0].text in self.all_predecessors_dict:
-            self.predecessor = Predecessor(
+        if item.xpath('NAME')[0].text not in self.all_predecessors_dict:
+            new_predecessor = Predecessor.objects.create(
                 name=item.xpath('NAME')[0].text.lower(),
                 code=item.xpath('CODE')[0].text
             )
-            self.predecessor.save()
-            self.all_predecessors_dict[item.xpath('NAME')[0].text] = self.predecessor
-            return self.predecessor
-        else:
-            self.predecessor = self.all_predecessors_dict[item.xpath('NAME')[0].text]
-            return self.predecessor
+            self.all_predecessors_dict[item.xpath('NAME')[0].text] = new_predecessor
+            return new_predecessor
+        return self.all_predecessors_dict[item.xpath('NAME')[0].text]
 
     def extract_founder_data(self, founder_info):
         info_to_list = founder_info.split(',')

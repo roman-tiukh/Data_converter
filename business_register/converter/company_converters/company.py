@@ -11,8 +11,7 @@ class CompanyConverter(BusinessConverter):
     def save_or_get_company_type(self, type_from_record):
         company_type = type_from_record.lower()
         if company_type not in self.all_company_type_dict:
-            company_type = CompanyType.objects.create(name=company_type)
-            self.all_company_type_dict[company_type] = company_type
-            return company_type
-        else:
-            return self.all_company_type_dict[company_type]
+            new_company_type = CompanyType.objects.create(name=company_type)
+            self.all_company_type_dict[company_type] = new_company_type
+            return new_company_type
+        return self.all_company_type_dict[company_type]
