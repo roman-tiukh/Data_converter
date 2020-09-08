@@ -42,10 +42,12 @@ class TaxpayerType(DataOceanModel):
 
 class Register(DataOceanModel):
     name = models.CharField('назва', max_length=500, unique=True)
+    name_eng = models.CharField('назва англійською', max_length=500, unique=True, null=True)
     source_name = models.CharField('назва джерела даних', max_length=300)
-    source_register_id = models.CharField('ID реєстру у джерелі даних', max_length=36, unique=True)
-    data_ocean_list = models.URLField('отримати списком', max_length=500)
-    data_ocean_retrieve = models.URLField("отримати об'єкт", max_length=500)
+    source_register_id = models.CharField('ID реєстру у джерелі даних', max_length=36, unique=True,
+                                          null=True)
+    list = models.URLField('отримати списком', max_length=500)
+    retrieve = models.URLField("отримати об'єкт", max_length=500)
     url_address = models.URLField(max_length=500)
     api_address = models.URLField(max_length=500, null=True)
     source_last_update = models.DateTimeField('востаннє оновлено', default=None, null=True)

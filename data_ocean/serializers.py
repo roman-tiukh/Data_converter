@@ -28,6 +28,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'name',
+            'name_eng',
             'source_name',
             'url_address',
             'api_address',
