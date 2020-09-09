@@ -14,6 +14,7 @@ from django.conf import settings
 from data_ocean.postman import send_plain_mail
 from .models import DataOceanUser, CandidateUserModel
 from .serializers import DataOceanUserSerializer, CustomRegisterSerializer, LandingMailSerializer
+from rest_framework.authtoken.models import Token
 
 
 REGISTRATION_CONFIRM_SUBJECT = 'Підтвердження реєстрації на Data Ocean'
@@ -197,3 +198,14 @@ class LandingMailView(views.APIView):
             )
 
         return Response({"email": email, }, status=200)
+
+
+class RefreshTokenView(views.APIView):
+    def get(self, request):
+        token, created = Token.objects.get_or_create(user=request.user)
+        token.delete()
+        token = Token.objects.create(user=request.user)
+        token.save()
+        return Response({
+            "token": token.key
+        }, status=200)
