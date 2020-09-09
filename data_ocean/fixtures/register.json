@@ -8,11 +8,21 @@
       "name_eng": "Register of Politically Exposed Persons",
       "source_name": "pep.org.ua",
       "source_register_id": null,
-      "list": "/api/pep/",
       "retrieve": "/api/pep/{id}/",
       "url_address": "https://pep.org.ua/uk/data",
       "api_address": "https://pep.org.ua/opendata/persons/json",
       "source_last_update": "2020-09-07"
+    }
+  },
+  {
+    "model": "data_ocean.endpoint",
+    "pk": 1,
+    "fields": {
+      "created_at": "2020-09-01 15:40",
+      "name": "all PEPs list",
+      "endpoint": "/api/pep",
+      "type": "list",
+      "register_id": 1
     }
   },
   {

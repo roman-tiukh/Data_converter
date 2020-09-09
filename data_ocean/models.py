@@ -55,12 +55,24 @@ class Register(DataOceanModel):
     class Meta:
         verbose_name = 'реєстр'
 
-    def __str__(self):
-        return self.name
+
+class EndPoint(DataOceanModel):
+    TYPES = (
+        ('list', 'Список'),
+        ('retrieve', "Об'єкт за ID"),
+    )
+    name = models.CharField('назва', max_length=500, unique=True)
+    endpoint = models.CharField('ендпоінт', max_length=300, unique=True)
+    type = models.CharField('тип ендпоінту', max_length=30, choices=TYPES)
+    register = models.ForeignKey(
+        Register, models.CASCADE, verbose_name='Реєстр', related_name='endpoints'
+    )
+
+    class Meta:
+        verbose_name = 'ендпоінт реєстру'
 
 
 class RegistryUpdaterModel(models.Model):
-
     registry_name = models.CharField(max_length=20, db_index=True)
 
     download_start = models.DateTimeField(auto_now_add=True)

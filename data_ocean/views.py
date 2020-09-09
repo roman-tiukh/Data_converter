@@ -5,6 +5,8 @@ from drf_yasg import openapi
 from rest_framework import permissions, viewsets
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
+
 
 from data_ocean.filters import RegisterFilter
 from data_ocean.models import Register
@@ -27,14 +29,14 @@ SchemaView = get_schema_view(
 )
 
 
-class Views (GenericAPIView):
+class Views(GenericAPIView):
     def get(self, request):
         queryset = self.filter_queryset(self.get_queryset())
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             result = self.get_paginated_response(serializer.data)
-            data = result.data # pagination data
+            data = result.data  # pagination data
         else:
             serializer = self.get_serializer(queryset, many=True)
             data = serializer.data
@@ -42,6 +44,7 @@ class Views (GenericAPIView):
 
 
 class RegisterView(viewsets.ReadOnlyModelViewSet):
+    permission_classes = [AllowAny]
     queryset = Register.objects.all()
     serializer_class = RegisterSerializer
     filterset_class = RegisterFilter
@@ -50,6 +53,6 @@ class RegisterView(viewsets.ReadOnlyModelViewSet):
 
 
 class CachedViewMixin:
-    @method_decorator(cache_page(60*15))
+    @method_decorator(cache_page(60 * 15))
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)
