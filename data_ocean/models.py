@@ -46,8 +46,6 @@ class Register(DataOceanModel):
     source_name = models.CharField('назва джерела даних', max_length=300)
     source_register_id = models.CharField('ID реєстру у джерелі даних', max_length=36, unique=True,
                                           null=True)
-    list = models.URLField('отримати списком', max_length=500)
-    retrieve = models.URLField("отримати об'єкт", max_length=500)
     url_address = models.URLField(max_length=500)
     api_address = models.URLField(max_length=500, null=True)
     source_last_update = models.DateTimeField('востаннє оновлено', default=None, null=True)
@@ -69,7 +67,7 @@ class EndPoint(DataOceanModel):
     )
 
     class Meta:
-        verbose_name = 'ендпоінт реєстру'
+        verbose_name = 'ендпойнт реєстру'
 
 
 class RegistryUpdaterModel(models.Model):

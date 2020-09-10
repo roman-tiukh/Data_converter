@@ -5,8 +5,6 @@ from drf_yasg import openapi
 from rest_framework import permissions, viewsets
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
-
 
 from data_ocean.filters import RegisterFilter
 from data_ocean.models import Register
@@ -44,7 +42,6 @@ class Views(GenericAPIView):
 
 
 class RegisterView(viewsets.ReadOnlyModelViewSet):
-    permission_classes = [AllowAny]
     queryset = Register.objects.all()
     serializer_class = RegisterSerializer
     filterset_class = RegisterFilter
