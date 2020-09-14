@@ -9,7 +9,7 @@ class Fop(DataOceanModel):
     fullname = models.CharField("повне ім'я", max_length=175)
     address = models.CharField('адреса', max_length=500, null=True)
     status = models.ForeignKey(Status, on_delete=models.CASCADE, verbose_name='статус')
-    registration_date = models.DateField('дата реєстрації', null=True)
+    registration_date = models.DateField('дата реєстрації', null=True, db_index=True)
     registration_info = models.CharField('реєстраційні дані', max_length=300, null=True)
     estate_manager = models.CharField(max_length=125, null=True)
     termination_date = models.DateField(null=True)

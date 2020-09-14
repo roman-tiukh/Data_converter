@@ -43,7 +43,7 @@ class Kved(DataOceanModel):
     section = models.ForeignKey(KvedSection, on_delete=models.CASCADE, verbose_name='секція')
     division = models.ForeignKey(KvedDivision, on_delete=models.CASCADE, verbose_name='розділ')
     group = models.ForeignKey(KvedGroup, on_delete=models.CASCADE, verbose_name='група')
-    code = models.CharField('код', max_length=10)
+    code = models.CharField('код', max_length=10, db_index=True)
     name = models.CharField('назва', max_length=500)
     is_valid = models.BooleanField('є чинним', default=True)
 

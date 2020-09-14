@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'rest_framework.authtoken',
+    'rest_framework_xml',
     'rest_auth',
     # 'rest_auth.registration',
     'allauth',
@@ -58,7 +59,6 @@ MIDDLEWARE = [
     'stats.middleware.ApiUsageMiddleware'
 ]
 
-
 # CORS_URLS_REGEX = r'^/api/.*$'
 # CORS_ALLOW_CREDENTIALS = True
 # SESSION_COOKIE_SAMESITE = None
@@ -86,7 +86,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'data_converter.wsgi.application'
 
-
 # Password validation
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators
 
@@ -104,7 +103,6 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.0/topics/i18n/
@@ -133,6 +131,8 @@ LOCALE_PATHS = [
 
 STATIC_URL = '/static/'
 
+
+AUTH_USER_MODEL = 'users.DataOceanUser'
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'data_converter.pagination.CustomPagination',
     'PAGE_SIZE': 10,
@@ -146,10 +146,12 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ],
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework_xml.renderers.XMLRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
+    )
 }
-
-AUTH_USER_MODEL = 'users.DataOceanUser'
-
 
 SITE_ID = 1
 
