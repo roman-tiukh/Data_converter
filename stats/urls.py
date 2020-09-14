@@ -3,6 +3,7 @@ from django.urls import path
 from . import views
 from .views import (TopKvedsView, CompanyTypeCountView, RegisteredCompaniesCountView,
                     RegisteredFopsCountView)
+from .report_builder import ReportBuilderView
 
 urlpatterns = [
     path('api-usage/me/', views.ApiUsageMeView.as_view()),
@@ -12,4 +13,6 @@ urlpatterns = [
          RegisteredCompaniesCountView.as_view(), name='registered_companies'),
     path('registered-fops/',
          RegisteredFopsCountView.as_view(), name='registered_fops'),
+    path('report-builder/',
+         ReportBuilderView.as_view(), name='report_builder'),
 ]
