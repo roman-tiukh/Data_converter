@@ -146,11 +146,11 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ],
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
-    'DEFAULT_RENDERER_CLASSES': (
+    'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
-        'rest_framework_xml.renderers.XMLRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
-    )
+        'rest_framework_xml.renderers.XMLRenderer',
+    ]
 }
 
 SITE_ID = 1
