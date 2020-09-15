@@ -34,7 +34,7 @@ class UkCompanyConverter(CompanyConverter):
                     f"{row[' RegAddress.AddressLine2']} {row['RegAddress.AddressLine1']} "
                     f"{row['RegAddress.POBox']} {row['RegAddress.CareOf']}"
                 )
-                company_type = self.save_or_get_company_type(row['CompanyCategory'])
+                company_type = self.save_or_get_company_type(row['CompanyCategory'], 'en')
                 status = self.save_or_get_status(row['CompanyStatus'])
                 registration_date = format_date_to_yymmdd(row['IncorporationDate'])
                 company = Company.objects.filter(edrpou=number).first()

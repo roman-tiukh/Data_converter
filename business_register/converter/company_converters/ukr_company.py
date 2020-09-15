@@ -290,7 +290,7 @@ class UkrCompanyConverter(CompanyConverter):
             code = item.xpath('CODE')[0].text or Company.INVALID
             self.save_or_get_authority('EMP')
             self.save_or_get_bylaw('EMP')
-            self.save_or_get_company_type('EMP')
+            self.save_or_get_company_type('EMP', 'uk')
             self.save_or_get_status('EMP')
 
     # try:
@@ -337,7 +337,7 @@ class UkrCompanyConverter(CompanyConverter):
                 short_name = short_name.lower()
             company_type = record.xpath('OPF')[0].text
             if company_type:
-                company_type = self.save_or_get_company_type(company_type)
+                company_type = self.save_or_get_company_type(company_type, 'uk')
             edrpou = record.xpath('EDRPOU')[0].text or Company.INVALID
             code = name + edrpou
             address = record.xpath('ADDRESS')[0].text

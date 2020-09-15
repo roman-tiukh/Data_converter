@@ -15,6 +15,7 @@ class Bylaw(DataOceanModel):
 
 class CompanyType(DataOceanModel):
     name = models.CharField('назва', max_length=270, unique=True, null=True)
+    name_eng = models.CharField('назва англійською', max_length=270, unique=True, null=True)
 
     class Meta:
         verbose_name = 'організаційно-правова форма'
