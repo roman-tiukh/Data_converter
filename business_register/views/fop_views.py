@@ -14,7 +14,7 @@ class FopViewSet(CachedViewMixin, viewsets.ReadOnlyModelViewSet):
     ).prefetch_related(
         'kveds', 'exchange_data'
     ).all()
-    serializer_class = FopSerializer
     filter_backends = (DjangoFilterBackend, SearchFilter)
+    serializer_class = FopSerializer
     filterset_class = FopFilterSet
-    search_fields = ('fullname', 'address')
+    search_fields = ('fullname', 'address', 'status__name')
