@@ -1,6 +1,7 @@
+from drf_dynamic_fields import DynamicFieldsMixin
 from rest_framework import serializers
 
-from business_register.models.fop_models import ExchangeDataFop
+from business_register.models.fop_models import ExchangeDataFop, Fop
 from data_ocean.serializers import StatusSerializer, AuthoritySerializer
 
 
@@ -14,18 +15,17 @@ class ExchangeDataFopSerializer(serializers.ModelSerializer):
                   'end_number']
 
 
-class FopSerializer(serializers.Serializer):
-    fullname = serializers.CharField(max_length=100)
-    address = serializers.CharField(max_length=500)
-    status = StatusSerializer()
-    registration_date = serializers.DateField()
-    registration_info = serializers.CharField(max_length=300)
-    estate_manager = serializers.CharField(max_length=100)
+class FopSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
+    status = serializers.StringRelatedField()
     termination_date = serializers.DateField()
-    terminated_info = serializers.CharField(max_length=300)
-    termination_cancel_info = serializers.CharField(max_length=100)
-    contact_info = serializers.CharField(max_length=100)
-    vp_dates = serializers.CharField(max_length=100)
     authority = AuthoritySerializer()
     kveds = serializers.StringRelatedField(many=True)
     exchange_data = ExchangeDataFopSerializer(many=True)
+
+    class Meta:
+        model = Fop
+        fields = [
+            'fullname', 'address', 'status', 'registration_date', 'registration_info',
+            'estate_manager', 'termination_date', 'terminated_info', 'termination_cancel_info',
+            'contact_info', 'vp_dates', 'authority', 'kveds', 'exchange_data',
+        ]
