@@ -22,11 +22,12 @@ class Fop(DataOceanModel):
     code = models.CharField(max_length=675, db_index=True)
     history = HistoricalRecords()
 
-    class Meta:
-        verbose_name = 'фізична особа-підприємець'
-
     def __str__(self):
         return self.fullname
+
+    class Meta:
+        ordering = ['id']
+        verbose_name = 'фізична особа-підприємець'
 
 
 class FopToKved(DataOceanModel):
