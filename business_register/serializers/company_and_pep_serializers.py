@@ -1,10 +1,13 @@
+from django.apps import apps
+from drf_dynamic_fields import DynamicFieldsMixin
 from rest_framework import serializers
 
 from business_register.models.company_models import (
     BancruptcyReadjustment, CompanyDetail,
-    ExchangeDataCompany, TerminationStarted, Company, Founder, HistoricalCompany
+    ExchangeDataCompany, TerminationStarted, Company, Founder
 )
 from business_register.models.pep_models import CompanyLinkWithPep, Pep, PepRelatedPerson
+HistoricalCompany = apps.get_model('business_register', 'HistoricalCompany')
 
 
 class BancruptcyReadjustmentSerializer(serializers.ModelSerializer):
@@ -64,7 +67,7 @@ class CompanyShortSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'edrpou',)
 
 
-class CompanyListSerializer(serializers.ModelSerializer):
+class CompanyListSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     country = serializers.StringRelatedField()
     founders = FounderSerializer(many=True)
     authorized_capital = serializers.FloatField()
@@ -115,7 +118,7 @@ class CompanyLinkWithPepSerializer(serializers.ModelSerializer):
         )
 
 
-class CompanyDetailSerializer(serializers.ModelSerializer):
+class CompanyDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     country = serializers.StringRelatedField()
     founders = FounderSerializer(many=True)
     founder_of = CountFoundedCompaniesSerializer(many=True)
@@ -184,7 +187,7 @@ class PepDetailLinkWithCompanySerializer(serializers.ModelSerializer):
         )
 
 
-class PepDetailSerializer(serializers.ModelSerializer):
+class PepDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     related_persons = RelatedPersonSerializer(many=True)
     related_companies = serializers.SerializerMethodField()
     # other companies founded by persons with the same fullname as pep
@@ -208,7 +211,7 @@ class PepDetailSerializer(serializers.ModelSerializer):
         )
 
 
-class PepListSerializer(serializers.ModelSerializer):
+class PepListSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     related_persons = RelatedPersonSerializer(many=True)
     related_companies = PepLinkWithCompanySerializer(many=True)
 

@@ -27,14 +27,14 @@ SchemaView = get_schema_view(
 )
 
 
-class Views (GenericAPIView):
+class Views(GenericAPIView):
     def get(self, request):
         queryset = self.filter_queryset(self.get_queryset())
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             result = self.get_paginated_response(serializer.data)
-            data = result.data # pagination data
+            data = result.data  # pagination data
         else:
             serializer = self.get_serializer(queryset, many=True)
             data = serializer.data
@@ -50,6 +50,6 @@ class RegisterView(viewsets.ReadOnlyModelViewSet):
 
 
 class CachedViewMixin:
-    @method_decorator(cache_page(60*15))
+    @method_decorator(cache_page(60 * 15))
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)
