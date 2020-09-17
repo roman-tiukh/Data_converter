@@ -7,6 +7,7 @@ from .report_builder import ReportBuilderView
 
 urlpatterns = [
     path('api-usage/me/', views.ApiUsageMeView.as_view()),
+    path('profile/', views.ProfileStatsView.as_view()),
     path('top-kved/', TopKvedsView.as_view(), name='top_kved'),
     path('company-type/', CompanyTypeCountView.as_view(), name='company-type'),
     path('registered-companies/',
