@@ -7,7 +7,6 @@ from django.views.decorators.cache import cache_page
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics
 from rest_framework import views
-# from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from business_register.models.company_models import Company, CompanyToKved, CompanyType
@@ -50,7 +49,6 @@ class ApiUsageMeView(views.APIView):
 
 
 class TopKvedsView(generics.ListAPIView):
-    # permission_classes = [AllowAny]
     queryset = (CompanyToKved.objects.select_related(
         'kved', 'kved__group', 'kved__section', 'kved__division',
     ).exclude(
@@ -69,8 +67,6 @@ class TopKvedsView(generics.ListAPIView):
 
 
 class CompanyTypeCountView(generics.ListAPIView):
-    # permission_classes = [AllowAny]
-
     queryset = (
         CompanyType.objects.annotate(
             count_companies=Count('company')
@@ -86,7 +82,6 @@ class CompanyTypeCountView(generics.ListAPIView):
 
 
 class RegisteredCompaniesCountView(generics.GenericAPIView):
-    # permission_classes = [AllowAny]
     queryset = Company.objects.all()
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RegisteredCompaniesCountFilterSet
@@ -100,7 +95,6 @@ class RegisteredCompaniesCountView(generics.GenericAPIView):
 
 
 class RegisteredFopsCountView(generics.GenericAPIView):
-    # permission_classes = [AllowAny]
     queryset = Fop.objects.all()
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RegisteredFopsCountFilterSet
