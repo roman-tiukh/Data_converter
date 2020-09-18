@@ -1,11 +1,8 @@
+import time
 from datetime import timedelta, datetime
 
 from django.db.models import Count
 from django.utils import timezone
-from django.utils.decorators import method_decorator
-from django.views.decorators.cache import cache_page
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import generics
 from rest_framework import views
 from rest_framework.response import Response
 
@@ -14,8 +11,20 @@ from business_register.models.fop_models import Fop
 from data_ocean.models import EndPoint
 from stats import logic
 from stats.serializers import TopKvedSerializer, CompanyTypeCountSerializer
-from .filters import RegisteredCompaniesCountFilterSet, RegisteredFopsCountFilterSet
 from .models import ApiUsageTracking
+from .cache_warming import WarmedCacheGetAPIView
+
+
+class StatsTestView(WarmedCacheGetAPIView):
+    cache_timeout = 30
+
+    @staticmethod
+    def get_data_for_response():
+        time.sleep(20)
+        return {
+            "test_data": 'data_for_test',
+            "1": 321,
+        }
 
 
 class ApiUsageMeView(views.APIView):
@@ -61,60 +70,47 @@ class ProfileStatsView(views.APIView):
         }, status=200)
 
 
-class TopKvedsView(generics.ListAPIView):
-    queryset = (CompanyToKved.objects.select_related(
-        'kved', 'kved__group', 'kved__section', 'kved__division',
-    ).exclude(
-        kved__code='not_valid'
-    ).values(
-        'kved'
-    ).annotate(
-        count_companies_with_kved=Count('kved')
-    ).order_by('-count_companies_with_kved')[:10])
-    serializer_class = TopKvedSerializer
-    pagination_class = None
-
-    @method_decorator(cache_page(60 * 60 * 24))
-    def get(self, request, *args, **kwargs):
-        return super().get(request, *args, **kwargs)
+class TopKvedsView(WarmedCacheGetAPIView):
+    @staticmethod
+    def get_data_for_response():
+        qs = CompanyToKved.objects.select_related(
+            'kved', 'kved__group', 'kved__section', 'kved__division',
+        ).exclude(
+            kved__code='not_valid'
+        ).values(
+            'kved'
+        ).annotate(
+            count_companies_with_kved=Count('kved')
+        ).order_by('-count_companies_with_kved')[:10]
+        return TopKvedSerializer(qs, many=True).data
 
 
-class CompanyTypeCountView(generics.ListAPIView):
-    queryset = (
-        CompanyType.objects.annotate(
+class CompanyTypeCountView(WarmedCacheGetAPIView):
+    @staticmethod
+    def get_data_for_response():
+        qs = CompanyType.objects.annotate(
             count_companies=Count('company')
-        ).order_by('-count_companies')
-    )
-
-    serializer_class = CompanyTypeCountSerializer
-    pagination_class = None
-
-    @method_decorator(cache_page(60 * 60 * 24))
-    def get(self, request, *args, **kwargs):
-        return super().get(request, *args, **kwargs)
+        ).order_by('-count_companies').all()
+        return CompanyTypeCountSerializer(qs, many=True).data
 
 
-class RegisteredCompaniesCountView(generics.GenericAPIView):
-    queryset = Company.objects.all()
-    filter_backends = (DjangoFilterBackend,)
-    filterset_class = RegisteredCompaniesCountFilterSet
+class RegisteredCompaniesCountView(WarmedCacheGetAPIView):
+    # filter_backends = (DjangoFilterBackend,)
+    # filterset_class = RegisteredCompaniesCountFilterSet
 
-    @method_decorator(cache_page(60 * 60 * 24))
-    def get(self, request, *args, **kwargs):
-        registered_companies_queryset = self.filter_queryset(self.get_queryset())
-        return Response({
-            'company_count': registered_companies_queryset.count()
-        }, status=200)
+    @staticmethod
+    def get_data_for_response():
+        return {
+            'company_count': Company.objects.count()
+        }
 
 
-class RegisteredFopsCountView(generics.GenericAPIView):
-    queryset = Fop.objects.all()
-    filter_backends = (DjangoFilterBackend,)
-    filterset_class = RegisteredFopsCountFilterSet
+class RegisteredFopsCountView(WarmedCacheGetAPIView):
+    # filter_backends = (DjangoFilterBackend,)
+    # filterset_class = RegisteredFopsCountFilterSet
 
-    @method_decorator(cache_page(60 * 60 * 24))
-    def get(self, request, *args, **kwargs):
-        registered_fops_queryset = self.filter_queryset(self.get_queryset())
-        return Response({
-            'company_count': registered_fops_queryset.count()
-        }, status=200)
+    @staticmethod
+    def get_data_for_response():
+        return {
+            'company_count': Fop.objects.count()
+        }
