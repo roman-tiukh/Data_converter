@@ -11,6 +11,7 @@ from rest_framework.response import Response
 
 from business_register.models.company_models import Company, CompanyToKved, CompanyType
 from business_register.models.fop_models import Fop
+from data_ocean.models import EndPoint
 from stats import logic
 from stats.serializers import TopKvedSerializer, CompanyTypeCountSerializer
 from .filters import RegisteredCompaniesCountFilterSet, RegisteredFopsCountFilterSet
@@ -45,6 +46,18 @@ class ApiUsageMeView(views.APIView):
             'days': days,
             'current_month': current_month,
             'prev_month': prev_month,
+        }, status=200)
+
+
+class ProfileStatsView(views.APIView):
+    def get(self, request):
+        api_requests = ApiUsageTracking.objects.filter(
+            user_id=request.user.id
+        ).count()
+        endpoints = EndPoint.objects.count()
+        return Response({
+            "api_requests": api_requests,
+            "endpoints": endpoints,
         }, status=200)
 
 
