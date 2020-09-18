@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, connection
 from django.utils.timezone import now
 
 
@@ -13,6 +13,16 @@ class DataOceanModel(models.Model):
 
     def soft_delete(self):
         self.deleted_at = now()
+
+    @classmethod
+    def truncate(cls):
+        with connection.cursor() as c:
+            c.execute('TRUNCATE TABLE "{0}"'.format(cls._meta.db_table))
+
+    @classmethod
+    def truncate_cascade(cls):
+        with connection.cursor() as c:
+            c.execute('TRUNCATE TABLE "{0}" CASCADE'.format(cls._meta.db_table))
 
     def __str__(self):
         return self.name
@@ -82,6 +92,12 @@ class RegistryUpdaterModel(models.Model):
     download_message = models.CharField(max_length=255, null=True, blank=True)
     download_file_name = models.CharField(max_length=255, null=True, blank=True)
     download_file_length = models.PositiveIntegerField(blank=True, default=0)
+
+    unzip_file_name = models.CharField(max_length=255, null=True, blank=True)
+    unzip_file_arch_length = models.PositiveIntegerField(blank=True, default=0)
+    unzip_file_real_length = models.PositiveIntegerField(blank=True, default=0)
+    unzip_status = models.BooleanField(blank=True, default=False)
+    unzip_message = models.CharField(max_length=255, null=True, blank=True)
 
     update_start = models.DateTimeField(null=True, blank=True)
     update_finish = models.DateTimeField(null=True, blank=True)

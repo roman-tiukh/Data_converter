@@ -1,7 +1,9 @@
 from __future__ import absolute_import, unicode_literals
 from celery import shared_task
 
-from business_register.converter.pep import PepConverter, PepDownloader
+from business_register.converter.pep import PepDownloader
+from business_register.converter.fop import FopDownloader
+from business_register.converter.kved import KvedDownloader
 
 
 @shared_task
@@ -10,9 +12,28 @@ def update_pep():
     print('*    Update PEP    *')
     print('********************')
 
-    file_path, log_id = PepDownloader().download()
-    if file_path and log_id:
-        PepConverter().save_to_db(file_path, log_id)
-        PepDownloader().remove_downloaded_file(file_path)
+    PepDownloader().update()
 
     print('*** Task update_pep is done. ***')
+
+
+@shared_task
+def update_fop():
+    print('********************')
+    print('*    Update FOP    *')
+    print('********************')
+
+    FopDownloader().update()
+
+    print('*** Task update_fop is done. ***')
+
+
+@shared_task
+def update_kved():
+    print('*********************')
+    print('*    Update KVED    *')
+    print('*********************')
+
+    KvedDownloader().update()
+
+    print('*** Task update_kved is done. ***')

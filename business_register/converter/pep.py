@@ -1,14 +1,14 @@
 import logging
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 from django.utils import timezone
 from business_register.models.company_models import Company
 from business_register.models.pep_models import Pep, PepRelatedPerson, CompanyLinkWithPep
 from business_register.converter.business_converter import BusinessConverter
 from data_ocean.downloader import Downloader
-from data_ocean.models import RegistryUpdaterModel
 from requests.auth import HTTPBasicAuth
 from django.conf import settings
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 class PepConverter(BusinessConverter):
@@ -158,16 +158,7 @@ class PepConverter(BusinessConverter):
                     end_date=end_date
                 )
 
-    def save_to_db(self, json_file, log_id=None):
-
-        if log_id:
-            print(f'save_to_db: log_id = {log_id}.')
-            upd_obj = RegistryUpdaterModel.objects.filter(id=log_id).first()
-            if not upd_obj:
-                print(f"Can't find log record id={log_id} in db!")
-                return
-            upd_obj.update_start = timezone.now()
-            upd_obj.save()
+    def save_to_db(self, json_file):
 
         data = self.load_json(json_file)
         for pep_dict in data:
@@ -371,14 +362,43 @@ class PepConverter(BusinessConverter):
             if len(related_companies_list):
                 self.save_or_update_pep_related_companies(related_companies_list, pep)
 
-        if log_id:
-            upd_obj.update_finish = timezone.now()
-            upd_obj.update_status = True
-            upd_obj.save()
-
 
 class PepDownloader(Downloader):
     url = settings.BUSINESS_PEP_SOURCE_URL
     auth = HTTPBasicAuth(settings.BUSINESS_PEP_AUTH_USER, settings.BUSINESS_PEP_AUTH_PASSWORD)
     chunk_size = 16 * 1024 * 1024
     reg_name = 'business_pep'
+
+    def get_source_file_name(self):
+        now = timezone.now()
+        return f'{self.reg_name}_{now.date()}_{now.hour:02}-{now.minute:02}'
+
+    def update(self):
+
+        logger.info(f'{self.reg_name}: Update started...')
+
+        self.log_init()
+        self.download()
+
+        self.log_obj.update_start = timezone.now()
+        self.log_obj.save()
+
+        logger.info(f'{self.reg_name}: CompanyLinkWithPep.truncate() started...')
+        CompanyLinkWithPep.truncate()
+        logger.info(f'{self.reg_name}: CompanyLinkWithPep.truncate() finished successfully.')
+
+        logger.info(f'{self.reg_name}: Company.objects.filter(from_antac_only=True).delete() started...')
+        Company.objects.filter(from_antac_only=True).delete()
+        logger.info(f'{self.reg_name}: Company.objects.filter(from_antac_only=True).delete() finished successfully.')
+
+        logger.info(f'{self.reg_name}: save_to_db({self.file_path}) started ...')
+        PepConverter().save_to_db(self.file_path)
+        logger.info(f'{self.reg_name}: save_to_db({self.file_path}) finished successfully.')
+
+        self.log_obj.update_finish = timezone.now()
+        self.log_obj.update_status = True
+        self.log_obj.save()
+
+        self.remove_file()
+
+        logger.info(f'{self.reg_name}: Update finished successfully.')

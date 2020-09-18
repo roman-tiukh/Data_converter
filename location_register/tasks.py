@@ -1,3 +1,45 @@
+from __future__ import absolute_import, unicode_literals
+from celery import shared_task
+
+from location_register.converter.ratu import RatuDownloader
+from location_register.converter.koatuu import KoatuuDownloader
+from location_register.converter.drv import DrvUpdater
+
+
+@shared_task
+def update_ratu():
+    print('**********************')
+    print('*    Update RATU     *')
+    print('**********************')
+
+    RatuDownloader().update()
+
+    print('*** Task update_ratu is done. ***')
+
+
+@shared_task
+def update_koatuu():
+    print('***********************')
+    print('*    Update KOATUU    *')
+    print('***********************')
+
+    KoatuuDownloader().update()
+
+    print('*** Task update_koatuu is done. ***')
+
+
+@shared_task
+def update_drv():
+    print('********************')
+    print('*    Update DRV    *')
+    print('********************')
+
+    DrvUpdater().update()
+
+    print('*** Task update_drv is done. ***')
+
+
+
 # from __future__ import absolute_import, unicode_literals
 #
 # import json

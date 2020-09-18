@@ -1,12 +1,14 @@
 import json
 import logging
 from csv import DictReader
-
+from django.utils import timezone
 import django
+import requests
 from django.conf import settings
 
 from business_register.models.kved_models import KvedSection, KvedDivision, KvedGroup, Kved
 from data_ocean.converter import Converter
+from data_ocean.downloader import Downloader
 from data_ocean.models import Register
 
 # Standard instance of a logger with __name__
@@ -19,7 +21,7 @@ class KvedConverter(Converter):
 
     def __init__(self):
         self.API_ADDRESS_FOR_DATASET = Register.objects.get(
-            source_register_id=settings.LOCATION_KVED_SOURCE_REGISTER_ID
+            source_register_id=settings.BUSINESS_KVED_SOURCE_REGISTER_ID
         ).api_address
         super().__init__()
 
@@ -74,8 +76,9 @@ class KvedConverter(Converter):
         sections = data['sections'][0]
         try:
             self.save_to_section_table(sections)
-        except django.db.utils.IntegrityError:
-            logger.exception("Exception occurred")
+        except django.db.utils.IntegrityError as e:
+            logger.exception(f"Exception occurred: {e}")
+            exit(1)
         else:
             logger.info("Saved all kveds")
 
@@ -101,3 +104,45 @@ class KvedConverter(Converter):
                     self.create_kved(section, division, group, row['KV_PKLAS'], row['KV_NU'],
                                      is_valid=False)
             print('All kveds 2005 were saved')
+
+
+class KvedDownloader(Downloader):
+    chunk_size = 10 * 1024
+    reg_name = 'business_kved'
+    source_dataset_url = settings.BUSINESS_KVED_SOURCE_PACKAGE
+
+    def get_source_file_url(self):
+
+        r = requests.get(self.source_dataset_url)
+        if r.status_code != 200:
+            print(f'Request error to {self.source_dataset_url}')
+            return
+
+        for i in r.json()['result']['resources']:
+            if self.zip_required_file_sign in i['url']:
+                return i['url']
+
+    def get_source_file_name(self):
+        return self.url.split('/')[-1]
+
+    def update(self):
+
+        logger.info(f'{self.reg_name}: Update started...')
+
+        self.log_init()
+        self.download()
+
+        self.log_obj.update_start = timezone.now()
+        self.log_obj.save()
+
+        logger.info(f'{self.reg_name}: save_to_db({self.file_path}) started ...')
+        KvedConverter().save_to_db(self.file_path)
+        logger.info(f'{self.reg_name}: save_to_db({self.file_path}) finished successfully.')
+
+        self.log_obj.update_finish = timezone.now()
+        self.log_obj.update_status = True
+        self.log_obj.save()
+
+        self.remove_file()
+
+        logger.info(f'{self.reg_name}: Update finished successfully.')

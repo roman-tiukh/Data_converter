@@ -1,5 +1,8 @@
 from business_register.converter.business_converter import BusinessConverter
 from business_register.models.company_models import CompanyType
+from data_ocean.postman import send_plain_mail
+from django.core.mail import send_mail
+from django.conf import settings
 
 
 class CompanyConverter(BusinessConverter):
@@ -38,14 +41,14 @@ class CompanyConverter(BusinessConverter):
             'орган самоорганізації населення': 'community council',
             'повне товариство': 'unlimited partnership',
             'сільськогосподарський обслуговуючий кооператив': 'agricultural service cooperative',
-            "об`єднання співвласників багатоквартирного будинку":
+            "об'єднання співвласників багатоквартирного будинку":
                 'association of co-owners of apartment house',
             'профспілка': 'trade union',
             'кооперативи': 'cooperatives',
             'селянське (фермерське) господарство': 'farm',
-            "організація (установа, заклад) об`єднання громадян":
+            "організація (установа, заклад) об'єднання громадян":
                 'citizens organization (enterprise, institution)',
-            "підприємство об'єднання громадян (релігійної організації, профспілки)":
+            "підприємство об'єднання громадян (релігійної організації,профспілки)":
                 'citizens enterprise association (religious organization, trade unions)',
             'приватна організація (установа, заклад)':
                 'private organization (enterprise, institution)',
@@ -56,7 +59,7 @@ class CompanyConverter(BusinessConverter):
             'кредитна спілка': 'credit union',
             'акціонерне товариство': 'joint stock company',
             'спілка споживчих товариств': 'community of consumer cooperatives',
-            "об`єднання громадян, профспілки, благодійні організації та інші подібні організації":
+            "об'єднання громадян, профспілки, благодійні організації та інші подібні організації":
                 'citizens` associations, trade unions, charitable and other organizations',
             'командитне товариство': 'limited partnership',
             'організація роботодавців': "employers' organisation",
@@ -65,10 +68,10 @@ class CompanyConverter(BusinessConverter):
             'споживчий кооператив': 'consumer cooperative',
             'організації (установи, заклади)': 'organizations (enterprises, institutions)',
             'підприємства': 'enterprises',
-            "об`єднання підприємств (юридичних осіб)": 'association of enterprises',
+            "об'єднання підприємств (юридичних осіб)": 'association of enterprises',
             'консорціум': 'consortium',
             "спілка об'єднань громадян": 'union of associations of citizens',
-            'філія(інший відокремлений підрозділ)': 'branch (separate unit)',
+            "філія (інший відокремлений підрозділ)": 'branch (separate unit)',
             'організація орендарів': 'organization of tenants',
             'недержавний пенсійний фонд': 'private pension fund',
             'державна акціонерна компанія (товариство)': 'state-controlled joint-stock company',
@@ -89,10 +92,10 @@ class CompanyConverter(BusinessConverter):
             'індивідуальне підприємство': 'sole proprietorship',
             'органи адвокатського самоврядування': "lawyers` self-government body",
             'холдингова компанія': 'holding company',
-            "адвокатське об`єднання": "lawyers` union",
+            "адвокатське об'єднання": "lawyers` union",
             'адвокатське бюро': 'law firm',
             'судова система': 'judiciary',
-            "асоціації органів місцевого самоврядування та їх добровільні об`єднання":
+            "асоціації органів місцевого самоврядування та їх добровільні обєднання":
                 'associations of local government bodies and their voluntary associations',
             'кооперативний банк': 'cooperative bank',
             'аудиторська палата україни': 'the auditors chamber of ukraine',
@@ -148,5 +151,26 @@ class CompanyConverter(BusinessConverter):
             name = self.translate_company_type_name_eng(name_eng)
         else:
             raise ValueError(f'Not supported locale - {locale}. Should be "uk" or "en"')
+
         company_type, created = CompanyType.objects.get_or_create(name=name, name_eng=name_eng)
+
+        if created:
+            subj = f'New company type created: {company_type.id}'
+            msg = f'New company type: \r\nid={company_type.id}, \r\nname={company_type.name}'
+            print(msg)
+            if settings.SEND_MAIL_BY_POSTMAN:
+                # use POSTMAN
+                send_status_code = send_plain_mail(settings.SUPPORT_EMAIL, subj, msg)
+                if send_status_code != 201:
+                    print(f'Warning! Email not send.')
+            else:
+                # use EMAIL_BACKEND
+                send_mail(
+                    subject=subj,
+                    message=msg,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=(settings.SUPPORT_EMAIL,),
+                    fail_silently=True,
+                )
+
         return company_type
