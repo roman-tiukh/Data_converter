@@ -1,9 +1,15 @@
 from django.conf import settings
-
+import logging
+import requests
+from django.utils import timezone
 from data_ocean.converter import Converter, BulkCreateManager
+from data_ocean.downloader import Downloader
 from data_ocean.models import Register
 from data_ocean.utils import clean_name, change_to_full_name
 from location_register.models.ratu_models import RatuRegion, RatuDistrict, RatuCity, RatuCityDistrict, RatuStreet
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 class RatuConverter(Converter):
@@ -146,3 +152,50 @@ class RatuConverter(Converter):
         'For start rewriting RATU to the DB run > RatuConverter().process()\n',
         'For clear all RATU tables run > RatuConverter().clear_db()'
     )
+
+
+class RatuDownloader(Downloader):
+    chunk_size = 16 * 1024 * 1024
+    reg_name = 'location_ratu'
+    zip_required_file_sign = 'xml_atu'
+    unzip_required_file_sign = 'xml_atu'
+    unzip_after_download = True
+    source_dataset_url = settings.LOCATION_RATU_SOURCE_PACKAGE
+
+    def get_source_file_url(self):
+
+        r = requests.get(self.source_dataset_url)
+        if r.status_code != 200:
+            print(f'Request error to {self.source_dataset_url}')
+            return
+
+        for i in r.json()['result']['resources']:
+            if self.zip_required_file_sign in i['url']:
+                return i['url']
+
+    def get_source_file_name(self):
+        return self.url.split('/')[-1]
+
+    def update(self):
+
+        logger.info(f'{self.reg_name}: Update started...')
+
+        self.log_init()
+        self.download()
+
+        self.log_obj.update_start = timezone.now()
+        self.log_obj.save()
+
+        logger.info(f'{self.reg_name}: process() with {self.file_path} started ...')
+        ratu = RatuConverter()
+        ratu.LOCAL_FILE_NAME = self.file_name
+        ratu.process()
+        logger.info(f'{self.reg_name}: process() with {self.file_path} finished successfully.')
+
+        self.log_obj.update_finish = timezone.now()
+        self.log_obj.update_status = True
+        self.log_obj.save()
+
+        self.remove_file()
+
+        logger.info(f'{self.reg_name}: Update finished successfully.')

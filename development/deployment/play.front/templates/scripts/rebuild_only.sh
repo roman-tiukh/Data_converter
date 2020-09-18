@@ -21,5 +21,3 @@ echo
 cd ~/DataOcean/landing
 npm install
 npm run build
-
-sudo service nginx restart

@@ -3,6 +3,11 @@
 from zeep import Client, Settings
 from zeep.helpers import serialize_object
 
+import logging
+from django.utils import timezone
+from django.conf import settings
+
+from data_ocean.models import RegistryUpdaterModel
 from data_ocean.utils import change_to_full_name
 
 from business_register.converter.business_converter import BusinessConverter
@@ -11,10 +16,15 @@ from location_register.models.drv_models import (DrvAto, DrvBuilding,
                                                  DrvCouncil, DrvDistrict,
                                                  DrvRegion, DrvStreet, ZipCode)
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
 
 class DrvConverter(BusinessConverter):
-    WSDL_URL = 'https://www.drv.gov.ua/ords/svc/personal/API/Opendata'
-    SETTINGS = Settings(strict=False, xml_huge_tree=True)
+    WSDL_URL = settings.LOCATION_DRV_WSDL_URL
+    # WSDL_URL = 'https://www.drv.gov.ua/ords/svc/personal/API/Opendata'
+    SETTINGS = Settings(strict=settings.LOCATION_DRV_STRICT, xml_huge_tree=settings.LOCATION_DRV_XML_HUGE_TREE)
+    # SETTINGS = Settings(strict=False, xml_huge_tree=True)
 
     def __init__(self):
         """
@@ -177,3 +187,30 @@ class DrvConverter(BusinessConverter):
         self.save_region_data(regions_data)
 
     print("For storing run DrvConverter().process()")
+
+
+class DrvUpdater:
+    reg_name = 'location_drv'
+    log_obj = None
+
+    def log_init(self):
+        self.log_obj = RegistryUpdaterModel.objects.create(registry_name=self.reg_name)
+
+    def update(self):
+
+        logger.info(f'{self.reg_name}: Update started...')
+
+        self.log_init()
+
+        self.log_obj.update_start = timezone.now()
+        self.log_obj.save()
+
+        logger.info(f'{self.reg_name}: DrvConverter().process() started ...')
+        DrvConverter().process()
+        logger.info(f'{self.reg_name}: DrvConverter().process() finished successfully.')
+
+        self.log_obj.update_finish = timezone.now()
+        self.log_obj.update_status = True
+        self.log_obj.save()
+
+        logger.info(f'{self.reg_name}: Update finished successfully.')

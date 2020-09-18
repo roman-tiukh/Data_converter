@@ -1,98 +1,144 @@
 import os
+import subprocess
 from django.utils import timezone
-# import zipfile
+import zipfile
 import requests
-# from requests.auth import HTTPBasicAuth
 from abc import ABC
-# import logging
-# logger = logging.getLogger(__name__)
-# logger.setLevel(logging.INFO)
+import logging
 from data_ocean.models import RegistryUpdaterModel
 from django.conf import settings
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 class Downloader(ABC):
     auth = None
     url = None
-    unzip_after_download = False
     data = {}
     headers = {}
-    check_by_length = False
     local_path = settings.LOCAL_FOLDER
     chunk_size = 8 * 1024 * 1024
     stream = True
     reg_name = ''
+    file_name = ''
+    file_path = ''
+    file_size = 0
+    check_by_length = False
+    zip_required_file_sign = ''
+    unzip_required_file_sign = ''
+    unzip_after_download = False
+    log_obj = None
+    start_time = None
+    source_dataset_url = ''
 
     def __init__(self):
-        assert self.url
         assert self.reg_name
         assert self.local_path
+        self.url = self.get_source_file_url()
+        assert self.url
+        self.file_name = self.get_source_file_name()
+        assert self.file_name
+        self.file_path = self.local_path + self.file_name
 
     def get_headers(self):
         return self.headers
 
-    def unzip(self, file):
-        pass
+    def unzip_file(self):
+        if not zipfile.is_zipfile(self.file_path):
+            msg = f'Error! {self.file_path} is not a Zip file!'
+            self.log_obj.unzip_message = msg
+            self.log_obj.save()
+            logger.exception(f'{self.reg_name}: {msg}')
+            exit(1)
 
-    def remove_downloaded_file(self, file_path):
-        if os.path.isfile(file_path):
-            os.remove(file_path)
+        logger.info(f'{self.reg_name}: Test archive {self.file_path} start...')
+        test_error = subprocess.run(['unzip', '-t', self.file_path]).returncode
+        if test_error:
+            msg = f'Error! Test archive {self.file_path} failed!'
+            self.log_obj.unzip_message = msg
+            self.log_obj.save()
+            logger.exception(f'{self.reg_name}: {msg}')
+            exit(1)
+        logger.info(f'{self.reg_name}: Test archive finished successfully.')
+
+        file_list = zipfile.ZipFile(self.file_path).namelist()
+        logger.info(f'{self.reg_name}: Archive file list: {file_list}')
+        for i in file_list:
+            if self.unzip_required_file_sign in i:
+                logger.info(f'{self.reg_name}: Unzipping {self.file_path} ...')
+                unzip_status = subprocess.run(['unzip', '-o', self.file_path, i, '-d', self.local_path]).returncode
+                if not unzip_status:
+                    logger.info(f'{self.reg_name}: Unzipping {self.file_path} finished successfully.')
+                    self.file_name = i
+                    self.file_path = self.local_path + self.file_name
+                    self.log_obj.unzip_file_name = self.file_name
+                    self.log_obj.unzip_status = True
+                    self.log_obj.save()
+                    return
+
+        msg = f'Error! Unzip failed for {self.file_path}! File with required sign not found!'
+        self.log_obj.unzip_message = msg
+        self.log_obj.save()
+        logger.exception(f'{self.reg_name}: {msg}')
+        exit(1)
+
+    def file_size_is_correct(self):
+        if os.path.isfile(self.file_path):
+            return os.path.getsize(self.file_path) == self.file_size
+
+    def remove_file(self):
+        if os.path.isfile(self.file_path):
+            os.remove(self.file_path)
+
+    def log_init(self):
+        self.log_obj = RegistryUpdaterModel.objects.create(registry_name=self.reg_name)
+
+    def get_source_file_url(self):
+        assert self.url
+        return self.url
+
+    def get_source_file_name(self):
+        assert self.file_name
+        return self.file_name
 
     def download(self):
+        assert self.url
+        assert self.file_path
+
         start_time = timezone.now()
-        time_stamp = f'{start_time.date()}_{start_time.hour:02}-{start_time.minute:02}'
-        file_path = f'{self.local_path}{self.reg_name}_{time_stamp}'
-
-        upd_obj = RegistryUpdaterModel.objects.create(registry_name=self.reg_name)
-        if not upd_obj:
-            print(f"Can't create log record in db!")
-            return None, None
-
         try:
             with requests.get(self.url, data=self.data, stream=self.stream,
                               auth=self.auth, headers=self.get_headers()) as r:
                 r.raise_for_status()
 
-                file_size = int(r.headers['Content-Length'])
-                print(f'File size: {file_size}.')
-
-                with open(file_path, 'wb') as f:
+                self.file_size = int(r.headers['Content-Length'])
+                logger.info(f"{self.reg_name}: Start downloading: {self.file_path}, size: {self.file_size} ...")
+                self.remove_file()
+                with open(self.file_path, 'wb') as f:
                     for chunk in r.iter_content(chunk_size=self.chunk_size):
                         f.write(chunk)
                     f.flush()
 
-                if os.path.getsize(file_path) != file_size:
-                    upd_obj.download_finish = timezone.now()
-                    upd_obj.download_message = 'Download Error: Bad file size after download.'
-                    upd_obj.save()
-                    self.remove_downloaded_file(file_path)
-                    print(f'File {file_path} is not downloaded! Bad file size after download.')
-                    return None, None
+                if not self.file_size_is_correct():
+                    raise requests.exceptions.RequestException('Error! Bad file size after download.')
 
-                upd_obj.download_finish = timezone.now()
-                upd_obj.download_status = True
-                upd_obj.download_file_name = file_path
-                upd_obj.download_file_length = file_size
-                upd_obj.save()
-                print(f'File {file_path} is successfully downloaded at {timezone.now() - start_time}.')
+                logger.info(f"{self.reg_name}: {self.file_path} downloaded successfully at {timezone.now() - start_time}.")
 
-                # if self.unzip_after_download:
-                #     self.unzip(file_path)
+                self.log_obj.download_finish = timezone.now()
+                self.log_obj.download_status = True
+                self.log_obj.download_file_name = self.file_path
+                self.log_obj.download_file_length = self.file_size
+                self.log_obj.save()
 
-                return file_path, upd_obj.id
+        except requests.exceptions.RequestException as e:
 
-        except requests.exceptions.HTTPError as errh:
-            upd_obj.download_message = f'Http Error: {errh}'[255:]
-            print("Http Error:", errh)
-        except requests.exceptions.ConnectionError as errc:
-            upd_obj.download_message = f'Connecting Error: {errc}'[255:]
-            print("Connecting Error:", errc)
-        except requests.exceptions.Timeout as errt:
-            upd_obj.download_message = f'Http Error: {errt}'[255:]
-            print("Timeout Error:", errt)
-        except requests.exceptions.RequestException as err:
-            upd_obj.download_message = f'Error: {err}'[255:]
-            print("Error:", err)
-        upd_obj.download_finish = timezone.now()
-        upd_obj.save()
-        return None, None
+            self.log_obj.download_finish = timezone.now()
+            self.log_obj.download_status = False
+            self.log_obj.download_message = f'{e}'[:255]
+            self.log_obj.save()
+            logger.exception(f'{self.reg_name}: {e}')
+            exit(1)
+
+        if self.unzip_after_download:
+            self.unzip_file()

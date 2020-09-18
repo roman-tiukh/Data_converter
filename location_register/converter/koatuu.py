@@ -1,8 +1,10 @@
 # Python logging package
 import logging
 from django.conf import settings
-
+from django.utils import timezone
+import requests
 from data_ocean.converter import Converter
+from data_ocean.downloader import Downloader
 from location_register.models.ratu_models import RatuRegion, RatuDistrict, RatuCity, RatuCityDistrict
 from location_register.models.koatuu_models import (KoatuuFirstLevel, KoatuuSecondLevel, KoatuuThirdLevel,
                                                     KoatuuFourthLevel, KoatuuCategory)
@@ -276,6 +278,7 @@ class NewKoatuuConverter(Converter):
         # a dictionary for storing all abbreviations and full forms of KOATUU categories
         self.KOATUU_CATEGORY_DICT = {
             'С': 'село',
+            'C': 'село',
             'Щ': 'селище',
             'Т': 'селище міського типу ',
             'М': 'місто',
@@ -439,3 +442,45 @@ class NewKoatuuConverter(Converter):
                 self.save_or_update_fourth_level(first_level_code, second_level_code,
                                                  third_level_code, category, name,
                                                  fourth_level_code)
+
+
+class KoatuuDownloader(Downloader):
+    chunk_size = 10 * 1024
+    reg_name = 'location_koatuu'
+    source_dataset_url = settings.LOCATION_KOATUU_SOURCE_PACKAGE
+
+    def get_source_file_url(self):
+
+        r = requests.get(self.source_dataset_url)
+        if r.status_code != 200:
+            print(f'Request error to {self.source_dataset_url}')
+            return
+
+        for i in r.json()['result']['resources']:
+            if self.zip_required_file_sign in i['url']:
+                return i['url']
+
+    def get_source_file_name(self):
+        return self.url.split('/')[-1]
+
+    def update(self):
+
+        logger.info(f'{self.reg_name}: Update started...')
+
+        self.log_init()
+        self.download()
+
+        self.log_obj.update_start = timezone.now()
+        self.log_obj.save()
+
+        logger.info(f'{self.reg_name}: save_to_db({self.file_path}) started ...')
+        NewKoatuuConverter().save_to_db(self.file_path)
+        logger.info(f'{self.reg_name}: save_to_db({self.file_path}) finished successfully.')
+
+        self.log_obj.update_finish = timezone.now()
+        self.log_obj.update_status = True
+        self.log_obj.save()
+
+        self.remove_file()
+
+        logger.info(f'{self.reg_name}: Update finished successfully.')

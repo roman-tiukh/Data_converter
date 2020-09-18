@@ -174,9 +174,6 @@ class Converter:
         # get the root element
         event, root = context.__next__()
 
-        # clear old DB
-        self.clear_db()
-
         i = 0
         record = self.record
         # loop for creating one record
