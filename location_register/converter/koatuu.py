@@ -278,14 +278,25 @@ class NewKoatuuConverter(Converter):
         # a dictionary for storing all abbreviations and full forms of KOATUU categories
         self.KOATUU_CATEGORY_DICT = {
             'С': 'село',
-            'C': 'село',
             'Щ': 'селище',
             'Т': 'селище міського типу ',
             'М': 'місто',
             'Р': 'район міста'
         }
+        self.TRANSLITERATION_DICT = {
+            'C': 'С',
+            'T': 'Т',
+            'M': 'М',
+            'P': 'Р'
+        }
+
+    def transliterate_to_ukr(self, category_code):
+        if category_code in self.TRANSLITERATION_DICT:
+            return self.TRANSLITERATION_DICT.get(category_code)
+        return category_code
 
     def save_or_get_category(self, category_code):
+        category_code = self.transliterate_to_ukr(category_code)
         if category_code not in self.all_categories:
             name = self.KOATUU_CATEGORY_DICT[category_code]
             category = KoatuuCategory.objects.create(name=name, code=category_code)
