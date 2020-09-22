@@ -1,0 +1,10 @@
+{% extends "users/emails/_base.html" %}
+
+{% block content %}
+    <p><b>{{ first_name }}</b>, ми отримали запит на реєстрацію у системі Data Ocean.</p>
+    <p>Щоб підтвердити адресу Вашої електронної пошти, перейдіть за цим посиланням:</p>
+    <a style="font-size:14px;" href="{{ confirm_link }}">{{ confirm_link }}</a>
+    <p style="font-size:14px;color:red;">Якщо Вами ці дії не проводились, проігноруйте цей лист.</p>
+    <br><hr>
+    <p>З повагою, <b>Data Ocean</b></p>
+{% endblock content %}

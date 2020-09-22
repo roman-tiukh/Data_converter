@@ -11,6 +11,7 @@ from django.contrib.auth.hashers import make_password
 from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
 from django.conf import settings
+from django.template.loader import render_to_string
 from data_ocean.postman import send_plain_mail
 from .models import DataOceanUser, CandidateUserModel
 from .serializers import DataOceanUserSerializer, CustomRegisterSerializer, LandingMailSerializer
@@ -86,6 +87,10 @@ class CustomRegisterView(views.APIView):
         domain = re.sub(r'/$', '', settings.FRONTEND_SITE_URL)
         confirm_link = f'{domain}/auth/sign-up/confirmation/{user.id}/{user.confirm_code}/'
         message = REGISTRATION_CONFIRM_MSG.format(first_name=user.first_name, confirm_link=confirm_link)
+        template_html = render_to_string(
+            'users/emails/registration_confirm.html',
+            context={'first_name': user.first_name, 'confirm_link': confirm_link}
+        )
         # send mail
         if settings.SEND_MAIL_BY_POSTMAN:
             # use POSTMAN
@@ -100,6 +105,7 @@ class CustomRegisterView(views.APIView):
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=(user.email,),
                 fail_silently=True,
+                html_message=template_html,
             )
 
         return Response({
@@ -143,6 +149,10 @@ class CustomRegisterConfirmView(views.APIView):
             last_name=user.last_name,
         )
 
+        template_html = render_to_string(
+            'users/emails/registration_success.html',
+            context={'site_url': settings.FRONTEND_SITE_URL, 'support_email': settings.SUPPORT_EMAIL}
+        )
         # send mail
         if settings.SEND_MAIL_BY_POSTMAN:
             # use POSTMAN
@@ -157,6 +167,7 @@ class CustomRegisterConfirmView(views.APIView):
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=(user.email,),
                 fail_silently=True,
+                html_message=template_html,
             )
 
         return Response(DataOceanUserSerializer(real_user).data, status=200)
