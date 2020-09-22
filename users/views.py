@@ -149,6 +149,10 @@ class CustomRegisterConfirmView(views.APIView):
             last_name=user.last_name,
         )
 
+        template_html = render_to_string(
+            'users/emails/registration_success.html',
+            context={'site_url': settings.FRONTEND_SITE_URL, 'support_email': settings.SUPPORT_EMAIL}
+        )
         # send mail
         if settings.SEND_MAIL_BY_POSTMAN:
             # use POSTMAN
@@ -163,6 +167,7 @@ class CustomRegisterConfirmView(views.APIView):
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=(user.email,),
                 fail_silently=True,
+                html_message=template_html,
             )
 
         return Response(DataOceanUserSerializer(real_user).data, status=200)
