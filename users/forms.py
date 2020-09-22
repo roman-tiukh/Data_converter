@@ -1,6 +1,7 @@
 import re
 from django.contrib.auth.forms import PasswordResetForm
 from django.core.mail import send_mail as send_backend_mail
+from django.template.loader import render_to_string
 from django.conf import settings
 from .models import DataOceanUser
 from data_ocean.postman import send_plain_mail
@@ -29,6 +30,10 @@ class CustomPasswordResetForm(PasswordResetForm):
             domain = re.sub(r'/$', '', settings.FRONTEND_SITE_URL)
             confirm_link = f"{domain}/auth/restore-pass/confirmation/{context['uid']}/{context['token']}/"
             message = PASSWORD_RESET_MSG.format(confirm_link=confirm_link)
+            template_html = render_to_string(
+                'users/emails/password_reset.html',
+                context={'confirm_link': confirm_link}
+            )
             # send mail
             if settings.SEND_MAIL_BY_POSTMAN:
                 # use POSTMAN
@@ -41,4 +46,5 @@ class CustomPasswordResetForm(PasswordResetForm):
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=(context['email'],),
                     fail_silently=True,
+                    html_message=template_html,
                 )
