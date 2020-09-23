@@ -21,10 +21,16 @@ class RatuConverter(Converter):
         self.LOCAL_FILE_NAME = settings.LOCAL_FILE_NAME_RATU
         self.CHUNK_SIZE = settings.CHUNK_SIZE_RATU
         self.bulk_manager = BulkCreateManager()
-        self.region_dict = {}  # dictionary uses for keeping whole model class objects
-        self.district_list = list()  # lists use for keeping cells content
-        self.city_list = list()
-        self.citydistrict_list = list()
+        self.all_regions_dict = self.put_all_objects_to_dict('name', 'location_register',
+                                                             'RatuRegion')
+        self.all_districts_dict = self.put_all_objects_to_dict('code', 'location_register',
+                                                               'RatuDistrict')
+        self.all_cities_dict = self.put_all_objects_to_dict('code', 'location_register',
+                                                            'RatuCity')
+        self.all_citydistricts_dict = self.put_all_objects_to_dict('code', 'location_register',
+                                                                   'RatuCityDistrict')
+        self.all_streets_dict = self.put_all_objects_to_dict('code', 'location_register',
+                                                             'RatuStreet')
         super().__init__()
 
         # format record's data
@@ -44,113 +50,85 @@ class RatuConverter(Converter):
             new_filename = 'ratu.xml'
         return new_filename
 
-    # writing entry to db
     def save_to_db(self, record):
         region = self.save_to_region_table(record)
-        district = self.save_to_district_table(record, region)
-        city = self.save_to_city_table(record, region, district)
-        citydistrict = self.save_to_citydistrict_table(record, region, district, city)
-        # self.save_to_category_id(record['CITY_NAME'], City)
-        # self.save_to_category_id(record['CITY_REGION_NAME'], CityDistrict)
-        self.save_to_street_table(record, region, district, city, citydistrict)
-        print('saved')
+        district = self.save_to_district_table(record, region) if record['REGION_NAME'] else None
+        city = self.save_to_city_table(record, region, district) if record['CITY_NAME'] else None
+        citydistrict = (self.save_to_citydistrict_table(record, region, district, city)
+                        if record['CITY_REGION_NAME'] else None)
+        if record['STREET_NAME']:
+            self.save_to_street_table(record, region, district, city, citydistrict)
 
-    # writing entry to region table
     def save_to_region_table(self, record):
-        record['OBL_NAME'] = change_to_full_name(record['OBL_NAME'])
-        if record['OBL_NAME'] not in self.region_dict:
-            region = RatuRegion(
-                name=record['OBL_NAME']
+        region_name = change_to_full_name(record['OBL_NAME'])
+        if region_name not in self.all_regions_dict:
+            region = RatuRegion.objects.create(
+                name=region_name
             )
-            region.save()
-            self.region_dict[record['OBL_NAME']] = region
+            self.all_regions_dict[region_name] = region
             return region
-        region = self.region_dict[record['OBL_NAME']]
-        return region
+        return self.all_regions_dict[region_name]
 
-    # writing entry to district table
     def save_to_district_table(self, record, region):
-        if record['REGION_NAME']:
-            district_name = clean_name(record['REGION_NAME'])
-            district_name = change_to_full_name(district_name)
-        else:
-            district_name = RatuDistrict.EMPTY_FIELD
-        if [region.id, district_name] not in self.district_list:
-            district = RatuDistrict(
+        district_name = clean_name(record['REGION_NAME'])
+        district_name = change_to_full_name(district_name)
+        district_code = region.name + district_name
+        if district_code not in self.all_districts_dict:
+            district = RatuDistrict.objects.create(
                 region=region,
-                name=district_name
+                name=district_name,
+                code=district_code
             )
-            district.save()
-            self.district_list.insert(0, [region.id, district_name])
-        district = RatuDistrict.objects.get(
-            name=district_name,
-            region=region.id
-        )
-        return district
+            self.all_districts_dict[district_code] = district
+            return district
+        return self.all_districts_dict[district_code]
 
-    # writing entry to city table
     def save_to_city_table(self, record, region, district):
-        if record['CITY_NAME']:
-            city_name = clean_name(record['CITY_NAME'])
-        else:
-            city_name = RatuCity.EMPTY_FIELD
-        if [region.id, district.id, city_name] not in self.city_list:
-            city = RatuCity(
+        city_name = clean_name(record['CITY_NAME'])
+        district_name = 'EMPTY' if not district else district.name
+        city_code = region.name + district_name + city_name
+        if city_code not in self.all_cities_dict:
+            city = RatuCity.objects.create(
                 region=region,
                 district=district,
-                name=city_name
+                name=city_name,
+                code=city_code
             )
-            city.save()
-            self.city_list.insert(0, [region.id, district.id, city_name])
-        city = RatuCity.objects.get(
-            name=city_name,
-            region=region.id,
-            district=district.id
-        )
-        return city
+            self.all_cities_dict[city_code] = city
+            return city
+        return self.all_cities_dict[city_code]
 
-    # writing entry to citydistrict table
     def save_to_citydistrict_table(self, record, region, district, city):
-        if record['CITY_REGION_NAME']:
-            citydistrict_name = clean_name(record['CITY_REGION_NAME'])
-        else:
-            citydistrict_name = RatuCityDistrict.EMPTY_FIELD
-        if [region.id, district.id, city.id, citydistrict_name] not in self.citydistrict_list:
-            citydistrict = RatuCityDistrict(
+        citydistrict_name = clean_name(record['CITY_REGION_NAME'])
+        citydistrict_code = city.name + citydistrict_name
+        if citydistrict_code not in self.all_citydistricts_dict:
+            citydistrict = RatuCityDistrict.objects.create(
                 region=region,
                 district=district,
                 city=city,
-                name=citydistrict_name
+                name=citydistrict_name,
+                code=citydistrict_code
             )
-            citydistrict.save()
-            self.citydistrict_list.insert(0, [region.id, district.id, city.id, citydistrict_name])
-        citydistrict = RatuCityDistrict.objects.get(
-            name=citydistrict_name,
-            region=region.id,
-            district=district.id,
-            city=city.id
-        )
-        return citydistrict
+            self.all_citydistricts_dict[citydistrict_code] = citydistrict
+            return citydistrict
+        return self.all_citydistricts_dict[citydistrict_code]
 
-    # writing entry to street table
     def save_to_street_table(self, record, region, district, city, citydistrict):
-        if record['STREET_NAME']:
-            street = RatuStreet(
+        street_name = change_to_full_name(record['STREET_NAME'])
+        street_code = city.name + street_name
+        if street_code not in self.all_streets_dict:
+            street = RatuStreet.objects.create(
                 region=region,
                 district=district,
                 city=city,
                 citydistrict=citydistrict,
-                name=record['STREET_NAME'].lower()
+                name=street_name,
+                code=street_code
             )
-            self.bulk_manager.add(street)
-        if len(self.bulk_manager.queues['location_register.RatuStreet']):
-            self.bulk_manager.commit(RatuStreet)
-        self.bulk_manager.queues['location_register.RatuStreet'] = []
 
     print(
-        'Ratu already imported.',
-        'For start rewriting RATU to the DB run > RatuConverter().process()\n',
-        'For clear all RATU tables run > RatuConverter().clear_db()'
+        'RatuConverter already imported.',
+        'For start rewriting RATU to the DB run > RatuConverter().process()'
     )
 
 
