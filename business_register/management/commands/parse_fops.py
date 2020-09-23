@@ -9,4 +9,4 @@ class Command(BaseCommand):
         parser.add_argument('start_index', nargs='?', type=int, default=0)
 
     def handle(self, *args, **options):
-        FopConverter().process_full(options['start_index'])
+        FopConverter().process(options['start_index'])

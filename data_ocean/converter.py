@@ -165,50 +165,7 @@ class Converter:
         return {getattr(obj, key_field): obj for obj in apps.get_model(app_name,
                                                                        model_name).objects.all()}
 
-    def process(self):
-        # parsing sours file in flow
-        # get an iterable
-        context = iterparse(self.LOCAL_FOLDER + self.LOCAL_FILE_NAME, events=("start", "end"))
-        # turn it into an iterator
-        context = iter(context)
-        # get the root element
-        event, root = context.__next__()
-
-        i = 0
-        record = self.record
-        # loop for creating one record
-        for event, elem in context:
-            if event == "end" and elem.tag == "RECORD":
-                for text in elem.iter():
-                    print('\t\t', text.tag, '\t\t', text.text)
-                    if type(record[text.tag]) == list:
-                        record[text.tag].append(text.text)
-                    else:
-                        record[text.tag] = text.text
-
-                # writing one record
-                self.save_to_db(record)
-
-                i = i + 1
-                print(i,
-                      ' records\n\n................................................................................................')
-                for key in record:
-                    if type(record[key]) == list:
-                        record[key].clear()
-                    else:
-                        record[key] = ''
-                root.clear()
-        try:
-            self.bulk_manager.done()
-        except:
-            None
-        try:
-            self.bulk_submanager.done()
-        except:
-            None
-        print('All the records have been rewritten.')
-
-    def process_full(self, start_index=0):  # It's temporary method name, in the future this 'process' will be one
+    def process(self, start_index=0):
         records = etree.Element('RECORDS')
         elements = etree.iterparse(self.LOCAL_FOLDER + self.LOCAL_FILE_NAME, tag=self.RECORD_TAG)
 
