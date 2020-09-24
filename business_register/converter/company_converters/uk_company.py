@@ -1,10 +1,17 @@
 import logging
+from lxml import html
+import requests
+from django.utils import timezone
 from csv import DictReader
 
 from business_register.converter.company_converters.company import CompanyConverter
 from business_register.models.company_models import Company
 from data_ocean.utils import format_date_to_yymmdd, convert_to_string_if_exists
 from location_register.converter.address import AddressConverter
+
+from data_ocean.downloader import Downloader
+from requests.auth import HTTPBasicAuth
+from django.conf import settings
 
 # Standard instance of a logger with __name__
 logger = logging.getLogger(__name__)
@@ -78,3 +85,46 @@ class UkCompanyConverter(CompanyConverter):
                         company.save(update_fields=update_fields)
 
             print('All companies from UK register were saved')
+
+
+class UkCompanyDownloader(Downloader):
+
+    unzip_after_download = True
+    unzip_required_file_sign = 'BasicCompanyDataAsOneFile'
+    reg_name = 'business_uk_company'
+    source_dataset_url = settings.BUSINESS_UK_COMPANY_SOURCE_PAGE
+
+    def get_source_file_url(self):
+        r = requests.get(self.source_dataset_url)
+        if r.status_code != 200:
+            print(f'Request error to {self.source_dataset_url}')
+            return
+
+        tree = html.fromstring(r.content)
+        url = settings.BUSINESS_UK_COMPANY_SOURCE + tree.xpath(settings.BUSINESS_UK_COMPANY_SOURCE_XPATH)[0]
+        return url
+
+    def get_source_file_name(self):
+        return self.url.split('/')[-1]
+
+    def update(self):
+
+        logger.info(f'{self.reg_name}: Update started...')
+
+        self.log_init()
+        self.download()
+
+        self.log_obj.update_start = timezone.now()
+        self.log_obj.save()
+
+        logger.info(f'{self.reg_name}: save_to_db({self.file_path}) started ...')
+        UkCompanyConverter().save_to_db(self.file_path)
+        logger.info(f'{self.reg_name}: save_to_db({self.file_path}) finished successfully.')
+
+        self.log_obj.update_finish = timezone.now()
+        self.log_obj.update_status = True
+        self.log_obj.save()
+
+        self.remove_file()
+
+        logger.info(f'{self.reg_name}: Update finished successfully.')

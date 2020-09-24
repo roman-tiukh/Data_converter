@@ -1,9 +1,7 @@
 import logging
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-
 import re
+import requests
+from django.utils import timezone
 
 from django.conf import settings
 
@@ -16,6 +14,11 @@ from business_register.converter.company_converters.company import CompanyConver
 from data_ocean.converter import BulkCreateManager
 from data_ocean.utils import (cut_first_word, format_date_to_yymmdd, get_first_word,
                               convert_to_string_if_exists)
+
+from data_ocean.downloader import Downloader
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 class UkrCompanyConverter(CompanyConverter):
@@ -568,3 +571,50 @@ class UkrCompanyConverter(CompanyConverter):
         # self.branch_bulk_manager.create_queues['business_register.CompanyToKved'] = []
         # self.branch_bulk_manager.create_queues['business_register.ExchangeDataCompany'] = []
         # self.branch_bulk_manager.create_queues['business_register.Signer'] = []
+
+
+class UkrCompanyDownloader(Downloader):
+    chunk_size = 16 * 1024 * 1024
+    reg_name = 'business_ukr_company'
+    zip_required_file_sign = 'ufop_full'
+    unzip_required_file_sign = 'EDR_UO_FULL'
+    unzip_after_download = True
+    source_dataset_url = settings.BUSINESS_UKR_COMPANY_SOURCE_PACKAGE
+
+    def get_source_file_url(self):
+
+        r = requests.get(self.source_dataset_url)
+        if r.status_code != 200:
+            print(f'Request error to {self.source_dataset_url}')
+            return
+
+        for i in r.json()['result']['resources']:
+            if self.zip_required_file_sign in i['url']:
+                return i['url']
+
+    def get_source_file_name(self):
+        return self.url.split('/')[-1]
+
+    def update(self):
+
+        logger.info(f'{self.reg_name}: Update started...')
+
+        self.log_init()
+        self.download()
+
+        self.log_obj.update_start = timezone.now()
+        self.log_obj.save()
+
+        logger.info(f'{self.reg_name}: process_full() with {self.file_path} started ...')
+        ukr_company = UkrCompanyConverter()
+        ukr_company.LOCAL_FILE_NAME = self.file_name
+        ukr_company.process_full()
+        logger.info(f'{self.reg_name}: process_full() with {self.file_path} finished successfully.')
+
+        self.log_obj.update_finish = timezone.now()
+        self.log_obj.update_status = True
+        self.log_obj.save()
+
+        self.remove_file()
+
+        logger.info(f'{self.reg_name}: Update finished successfully.')
