@@ -167,7 +167,8 @@ class Converter:
 
     def process(self, start_index=0):
         records = etree.Element('RECORDS')
-        elements = etree.iterparse(self.LOCAL_FOLDER + self.LOCAL_FILE_NAME, tag=self.RECORD_TAG)
+        elements = etree.iterparse(self.LOCAL_FOLDER + self.LOCAL_FILE_NAME, tag=self.RECORD_TAG,
+                                   recover=True)
 
         for _ in range(start_index):
             next(elements)
