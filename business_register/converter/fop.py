@@ -312,7 +312,7 @@ class FopDownloader(Downloader):
         logger.info(f'{self.reg_name}: process_full() with {self.file_path} started ...')
         fop = FopConverter()
         fop.LOCAL_FILE_NAME = self.file_name
-        fop.process_full()
+        fop.process()
         logger.info(f'{self.reg_name}: process_full() with {self.file_path} finished successfully.')
 
         self.log_obj.update_finish = timezone.now()

@@ -23,4 +23,4 @@ class CompanyTypeCountSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CompanyType
-        fields = ['name', 'count_companies']
+        fields = ['name', 'name_eng', 'count_companies']
