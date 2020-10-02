@@ -103,13 +103,15 @@ class CompanyConverter(BusinessConverter):
             'благодійне товариство': 'charitable incorporated organisation',
             'приватна компанія з відповідальністю, обмеженою гарантіями її членів':
                 'pri/ltd by guar/nsc (private, limited by guarantee, no share capital)',
-            'компанія суспільних інтересів': 'interest company',
+            'компанія суспільних інтересів': 'community interest company',
             'зареєстроване товариство': 'registered society',
             'обмежене партнерство': 'limited partnership',
             'королівська статутна компанія': 'royal charter company',
             'партнерство з обмеженою відповідальністю': 'limited liability partnership',
-            "pri/lbg/nsc (private, limited by guarantee, no share capital, use of 'limited' exemption":
-                "приватна компанія з відповідальністю, обмеженою гарантіями її членів p використанням 'обмеженої' пільги",
+            ("приватна компанія з відповідальністю, обмеженою гарантіями її членів з використанням"
+             " 'обмеженої' пільги"):
+                ("pri/lbg/nsc (private, limited by guarantee, no share capital, use of 'limited' "
+                 "exemption"),
             'шотландське благодійне товариство': 'scottish charitable incorporated organisation',
             'приватна компанія з необмеженою відповідальністю': 'private unlimited company',
             'давно існуюча публічна компанія': 'old public company',
@@ -122,12 +124,20 @@ class CompanyConverter(BusinessConverter):
             'промислове товариство взаємного кредиту': 'industrial and provident society',
             "інвестиційна компанія зі змінним капіталом ('парасолькова компанія')":
                 'investment company with variable capital(umbrella)',
-            'приватна компанія з обмеженою відповідальністю згідно підрозділу 30 закону о компаніях':
+            ('приватна компанія з обмеженою відповідальністю згідно підрозділу 30 закону'
+             ' о компаніях'):
                 'priv ltd sect. 30 (private limited company, section 30 of the companies act)',
             'європейське публічне товариство з обмеженою відповідальністю':
                 "european public limited-liability company (se)",
             'перероблена/закрита': 'converted/closed',
-            'компанія з розділеними портфелями': 'protected cell company'
+            'компанія з розділеними портфелями': 'protected cell company',
+            'публічна акціонерна компанія з обмеженою відповідальністю': 'public limited company',
+            'додаткова освіта та передуніверситетський коледж/коледжний корпус':
+                'further education and sixth form college corps',
+            ('приватна/компанія з відповідальністю, обмеженою гарантіями її членів/без '
+             'акціонерного капіталу, використання "обмеженої" пільги (або привілегії)'):
+                ("pri/lbg/nsc (private, limited by guarantee, no share capital, "
+                 "use of 'limited' exemption)")
         }
         self.all_ukr_company_type_dict = self.put_all_objects_to_dict('name', "business_register",
                                                                       "CompanyType")
