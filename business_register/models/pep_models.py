@@ -18,6 +18,8 @@ class Pep(DataOceanModel):
     last_employer_eng = models.CharField('останнє місце роботи англійською', max_length=512,
                                          null=True)
     is_pep = models.BooleanField('є публічним діячем', default=True)
+    related_persons = models.ManyToManyField('self', "пов'язані особи",
+                                             through='RelatedPersonsLink')
     pep_type = models.CharField('тип публічного діяча', max_length=60, null=True)
     pep_type_eng = models.CharField('тип публічного діяча англійською', max_length=60, null=True)
     url = models.URLField('посилання на профіль публічного діяча', max_length=512)
@@ -70,34 +72,6 @@ class Pep(DataOceanModel):
         return self.fullname
 
 
-class PepRelatedPerson(DataOceanModel):
-    pep = models.ForeignKey(Pep, on_delete=models.CASCADE,
-                            related_name='related_persons',
-                            verbose_name="публічний діяч, з яким є зв'язок")
-    # ToDo: decide should we add every related person to Pep register or this should be ANTAC`s
-    #  desicion?
-    fullname = models.CharField("повне ім'я", max_length=75)
-    fullname_eng = models.CharField("повне ім'я", max_length=75, null=True)
-    relationship_type = models.CharField("тип зв'язку із публічним діячем", max_length=90,
-                                         null=True)
-    relationship_type_eng = models.CharField("тип зв'язку із публічним діячем англійською",
-                                             max_length=90, null=True)
-    is_pep = models.BooleanField('є публічним діячем', null=True)
-    start_date = models.CharField("дата виникнення зв'язку із публічним діячем", max_length=12,
-                                  null=True)
-    confirmation_date = models.CharField("дата підтвердження зв'язку із публічним діячем",
-                                         max_length=12, null=True)
-    end_date = models.CharField("дата припинення зв'язку із публічним діячем", max_length=12,
-                                null=True)
-
-    class Meta:
-        verbose_name = "пов'язана з публічним діячем особа"
-        ordering = ['id']
-
-    def __str__(self):
-        return self.fullname
-
-
 class PepRelatedCountry(DataOceanModel):
     pep = models.ForeignKey(Pep, on_delete=models.CASCADE, related_name='related_countries',
                             verbose_name="пов'язана з публічним діячем")
@@ -135,31 +109,49 @@ class PepDeclaration(DataOceanModel):
         return f"декларація публічного діяча {self.pep.fullname} за {self.year} рік"
 
 
-class RelatedPersonLinkWithPep(DataOceanModel):
-    related_person = models.ForeignKey(Pep, on_delete=models.CASCADE,
-                                       verbose_name="пов'язана з публічним діячем особа")
-    pep = models.ForeignKey(Pep, on_delete=models.CASCADE,
-                            related_name='pep_related_persons',
-                            verbose_name="публічний діяч, з яким ідентифікований зв'язок")
-    relationship_type = models.CharField(
-        "тип зв'язку із публічним діячем", max_length=90, null=True,
+class RelatedPersonsLink(DataOceanModel):
+    person = models.ForeignKey(
+        Pep, on_delete=models.CASCADE,
+        verbose_name="пов'язана особа",
+        related_name='persons'
     )
-    relationship_type_eng = models.CharField(
-        "тип зв'язку із публічним діячем англійською", max_length=90, null=True,
+    other_person = models.ForeignKey(
+        Pep, on_delete=models.CASCADE,
+        verbose_name="інша пов'язана особа",
+        related_name='other_related_persons'
     )
-    start_date = models.CharField("дата виникнення зв'язку із публічним діячем", max_length=12,
-                                  null=True)
-    confirmation_date = models.CharField("дата підтвердження зв'язку із публічним діячем",
-                                         max_length=12, null=True)
-    end_date = models.CharField("дата припинення зв'язку із публічним діячем", max_length=12,
-                                null=True)
+    person_relationship_type = models.CharField(
+        "тип зв'язку першої особи із іншою",
+        max_length=90,
+        null=True,
+    )
+    other_person_relationship_type = models.CharField(
+        "тип зв'язку іншої особи із першою",
+        max_length=90,
+        null=True,
+    )
+    start_date = models.CharField(
+        "дата виникнення зв'язку",
+        max_length=12,
+        null=True
+    )
+    confirmation_date = models.CharField(
+        "дата підтвердження зв'язку",
+        max_length=12,
+        null=True
+    )
+    end_date = models.CharField(
+        "дата припинення зв'язку",
+        max_length=12,
+        null=True
+    )
 
     class Meta:
         verbose_name = "пов'язана з публічним діячем особа"
         ordering = ['id']
 
     def __str__(self):
-        return self.related_person.fullname
+        return self.person.fullname
 
 
 class CompanyLinkWithPep(DataOceanModel):
