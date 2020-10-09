@@ -10,7 +10,6 @@ from data_ocean.utils import format_date_to_yymmdd, convert_to_string_if_exists
 from location_register.converter.address import AddressConverter
 
 from data_ocean.downloader import Downloader
-from requests.auth import HTTPBasicAuth
 from django.conf import settings
 
 # Standard instance of a logger with __name__
@@ -19,14 +18,6 @@ logger.setLevel(logging.DEBUG)
 
 
 class UkCompanyConverter(CompanyConverter):
-
-    # def get_company_from_uk_register(self, number):
-    #     AUTH = HTTPBasicAuth(
-    #         'iegorsoboliev@dataocean.us', 'rQVkFwfb8AX2Cbdlohvc0pzPwfzholqPbBbIoR2W')
-    #     url = f'https://api.companieshouse.gov.uk/company/{number}'
-    #     with requests.get(url, stream=True, auth=AUTH) as response:
-    #         data = response.json()
-    #         print(data)
 
     def save_to_db(self, file):
         with open(file, newline='') as csvfile:
@@ -88,7 +79,6 @@ class UkCompanyConverter(CompanyConverter):
 
 
 class UkCompanyDownloader(Downloader):
-
     unzip_after_download = True
     unzip_required_file_sign = 'BasicCompanyDataAsOneFile'
     reg_name = 'business_uk_company'
@@ -108,7 +98,6 @@ class UkCompanyDownloader(Downloader):
         return self.url.split('/')[-1]
 
     def update(self):
-
         logger.info(f'{self.reg_name}: Update started...')
 
         self.log_init()
