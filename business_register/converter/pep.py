@@ -323,45 +323,45 @@ class PepLinksLoader:
 
     def save_pep_links(self, data):
         for link in data:
-            person_source_db_id = str(link[0])
-            person = Pep.objects.filter(code=person_source_db_id).first()
-            if not person:
+            from_person_source_db_id = str(link[0])
+            from_person = Pep.objects.filter(code=from_person_source_db_id).first()
+            if not from_person:
                 logger.info(f'No such pep in our DB. '
-                            f'Check records in the source DB with id {person_source_db_id}')
+                            f'Check records in the source DB with id {from_person_source_db_id}')
                 continue
-            other_person_source_db_id = str(link[1])
-            other_person = Pep.objects.filter(code=other_person_source_db_id).first()
-            if not other_person:
+            to_person_source_db_id = str(link[1])
+            to_person = Pep.objects.filter(code=to_person_source_db_id).first()
+            if not to_person:
                 logger.info(f'No such pep in our DB. '
-                            f'Check records in the source DB with id {other_person_source_db_id}')
+                            f'Check records in the source DB with id {to_person_source_db_id}')
                 continue
-            person_relationship_type = link[2]
-            other_person_relationship_type = link[3]
+            from_person_relationship_type = link[2]
+            to_person_relationship_type = link[3]
             start_date = link[4]
             confirmation_date = link[5]
             end_date = link[6]
 
             stored_link = RelatedPersonsLink.objects.filter(
-                person_id=person.id, other_person_id=other_person.id
+                from_person_id=from_person.id, to_person_id=to_person.id
             ).first()
             if not stored_link:
                 RelatedPersonsLink.objects.create(
-                    person_id=person.id,
-                    other_person_id=other_person.id,
-                    person_relationship_type=person_relationship_type,
-                    other_person_relationship_type=other_person_relationship_type,
+                    from_person_id=from_person.id,
+                    to_person_id=to_person.id,
+                    from_person_relationship_type=from_person_relationship_type,
+                    to_person_relationship_type=to_person_relationship_type,
                     start_date=start_date,
                     confirmation_date=confirmation_date,
                     end_date=end_date
                 )
             else:
                 update_fields = []
-                if stored_link.person_relationship_type != person_relationship_type:
-                    stored_link.person_relationship_type = person_relationship_type
-                    update_fields.append('person_relationship_type')
-                if stored_link.other_person_relationship_type != other_person_relationship_type:
-                    stored_link.other_person_relationship_type = other_person_relationship_type
-                    update_fields.append('other_person_relationship_type')
+                if stored_link.from_person_relationship_type != from_person_relationship_type:
+                    stored_link.from_person_relationship_type = from_person_relationship_type
+                    update_fields.append('from_person_relationship_type')
+                if stored_link.to_person_relationship_type != to_person_relationship_type:
+                    stored_link.to_person_relationship_type = to_person_relationship_type
+                    update_fields.append('to_person_relationship_type')
                 if stored_link.start_date != start_date:
                     stored_link.start_date = start_date
                     update_fields.append('start_date')

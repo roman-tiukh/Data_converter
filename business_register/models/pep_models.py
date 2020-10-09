@@ -110,22 +110,22 @@ class PepDeclaration(DataOceanModel):
 
 
 class RelatedPersonsLink(DataOceanModel):
-    person = models.ForeignKey(
+    from_person = models.ForeignKey(
         Pep, on_delete=models.CASCADE,
         verbose_name="пов'язана особа",
-        related_name='persons'
+        related_name='from_person_links'
     )
-    other_person = models.ForeignKey(
+    to_person = models.ForeignKey(
         Pep, on_delete=models.CASCADE,
         verbose_name="інша пов'язана особа",
-        related_name='other_related_persons'
+        related_name='to_person_links'
     )
-    person_relationship_type = models.CharField(
+    from_person_relationship_type = models.CharField(
         "тип зв'язку першої особи із іншою",
         max_length=90,
         null=True,
     )
-    other_person_relationship_type = models.CharField(
+    to_person_relationship_type = models.CharField(
         "тип зв'язку іншої особи із першою",
         max_length=90,
         null=True,
