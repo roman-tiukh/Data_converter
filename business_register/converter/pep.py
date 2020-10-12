@@ -1,7 +1,8 @@
 import logging
 from django.utils import timezone
+import psycopg2
 from business_register.models.company_models import Company
-from business_register.models.pep_models import Pep, PepRelatedPerson, CompanyLinkWithPep
+from business_register.models.pep_models import Pep, RelatedPersonsLink, CompanyLinkWithPep
 from business_register.converter.business_converter import BusinessConverter
 from data_ocean.downloader import Downloader
 from requests.auth import HTTPBasicAuth
@@ -93,73 +94,7 @@ class PepConverter(BusinessConverter):
                         is_state_company=is_state_company
                     )
 
-    def save_or_update_pep_related_persons(self, related_persons_list, pep):
-        already_stored_pep_related_persons = list(PepRelatedPerson.objects.filter(pep=pep))
-        for person_dict in related_persons_list:
-            fullname = person_dict['person_uk'].lower()
-            fullname_eng = person_dict.get('person_uk_en')
-            if fullname_eng:
-                fullname_eng = fullname_eng.lower()
-            relationship_type = person_dict.get('relationship_type')
-            if relationship_type:
-                relationship_type = relationship_type.lower()
-            relationship_type_eng = person_dict.get('relationship_type_en')
-            if relationship_type_eng:
-                relationship_type_eng = relationship_type_eng.lower()
-            is_pep = person_dict['is_pep']
-            start_date = person_dict.get('date_established')
-            # omitting empty string as a meaningless value
-            if start_date and not len(start_date):
-                start_date = None
-            confirmation_date = person_dict.get('date_confirmed')
-            if confirmation_date and not len(confirmation_date):
-                confirmation_date = None
-            end_date = person_dict.get('date_finished')
-            if end_date and not len(end_date):
-                end_date = None
-
-            already_stored = False
-            if len(already_stored_pep_related_persons):
-                for stored_person in already_stored_pep_related_persons:
-                    if (stored_person.fullname == fullname
-                            and stored_person.relationship_type == relationship_type):
-                        already_stored = True
-                        # ToDo: resolve the problem of having records of the same persons
-                        #  with different data
-                        # update_fields = []
-                        # if stored_person.relationship_type_eng != relationship_type_eng:
-                        #     stored_person.relationship_type_eng = relationship_type_eng
-                        #     update_fields.append('relationship_type_eng')
-                        # if stored_person.is_pep != is_pep:
-                        #     stored_person.is_pep = is_pep
-                        #     update_fields.append('is_pep')
-                        # if stored_person.start_date != start_date:
-                        #     stored_person.start_date = start_date
-                        #     update_fields.append('start_date')
-                        # if stored_person.confirmation_date != confirmation_date:
-                        #     stored_person.confirmation_date = confirmation_date
-                        #     update_fields.append('confirmation_date')
-                        # if stored_person.end_date != end_date:
-                        #     stored_person.end_date = end_date
-                        #     update_fields.append('end_date')
-                        # if len(update_fields):
-                        #     stored_person.save(update_fields=update_fields)
-                        break
-            if not already_stored:
-                PepRelatedPerson.objects.create(
-                    pep=pep,
-                    fullname=fullname,
-                    fullname_eng=fullname_eng,
-                    relationship_type=relationship_type,
-                    relationship_type_eng=relationship_type_eng,
-                    is_pep=is_pep,
-                    start_date=start_date,
-                    confirmation_date=confirmation_date,
-                    end_date=end_date
-                )
-
     def save_to_db(self, json_file):
-
         data = self.load_json(json_file)
         for pep_dict in data:
             first_name = pep_dict['first_name'].lower()
@@ -219,7 +154,6 @@ class PepConverter(BusinessConverter):
             if reason_of_termination_eng:
                 reason_of_termination_eng = reason_of_termination_eng.lower()
             related_companies_list = pep_dict.get('related_companies', [])
-            related_persons_list = pep_dict.get('related_persons', [])
             code = str(pep_dict.get('id'))
             pep = Pep.objects.filter(code=code).first()
             if not pep:
@@ -357,10 +291,92 @@ class PepConverter(BusinessConverter):
                 if len(update_fields):
                     pep.save(update_fields=update_fields)
 
-            if len(related_persons_list):
-                self.save_or_update_pep_related_persons(related_persons_list, pep)
             if len(related_companies_list):
                 self.save_or_update_pep_related_companies(related_companies_list, pep)
+
+
+class PepLinksLoader:
+
+    def __init__(self):
+        self.host = settings.PEP_SOURCE_HOST
+        self.database = settings.PEP_SOURCE_DATABASE
+        self.user = settings.PEP_SOURCE_USER
+        self.password = settings.PEP_SOURCE_PASSWORD
+        self.QUERY = ('SELECT from_person_id, to_person_id, from_relationship_type, '
+                      'to_relationship_type, date_established, date_confirmed, date_finished '
+                      'FROM core_person2person;')
+
+    def get_data_from_source_db(self):
+        connection = psycopg2.connect(
+            host=self.host,
+            database=self.database,
+            user=self.user,
+            password=self.password
+        )
+        with connection:
+            with connection.cursor() as cursor:
+                cursor.execute(self.QUERY)
+                data = cursor.fetchall()
+        if connection:
+            connection.close()
+        return data
+
+    def save_pep_links(self, data):
+        for link in data:
+            from_person_source_db_id = str(link[0])
+            from_person = Pep.objects.filter(code=from_person_source_db_id).first()
+            if not from_person:
+                logger.info(f'No such pep in our DB. '
+                            f'Check records in the source DB with id {from_person_source_db_id}')
+                continue
+            to_person_source_db_id = str(link[1])
+            to_person = Pep.objects.filter(code=to_person_source_db_id).first()
+            if not to_person:
+                logger.info(f'No such pep in our DB. '
+                            f'Check records in the source DB with id {to_person_source_db_id}')
+                continue
+            from_person_relationship_type = link[2]
+            to_person_relationship_type = link[3]
+            start_date = link[4]
+            confirmation_date = link[5]
+            end_date = link[6]
+
+            stored_link = RelatedPersonsLink.objects.filter(
+                from_person_id=from_person.id, to_person_id=to_person.id
+            ).first()
+            if not stored_link:
+                RelatedPersonsLink.objects.create(
+                    from_person_id=from_person.id,
+                    to_person_id=to_person.id,
+                    from_person_relationship_type=from_person_relationship_type,
+                    to_person_relationship_type=to_person_relationship_type,
+                    start_date=start_date,
+                    confirmation_date=confirmation_date,
+                    end_date=end_date
+                )
+            else:
+                update_fields = []
+                if stored_link.from_person_relationship_type != from_person_relationship_type:
+                    stored_link.from_person_relationship_type = from_person_relationship_type
+                    update_fields.append('from_person_relationship_type')
+                if stored_link.to_person_relationship_type != to_person_relationship_type:
+                    stored_link.to_person_relationship_type = to_person_relationship_type
+                    update_fields.append('to_person_relationship_type')
+                if stored_link.start_date != start_date:
+                    stored_link.start_date = start_date
+                    update_fields.append('start_date')
+                if stored_link.confirmation_date != confirmation_date:
+                    stored_link.confirmation_date = confirmation_date
+                    update_fields.append('confirmation_date')
+                if stored_link.end_date != end_date:
+                    stored_link.end_date = end_date
+                    update_fields.append('end_date')
+                if update_fields:
+                    stored_link.save(update_fields=update_fields)
+
+    def process(self):
+        data = self.get_data_from_source_db()
+        self.save_pep_links(data)
 
 
 class PepDownloader(Downloader):
@@ -374,7 +390,6 @@ class PepDownloader(Downloader):
         return f'{self.reg_name}_{now.date()}_{now.hour:02}-{now.minute:02}'
 
     def update(self):
-
         logger.info(f'{self.reg_name}: Update started...')
 
         self.log_init()
