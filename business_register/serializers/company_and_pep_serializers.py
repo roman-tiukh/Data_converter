@@ -153,7 +153,7 @@ class HistoricalCompanySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class RelatedPersonsLinkSerializer(serializers.ModelSerializer):
+class FromRelatedPersonLinkSerializer(serializers.ModelSerializer):
     to_person = PepShortSerializer()
 
     class Meta:
@@ -161,6 +161,20 @@ class RelatedPersonsLinkSerializer(serializers.ModelSerializer):
         fields = (
             'to_person',
             'to_person_relationship_type',
+            'start_date',
+            'confirmation_date',
+            'end_date',
+        )
+
+
+class ToRelatedPersonLinkSerializer(serializers.ModelSerializer):
+    from_person = PepShortSerializer()
+
+    class Meta:
+        model = RelatedPersonsLink
+        fields = (
+            'from_person',
+            'from_person_relationship_type',
             'start_date',
             'confirmation_date',
             'end_date',
@@ -191,7 +205,8 @@ class PepDetailLinkWithCompanySerializer(serializers.ModelSerializer):
 
 
 class PepDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
-    from_person_links = RelatedPersonsLinkSerializer(many=True)
+    from_person_links = FromRelatedPersonLinkSerializer(many=True)
+    to_person_links = ToRelatedPersonLinkSerializer(many=True)
     related_companies = serializers.SerializerMethodField()
     # other companies founded by persons with the same fullname as pep
     check_companies = CountFoundedCompaniesSerializer(many=True)
@@ -210,7 +225,8 @@ class PepDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
             'criminal_proceedings', 'criminal_proceedings_eng', 'wanted', 'wanted_eng',
             'date_of_birth', 'place_of_birth', 'place_of_birth_eng', 'is_dead',
             'termination_date', 'reason_of_termination', 'reason_of_termination_eng',
-            'from_person_links', 'related_companies', 'check_companies', 'created_at', 'updated_at'
+            'to_person_links', 'from_person_links', 'related_companies', 'check_companies', 'created_at',
+            'updated_at'
         )
 
 
