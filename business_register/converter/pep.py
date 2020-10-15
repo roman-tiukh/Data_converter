@@ -416,4 +416,10 @@ class PepDownloader(Downloader):
 
         self.remove_file()
 
+        self.vacuum_analyze(table_list=['business_register_pep', ])
+
+        logger.info(f'{self.reg_name}: PepLinksLoader().process() started...')
+        PepLinksLoader().process()
+        logger.info(f'{self.reg_name}: PepLinksLoader().process() finished successfully.')
+
         logger.info(f'{self.reg_name}: Update finished successfully.')

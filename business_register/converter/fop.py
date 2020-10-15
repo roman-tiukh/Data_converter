@@ -321,4 +321,6 @@ class FopDownloader(Downloader):
 
         self.remove_file()
 
+        self.vacuum_analyze(table_list=['business_register_fop', ])
+
         logger.info(f'{self.reg_name}: Update finished successfully.')

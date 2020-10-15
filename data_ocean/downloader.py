@@ -5,6 +5,11 @@ import zipfile
 import requests
 from abc import ABC
 import logging
+from django.db import connections
+import timeit
+from datetime import datetime
+# import psycopg2
+from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from data_ocean.models import RegistryUpdaterModel
 from django.conf import settings
 
@@ -101,6 +106,19 @@ class Downloader(ABC):
     def get_source_file_name(self):
         assert self.file_name
         return self.file_name
+
+    def vacuum_analyze(self, table_list=None):
+        query = 'select count(*) from'
+        query_optimize = 'vacuum analyze'
+
+        with connections['default'].cursor() as c:
+            for table in table_list:
+                start_time = timezone.now()
+                c.execute('%s %s' % (query_optimize, table))
+                logger.info(f'{self.reg_name}: {query_optimize} {table} at {timezone.now() - start_time}')
+                start_time = timezone.now()
+                c.execute('%s %s' % (query, table))
+                logger.info(f'{self.reg_name}: {query} {table} at {timezone.now() - start_time}')
 
     def download(self):
         assert self.url
