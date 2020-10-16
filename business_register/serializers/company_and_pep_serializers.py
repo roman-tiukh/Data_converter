@@ -6,7 +6,8 @@ from business_register.models.company_models import (
     BancruptcyReadjustment, CompanyDetail,
     ExchangeDataCompany, TerminationStarted, Company, Founder
 )
-from business_register.models.pep_models import CompanyLinkWithPep, Pep, PepRelatedPerson
+from business_register.models.pep_models import CompanyLinkWithPep, Pep, RelatedPersonsLink
+
 HistoricalCompany = apps.get_model('business_register', 'HistoricalCompany')
 
 
@@ -96,14 +97,11 @@ class CompanyListSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
 
 
 class PepShortSerializer(serializers.ModelSerializer):
-    # check_companies = CountFoundedCompaniesSerializer(many=True)
-
     class Meta:
         model = Pep
         fields = (
             'id', 'fullname', 'last_job_title', 'last_employer',
-            'is_pep', 'pep_type', 'url',
-            # 'related_persons', 'related_companies', 'check_companies',
+            'is_pep', 'pep_type', 'url'
         )
 
 
@@ -155,12 +153,31 @@ class HistoricalCompanySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class RelatedPersonSerializer(serializers.ModelSerializer):
+class FromRelatedPersonLinkSerializer(serializers.ModelSerializer):
+    to_person = PepShortSerializer()
+
     class Meta:
-        model = PepRelatedPerson
+        model = RelatedPersonsLink
         fields = (
-            'id', 'fullname', 'fullname_eng', 'relationship_type', 'relationship_type_eng',
-            'is_pep', 'start_date', 'confirmation_date', 'end_date'
+            'to_person',
+            'to_person_relationship_type',
+            'start_date',
+            'confirmation_date',
+            'end_date',
+        )
+
+
+class ToRelatedPersonLinkSerializer(serializers.ModelSerializer):
+    from_person = PepShortSerializer()
+
+    class Meta:
+        model = RelatedPersonsLink
+        fields = (
+            'from_person',
+            'from_person_relationship_type',
+            'start_date',
+            'confirmation_date',
+            'end_date',
         )
 
 
@@ -188,7 +205,8 @@ class PepDetailLinkWithCompanySerializer(serializers.ModelSerializer):
 
 
 class PepDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
-    related_persons = RelatedPersonSerializer(many=True)
+    from_person_links = FromRelatedPersonLinkSerializer(many=True)
+    to_person_links = ToRelatedPersonLinkSerializer(many=True)
     related_companies = serializers.SerializerMethodField()
     # other companies founded by persons with the same fullname as pep
     check_companies = CountFoundedCompaniesSerializer(many=True)
@@ -207,12 +225,13 @@ class PepDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
             'criminal_proceedings', 'criminal_proceedings_eng', 'wanted', 'wanted_eng',
             'date_of_birth', 'place_of_birth', 'place_of_birth_eng', 'is_dead',
             'termination_date', 'reason_of_termination', 'reason_of_termination_eng',
-            'related_persons', 'related_companies', 'check_companies', 'created_at', 'updated_at',
+            'to_person_links', 'from_person_links', 'related_companies', 'check_companies', 'created_at',
+            'updated_at'
         )
 
 
 class PepListSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
-    related_persons = RelatedPersonSerializer(many=True)
+    related_persons = PepShortSerializer(many=True)
     related_companies = PepLinkWithCompanySerializer(many=True)
 
     class Meta:
