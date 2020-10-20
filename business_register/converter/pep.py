@@ -1,6 +1,7 @@
 import logging
 from django.utils import timezone
 import psycopg2
+import sshtunnel
 from business_register.models.company_models import Company
 from business_register.models.pep_models import Pep, RelatedPersonsLink, CompanyLinkWithPep
 from business_register.converter.business_converter import BusinessConverter
@@ -306,6 +307,30 @@ class PepLinksLoader:
                       'to_relationship_type, date_established, date_confirmed, date_finished '
                       'FROM core_person2person;')
 
+    def get_data_from_prod_source_db(self):
+        sshtunnel.TUNNEL_TIMEOUT = settings.PEP_PROD_TUNNEL_TIMEOUT
+        sshtunnel.SSH_TIMEOUT = settings.PEP_PROD_SSH_TIMEOUT
+        with sshtunnel.SSHTunnelForwarder(
+                (settings.PEP_PROD_SSH_SERVER_IP, settings.PEP_PROD_SSH_SERVER_PORT),
+                ssh_username=settings.PEP_PROD_SSH_USERNAME,
+                ssh_pkey=settings.PEP_PROD_SSH_PKEY,
+                remote_bind_address=(settings.PEP_PROD_DB_SERVER_IP, settings.PEP_PROD_DB_SERVER_PORT),
+                # local_bind_address=(settings.PEP_PROD_MAP_DB_SERVER_IP, settings.PEP_PROD_MAP_DB_SERVER_PORT)
+        ) as tunnel:
+            connection = psycopg2.connect(
+                host=tunnel.local_bind_host,
+                port=tunnel.local_bind_port,
+                database=settings.PEP_PROD_DB_NAME,
+                user=settings.PEP_PROD_DB_USER,
+                password=settings.PEP_PROD_DB_PASSWORD
+            )
+            with connection:
+                with connection.cursor() as cursor:
+                    cursor.execute(self.QUERY)
+                    data = cursor.fetchall()
+            connection.close()
+            return data
+
     def get_data_from_source_db(self):
         connection = psycopg2.connect(
             host=self.host,
@@ -378,6 +403,12 @@ class PepLinksLoader:
         data = self.get_data_from_source_db()
         self.save_pep_links(data)
 
+    def process_prod(self):
+        data = self.get_data_from_prod_source_db()
+        logger.info(f'PEP len(data): {len(data)}')
+        print(f'PEP len(data): {len(data)}')
+        self.save_pep_links(data)
+
 
 class PepDownloader(Downloader):
     url = settings.BUSINESS_PEP_SOURCE_URL
@@ -419,7 +450,8 @@ class PepDownloader(Downloader):
         self.vacuum_analyze(table_list=['business_register_pep', ])
 
         logger.info(f'{self.reg_name}: PepLinksLoader().process() started...')
-        PepLinksLoader().process()
+        # PepLinksLoader().process()
+        PepLinksLoader().process_prod()
         logger.info(f'{self.reg_name}: PepLinksLoader().process() finished successfully.')
 
         logger.info(f'{self.reg_name}: Update finished successfully.')
