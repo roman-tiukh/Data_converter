@@ -605,11 +605,11 @@ class UkrCompanyDownloader(Downloader):
         self.log_obj.update_start = timezone.now()
         self.log_obj.save()
 
-        logger.info(f'{self.reg_name}: process_full() with {self.file_path} started ...')
+        logger.info(f'{self.reg_name}: process() with {self.file_path} started ...')
         ukr_company = UkrCompanyConverter()
         ukr_company.LOCAL_FILE_NAME = self.file_name
-        ukr_company.process_full()
-        logger.info(f'{self.reg_name}: process_full() with {self.file_path} finished successfully.')
+        ukr_company.process()
+        logger.info(f'{self.reg_name}: process() with {self.file_path} finished successfully.')
 
         self.log_obj.update_finish = timezone.now()
         self.log_obj.update_status = True

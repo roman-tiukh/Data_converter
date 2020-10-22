@@ -300,6 +300,7 @@ class PepLinksLoader:
 
     def __init__(self):
         self.host = settings.PEP_SOURCE_HOST
+        self.port = settings.PEP_SOURCE_PORT
         self.database = settings.PEP_SOURCE_DATABASE
         self.user = settings.PEP_SOURCE_USER
         self.password = settings.PEP_SOURCE_PASSWORD
@@ -307,51 +308,53 @@ class PepLinksLoader:
                       'to_relationship_type, date_established, date_confirmed, date_finished '
                       'FROM core_person2person;')
 
-    def get_data_from_source_db(self):
+    def get_pep_data(self, host=None, port=None):
 
-        if settings.PEP_TEST:
-            connection = psycopg2.connect(
-                host=self.host,
-                database=self.database,
-                user=self.user,
-                password=self.password
-            )
-            with connection:
-                with connection.cursor() as cursor:
-                    cursor.execute(self.QUERY)
-                    data = cursor.fetchall()
-            if connection:
-                connection.close()
-        else:
-            sshtunnel.TUNNEL_TIMEOUT = settings.PEP_TUNNEL_TIMEOUT
-            sshtunnel.SSH_TIMEOUT = settings.PEP_SSH_TIMEOUT
-            with sshtunnel.SSHTunnelForwarder(
-                    (settings.PEP_SSH_SERVER_IP, settings.PEP_SSH_SERVER_PORT),
-                    ssh_username=settings.PEP_SSH_USERNAME,
-                    ssh_pkey=settings.PEP_SSH_PKEY,
-                    remote_bind_address=(settings.PEP_DB_SERVER_IP, settings.PEP_DB_SERVER_PORT),
-                    # local_bind_address=(settings.PEP_MAP_DB_SERVER_IP, settings.PEP_MAP_DB_SERVER_PORT)
-            ) as tunnel:
-                logger.info(f'business_pep: tunnel.is_active={tunnel.is_active}')
-                logger.info(f'business_pep: tunnel.local_bind_address: {tunnel.local_bind_address}')
+        host = host or self.host
+        port = port or self.port
 
-                connection = psycopg2.connect(
-                    host=tunnel.local_bind_host,
-                    port=tunnel.local_bind_port,
-                    dbname=settings.PEP_DB_NAME,
-                    user=settings.PEP_DB_USER,
-                    password=settings.PEP_DB_PASSWORD,
-                    connect_timeout=6
-                )
-                logger.info(f'business_pep: psycopg2 connection.closed={connection.closed}')
-                with connection.cursor() as cursor:
-                    cursor.execute(self.QUERY)
-                    data = cursor.fetchall()
-                    logger.info(f'business_pep: len(data): {len(data)}')
-                connection.close()
-                logger.info(f'business_pep: psycopg2 connection.closed={connection.closed}')
+        logger.info(f'business_pep: psycopg2 connect to {host}:{port}...')
+        connection = psycopg2.connect(
+            host=host,
+            port=port,
+            database=self.database,
+            user=self.user,
+            password=self.password
+        )
+        logger.info(f'business_pep: psycopg2 connection is active: {not connection.closed}')
+
+        with connection.cursor() as cursor:
+            cursor.execute(self.QUERY)
+            data = cursor.fetchall()
+            logger.info(f'business_pep: psycopg2 result data length: {len(data)} elements.')
+        connection.close()
 
         return data
+
+    def get_data_from_source_db(self):
+
+        logger.info(f'business_pep: use SSH tunnel: {settings.PEP_SOURCE_USE_SSH}')
+
+        if not settings.PEP_SOURCE_USE_SSH:
+            return self.get_pep_data()
+
+        sshtunnel.TUNNEL_TIMEOUT = settings.PEP_TUNNEL_TIMEOUT
+        sshtunnel.SSH_TIMEOUT = settings.PEP_SSH_TIMEOUT
+        with sshtunnel.SSHTunnelForwarder(
+                (settings.PEP_SSH_SERVER_IP, settings.PEP_SSH_SERVER_PORT),
+                ssh_username=settings.PEP_SSH_USERNAME,
+                ssh_pkey=settings.PEP_SSH_PKEY,
+                remote_bind_address=(self.host, self.port),
+                # local_bind_address=(settings.PEP_LOCAL_SOURCE_HOST, settings.PEP_LOCAL_SOURCE_PORT)
+        ) as tunnel:
+            logger.info(
+                f'business_pep: tunnel is active: {tunnel.is_active} on '
+                f'{tunnel.local_bind_host}:{tunnel.local_bind_port}'
+            )
+            return self.get_pep_data(
+                host=tunnel.local_bind_host,
+                port=tunnel.local_bind_port,
+            )
 
     def save_pep_links(self, data):
         for link in data:
@@ -408,7 +411,9 @@ class PepLinksLoader:
 
     def process(self):
         data = self.get_data_from_source_db()
+        logger.info(f'business_pep: save_pep_links started with {len(data)} elements ...')
         self.save_pep_links(data)
+        logger.info(f'business_pep: save_pep_links finish.')
 
 
 class PepDownloader(Downloader):

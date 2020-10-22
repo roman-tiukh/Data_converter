@@ -1,12 +1,6 @@
 from __future__ import absolute_import, unicode_literals
 from celery import shared_task
 
-from business_register.converter.pep import PepDownloader
-from business_register.converter.fop import FopDownloader
-from business_register.converter.company_converters.ukr_company import UkrCompanyDownloader
-from business_register.converter.company_converters.uk_company import UkCompanyDownloader
-# from business_register.converter.kved import KvedDownloader
-
 
 @shared_task
 def update_pep():
@@ -14,6 +8,7 @@ def update_pep():
     print('*    Update PEP    *')
     print('********************')
 
+    from business_register.converter.pep import PepDownloader
     PepDownloader().update()
 
     print('*** Task update_pep is done. ***')
@@ -25,6 +20,7 @@ def update_fop():
     print('*    Update FOP    *')
     print('********************')
 
+    from business_register.converter.fop import FopDownloader
     FopDownloader().update()
 
     print('*** Task update_fop is done. ***')
@@ -36,6 +32,7 @@ def update_ukr_company():
     print('*    Update UKR Company    *')
     print('****************************')
 
+    from business_register.converter.company_converters.ukr_company import UkrCompanyDownloader
     UkrCompanyDownloader().update()
 
     print('*** Task update_ukr_company is done. ***')
@@ -47,6 +44,7 @@ def update_uk_company():
     print('*    Update UK Company    *')
     print('***************************')
 
+    from business_register.converter.company_converters.uk_company import UkCompanyDownloader
     UkCompanyDownloader().update()
 
     print('*** Task update_ukr_company is done. ***')
@@ -58,6 +56,7 @@ def update_uk_company():
 #     print('*    Update KVED    *')
 #     print('*********************')
 #
+#     from business_register.converter.kved import KvedDownloader
 #     KvedDownloader().update()
 #
 #     print('*** Task update_kved is done. ***')
