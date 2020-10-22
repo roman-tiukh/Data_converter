@@ -1,10 +1,6 @@
 from __future__ import absolute_import, unicode_literals
 from celery import shared_task
 
-from location_register.converter.ratu import RatuDownloader
-from location_register.converter.koatuu import KoatuuDownloader
-from location_register.converter.drv import DrvUpdater
-
 
 @shared_task
 def update_ratu():
@@ -12,6 +8,7 @@ def update_ratu():
     print('*    Update RATU     *')
     print('**********************')
 
+    from location_register.converter.ratu import RatuDownloader
     RatuDownloader().update()
 
     print('*** Task update_ratu is done. ***')
@@ -23,6 +20,7 @@ def update_koatuu():
     print('*    Update KOATUU    *')
     print('***********************')
 
+    from location_register.converter.koatuu import KoatuuDownloader
     KoatuuDownloader().update()
 
     print('*** Task update_koatuu is done. ***')
@@ -34,10 +32,10 @@ def update_drv():
     print('*    Update DRV    *')
     print('********************')
 
+    from location_register.converter.drv import DrvUpdater
     DrvUpdater().update()
 
     print('*** Task update_drv is done. ***')
-
 
 
 # from __future__ import absolute_import, unicode_literals
