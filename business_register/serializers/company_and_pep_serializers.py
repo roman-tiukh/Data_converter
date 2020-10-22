@@ -106,7 +106,11 @@ class PepShortSerializer(serializers.ModelSerializer):
 
 
 class CompanyLinkWithPepSerializer(serializers.ModelSerializer):
-    pep = PepShortSerializer()
+    pep = serializers.SerializerMethodField
+
+    def get_pep(self, obj):
+        peps = Pep.objects.exclude(pep__related_companies__relationship_type__exact='клієнт банку')
+        return PepShortSerializer(peps, many=True).data
 
     class Meta:
         model = CompanyLinkWithPep
