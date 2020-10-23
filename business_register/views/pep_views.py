@@ -26,8 +26,8 @@ class PepViewSet(CachedViewMixin, viewsets.ReadOnlyModelViewSet):
             return PepDetailSerializer
         return super().get_serializer_class()
 
-    @action(methods=['get'], detail=True, url_path='source-id')
-    def retrieve_by_source_id(self, source_id):
-        pep = get_object_or_404(self.get_queryset(), source_id=source_id)
-        serializer = PepDetailSerializer(pep)
+    @action(methods=['get'], detail=True, url_path='source-id', serializer_class=PepDetailSerializer)
+    def retrieve_by_source_id(self, request, pk):
+        pep = get_object_or_404(self.get_queryset(), source_id=pk)
+        serializer = self.get_serializer(pep)
         return Response(serializer.data)
