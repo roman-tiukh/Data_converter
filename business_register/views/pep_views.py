@@ -1,6 +1,9 @@
 from django_filters.rest_framework import DjangoFilterBackend
+from django.shortcuts import get_object_or_404
+from rest_framework.response import Response
 from rest_framework import viewsets
 from rest_framework.filters import SearchFilter
+from rest_framework.decorators import action
 
 from business_register.filters import PepFilterSet
 from business_register.models.pep_models import Pep
@@ -22,3 +25,9 @@ class PepViewSet(CachedViewMixin, viewsets.ReadOnlyModelViewSet):
         if self.action == 'retrieve':
             return PepDetailSerializer
         return super().get_serializer_class()
+
+    @action(methods=['get'], detail=True, url_path='source-id', serializer_class=PepDetailSerializer)
+    def retrieve_by_source_id(self, request, pk):
+        pep = get_object_or_404(self.get_queryset(), source_id=pk)
+        serializer = self.get_serializer(pep)
+        return Response(serializer.data)
