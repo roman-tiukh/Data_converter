@@ -275,3 +275,12 @@ DEBUG_PROPAGATE_EXCEPTIONS = True
 #         },
 #     }
 # }
+
+# PEP_SCHEMA_TOKENS - dictionary of `<hostname>`: `<token>`. hostname without port
+# for generate token use
+# date +%s | sha256sum | base64 | head -c 50 ; echo
+# or
+# < /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-50};echo;
+PEP_SCHEMA_TOKENS = {
+    'google.com': 'mThmM2Q1MTU1MoVlNGRkNjdkOTcyYTk2YmE5Njc2YjdmYWQzMj',
+}
