@@ -117,10 +117,15 @@ class CompanyLinkWithPepSerializer(serializers.ModelSerializer):
 
 
 class CompanyDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
+    relationships_with_peps = serializers.SerializerMethodField()
+
+    def get_relationships_with_peps(self, obj):
+        queryset = obj.relationships_with_peps.exclude(relationship_type='клієнт банку')
+        return CompanyLinkWithPepSerializer(queryset, many=True).data
+
     country = serializers.StringRelatedField()
     founders = FounderSerializer(many=True)
     founder_of = CountFoundedCompaniesSerializer(many=True)
-    relationships_with_peps = CompanyLinkWithPepSerializer(many=True)
     authorized_capital = serializers.FloatField()
     parent = serializers.StringRelatedField()
     predecessors = serializers.StringRelatedField(many=True)
