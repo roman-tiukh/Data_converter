@@ -2,7 +2,6 @@ from django.apps import apps
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.filters import SearchFilter
-from rest_framework.permissions import AllowAny
 
 from business_register.filters import CompanyFilterSet
 from business_register.models.company_models import Company
@@ -15,7 +14,6 @@ HistoricalCompany = apps.get_model('business_register', 'HistoricalCompany')
 
 
 class CompanyViewSet(CachedViewMixin, viewsets.ReadOnlyModelViewSet):
-    permission_classes = [AllowAny]
     queryset = Company.objects.select_related(
         'parent', 'company_type', 'status', 'authority', 'bylaw', 'country',
     ).prefetch_related(
