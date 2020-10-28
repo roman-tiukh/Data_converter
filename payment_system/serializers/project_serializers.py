@@ -2,7 +2,7 @@ from rest_framework import serializers
 from payment_system.models import Project
 
 
-class ProjectCreateSerializer(serializers.ModelSerializer):
+class ProjectSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = self.context['request'].user
