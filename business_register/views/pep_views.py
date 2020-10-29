@@ -1,5 +1,6 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import viewsets
 from rest_framework.filters import SearchFilter
@@ -7,11 +8,13 @@ from rest_framework.decorators import action
 
 from business_register.filters import PepFilterSet
 from business_register.models.pep_models import Pep
+from business_register.permissions import PepSchemaToken
 from business_register.serializers.company_and_pep_serializers import PepListSerializer, PepDetailSerializer
 from data_ocean.views import CachedViewMixin
 
 
 class PepViewSet(CachedViewMixin, viewsets.ReadOnlyModelViewSet):
+    permission_classes = [IsAuthenticated | PepSchemaToken]
     queryset = Pep.objects.all()
     serializer_class = PepListSerializer
     filter_backends = (DjangoFilterBackend, SearchFilter)

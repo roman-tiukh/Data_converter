@@ -25,7 +25,7 @@ class Project(DataOceanModel):
     name = models.CharField(max_length=50)
     description = models.CharField(max_length=500, blank=True, default='')
     token = models.CharField(max_length=40, unique=True)
-    disabled_at = models.DateTimeField(null=True, blank=True)
+    disabled_at = models.DateTimeField(null=True, blank=True, default=None)
     users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='projects')
     subscriptions = models.ManyToManyField('Subscription', through=ProjectSubscription,
                                            related_name='projects')
