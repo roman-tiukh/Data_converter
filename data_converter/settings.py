@@ -206,3 +206,7 @@ STATS_API_USAGE_REFERER_BLACKLIST = [
 
     'localhost',
 ]
+
+DRF_YASG_NAMESPACES = [
+    'registers',
+]

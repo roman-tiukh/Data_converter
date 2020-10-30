@@ -67,3 +67,6 @@ class Invoice(DataOceanModel):
                                 related_name='project_invoices')
     subscription = models.ForeignKey('Subscription', on_delete=models.CASCADE,
                                      related_name='subscription_invoices')
+
+    def __str__(self):
+        return f'Invoice N{self.id}'

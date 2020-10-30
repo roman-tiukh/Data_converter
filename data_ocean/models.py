@@ -4,8 +4,8 @@ from django.utils.timezone import now
 
 class DataOceanModel(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True, null=True)
-    deleted_at = models.DateTimeField(null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+    deleted_at = models.DateTimeField(null=True, blank=True, default=None)
 
     class Meta:
         abstract = True
