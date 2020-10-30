@@ -3,5 +3,5 @@ from payment_system.views.project_views import ProjectCreateView, ProjectUpdateV
 
 urlpatterns = [
     path('project/create/', ProjectCreateView.as_view()),
-    path('project/update/', ProjectUpdateView.as_view()),
+    path('project/<int:pk>/update/', ProjectUpdateView.as_view()),
 ]
