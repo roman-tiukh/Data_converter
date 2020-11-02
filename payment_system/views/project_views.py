@@ -9,5 +9,6 @@ class ProjectCreateView(generics.CreateAPIView):
 
 
 class ProjectUpdateView(generics.UpdateAPIView):
+    queryset = Project.objects.all()
     serializer_class = ProjectSerializer
     model = Project

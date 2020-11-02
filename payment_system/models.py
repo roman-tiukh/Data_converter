@@ -22,19 +22,19 @@ class ProjectSubscription(DataOceanModel):
 
     @classmethod
     def create(cls, project, subscription):
-        return ProjectSubscription.objects.create(
-            project=project,
-            subscription=subscription,
-            status=ProjectSubscription.ACTIVE,
-            expiring_date=timezone.now() + timezone.timedelta(days=30)
-        )
+        project_subscription = ProjectSubscription.objects.filter(
+            project=project, subscription=subscription).first()
+        if not project_subscription:
+            return ProjectSubscription.objects.create(
+                project=project,
+                subscription=subscription,
+                status=ProjectSubscription.ACTIVE,
+                expiring_date=timezone.localdate() + timezone.timedelta(days=30)
+            )
+        return project_subscription
 
     @classmethod
-    def disable(cls, project, subscription):
-        project_subscription = ProjectSubscription.objects.get(
-            project=project,
-            subscription=subscription,
-        )
+    def disable(cls, project_subscription):
         project_subscription.status = ProjectSubscription.PAST
         project_subscription.expiring_date = None
         project_subscription.save()

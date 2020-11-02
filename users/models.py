@@ -64,12 +64,12 @@ class DataOceanUser(AbstractUser):
     def __str__(self):
         return self.email
 
-    def create_project(self, project_name, project_description=None):
+    def create_project(self, name, description=''):
         new_token = generate_key()
         new_project = Project.objects.create(
-            name=project_name,
+            name=name,
             token=new_token,
-            description=project_description
+            description=description
         )
         new_project.users.add(self)
         return new_project

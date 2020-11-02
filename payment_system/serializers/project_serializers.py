@@ -6,7 +6,7 @@ class ProjectSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = self.context['request'].user
-        project = user.create_project(validated_data['name'], validated_data['description'])
+        project = user.create_project(**validated_data)
         return project
 
     class Meta:

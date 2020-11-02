@@ -9,5 +9,6 @@ class ProjectSubscriptionCreateView(generics.CreateAPIView):
 
 
 class ProjectSubscriptionDisableView(generics.UpdateAPIView):
+    queryset = ProjectSubscription.objects.all()
     serializer_class = ProjectSubscriptionSerializer
     model = ProjectSubscription
