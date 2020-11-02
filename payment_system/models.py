@@ -6,16 +6,39 @@ from data_ocean.models import DataOceanModel
 
 
 class ProjectSubscription(DataOceanModel):
+    ACTIVE = 'active'
+    PAST = 'past'
+    FUTURE = 'future'
     STATUSES = [
-        ('active', 'active'),
-        ('past', 'past'),
-        ('future', 'future'),
+        (ACTIVE, 'active'),
+        (PAST, 'past'),
+        (FUTURE, 'future'),
     ]
     project = models.ForeignKey('Project', on_delete=models.CASCADE, related_name='project_subscriptions')
     subscription = models.ForeignKey('Subscription', on_delete=models.CASCADE,
                                      related_name='project_subscriptions')
     status = models.CharField(choices=STATUSES, max_length=10)
     expiring_date = models.DateField(null=True, blank=True)
+
+    @classmethod
+    def create(cls, project, subscription):
+        return ProjectSubscription.objects.create(
+            project=project,
+            subscription=subscription,
+            status=ProjectSubscription.ACTIVE,
+            expiring_date=timezone.now() + timezone.timedelta(days=30)
+        )
+
+    @classmethod
+    def disable(cls, project, subscription):
+        project_subscription = ProjectSubscription.objects.get(
+            project=project,
+            subscription=subscription,
+        )
+        project_subscription.status = ProjectSubscription.PAST
+        project_subscription.expiring_date = None
+        project_subscription.save()
+        return project_subscription
 
     class Meta:
         verbose_name = "relation between the project and its subscriptions"
