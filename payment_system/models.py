@@ -23,7 +23,10 @@ class ProjectSubscription(DataOceanModel):
     @classmethod
     def create(cls, project, subscription):
         project_subscription = ProjectSubscription.objects.filter(
-            project=project, subscription=subscription).first()
+            project=project,
+            subscription=subscription,
+            status=ProjectSubscription.ACTIVE
+        ).first()
         if not project_subscription:
             return ProjectSubscription.objects.create(
                 project=project,
@@ -33,12 +36,11 @@ class ProjectSubscription(DataOceanModel):
             )
         return project_subscription
 
-    @classmethod
-    def disable(cls, project_subscription):
-        project_subscription.status = ProjectSubscription.PAST
-        project_subscription.expiring_date = None
-        project_subscription.save()
-        return project_subscription
+    def disable(self):
+        self.status = ProjectSubscription.PAST
+        self.expiring_date = None
+        self.save()
+        return self
 
     class Meta:
         verbose_name = "relation between the project and its subscriptions"
