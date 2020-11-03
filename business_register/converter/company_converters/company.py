@@ -184,3 +184,8 @@ class CompanyConverter(BusinessConverter):
                 )
 
         return company_type
+
+    def find_company_by_edrpou(self, edprou):
+        if edprou == 'ivalid' or edprou == '00000000':
+            return None
+
