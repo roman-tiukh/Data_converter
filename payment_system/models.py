@@ -40,7 +40,6 @@ class ProjectSubscription(DataOceanModel):
         self.status = ProjectSubscription.PAST
         self.expiring_date = None
         self.save()
-        return self
 
     class Meta:
         verbose_name = "relation between the project and its subscriptions"

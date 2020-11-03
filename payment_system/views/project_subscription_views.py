@@ -18,6 +18,6 @@ class ProjectSubscriptionDisableView(APIView):
 
     def put(self, request, pk):
         project_subscription = get_object_or_404(ProjectSubscription.objects.all(), pk=pk)
-        disabled_project_subscription = project_subscription.disable()
-        serializer = ProjectSubscriptionSerializer(disabled_project_subscription)
+        project_subscription.disable()
+        serializer = ProjectSubscriptionSerializer(instance=project_subscription)
         return Response(serializer.data, status=status.HTTP_200_OK)

@@ -9,5 +9,5 @@ class ProjectSubscriptionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProjectSubscription
-        fields = ['project', 'subscription', 'status', 'expiring_date']
+        fields = ['id', 'project', 'subscription', 'status', 'expiring_date']
         read_only_fields = ['status', 'expiring_date']
