@@ -4,8 +4,20 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 from business_register.models.kved_models import Kved
+from business_register.models.company_models import Company
 from data_ocean.converter import Converter
 from data_ocean.models import Authority, Status, TaxpayerType
+
+
+def find_company_by_edrpou(edprou):
+    if edprou == '00000000':
+        return None
+    queryset = Company.objects.filter(edrpou=edprou)
+    if len(queryset) == 1:
+        return queryset[0]
+    if not len(queryset):
+        return None
+    return queryset.order_by('status').first()
 
 
 class BusinessConverter(Converter):

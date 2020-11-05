@@ -341,7 +341,9 @@ class UkrCompanyConverter(CompanyConverter):
             company_type = record.xpath('OPF')[0].text
             if company_type:
                 company_type = self.save_or_get_company_type(company_type, 'uk')
-            edrpou = record.xpath('EDRPOU')[0].text or Company.INVALID
+            edrpou = record.xpath('EDRPOU')[0].text
+            if not edrpou:
+                continue
             code = name + edrpou
             address = record.xpath('ADDRESS')[0].text
             status = self.save_or_get_status(record.xpath('STAN')[0].text)
@@ -394,6 +396,8 @@ class UkrCompanyConverter(CompanyConverter):
             authority = self.save_or_get_authority(record.xpath('CURRENT_AUTHORITY')[0].text)
             # self.add_company_detail(founding_document_number, executive_power, superior_management, managing_paper,
             #                         terminated_info, termination_cancel_info, vp_dates, code)
+            # ToDo: resolve the problem of having records with the same company name amd edrpou
+            # that results in the same code
             company = Company.objects.filter(code=code).first()
             if not company:
                 company = Company(
