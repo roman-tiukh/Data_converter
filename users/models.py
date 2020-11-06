@@ -5,6 +5,7 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from rest_framework.authtoken.models import Token
 
+from data_ocean.models import DataOceanModel
 from data_ocean.utils import generate_key
 from payment_system.models import Project
 
@@ -55,7 +56,6 @@ class DataOceanUser(AbstractUser):
         default=settings.LANGUAGE_CODE,
         blank=True,
     )
-
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['last_name', 'first_name']
 

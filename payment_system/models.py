@@ -5,6 +5,23 @@ from django.utils import timezone
 from data_ocean.models import DataOceanModel
 
 
+class UserProject(DataOceanModel):
+    INITIATOR = 'initiator'
+    PARTICIPANT = 'participant'
+    ROLES = [
+        (INITIATOR, 'Initiator'),
+        (PARTICIPANT, 'Participant'),
+    ]
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+                             related_name='user_projects')
+    project = models.ForeignKey('Project', on_delete=models.CASCADE, related_name='user_projects')
+    role = models.CharField(choices=ROLES, max_length=20, default=PARTICIPANT, blank=True)
+
+    def __str__(self):
+        return self.role
+
+
 class ProjectSubscription(DataOceanModel):
     ACTIVE = 'active'
     PAST = 'past'
@@ -14,7 +31,8 @@ class ProjectSubscription(DataOceanModel):
         (PAST, 'past'),
         (FUTURE, 'future'),
     ]
-    project = models.ForeignKey('Project', on_delete=models.CASCADE, related_name='project_subscriptions')
+    project = models.ForeignKey('Project', on_delete=models.CASCADE,
+                                related_name='project_subscriptions')
     subscription = models.ForeignKey('Subscription', on_delete=models.CASCADE,
                                      related_name='project_subscriptions')
     status = models.CharField(choices=STATUSES, max_length=10)
@@ -50,7 +68,8 @@ class Project(DataOceanModel):
     description = models.CharField(max_length=500, blank=True, default='')
     token = models.CharField(max_length=40, unique=True)
     disabled_at = models.DateTimeField(null=True, blank=True, default=None)
-    users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='projects')
+    users = models.ManyToManyField(settings.AUTH_USER_MODEL, through=UserProject,
+                                   related_name='projects')
     subscriptions = models.ManyToManyField('Subscription', through=ProjectSubscription,
                                            related_name='projects')
 
