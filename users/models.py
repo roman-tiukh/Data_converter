@@ -7,7 +7,7 @@ from rest_framework.authtoken.models import Token
 
 from data_ocean.models import DataOceanModel
 from data_ocean.utils import generate_key
-from payment_system.models import Project
+from payment_system.models import Project, ProjectSubscription
 
 
 class DataOceanUserManager(BaseUserManager):
@@ -72,6 +72,7 @@ class DataOceanUser(AbstractUser):
             description=description
         )
         new_project.users.add(self)
+        ProjectSubscription.add_default_subscription(project=new_project)
         return new_project
 
 
