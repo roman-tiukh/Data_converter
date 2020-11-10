@@ -195,6 +195,20 @@ REST_AUTH_SERIALIZERS = {
     'PASSWORD_RESET_SERIALIZER': 'users.serializers.CustomPasswordResetSerializer',
 }
 
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'cache-control',
+    'postman-token',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
 STATS_API_USAGE_REFERER_BLACKLIST = [
     'dataocean.us',
     'ipa.dataocean.us',
@@ -207,6 +221,6 @@ STATS_API_USAGE_REFERER_BLACKLIST = [
     'localhost',
 ]
 
-DRF_YASG_NAMESPACES = [
+NAMESPACES_FOR_CLIENTS = [
     'registers',
 ]

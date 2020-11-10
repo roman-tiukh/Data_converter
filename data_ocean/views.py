@@ -17,7 +17,7 @@ from data_ocean.serializers import RegisterSerializer
 class DOEndpointEnumerator(EndpointEnumerator):
     def should_include_endpoint(self, path, callback, app_name='',
                                 namespace='', url_name=None):
-        if namespace not in settings.DRF_YASG_NAMESPACES:
+        if namespace not in settings.NAMESPACES_FOR_CLIENTS:
             return False
         return super().should_include_endpoint(
             path, callback, app_name=app_name,
