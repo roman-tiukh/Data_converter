@@ -155,7 +155,8 @@ class PepConverter(BusinessConverter):
             if reason_of_termination_eng:
                 reason_of_termination_eng = reason_of_termination_eng.lower()
             related_companies_list = pep_dict.get('related_companies', [])
-            code = str(pep_dict.get('id'))
+            source_id = pep_dict.get('id')
+            code = str(source_id)
             pep = Pep.objects.filter(code=code).first()
             if not pep:
                 pep = Pep.objects.create(
@@ -193,6 +194,7 @@ class PepConverter(BusinessConverter):
                     termination_date=termination_date,
                     reason_of_termination=reason_of_termination,
                     reason_of_termination_eng=reason_of_termination_eng,
+                    source_id=source_id
                 )
             else:
                 update_fields = []
@@ -289,6 +291,9 @@ class PepConverter(BusinessConverter):
                 if pep.reason_of_termination_eng != reason_of_termination_eng:
                     pep.reason_of_termination_eng = reason_of_termination_eng
                     update_fields.append('reason_of_termination_eng')
+                if pep.source_id != source_id:
+                    pep.source_id = source_id
+                    update_fields.append('source_id')
                 if len(update_fields):
                     pep.save(update_fields=update_fields)
 

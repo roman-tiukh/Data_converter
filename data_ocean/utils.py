@@ -2,7 +2,9 @@
 Here we are collecting alf functions for cleaning xml records from whitespaces and /
 abbreviations, splitting tag.texts and converting strings with date info to datetimes
 """
+import binascii
 import datetime
+import os
 import re
 
 
@@ -65,3 +67,7 @@ def convert_to_string_if_exists(value):
     if value:
         return str(value)
     return None
+
+
+def generate_key():
+    return binascii.hexlify(os.urandom(20)).decode()

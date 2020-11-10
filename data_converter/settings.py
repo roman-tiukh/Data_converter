@@ -132,7 +132,6 @@ LOCALE_PATHS = [
 
 STATIC_URL = '/static/'
 
-
 AUTH_USER_MODEL = 'users.DataOceanUser'
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'data_converter.pagination.CustomPagination',
@@ -200,5 +199,14 @@ STATS_API_USAGE_REFERER_BLACKLIST = [
     'dataocean.us',
     'ipa.dataocean.us',
     'dp.dataocean.us',
+
+    'dataocean.ml',
+    'dataocean-ipa.ml',
+    'dataocean-dp.ml',
+
     'localhost',
+]
+
+DRF_YASG_NAMESPACES = [
+    'registers',
 ]

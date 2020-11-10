@@ -1,7 +1,8 @@
 from django.db import models
 from simple_history.models import HistoricalRecords
-from data_ocean.models import DataOceanModel
+
 from business_register.models.company_models import Company, Founder
+from data_ocean.models import DataOceanModel
 
 
 class Pep(DataOceanModel):
@@ -42,27 +43,30 @@ class Pep(DataOceanModel):
                                           null=True)
 
     is_dead = models.BooleanField('помер', default=False)
-    termination_date = models.CharField('дата припинення статусу публічного діяча', max_length=10, null=True)
+    termination_date = models.CharField('дата припинення статусу публічного діяча', max_length=10,
+                                        null=True)
     reason_of_termination = models.CharField('причина припинення статусу публічного діяча',
                                              max_length=125, null=True)
     reason_of_termination_eng = models.CharField('причина припинення статусу публічного діяча англійською',
                                                  max_length=125, null=True)
+    source_id = models.PositiveIntegerField("id from original ANTAC`s DB", unique=True,
+                                            db_index=True, null=True, blank=True)
     history = HistoricalRecords(excluded_fields=['url', 'code'])
 
     @property
     def check_companies(self):
         pep_name = ' '.join([x for x in [self.last_name, self.first_name, self.middle_name] if x])
-        founder_of = Founder.objects.filter(
+        founders_with_pep_name = Founder.objects.filter(
             name__contains=pep_name
-        ).select_related('company')
-        if not len(founder_of):
+        ).select_related('company').distinct('company__edrpou')
+        if not len(founders_with_pep_name):
             return []
-        check_companies = []
+        possibly_founded_companies = []
         related_companies_id = self.related_companies.values_list('company_id', flat=True)
-        for founder in founder_of:
+        for founder in founders_with_pep_name:
             if founder.company_id not in related_companies_id:
-                check_companies.append(founder.company)
-        return check_companies
+                possibly_founded_companies.append(founder.company)
+        return possibly_founded_companies
 
     class Meta:
         verbose_name = 'публічний діяч'

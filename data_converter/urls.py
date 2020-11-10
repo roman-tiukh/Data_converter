@@ -82,7 +82,7 @@ urlpatterns = [
 
     path('api/users/', include('users.urls')),
 
-    path('api/', include(router.urls)),
+    path('api/payment/', include('payment_system.urls')),
 
     path('api/landing_mail/', LandingMailView.as_view(), name='landing_mail'),
 
@@ -101,6 +101,8 @@ urlpatterns = [
         SchemaView.with_ui('redoc', cache_timeout=0),
         name='schema-redoc'
     ),
+
+    path('api/', include((router.urls, 'registers'), namespace='registers')),
 ]
 
 if settings.DEBUG:

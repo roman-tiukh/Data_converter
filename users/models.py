@@ -1,8 +1,13 @@
-from django.db import models
-from django.contrib.auth.models import AbstractUser
-from django.contrib.auth.base_user import BaseUserManager
-from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
+from django.contrib.auth.base_user import BaseUserManager
+from django.contrib.auth.models import AbstractUser
+from django.db import models
+from django.utils.translation import ugettext_lazy as _
+from rest_framework.authtoken.models import Token
+
+from data_ocean.models import DataOceanModel
+from data_ocean.utils import generate_key
+from payment_system.models import Project, ProjectSubscription
 
 
 class DataOceanUserManager(BaseUserManager):
@@ -10,6 +15,7 @@ class DataOceanUserManager(BaseUserManager):
     Custom user model manager where email is the unique identifiers
     for authentication instead of usernames.
     """
+
     def create_user(self, email, password, **extra_fields):
         """
         Create and save a User with the given email and password.
@@ -50,7 +56,6 @@ class DataOceanUser(AbstractUser):
         default=settings.LANGUAGE_CODE,
         blank=True,
     )
-
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['last_name', 'first_name']
 
@@ -58,6 +63,17 @@ class DataOceanUser(AbstractUser):
 
     def __str__(self):
         return self.email
+
+    def create_project(self, name, description=''):
+        new_token = generate_key()
+        new_project = Project.objects.create(
+            name=name,
+            token=new_token,
+            description=description
+        )
+        new_project.users.add(self)
+        ProjectSubscription.add_default_subscription(project=new_project)
+        return new_project
 
 
 class CandidateUserModel(models.Model):
