@@ -1,0 +1,2 @@
+
+DEFAULT_SUBSCRIPTION_NAME = 'Freemium'

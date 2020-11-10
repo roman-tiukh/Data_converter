@@ -3,6 +3,7 @@ from django.db import models
 from django.utils import timezone
 
 from data_ocean.models import DataOceanModel
+from payment_system.constants import DEFAULT_SUBSCRIPTION_NAME
 
 
 class UserProject(DataOceanModel):
@@ -27,9 +28,9 @@ class ProjectSubscription(DataOceanModel):
     PAST = 'past'
     FUTURE = 'future'
     STATUSES = [
-        (ACTIVE, 'active'),
-        (PAST, 'past'),
-        (FUTURE, 'future'),
+        (ACTIVE, 'Active'),
+        (PAST, 'Past'),
+        (FUTURE, 'Future'),
     ]
     project = models.ForeignKey('Project', on_delete=models.CASCADE,
                                 related_name='project_subscriptions')
@@ -40,19 +41,35 @@ class ProjectSubscription(DataOceanModel):
 
     @classmethod
     def create(cls, project, subscription):
-        project_subscription = ProjectSubscription.objects.filter(
+        current_project_subscription = ProjectSubscription.objects.filter(
             project=project,
-            subscription=subscription,
             status=ProjectSubscription.ACTIVE
         ).first()
-        if not project_subscription:
+        if current_project_subscription.subscription.name == DEFAULT_SUBSCRIPTION_NAME:
+            current_project_subscription.status = ProjectSubscription.PAST
+            current_project_subscription.save()
             return ProjectSubscription.objects.create(
                 project=project,
                 subscription=subscription,
                 status=ProjectSubscription.ACTIVE,
                 expiring_date=timezone.localdate() + timezone.timedelta(days=30)
             )
-        return project_subscription
+        else:
+            return ProjectSubscription.objects.create(
+                project=project,
+                subscription=subscription,
+                status=ProjectSubscription.FUTURE,
+                expiring_date=current_project_subscription.expiring_date + timezone.timedelta(days=30)
+            )
+
+    @classmethod
+    def add_default_subscription(cls, project):
+        return ProjectSubscription.objects.create(
+            project=project,
+            subscription=Subscription.objects.get(name=DEFAULT_SUBSCRIPTION_NAME),
+            status=ProjectSubscription.ACTIVE,
+            expiring_date=timezone.localdate() + timezone.timedelta(days=30)
+        )
 
     def disable(self):
         self.status = ProjectSubscription.PAST
