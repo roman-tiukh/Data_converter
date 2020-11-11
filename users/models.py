@@ -65,13 +65,15 @@ class DataOceanUser(AbstractUser):
         return self.email
 
     def create_project(self, name, description=''):
+        from payment_system.models import UserProject
         new_token = generate_key()
         new_project = Project.objects.create(
             name=name,
             token=new_token,
             description=description
         )
-        new_project.users.add(self)
+        new_project.user_projects.create(user=self, role=UserProject.INITIATOR,
+                                         status=UserProject.ACTIVE)
         ProjectSubscription.add_default_subscription(project=new_project)
         return new_project
 

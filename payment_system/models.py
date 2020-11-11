@@ -14,10 +14,20 @@ class UserProject(DataOceanModel):
         (PARTICIPANT, 'Participant'),
     ]
 
+    INVITED = 'invited'
+    ACTIVE = 'active'
+    REMOVED = 'removed'
+    STATUSES = [
+        (INVITED, 'Invited'),
+        (ACTIVE, 'Active'),
+        (REMOVED, "Removed"),
+    ]
+
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
                              related_name='user_projects')
     project = models.ForeignKey('Project', on_delete=models.CASCADE, related_name='user_projects')
     role = models.CharField(choices=ROLES, max_length=20, default=PARTICIPANT, blank=True)
+    status = models.CharField(choices=STATUSES, max_length=7, default=INVITED, blank=True)
 
     def __str__(self):
         return self.role
@@ -91,10 +101,20 @@ class Project(DataOceanModel):
                                            related_name='projects')
 
     def add_user(self, user):
-        self.users.add(user)
+        self.user_projects.create(user=user)
+        # should I add sending email here?
+
+    def confirm_invitation(self, user):
+        user_project = self.user_projects.get(user=user)
+        user_project.status = UserProject.ACTIVE
+        user_project.save(update_fields=['status'])
+        # should I add sending email here?
 
     def remove_user(self, user):
-        self.users.remove(user)
+        user_project = self.user_projects.get(user=user)
+        user_project.status = UserProject.REMOVED
+        user_project.save(update_fields=['status'])
+        # should I add sending email here?
 
     def disable(self):
         self.disabled_at = timezone.now()
