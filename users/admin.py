@@ -1,7 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
-from payment_system.models import Subscription, Invoice, ProjectSubscription
 
 from users.models import DataOceanUser
 
@@ -37,42 +36,3 @@ class DataOceanUserAdmin(UserAdmin):
     search_fields = ('email',)
     ordering = ('email',)
 
-
-@admin.register(Subscription)
-class SubscriptionAdmin(admin.ModelAdmin):
-    list_display = (
-        '__str__',
-        'custom',
-        'name',
-        'description',
-        'price',
-        'requests_limit',
-        'duration',
-        'grace_period'
-    )
-    list_filter = (
-        'custom',
-        'requests_limit'
-    )
-    search_fields = (
-        'name',
-        'price'
-    )
-
-
-@admin.register(Invoice)
-class InvoiceAdmin(admin.ModelAdmin):
-    list_display = (
-        'paid_at',
-        'info',
-        'project',
-        'subscription'
-    )
-
-    list_filter = (
-        'paid_at',
-        'project',
-        'subscription'
-    )
-
-    search_fields = ('info',)
