@@ -113,7 +113,7 @@ class Project(DataOceanModel):
             role=UserProject.INITIATOR,
             status=UserProject.ACTIVE,
         )
-        new_project.add_default_subscription(default_subscription)
+        new_project.add_default_subscription()
         return new_project
 
     def add_default_subscription(self) -> ProjectSubscription:

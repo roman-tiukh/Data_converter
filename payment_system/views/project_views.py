@@ -23,8 +23,7 @@ class ProjectListForUserView(ProjectViewMixin, generics.ListAPIView):
     serializer_class = ProjectListSerializer
 
     def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-        projects = list(queryset)
+        projects = list(self.get_queryset())
 
         def sort_projects(project):
             rate = 2
@@ -36,7 +35,7 @@ class ProjectListForUserView(ProjectViewMixin, generics.ListAPIView):
             return rate
 
         projects.sort(key=sort_projects)
-        serializer = self.get_serializer(queryset, many=True)
+        serializer = self.get_serializer(projects, many=True)
         return Response(serializer.data)
 
 
