@@ -3,6 +3,7 @@ from django.db import models
 from django.utils import timezone
 
 from data_ocean.models import DataOceanModel
+from data_ocean.utils import generate_key
 from payment_system.constants import DEFAULT_SUBSCRIPTION_NAME
 
 
@@ -31,6 +32,10 @@ class UserProject(DataOceanModel):
 
     def __str__(self):
         return self.role
+
+    class Meta:
+        unique_together = [['user', 'project']]
+        ordering = ['id']
 
 
 class ProjectSubscription(DataOceanModel):
@@ -72,15 +77,6 @@ class ProjectSubscription(DataOceanModel):
                 expiring_date=current_project_subscription.expiring_date + timezone.timedelta(days=30)
             )
 
-    @classmethod
-    def add_default_subscription(cls, project):
-        return ProjectSubscription.objects.create(
-            project=project,
-            subscription=Subscription.objects.get(name=DEFAULT_SUBSCRIPTION_NAME),
-            status=ProjectSubscription.ACTIVE,
-            expiring_date=timezone.localdate() + timezone.timedelta(days=30)
-        )
-
     def disable(self):
         self.status = ProjectSubscription.PAST
         self.expiring_date = None
@@ -99,6 +95,34 @@ class Project(DataOceanModel):
                                    related_name='projects')
     subscriptions = models.ManyToManyField('Subscription', through=ProjectSubscription,
                                            related_name='projects')
+
+    @classmethod
+    def create(cls, initiator, name, description=''):
+        try:
+            default_subscription = Subscription.objects.get(name=DEFAULT_SUBSCRIPTION_NAME)
+        except Subscription.DoesNotExist:
+            raise Exception(f'Default subscription "{DEFAULT_SUBSCRIPTION_NAME}" not exists')
+
+        new_project = Project.objects.create(
+            name=name,
+            token=generate_key(),
+            description=description
+        )
+        new_project.user_projects.create(
+            user=initiator,
+            role=UserProject.INITIATOR,
+            status=UserProject.ACTIVE,
+        )
+        new_project.add_default_subscription(default_subscription)
+        return new_project
+
+    def add_default_subscription(self) -> ProjectSubscription:
+        return ProjectSubscription.objects.create(
+            project=self,
+            subscription=Subscription.objects.get(name=DEFAULT_SUBSCRIPTION_NAME),
+            status=ProjectSubscription.ACTIVE,
+            expiring_date=timezone.localdate() + timezone.timedelta(days=30)
+        )
 
     def add_user(self, user):
         self.user_projects.create(user=user)
@@ -127,6 +151,14 @@ class Project(DataOceanModel):
     @property
     def is_active(self):
         return self.disabled_at is None
+
+    def refresh_token(self):
+        self.token = generate_key()
+        self.save(update_fields=['token'])
+
+    def has_write_perms(self, user):
+        u2p: UserProject = self.user_projects.get(user=user)
+        return u2p.status == UserProject.ACTIVE and u2p.role == UserProject.INITIATOR
 
 
 class Subscription(DataOceanModel):
