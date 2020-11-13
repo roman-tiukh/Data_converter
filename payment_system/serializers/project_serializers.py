@@ -37,10 +37,15 @@ class UserToProjectSerializer(serializers.ModelSerializer):
 
 
 class ProjectListSerializer(serializers.ModelSerializer):
+    is_default = serializers.SerializerMethodField(read_only=True)
+
+    def get_is_default(self, obj):
+        return obj.user_projects.get(user=self.context['request'].user).is_default
+
     class Meta:
         model = Project
         fields = [
-            'id', 'name', 'description', 'is_active',
+            'id', 'name', 'description', 'is_active', 'is_default',
         ]
         read_only_fields = fields
 
@@ -50,6 +55,11 @@ class ProjectSerializer(serializers.ModelSerializer):
                                                     many=True, read_only=True)
     users = UserToProjectSerializer(source='user_projects',
                                     many=True, read_only=True)
+
+    is_default = serializers.SerializerMethodField(read_only=True)
+
+    def get_is_default(self, obj):
+        return obj.user_projects.get(user=self.context['request'].user).is_default
 
     def create(self, validated_data):
         user = self.context['request'].user
@@ -62,8 +72,8 @@ class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         read_only_fields = [
-            'id', 'users', 'subscriptions', 'token',
-            'disabled_at', 'is_active',
+            'id', 'users', 'subscriptions', 'token', 'disabled_at',
+            'is_active', 'is_default', 'is_default',
         ]
         fields = [
             'name', 'description',

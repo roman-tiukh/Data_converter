@@ -3,8 +3,8 @@ from __future__ import absolute_import, unicode_literals
 from celery import shared_task
 from django.utils.timezone import localdate
 
-from payment_system.constants import DEFAULT_SUBSCRIPTION_NAME
 from payment_system.models import ProjectSubscription
+from django.conf import settings
 
 
 @shared_task
@@ -13,9 +13,11 @@ def update_project_subscriptions():
     print('*    Update subscriptions    *')
     print('********************')
 
-    update_project_subscriptions = (ProjectSubscription.objects
-                                    .filter(expiring_date=localdate())
-                                    .exclude(subscription__name=DEFAULT_SUBSCRIPTION_NAME))
+    update_project_subscriptions = (
+        ProjectSubscription.objects
+        .filter(expiring_date=localdate())
+        .exclude(subscription__name=settings.DEFAULT_SUBSCRIPTION_NAME)
+    )
     if not update_project_subscriptions:
         print('*** No project__subscriptions to update. ***')
         return
