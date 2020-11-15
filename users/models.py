@@ -6,7 +6,6 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework.authtoken.models import Token
 
 from data_ocean.models import DataOceanModel
-from data_ocean.utils import generate_key
 from payment_system.models import Project, ProjectSubscription
 
 
@@ -63,17 +62,6 @@ class DataOceanUser(AbstractUser):
 
     def __str__(self):
         return self.email
-
-    def create_project(self, name, description=''):
-        new_token = generate_key()
-        new_project = Project.objects.create(
-            name=name,
-            token=new_token,
-            description=description
-        )
-        new_project.users.add(self)
-        ProjectSubscription.add_default_subscription(project=new_project)
-        return new_project
 
 
 class CandidateUserModel(models.Model):
