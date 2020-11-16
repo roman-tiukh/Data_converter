@@ -1,10 +1,11 @@
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
+from rest_framework.exceptions import ValidationError as RestValidationError
 
 from data_ocean.models import DataOceanModel
 from data_ocean.utils import generate_key
-from payment_system.constants import DEFAULT_SUBSCRIPTION_NAME
 
 
 class UserProject(DataOceanModel):
@@ -29,9 +30,21 @@ class UserProject(DataOceanModel):
     project = models.ForeignKey('Project', on_delete=models.CASCADE, related_name='user_projects')
     role = models.CharField(choices=ROLES, max_length=20, default=PARTICIPANT, blank=True)
     status = models.CharField(choices=STATUSES, max_length=7, default=INVITED, blank=True)
+    is_default = models.BooleanField(blank=True, default=False)
 
     def __str__(self):
         return self.role
+
+    def validate_unique(self, exclude=None):
+        super().validate_unique(exclude)
+
+        # Validate only one default project
+        if self.is_default:
+            default_count = UserProject.objects.filter(
+                user=self.user, is_default=True,
+            ).exclude(id=self.id).count()
+            if default_count:
+                raise ValidationError('User can only have one default project')
 
     class Meta:
         unique_together = [['user', 'project']]
@@ -60,7 +73,7 @@ class ProjectSubscription(DataOceanModel):
             project=project,
             status=ProjectSubscription.ACTIVE
         ).first()
-        if current_project_subscription.subscription.name == DEFAULT_SUBSCRIPTION_NAME:
+        if current_project_subscription.subscription.name == settings.DEFAULT_SUBSCRIPTION_NAME:
             current_project_subscription.status = ProjectSubscription.PAST
             current_project_subscription.save()
             return ProjectSubscription.objects.create(
@@ -96,30 +109,34 @@ class Project(DataOceanModel):
     subscriptions = models.ManyToManyField('Subscription', through=ProjectSubscription,
                                            related_name='projects')
 
-    @classmethod
-    def create(cls, initiator, name, description=''):
-        try:
-            default_subscription = Subscription.objects.get(name=DEFAULT_SUBSCRIPTION_NAME)
-        except Subscription.DoesNotExist:
-            raise Exception(f'Default subscription "{DEFAULT_SUBSCRIPTION_NAME}" not exists')
+    def save(self, *args, **kwargs):
+        if not self.token:
+            self.token = generate_key()
+        super().save(*args, **kwargs)
 
+    @classmethod
+    def create(cls, initiator, name, description='', is_default=False):
         new_project = Project.objects.create(
             name=name,
-            token=generate_key(),
             description=description
         )
         new_project.user_projects.create(
             user=initiator,
             role=UserProject.INITIATOR,
             status=UserProject.ACTIVE,
+            is_default=is_default,
         )
         new_project.add_default_subscription()
         return new_project
 
     def add_default_subscription(self) -> ProjectSubscription:
+        default_subscription, created = Subscription.objects.get_or_create(
+            name=settings.DEFAULT_SUBSCRIPTION_NAME,
+            defaults={'requests_limit': 1000},
+        )
         return ProjectSubscription.objects.create(
             project=self,
-            subscription=Subscription.objects.get(name=DEFAULT_SUBSCRIPTION_NAME),
+            subscription=default_subscription,
             status=ProjectSubscription.ACTIVE,
             expiring_date=timezone.localdate() + timezone.timedelta(days=30)
         )
@@ -141,6 +158,12 @@ class Project(DataOceanModel):
         # should I add sending email here?
 
     def disable(self):
+        for u2p in self.user_projects.all():
+            if u2p.is_default:
+                raise RestValidationError({
+                    'error': 'You cannot disable default project',
+                })
+
         self.disabled_at = timezone.now()
         self.save(update_fields=['disabled_at'])
 
