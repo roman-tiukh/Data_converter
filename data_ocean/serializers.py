@@ -43,5 +43,6 @@ class RegisterSerializer(serializers.ModelSerializer):
             'api_address',
             'source_register_id',
             'source_last_update',
+            'status',
             'endpoints'
         ]

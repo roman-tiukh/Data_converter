@@ -63,7 +63,7 @@ class RegisterView(viewsets.ReadOnlyModelViewSet):
     serializer_class = RegisterSerializer
     filterset_class = RegisterFilter
     filter_backends = [DjangoFilterBackend, SearchFilter]
-    search_fields = ['name', 'source_register_id']
+    search_fields = ['name', 'source_register_id', 'status', ]
 
 
 class CachedViewMixin:
