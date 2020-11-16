@@ -73,7 +73,7 @@ class ProjectSerializer(serializers.ModelSerializer):
         model = Project
         read_only_fields = [
             'id', 'users', 'subscriptions', 'token', 'disabled_at',
-            'is_active', 'is_default', 'is_default',
+            'is_active', 'is_default',
         ]
         fields = [
             'name', 'description',
