@@ -28,13 +28,14 @@ class Company(DataOceanModel):  # constraint for not null in both name & short_n
     company_type = models.ForeignKey(CompanyType, on_delete=models.CASCADE, null=True,
                                      verbose_name='організаційно-правова форма')
     edrpou = models.CharField('код ЄДРПОУ', max_length=260, null=True, db_index=True)
+    boss = models.CharField('керівник', max_length=100, null=True, blank=True, default='')
     authorized_capital = models.FloatField('статутний капітал', null=True)
     country = models.ForeignKey(Country, max_length=60, on_delete=models.CASCADE, null=True,
                                 verbose_name='країна')
     address = models.CharField('адреса', max_length=1000, null=True)
     status = models.ForeignKey(Status, on_delete=models.CASCADE, null=True, verbose_name='статус')
     bylaw = models.ForeignKey(Bylaw, on_delete=models.CASCADE, null=True, verbose_name='статут')
-    registration_date = models.DateField('дата реєстрації', null=True, db_index=True)
+    registration_date = models.DateField('дата реєстрації', null=True)
     registration_info = models.CharField('реєстраційні дані', max_length=450, null=True)
     contact_info = models.CharField('контакти', max_length=310, null=True)
     authority = models.ForeignKey(Authority, on_delete=models.CASCADE, null=True,
@@ -42,7 +43,7 @@ class Company(DataOceanModel):  # constraint for not null in both name & short_n
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True,
                                verbose_name='є підрозділом компанії/організації')
     from_antac_only = models.BooleanField(null=True)
-    code = models.CharField(max_length=510)
+    code = models.CharField(max_length=510, db_index=True)
     history = HistoricalRecords()
 
     @property
@@ -139,10 +140,13 @@ class Founder(DataOceanModel):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='founders',
                                 verbose_name='є засновником компанії/організації')
     info = models.CharField('наявні дані', max_length=2015)
-    name = models.TextField("назва/повне ім'я", null=True, db_index=True)
-    edrpou = models.CharField('код ЄДРПОУ', max_length=9, null=True, db_index=True)
-    equity = models.FloatField('участь в статутному капіталі', null=True)
-    address = models.CharField('адреса', max_length=2015, null=True)
+    name = models.TextField("назва/повне ім'я", db_index=True)
+    edrpou = models.CharField('код ЄДРПОУ', max_length=9, null=True, blank=True, default='',
+                              db_index=True)
+    equity = models.FloatField('участь в статутному капіталі', null=True, blank=True)
+    address = models.CharField('адреса', max_length=2015, null=True, blank=True, default='')
+    is_beneficiary = models.BooleanField('є бенефіціаром', blank=True, default=False)
+    is_founder = models.BooleanField('є офіційним засновником', blank=True, default=False)
     history = HistoricalRecords()
 
     # retrieving id only for founder that is company

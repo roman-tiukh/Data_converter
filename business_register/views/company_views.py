@@ -34,8 +34,8 @@ class CompanyViewSet(CachedViewMixin, viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         if self.action == 'list':
-            return self.queryset.exclude(from_antac_only=True).filter(country_id__isnull=True)
-        return self.queryset
+            return self.queryset.exclude(from_antac_only=True).filter(country__name='ukraine')
+        return self.queryset.filter(country__name='ukraine')
 
 
 class HistoricalCompanyView(CachedViewMixin, viewsets.ReadOnlyModelViewSet):

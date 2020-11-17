@@ -1,5 +1,6 @@
 from rest_framework import generics
 from django.shortcuts import get_object_or_404
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
@@ -51,11 +52,39 @@ class ProjectUpdateView(ProjectViewMixin, generics.UpdateAPIView):
     serializer_class = ProjectSerializer
 
 
-class ProjectRefreshTokenView(ProjectViewMixin, APIView):
+class ProjectDisableView(ProjectViewMixin, generics.GenericAPIView):
+    serializer_class = ProjectSerializer
+
+    def put(self, request, pk):
+        project = get_object_or_404(self.get_queryset(), pk=pk)
+        self.check_object_permissions(request, project)
+
+        # validation inside disable() method ->
+        project.disable()
+
+        serializer = self.get_serializer(project)
+        return Response(serializer.data)
+
+
+class ProjectActivateView(ProjectViewMixin, generics.GenericAPIView):
+    serializer_class = ProjectSerializer
+
+    def put(self, request, pk):
+        project = get_object_or_404(self.get_queryset(), pk=pk)
+        self.check_object_permissions(request, project)
+
+        project.activate()
+
+        serializer = self.get_serializer(project)
+        return Response(serializer.data)
+
+
+class ProjectRefreshTokenView(ProjectViewMixin, generics.GenericAPIView):
+    serializer_class = ProjectSerializer
+
     def put(self, request, pk):
         project = get_object_or_404(self.get_queryset(), pk=pk)
         self.check_object_permissions(request, project)
         project.refresh_token()
-        serializer = ProjectSerializer(project)
+        serializer = self.get_serializer(project)
         return Response(serializer.data)
-

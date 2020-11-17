@@ -224,3 +224,9 @@ STATS_API_USAGE_REFERER_BLACKLIST = [
 NAMESPACES_FOR_CLIENTS = [
     'registers',
 ]
+
+# PAYMENT SYSTEM CONSTANTS ==================
+DEFAULT_SUBSCRIPTION_NAME = 'Freemium'
+
+DEFAULT_PROJECT_NAME = 'Default project'
+DEFAULT_PROJECT_DESCRIPTION = 'This is auto created default project'

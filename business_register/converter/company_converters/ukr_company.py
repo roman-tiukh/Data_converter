@@ -1,21 +1,21 @@
 import logging
 import re
+
 import requests
+from django.conf import settings
 from django.utils import timezone
 
-from django.conf import settings
-
+from business_register.converter.company_converters.company import CompanyConverter
 from business_register.models.company_models import (
     Assignee, BancruptcyReadjustment, Bylaw, Company, CompanyDetail, CompanyToKved,
     CompanyToPredecessor, ExchangeDataCompany, Founder, Predecessor,
     Signer, TerminationStarted
 )
-from business_register.converter.company_converters.company import CompanyConverter
 from data_ocean.converter import BulkCreateManager
+from data_ocean.downloader import Downloader
 from data_ocean.utils import (cut_first_word, format_date_to_yymmdd, get_first_word,
                               convert_to_string_if_exists)
-
-from data_ocean.downloader import Downloader
+from location_register.converter.address import AddressConverter
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -27,7 +27,7 @@ class UkrCompanyConverter(CompanyConverter):
         self.LOCAL_FILE_NAME = settings.LOCAL_FILE_NAME_UO
         self.LOCAL_FOLDER = settings.LOCAL_FOLDER
         self.CHUNK_SIZE = settings.CHUNK_SIZE_UO
-        self.RECORD_TAG = 'SUBJECT'
+        self.RECORD_TAG = 'RECORD'
         self.bulk_manager = BulkCreateManager()
         self.branch_bulk_manager = BulkCreateManager()
         self.all_bylaw_dict = self.put_all_objects_to_dict("name", "business_register", "Bylaw")
@@ -55,7 +55,7 @@ class UkrCompanyConverter(CompanyConverter):
             return new_predecessor
         return self.all_predecessors_dict[item.xpath('NAME')[0].text]
 
-    def extract_founder_data(self, founder_info):
+    def extract_detail_founder_data(self, founder_info):
         info_to_list = founder_info.split(',')
         # deleting spaces between strings if exist
         info_to_list = [string.strip() for string in info_to_list]
@@ -93,42 +93,121 @@ class UkrCompanyConverter(CompanyConverter):
             logger.warning(f'Завелика адреса: {address} із запису: {founder_info}')
         return name, edrpou, address, equity
 
+    def extract_founder_data(self, founder_info):
+        # split by first comma that usually separates name and equity that also has comma
+        info_to_list = founder_info.split(',', 1)
+        info_to_list = [string.strip() for string in info_to_list]
+        name = info_to_list[0]
+        is_beneficiary = False
+        if name.startswith('КІНЦЕВИЙ БЕНЕФІЦІАРНИЙ ВЛАСНИК'):
+            is_beneficiary = True
+        second_part = info_to_list[1]
+        equity = None
+        address = None
+        if second_part.startswith('розмір частки'):
+            digital_value = re.findall('\d+\,\d+', second_part)[0]
+            equity = float(digital_value.replace(',', '.'))
+        else:
+            address = second_part
+        return name, is_beneficiary, address, equity
+
     def save_or_update_founders(self, founders_from_record, company):
         already_stored_founders = list(Founder.objects.filter(company=company))
         for item in founders_from_record:
             # checking if there is additional data except name
             info = item.text
+            if info.endswith('ВІДСУТНІЙ'):
+                continue
             if ',' in item.text:
-                name, edrpou, address, equity = self.extract_founder_data(item.text)
+                name, is_beneficiary, address, equity = self.extract_founder_data(item.text)
                 name = name.lower()
             else:
                 name = item.text.lower()
-                edrpou, equity, address = None, None, None
+                equity, address = None, None
+                is_beneficiary = False
             already_stored = False
             if len(already_stored_founders):
                 for stored_founder in already_stored_founders:
                     if stored_founder.name == name:
                         already_stored = True
                         update_fields = []
-                        if stored_founder.edrpou != edrpou:
-                            update_fields.append('edrpou')
-                            stored_founder.edrpou = edrpou
-                        if stored_founder.equity != equity:
-                            update_fields.append('equity')
-                            stored_founder.equity = equity
-                        if stored_founder.address != address:
-                            update_fields.append('address')
+                        if info and stored_founder.info != info:
+                            stored_founder.info = info
+                            update_fields.append('info')
+                        if stored_founder.is_beneficiary != is_beneficiary:
+                            stored_founder.is_beneficiary = is_beneficiary
+                            update_fields.append('is_beneficiary')
+                        if address and stored_founder.address != address:
                             stored_founder.address = address
+                            update_fields.append('address')
+                        if equity and stored_founder.equity != equity:
+                            stored_founder.equity = equity
+                            update_fields.append('equity')
                         if update_fields:
                             stored_founder.save(update_fields=update_fields)
                         already_stored_founders.remove(stored_founder)
                         break
             if not already_stored:
-                # Founder.objects.create(company=company, info=info, name=name, edrpou=edrpou, equity=equity,
-                #                        address=address)
-                founder = Founder(company=company, info=info, name=name, edrpou=edrpou,
-                                  equity=equity, address=address)
-                self.bulk_manager.add(founder)
+                Founder.objects.create(
+                    company=company,
+                    info=info,
+                    name=name,
+                    address=address,
+                    equity=equity,
+                    is_beneficiary=is_beneficiary,
+                    is_founder=True
+                )
+        if len(already_stored_founders):
+            for outdated_founder in already_stored_founders:
+                outdated_founder.soft_delete()
+
+    def extract_beneficiary_data(self, beneficiary_info):
+        # split by first comma that usually separates name and equity that also has comma
+        info_to_list = beneficiary_info.split(',', 1)
+        info_to_list = [string.strip() for string in info_to_list]
+        name = info_to_list[0]
+        next_word_after_name = info_to_list[1].split(',', 1)[0]
+        edrpou = next_word_after_name if self.find_edrpou(next_word_after_name) else None
+        if edrpou:
+            address = info_to_list[1].replace(edrpou, '')
+        else:
+            address = info_to_list[1]
+        return name, edrpou, address
+
+    def save_or_update_beneficiaries(self, beneficiares_from_record, company):
+        already_stored_founders = list(Founder.objects.filter(company=company))
+        for item in beneficiares_from_record:
+            info = item.text
+            name, edrpou, address = self.extract_beneficiary_data(info)
+            name = name.lower()
+            already_stored = False
+            if len(already_stored_founders):
+                for stored_founder in already_stored_founders:
+                    if stored_founder.name == name:
+                        already_stored = True
+                        update_fields = []
+                        if not stored_founder.is_beneficiary:
+                            stored_founder.is_beneficiary = True
+                            update_fields.append('is_beneficiary')
+                        if edrpou and stored_founder.edrpou != edrpou:
+                            stored_founder.edrpou = edrpou
+                            update_fields.append('edrpou')
+                        if address and stored_founder.address != address:
+                            stored_founder.address = address
+                            update_fields.append('address')
+                        if update_fields:
+                            stored_founder.save(update_fields=update_fields)
+                        already_stored_founders.remove(stored_founder)
+                        break
+            if not already_stored:
+                Founder.objects.create(
+                    company=company,
+                    info=info,
+                    name=name,
+                    edrpou=edrpou,
+                    address=address,
+                    is_beneficiary=True
+                )
         if len(already_stored_founders):
             for outdated_founder in already_stored_founders:
                 outdated_founder.soft_delete()
@@ -332,7 +411,7 @@ class UkrCompanyConverter(CompanyConverter):
     #     self.create_hash_code(item.xpath('NAME')[0].text, code)
     # ] = self.create_hash_code(record.xpath('NAME')[0].text, edrpou)
 
-    def save_to_db(self, records):
+    def save_detail_company_to_db(self, records):
         for record in records:
             name = record.xpath('NAME')[0].text.lower()
             short_name = record.xpath('SHORT_NAME')[0].text
@@ -575,6 +654,83 @@ class UkrCompanyConverter(CompanyConverter):
         # self.branch_bulk_manager.create_queues['business_register.CompanyToKved'] = []
         # self.branch_bulk_manager.create_queues['business_register.ExchangeDataCompany'] = []
         # self.branch_bulk_manager.create_queues['business_register.Signer'] = []
+
+    def save_or_update_kved(self, kved, company):
+        current_primary_kved = CompanyToKved.objects.filter(company=company, kved=kved,
+                                                            primary_kved=True).first()
+        if not current_primary_kved:
+            CompanyToKved.objects.create(
+                company=company,
+                kved=kved,
+                primary_kved=True
+            )
+        else:
+            if current_primary_kved.kved != kved:
+                current_primary_kved.kved = kved
+                current_primary_kved.save(update_fields=['kved'])
+
+    def save_to_db(self, records):
+        country = AddressConverter().save_or_get_country('Ukraine')
+        for record in records:
+            name = record.xpath('NAME')[0].text.lower()
+            short_name = record.xpath('SHORT_NAME')[0].text
+            if short_name:
+                short_name = short_name.lower()
+            edrpou = record.xpath('EDRPOU')[0].text
+            if not edrpou:
+                continue
+            code = name + edrpou
+            address = record.xpath('ADDRESS')[0].text
+            status = self.save_or_get_status(record.xpath('STAN')[0].text)
+            boss = record.xpath('BOSS')[0].text
+            if boss:
+                boss = boss.lower()
+            # ToDo: resolve the problem of having records with the same company name amd edrpou
+            company = Company.objects.filter(code=code).first()
+            if not company:
+                company = Company.objects.create(
+                    name=name,
+                    short_name=short_name,
+                    edrpou=edrpou,
+                    address=address,
+                    status=status,
+                    boss=boss,
+                    country=country,
+                    code=code
+                )
+            else:
+                update_fields = []
+                if company.name != name:
+                    company.name = name
+                    update_fields.append('name')
+                if company.short_name != short_name:
+                    company.short_name = short_name
+                    update_fields.append('short_name')
+                if company.address != address:
+                    company.address = address
+                    update_fields.append('address')
+                if company.status != status:
+                    company.status = status
+                    update_fields.append('status')
+                if company.boss != boss:
+                    company.boss = boss
+                    update_fields.append('boss')
+                if company.country != country:
+                    company.country = country
+                    update_fields.append('country')
+                if update_fields:
+                    company.save(update_fields=update_fields)
+            kved = record.xpath('KVED')[0].text
+            if kved and ' ' in kved:
+                kved_info = kved.split(' ', 1)
+                kved_code = kved_info[0]
+                kved_name = kved_info[1]
+                kved = self.get_kved_from_DB(kved_code, kved_name)
+                self.save_or_update_kved(kved, company)
+            if len(record.xpath('FOUNDERS')[0]):
+                self.save_or_update_founders(record.xpath('FOUNDERS')[0], company)
+            if len(record.xpath('BENEFICIARIES')[0]):
+                self.save_or_update_beneficiaries(record.xpath('BENEFICIARIES')[0], company)
 
 
 class UkrCompanyDownloader(Downloader):
