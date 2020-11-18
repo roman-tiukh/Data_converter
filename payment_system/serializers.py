@@ -3,7 +3,21 @@ from payment_system.models import (
     Project,
     ProjectSubscription,
     UserProject,
+    Subscription,
+    Invoice,
 )
+from users.models import DataOceanUser
+
+
+class ProjectSubscriptionSerializer(serializers.ModelSerializer):
+
+    def create(self, validated_data):
+        return ProjectSubscription.create(**validated_data)
+
+    class Meta:
+        model = ProjectSubscription
+        fields = ['id', 'project', 'subscription', 'status', 'expiring_date']
+        read_only_fields = ['status', 'expiring_date']
 
 
 class SubscriptionToProjectSerializer(serializers.ModelSerializer):
@@ -38,14 +52,23 @@ class UserToProjectSerializer(serializers.ModelSerializer):
 
 class ProjectListSerializer(serializers.ModelSerializer):
     is_default = serializers.SerializerMethodField(read_only=True)
+    role = serializers.SerializerMethodField(read_only=True)
+    status = serializers.SerializerMethodField(read_only=True)
 
     def get_is_default(self, obj):
         return obj.user_projects.get(user=self.context['request'].user).is_default
 
+    def get_role(self, obj):
+        return obj.user_projects.get(user=self.context['request'].user).role
+
+    def get_status(self, obj):
+        return obj.user_projects.get(user=self.context['request'].user).status
+
     class Meta:
         model = Project
         fields = [
-            'id', 'name', 'description', 'is_active', 'is_default',
+            'id', 'name', 'description', 'is_active',
+            'is_default', 'role', 'status',
         ]
         read_only_fields = fields
 
@@ -64,9 +87,9 @@ class ProjectSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = self.context['request'].user
         return Project.create(
-            initiator=user,
+            owner=user,
             name=validated_data['name'],
-            description=validated_data.get('description', '')
+            description=validated_data.get('description', ''),
         )
 
     class Meta:
@@ -78,3 +101,30 @@ class ProjectSerializer(serializers.ModelSerializer):
         fields = [
             'name', 'description',
         ] + read_only_fields
+
+
+class SubscriptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Subscription
+        read_only_fields = (
+            'id', 'custom', 'name', 'description', 'price',
+            'requests_limit', 'duration', 'grace_period',
+        )
+        fields = read_only_fields
+
+
+class InvoiceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Invoice
+        read_only_fields = (
+            'id', 'paid_at', 'info', 'project', 'subscription',
+        )
+        fields = read_only_fields
+
+
+class ProjectInviteUserSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    class Meta:
+        fields = ['email']
+

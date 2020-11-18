@@ -15,7 +15,7 @@ class ProjectPermission(permissions.BasePermission):
         user = request.user
         if user in obj.users.all():
             if request.method in SAFE_METHODS:
-                return True
+                return obj.has_read_perms(user=user)
             else:
                 return obj.has_write_perms(user=user)
         return False

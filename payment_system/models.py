@@ -8,28 +8,164 @@ from data_ocean.models import DataOceanModel
 from data_ocean.utils import generate_key
 
 
+class Project(DataOceanModel):
+    name = models.CharField(max_length=50)
+    description = models.CharField(max_length=500, blank=True, default='')
+    token = models.CharField(max_length=40, unique=True)
+    disabled_at = models.DateTimeField(null=True, blank=True, default=None)
+    users = models.ManyToManyField(settings.AUTH_USER_MODEL, through='UserProject',
+                                   related_name='projects')
+    subscriptions = models.ManyToManyField('Subscription', through='ProjectSubscription',
+                                           related_name='projects')
+
+    def save(self, *args, **kwargs):
+        if not self.token:
+            self.token = generate_key()
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def create(cls, owner, name, description='', is_default=False):
+        new_project = Project.objects.create(
+            name=name,
+            description=description
+        )
+        new_project.user_projects.create(
+            user=owner,
+            role=UserProject.OWNER,
+            status=UserProject.ACTIVE,
+            is_default=is_default,
+        )
+        new_project.add_default_subscription()
+        return new_project
+
+    def add_default_subscription(self) -> 'ProjectSubscription':
+        default_subscription, created = Subscription.objects.get_or_create(
+            name=settings.DEFAULT_SUBSCRIPTION_NAME,
+            defaults={'requests_limit': 1000},
+        )
+        return ProjectSubscription.objects.create(
+            project=self,
+            subscription=default_subscription,
+            status=ProjectSubscription.ACTIVE,
+            expiring_date=timezone.localdate() + timezone.timedelta(days=30)
+        )
+
+    def invite_user(self, email: str):
+        if self.user_projects.filter(user__email=email).exists():
+            raise RestValidationError({'detail': 'User already in project'})
+
+        if self.invitations.filter(email=email).exists():
+            raise RestValidationError({'detail': 'User already invited'})
+
+        self.invitations.create(email=email)
+        print(f'EMAIL: user {email} invited')
+
+    def confirm_invitation(self, user):
+        try:
+            invitation = self.invitations.get(email=user.email)
+        except Invitation.DoesNotExist:
+            raise RestValidationError({'detail': 'User is not invited'})
+        if user in self.users.all():
+            raise RestValidationError({'detail': 'User already in project'})
+
+        self.user_projects.create(
+            user=user,
+            role=UserProject.MEMBER
+        )
+
+        invitation.delete()
+
+    def remove_user(self, user_id):
+        u2p = self.user_projects.get(user_id=user_id)
+        if u2p.role == UserProject.OWNER:
+            raise RestValidationError({'detail': 'You cannot remove an owner from his own project'})
+        if u2p.status == UserProject.DEACTIVATED:
+            raise RestValidationError({'detail': 'User already deactivated'})
+        u2p.status = UserProject.DEACTIVATED
+        u2p.save(update_fields=['status'])
+
+    def activate_user(self, user_id):
+        u2p = self.user_projects.get(user_id=user_id)
+        if u2p.status == UserProject.ACTIVE:
+            raise RestValidationError({'detail': 'User already activated'})
+        u2p.status = UserProject.ACTIVE
+        u2p.save(update_fields=['status'])
+        # should I add sending email here?
+
+    def disable(self):
+        for u2p in self.user_projects.all():
+            if u2p.is_default:
+                raise RestValidationError({
+                    'detail': 'You cannot disable default project',
+                })
+
+        self.disabled_at = timezone.now()
+        self.save(update_fields=['disabled_at'])
+
+    def activate(self):
+        self.disabled_at = None
+        self.save(update_fields=['disabled_at'])
+
+    @property
+    def is_active(self):
+        return self.disabled_at is None
+
+    def refresh_token(self):
+        self.token = generate_key()
+        self.save(update_fields=['token'])
+
+    def has_read_perms(self, user):
+        u2p: UserProject = self.user_projects.get(user=user)
+        return u2p.status == UserProject.ACTIVE
+
+    def has_write_perms(self, user):
+        u2p: UserProject = self.user_projects.get(user=user)
+        return u2p.status == UserProject.ACTIVE and u2p.role == UserProject.OWNER
+
+
+class Subscription(DataOceanModel):
+    custom = models.BooleanField(blank=True, default=False)
+    name = models.CharField(max_length=50, unique=True)
+    description = models.CharField(max_length=500, blank=True, default='')
+    price = models.SmallIntegerField(blank=True, default=0)
+    requests_limit = models.IntegerField('limit for API requests from the project')
+    duration = models.SmallIntegerField(blank=True, default=30)
+    grace_period = models.SmallIntegerField(blank=True, default=30)
+
+
+class Invoice(DataOceanModel):
+    paid_at = models.DateField(null=True, blank=True)
+    # this field is for an accountant`s notes
+    info = models.CharField(max_length=500, blank=True, default='')
+    project = models.ForeignKey('Project', on_delete=models.CASCADE,
+                                related_name='project_invoices')
+    subscription = models.ForeignKey('Subscription', on_delete=models.CASCADE,
+                                     related_name='subscription_invoices')
+
+    def __str__(self):
+        return f'Invoice N{self.id}'
+
+
 class UserProject(DataOceanModel):
-    INITIATOR = 'initiator'
-    PARTICIPANT = 'participant'
+    OWNER = 'owner'
+    MEMBER = 'member'
     ROLES = [
-        (INITIATOR, 'Initiator'),
-        (PARTICIPANT, 'Participant'),
+        (OWNER, 'Owner'),
+        (MEMBER, 'Member'),
     ]
 
-    INVITED = 'invited'
     ACTIVE = 'active'
-    REMOVED = 'removed'
+    DEACTIVATED = 'deactivated'
     STATUSES = [
-        (INVITED, 'Invited'),
         (ACTIVE, 'Active'),
-        (REMOVED, "Removed"),
+        (DEACTIVATED, "Deactivated"),
     ]
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
                              related_name='user_projects')
     project = models.ForeignKey('Project', on_delete=models.CASCADE, related_name='user_projects')
-    role = models.CharField(choices=ROLES, max_length=20, default=PARTICIPANT, blank=True)
-    status = models.CharField(choices=STATUSES, max_length=7, default=INVITED, blank=True)
+    role = models.CharField(choices=ROLES, max_length=20)
+    status = models.CharField(choices=STATUSES, max_length=7)
     is_default = models.BooleanField(blank=True, default=False)
 
     def __str__(self):
@@ -99,109 +235,9 @@ class ProjectSubscription(DataOceanModel):
         verbose_name = "relation between the project and its subscriptions"
 
 
-class Project(DataOceanModel):
-    name = models.CharField(max_length=50)
-    description = models.CharField(max_length=500, blank=True, default='')
-    token = models.CharField(max_length=40, unique=True)
-    disabled_at = models.DateTimeField(null=True, blank=True, default=None)
-    users = models.ManyToManyField(settings.AUTH_USER_MODEL, through=UserProject,
-                                   related_name='projects')
-    subscriptions = models.ManyToManyField('Subscription', through=ProjectSubscription,
-                                           related_name='projects')
+class Invitation(DataOceanModel):
+    email = models.EmailField()
+    project = models.ForeignKey('Project', models.CASCADE, related_name='invitations')
 
-    def save(self, *args, **kwargs):
-        if not self.token:
-            self.token = generate_key()
-        super().save(*args, **kwargs)
-
-    @classmethod
-    def create(cls, initiator, name, description='', is_default=False):
-        new_project = Project.objects.create(
-            name=name,
-            description=description
-        )
-        new_project.user_projects.create(
-            user=initiator,
-            role=UserProject.INITIATOR,
-            status=UserProject.ACTIVE,
-            is_default=is_default,
-        )
-        new_project.add_default_subscription()
-        return new_project
-
-    def add_default_subscription(self) -> ProjectSubscription:
-        default_subscription, created = Subscription.objects.get_or_create(
-            name=settings.DEFAULT_SUBSCRIPTION_NAME,
-            defaults={'requests_limit': 1000},
-        )
-        return ProjectSubscription.objects.create(
-            project=self,
-            subscription=default_subscription,
-            status=ProjectSubscription.ACTIVE,
-            expiring_date=timezone.localdate() + timezone.timedelta(days=30)
-        )
-
-    def add_user(self, user):
-        self.user_projects.create(user=user)
-        # should I add sending email here?
-
-    def confirm_invitation(self, user):
-        user_project = self.user_projects.get(user=user)
-        user_project.status = UserProject.ACTIVE
-        user_project.save(update_fields=['status'])
-        # should I add sending email here?
-
-    def remove_user(self, user):
-        user_project = self.user_projects.get(user=user)
-        user_project.status = UserProject.REMOVED
-        user_project.save(update_fields=['status'])
-        # should I add sending email here?
-
-    def disable(self):
-        for u2p in self.user_projects.all():
-            if u2p.is_default:
-                raise RestValidationError({
-                    'error': 'You cannot disable default project',
-                })
-
-        self.disabled_at = timezone.now()
-        self.save(update_fields=['disabled_at'])
-
-    def activate(self):
-        self.disabled_at = None
-        self.save(update_fields=['disabled_at'])
-
-    @property
-    def is_active(self):
-        return self.disabled_at is None
-
-    def refresh_token(self):
-        self.token = generate_key()
-        self.save(update_fields=['token'])
-
-    def has_write_perms(self, user):
-        u2p: UserProject = self.user_projects.get(user=user)
-        return u2p.status == UserProject.ACTIVE and u2p.role == UserProject.INITIATOR
-
-
-class Subscription(DataOceanModel):
-    custom = models.BooleanField(blank=True, default=False)
-    name = models.CharField(max_length=50, unique=True)
-    description = models.CharField(max_length=500, blank=True, default='')
-    price = models.SmallIntegerField(blank=True, default=0)
-    requests_limit = models.IntegerField('limit for API requests from the project')
-    duration = models.SmallIntegerField(blank=True, default=30)
-    grace_period = models.SmallIntegerField(blank=True, default=30)
-
-
-class Invoice(DataOceanModel):
-    paid_at = models.DateField(null=True, blank=True)
-    # this field is for an accountant`s notes
-    info = models.CharField(max_length=500, blank=True, default='')
-    project = models.ForeignKey('Project', on_delete=models.CASCADE,
-                                related_name='project_invoices')
-    subscription = models.ForeignKey('Subscription', on_delete=models.CASCADE,
-                                     related_name='subscription_invoices')
-
-    def __str__(self):
-        return f'Invoice N{self.id}'
+    class Meta:
+        unique_together = [['email', 'project']]

@@ -12,7 +12,7 @@ def user_post_save_signal(sender, **kwargs):
 
     if created:
         Project.create(
-            initiator=user,
+            owner=user,
             name=settings.DEFAULT_PROJECT_NAME,
             description=settings.DEFAULT_PROJECT_DESCRIPTION,
             is_default=True,
