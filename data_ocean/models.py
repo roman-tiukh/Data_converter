@@ -51,6 +51,14 @@ class TaxpayerType(DataOceanModel):
 
 
 class Register(DataOceanModel):
+    RELEVANT = 'relevant'
+    OUTDATED = 'outdated'
+    NOT_SUPPORTED = 'not supported'
+    STATUSES = [
+        (RELEVANT, 'Relevant'),
+        (OUTDATED, 'Outdated'),
+        (NOT_SUPPORTED, "Not supported"),
+    ]
     name = models.CharField('назва', max_length=500, unique=True)
     name_eng = models.CharField('назва англійською', max_length=500, unique=True, null=True)
     source_name = models.CharField('назва джерела даних', max_length=300)
@@ -60,13 +68,15 @@ class Register(DataOceanModel):
     url_address = models.URLField(max_length=500)
     api_address = models.URLField(max_length=500, null=True)
     source_last_update = models.DateTimeField('востаннє оновлено', default=None, null=True)
+    status = models.CharField('статус', max_length=15, choices=STATUSES, default=RELEVANT,
+                              blank=True)
 
     class Meta:
         ordering = ['id']
         verbose_name = 'реєстр'
 
 
-class EndPoint(DataOceanModel):
+class Dataset(DataOceanModel):
     TYPES = (
         ('list', 'Список'),
         ('retrieve', "Об'єкт за ID"),
@@ -77,10 +87,11 @@ class EndPoint(DataOceanModel):
     register = models.ForeignKey(
         Register, models.CASCADE, verbose_name='Реєстр', related_name='endpoints'
     )
+    total_records = models.PositiveIntegerField('', null=True, default=1, blank=True)
 
     class Meta:
         ordering = ['id']
-        verbose_name = 'ендпойнт реєстру'
+        verbose_name = 'набір даних'
 
 
 class RegistryUpdaterModel(models.Model):
