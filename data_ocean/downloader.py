@@ -1,17 +1,16 @@
+import logging
 import os
 import subprocess
-from django.utils import timezone
 import zipfile
-import requests
 from abc import ABC
-import logging
-from django.db import connections
-import timeit
-from datetime import datetime
-# import psycopg2
-from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
-from data_ocean.models import RegistryUpdaterModel
+
+import requests
 from django.conf import settings
+from django.db import connections
+from django.utils import timezone
+
+# import psycopg2
+from data_ocean.models import RegistryUpdaterModel, Dataset
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -141,7 +140,8 @@ class Downloader(ABC):
                 if not self.file_size_is_correct():
                     raise requests.exceptions.RequestException('Error! Bad file size after download.')
 
-                logger.info(f"{self.reg_name}: {self.file_path} downloaded successfully at {timezone.now() - start_time}.")
+                logger.info(
+                    f"{self.reg_name}: {self.file_path} downloaded successfully at {timezone.now() - start_time}.")
 
                 self.log_obj.download_finish = timezone.now()
                 self.log_obj.download_status = True
@@ -160,3 +160,8 @@ class Downloader(ABC):
 
         if self.unzip_after_download:
             self.unzip_file()
+
+    def update_total_records(self, dataset_name, total_records):
+        dataset = Dataset.objects.get(name=dataset_name)
+        dataset.total_records = total_records
+        dataset.save(update_fields=['total_records'])

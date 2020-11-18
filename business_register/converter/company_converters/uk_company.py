@@ -1,16 +1,16 @@
 import logging
-from lxml import html
-import requests
-from django.utils import timezone
 from csv import DictReader
+
+import requests
+from django.conf import settings
+from django.utils import timezone
+from lxml import html
 
 from business_register.converter.company_converters.company import CompanyConverter
 from business_register.models.company_models import Company
+from data_ocean.downloader import Downloader
 from data_ocean.utils import format_date_to_yymmdd, convert_to_string_if_exists
 from location_register.converter.address import AddressConverter
-
-from data_ocean.downloader import Downloader
-from django.conf import settings
 
 # Standard instance of a logger with __name__
 logger = logging.getLogger(__name__)

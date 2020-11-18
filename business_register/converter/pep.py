@@ -460,6 +460,9 @@ class PepDownloader(Downloader):
 
         self.vacuum_analyze(table_list=['business_register_pep', ])
 
+        total_records = Pep.objects.count()
+        self.update_total_records(settings.ALL_PEPS_DATASET_NAME, total_records)
+
         logger.info(f'{self.reg_name}: PepLinksLoader().process() started...')
         PepLinksLoader().process()
         logger.info(f'{self.reg_name}: PepLinksLoader().process() finished successfully.')
