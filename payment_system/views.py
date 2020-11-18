@@ -1,6 +1,8 @@
 from django.core.mail import send_mail
+from django.db.models import Prefetch
 from rest_framework import generics, status
 from django.shortcuts import get_object_or_404
+from rest_framework import status
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -12,14 +14,16 @@ from payment_system.models import (
     UserProject,
     ProjectSubscription,
     Subscription,
-    Invoice,
+    Invoice, Invitation,
 )
 from payment_system.serializers import (
     ProjectListSerializer,
     ProjectSerializer,
     ProjectSubscriptionSerializer,
     SubscriptionSerializer,
-    InvoiceSerializer, ProjectInviteUserSerializer,
+    InvoiceSerializer,
+    ProjectInviteUserSerializer,
+    InvitationListSerializer,
 )
 from users.models import DataOceanUser
 
@@ -31,6 +35,9 @@ class ProjectViewMixin:
         return Project.objects.filter(
             users__in=[self.request.user],
             user_projects__status=UserProject.ACTIVE,
+        ).prefetch_related(
+            Prefetch('invitations', queryset=Invitation.objects.filter(deleted_at__isnull=True)),
+            'subscriptions',
         )
 
 
@@ -138,16 +145,7 @@ class ProjectInviteUserView(ProjectViewMixin, generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
         user_email = serializer.validated_data['email']
 
-        # TODO: maybe send email for registration if not exists
-        try:
-            user = DataOceanUser.objects.get(email=user_email)
-        except DataOceanUser.DoesNotExist:
-            raise ValidationError({'detail': 'User does not exists'})
-
-        project.invite_user(user)
-
-        # TODO: send Email here
-        print(f'Email sent to {user_email}')
+        project.invite_user(user_email)
 
         serializer = ProjectSerializer(
             instance=project,
@@ -156,9 +154,52 @@ class ProjectInviteUserView(ProjectViewMixin, generics.GenericAPIView):
         return Response(serializer.data)
 
 
+class ProjectCancelInviteView(ProjectViewMixin, generics.DestroyAPIView):
+    serializer_class = ProjectSerializer
+
+    def destroy(self, request, pk, invite_id):
+        project = self.get_object()
+
+        invitation = get_object_or_404(project.invitations, id=invite_id)
+        invitation.soft_delete()
+
+        serializer = self.get_serializer(project)
+        return Response(serializer.data)
+
+
+class ProjectUserConfirmInviteView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        project = get_object_or_404(Project, pk=pk)
+        project.confirm_invitation(request.user)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ProjectUserRejectInviteView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, pk):
+        project = get_object_or_404(Project, pk=pk)
+        project.reject_invitation(request.user)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class InvitationListView(generics.ListAPIView):
+    pagination_class = None
+    serializer_class = InvitationListSerializer
+
+    def get_queryset(self):
+        return Invitation.objects.filter(
+            email=self.request.user.email,
+            deleted_at__isnull=True,
+        )
+
+
 class SubscriptionsListView(generics.ListAPIView):
     serializer_class = SubscriptionSerializer
     queryset = Subscription.objects.all()
+    pagination_class = None
 
 
 # TODO: permissions for user
@@ -171,6 +212,7 @@ class InvoiceRetrieveView(generics.RetrieveAPIView):
 class InvoiceListView(generics.ListAPIView):
     queryset = Invoice
     serializer_class = InvoiceSerializer
+    pagination_class = None
 
 
 class ProjectSubscriptionCreateView(generics.CreateAPIView):

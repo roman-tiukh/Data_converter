@@ -5,8 +5,8 @@ from payment_system.models import (
     UserProject,
     Subscription,
     Invoice,
+    Invitation,
 )
-from users.models import DataOceanUser
 
 
 class ProjectSubscriptionSerializer(serializers.ModelSerializer):
@@ -16,8 +16,10 @@ class ProjectSubscriptionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProjectSubscription
-        fields = ['id', 'project', 'subscription', 'status', 'expiring_date']
         read_only_fields = ['status', 'expiring_date']
+        fields = [
+            'id', 'project', 'subscription'
+        ] + read_only_fields
 
 
 class SubscriptionToProjectSerializer(serializers.ModelSerializer):
@@ -37,7 +39,7 @@ class SubscriptionToProjectSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
-class UserToProjectSerializer(serializers.ModelSerializer):
+class UserInProjectSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(source='user.id')
     name = serializers.CharField(source='user.get_full_name')
     email = serializers.EmailField(source='user.email')
@@ -73,13 +75,19 @@ class ProjectListSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
+class ProjectInvitationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Invitation
+        fields = ['id', 'email', 'created_at']
+
+
 class ProjectSerializer(serializers.ModelSerializer):
     subscriptions = SubscriptionToProjectSerializer(source='project_subscriptions',
                                                     many=True, read_only=True)
-    users = UserToProjectSerializer(source='user_projects',
+    users = UserInProjectSerializer(source='user_projects',
                                     many=True, read_only=True)
-
     is_default = serializers.SerializerMethodField(read_only=True)
+    invitations = ProjectInvitationSerializer(many=True)
 
     def get_is_default(self, obj):
         return obj.user_projects.get(user=self.context['request'].user).is_default
@@ -95,11 +103,11 @@ class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         read_only_fields = [
-            'id', 'users', 'subscriptions', 'token', 'disabled_at',
-            'is_active', 'is_default',
+            'users', 'subscriptions', 'invitations', 'token',
+            'is_active', 'is_default', 'disabled_at',
         ]
         fields = [
-            'name', 'description',
+            'id', 'name', 'description',
         ] + read_only_fields
 
 
@@ -128,3 +136,13 @@ class ProjectInviteUserSerializer(serializers.Serializer):
     class Meta:
         fields = ['email']
 
+
+class InvitationListSerializer(serializers.ModelSerializer):
+    project_id = serializers.IntegerField(source='project.id', read_only=True)
+    project_name = serializers.CharField(source='project.name', read_only=True)
+    project_owner = serializers.CharField(source='project.owner.get_full_name', read_only=True)
+
+    class Meta:
+        model = Invitation
+        fields = ['id', 'project_id', 'project_name', 'project_owner', 'created_at']
+        read_only_fields = fields

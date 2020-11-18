@@ -54,31 +54,46 @@ class Project(DataOceanModel):
         if self.user_projects.filter(user__email=email).exists():
             raise RestValidationError({'detail': 'User already in project'})
 
-        if self.invitations.filter(email=email).exists():
+        if self.invitations.filter(email=email, deleted_at__isnull=True).exists():
             raise RestValidationError({'detail': 'User already invited'})
 
-        self.invitations.create(email=email)
+        invitation, created = self.invitations.get_or_create(email=email)
+        if not created:
+            invitation.deleted_at = None
+            invitation.save(update_fields=['deleted_at'])
+
         print(f'EMAIL: user {email} invited')
 
-    def confirm_invitation(self, user):
+    def _check_user_invitation(self, user):
         try:
-            invitation = self.invitations.get(email=user.email)
+            invitation = self.invitations.get(
+                email=user.email, deleted_at__isnull=True,
+            )
         except Invitation.DoesNotExist:
             raise RestValidationError({'detail': 'User is not invited'})
+        return invitation
+
+    def reject_invitation(self, user):
+        invitation = self._check_user_invitation(user)
+        invitation.soft_delete()
+
+    def confirm_invitation(self, user):
+        invitation = self._check_user_invitation(user)
+
         if user in self.users.all():
             raise RestValidationError({'detail': 'User already in project'})
 
         self.user_projects.create(
             user=user,
-            role=UserProject.MEMBER
+            role=UserProject.MEMBER,
+            status=UserProject.ACTIVE,
         )
-
-        invitation.delete()
+        invitation.soft_delete()
 
     def remove_user(self, user_id):
         u2p = self.user_projects.get(user_id=user_id)
         if u2p.role == UserProject.OWNER:
-            raise RestValidationError({'detail': 'You cannot remove an owner from his own project'})
+            raise RestValidationError({'detail': 'You cannot deactivate an owner from his own project'})
         if u2p.status == UserProject.DEACTIVATED:
             raise RestValidationError({'detail': 'User already deactivated'})
         u2p.status = UserProject.DEACTIVATED
@@ -122,6 +137,12 @@ class Project(DataOceanModel):
         u2p: UserProject = self.user_projects.get(user=user)
         return u2p.status == UserProject.ACTIVE and u2p.role == UserProject.OWNER
 
+    @property
+    def owner(self):
+        return self.user_projects.get(
+            role=UserProject.OWNER,
+        ).user
+
 
 class Subscription(DataOceanModel):
     custom = models.BooleanField(blank=True, default=False)
@@ -149,23 +170,23 @@ class Invoice(DataOceanModel):
 class UserProject(DataOceanModel):
     OWNER = 'owner'
     MEMBER = 'member'
-    ROLES = [
+    ROLES = (
         (OWNER, 'Owner'),
         (MEMBER, 'Member'),
-    ]
+    )
 
     ACTIVE = 'active'
     DEACTIVATED = 'deactivated'
-    STATUSES = [
+    STATUSES = (
         (ACTIVE, 'Active'),
         (DEACTIVATED, "Deactivated"),
-    ]
+    )
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
                              related_name='user_projects')
     project = models.ForeignKey('Project', on_delete=models.CASCADE, related_name='user_projects')
     role = models.CharField(choices=ROLES, max_length=20)
-    status = models.CharField(choices=STATUSES, max_length=7)
+    status = models.CharField(choices=STATUSES, max_length=11)
     is_default = models.BooleanField(blank=True, default=False)
 
     def __str__(self):
@@ -191,11 +212,11 @@ class ProjectSubscription(DataOceanModel):
     ACTIVE = 'active'
     PAST = 'past'
     FUTURE = 'future'
-    STATUSES = [
+    STATUSES = (
         (ACTIVE, 'Active'),
         (PAST, 'Past'),
         (FUTURE, 'Future'),
-    ]
+    )
     project = models.ForeignKey('Project', on_delete=models.CASCADE,
                                 related_name='project_subscriptions')
     subscription = models.ForeignKey('Subscription', on_delete=models.CASCADE,
@@ -238,6 +259,8 @@ class ProjectSubscription(DataOceanModel):
 class Invitation(DataOceanModel):
     email = models.EmailField()
     project = models.ForeignKey('Project', models.CASCADE, related_name='invitations')
+    # who_invited = models.ForeignKey(settings.AUTH_USER_MODEL, models.CASCADE,
+    #                                 related_name='who_invitations')
 
     class Meta:
         unique_together = [['email', 'project']]
