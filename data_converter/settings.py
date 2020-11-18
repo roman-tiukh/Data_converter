@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     'django_celery_beat',
     'django_extensions',
     'django_filters',
+    # 'debug_toolbar',
     'drf_yasg',
     'corsheaders',
     'rest_framework',
@@ -53,11 +54,16 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
+    # 'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'stats.middleware.ApiUsageMiddleware'
+]
+
+INTERNAL_IPS = [
+    '127.0.0.1',
 ]
 
 # CORS_URLS_REGEX = r'^/api/.*$'
@@ -230,3 +236,6 @@ DEFAULT_SUBSCRIPTION_NAME = 'Freemium'
 
 DEFAULT_PROJECT_NAME = 'Default project'
 DEFAULT_PROJECT_DESCRIPTION = 'This is auto created default project'
+
+# DATASET`S CONSTANTS ==================
+ALL_PEPS_DATASET_NAME = 'all PEPs list'

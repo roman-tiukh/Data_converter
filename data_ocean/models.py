@@ -76,7 +76,7 @@ class Register(DataOceanModel):
         verbose_name = 'реєстр'
 
 
-class EndPoint(DataOceanModel):
+class Dataset(DataOceanModel):
     TYPES = (
         ('list', 'Список'),
         ('retrieve', "Об'єкт за ID"),
@@ -87,10 +87,11 @@ class EndPoint(DataOceanModel):
     register = models.ForeignKey(
         Register, models.CASCADE, verbose_name='Реєстр', related_name='endpoints'
     )
+    total_records = models.PositiveIntegerField('', null=True, default=1, blank=True)
 
     class Meta:
         ordering = ['id']
-        verbose_name = 'ендпойнт реєстру'
+        verbose_name = 'набір даних'
 
 
 class RegistryUpdaterModel(models.Model):
