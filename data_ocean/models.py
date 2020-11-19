@@ -1,5 +1,5 @@
 from django.db import models, connection
-from django.utils.timezone import now
+from django.utils import timezone
 
 
 class DataOceanModel(models.Model):
@@ -7,12 +7,13 @@ class DataOceanModel(models.Model):
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
     deleted_at = models.DateTimeField(null=True, blank=True, default=None)
 
-    class Meta:
-        abstract = True
-        ordering = ['id']
+    @property
+    def is_deleted(self):
+        return bool(self.deleted_at)
 
     def soft_delete(self):
-        self.deleted_at = now()
+        self.deleted_at = timezone.now()
+        self.save(update_fields=['deleted_at'])
 
     @classmethod
     def truncate(cls):
@@ -26,6 +27,10 @@ class DataOceanModel(models.Model):
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        abstract = True
+        ordering = ['id']
 
 
 class Status(DataOceanModel):
