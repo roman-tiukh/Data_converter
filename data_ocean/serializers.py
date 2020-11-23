@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from data_ocean.models import Status, Authority, TaxpayerType, Register, EndPoint
+from data_ocean.models import Status, Authority, TaxpayerType, Register, Dataset
 
 
 class StatusSerializer(serializers.ModelSerializer):
@@ -25,7 +25,7 @@ class TaxpayerTypeSerializer(serializers.ModelSerializer):
 
 class EndPointSerializer(serializers.ModelSerializer):
     class Meta:
-        model = EndPoint
+        model = Dataset
         fields = ['name', 'endpoint', 'type']
 
 

@@ -6,7 +6,7 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework.authtoken.models import Token
 
 from data_ocean.models import DataOceanModel
-from payment_system.models import Project, ProjectSubscription
+from payment_system.models import Invitation
 
 
 class DataOceanUserManager(BaseUserManager):
@@ -59,6 +59,13 @@ class DataOceanUser(AbstractUser):
     REQUIRED_FIELDS = ['last_name', 'first_name']
 
     objects = DataOceanUserManager()
+
+    @property
+    def invitations(self):
+        return Invitation.objects.filter(
+            email=self.email,
+            deleted_at__isnull=True,
+        )
 
     def __str__(self):
         return self.email
