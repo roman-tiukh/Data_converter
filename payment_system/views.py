@@ -110,14 +110,14 @@ class ProjectRefreshTokenView(ProjectViewMixin, generics.GenericAPIView):
         return Response(serializer.data)
 
 
-class ProjectRemoveUserView(ProjectViewMixin, generics.GenericAPIView):
+class ProjectDeactivateUserView(ProjectViewMixin, generics.GenericAPIView):
     serializer_class = ProjectSerializer
 
     def delete(self, request, pk, user_id):
         project = self.get_object()
 
         # validation inside remove_user() method ->
-        project.remove_user(user_id=user_id)
+        project.deactivate_user(user_id=user_id)
 
         serializer = self.get_serializer(project)
         return Response(serializer.data)
