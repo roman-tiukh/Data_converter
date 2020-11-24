@@ -47,7 +47,7 @@ class UserInProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProject
         fields = [
-            'id', 'name', 'email', 'status', 'role',
+            'id', 'name', 'email', 'status', 'role', 'is_default',
         ]
         read_only_fields = fields
 
@@ -56,6 +56,7 @@ class ProjectListSerializer(serializers.ModelSerializer):
     is_default = serializers.SerializerMethodField(read_only=True)
     role = serializers.SerializerMethodField(read_only=True)
     status = serializers.SerializerMethodField(read_only=True)
+    owner = serializers.CharField(source='owner.get_full_name', read_only=True)
 
     def get_is_default(self, obj):
         return obj.user_projects.get(user=self.context['request'].user).is_default
@@ -70,7 +71,7 @@ class ProjectListSerializer(serializers.ModelSerializer):
         model = Project
         fields = [
             'id', 'name', 'description', 'is_active',
-            'is_default', 'role', 'status',
+            'is_default', 'role', 'status', 'owner',
         ]
         read_only_fields = fields
 
@@ -78,7 +79,7 @@ class ProjectListSerializer(serializers.ModelSerializer):
 class ProjectInvitationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Invitation
-        fields = ['id', 'email', 'created_at']
+        fields = ['id', 'email', 'updated_at']
 
 
 class ProjectSerializer(serializers.ModelSerializer):
@@ -87,7 +88,13 @@ class ProjectSerializer(serializers.ModelSerializer):
     users = UserInProjectSerializer(source='user_projects',
                                     many=True, read_only=True)
     is_default = serializers.SerializerMethodField(read_only=True)
-    invitations = ProjectInvitationSerializer(many=True)
+    invitations = ProjectInvitationSerializer(many=True, read_only=True)
+
+    owner = serializers.CharField(source='owner.get_full_name', read_only=True)
+    is_owner = serializers.SerializerMethodField(read_only=True)
+
+    def get_is_owner(self, obj):
+        return obj.user_projects.get(user=self.context['request'].user).role == UserProject.OWNER
 
     def get_is_default(self, obj):
         return obj.user_projects.get(user=self.context['request'].user).is_default
@@ -104,7 +111,8 @@ class ProjectSerializer(serializers.ModelSerializer):
         model = Project
         read_only_fields = [
             'users', 'subscriptions', 'invitations', 'token',
-            'is_active', 'is_default', 'disabled_at',
+            'is_active', 'is_default', 'disabled_at', 'owner',
+            'created_at', 'is_owner',
         ]
         fields = [
             'id', 'name', 'description',
@@ -144,5 +152,5 @@ class InvitationListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Invitation
-        fields = ['id', 'project_id', 'project_name', 'project_owner', 'created_at']
+        fields = ['id', 'project_id', 'project_name', 'project_owner', 'updated_at']
         read_only_fields = fields

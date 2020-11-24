@@ -57,7 +57,9 @@ class Project(DataOceanModel):
         if self.invitations.filter(email=email, deleted_at__isnull=True).exists():
             raise RestValidationError({'detail': 'User already invited'})
 
-        invitation, created = self.invitations.get_or_create(email=email)
+        invitation, created = Invitation.objects.get_or_create(
+            email=email, project=self,
+        )
         if not created:
             invitation.deleted_at = None
             invitation.save(update_fields=['deleted_at'])
@@ -90,7 +92,7 @@ class Project(DataOceanModel):
         )
         invitation.soft_delete()
 
-    def remove_user(self, user_id):
+    def deactivate_user(self, user_id):
         u2p = self.user_projects.get(user_id=user_id)
         if u2p.role == UserProject.OWNER:
             raise RestValidationError({'detail': 'You cannot deactivate an owner from his own project'})
