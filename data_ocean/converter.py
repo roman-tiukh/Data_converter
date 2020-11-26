@@ -166,9 +166,12 @@ class Converter:
                                                                        model_name).objects.all()}
 
     def process(self, start_index=0):
-        records = etree.Element('RECORDS')
-        elements = etree.iterparse(self.LOCAL_FOLDER + self.LOCAL_FILE_NAME, tag=self.RECORD_TAG,
-                                   recover=True)
+        records = []
+        elements = etree.iterparse(
+            source=self.LOCAL_FOLDER + self.LOCAL_FILE_NAME,
+            tag=self.RECORD_TAG,
+            recover=False,
+        )
 
         for _ in range(start_index):
             next(elements)
@@ -180,12 +183,12 @@ class Converter:
             if records_len == 0:
                 chunk_start_index = i
 
+            for text in elem.iter():
+                print('\t%28s\t%s' % (text.tag, text.text))
+            records.append(elem)
+
             if records_len < self.CHUNK_SIZE:
-                for text in elem.iter():
-                    print('\t%28s\t%s' % (text.tag, text.text))
-                records.append(elem)
                 i += 1
-                # print(i, 'record\n\n...........................................')
             else:
                 print(f'>>> Start save to db records {chunk_start_index}-{i}')
                 try:
