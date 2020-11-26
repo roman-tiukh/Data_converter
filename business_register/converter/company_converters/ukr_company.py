@@ -14,7 +14,7 @@ from business_register.models.company_models import (
 from data_ocean.converter import BulkCreateManager
 from data_ocean.downloader import Downloader
 from data_ocean.utils import (cut_first_word, format_date_to_yymmdd, get_first_word,
-                              convert_to_string_if_exists)
+                              to_lower_string_if_exists)
 from location_register.converter.address import AddressConverter
 
 logger = logging.getLogger(__name__)
@@ -114,10 +114,11 @@ class UkrCompanyConverter(CompanyConverter):
     def save_or_update_founders(self, founders_from_record, company):
         already_stored_founders = list(Founder.objects.filter(company=company))
         for item in founders_from_record:
-            # checking if there is additional data except name
             info = item.text
-            if info.endswith('ВІДСУТНІЙ'):
+            # checking if field contains data
+            if not info or info.endswith('ВІДСУТНІЙ'):
                 continue
+            # checking if there is additional data except name
             if ',' in item.text:
                 name, is_beneficiary, address, equity = self.extract_founder_data(item.text)
                 name = name.lower()
@@ -518,7 +519,7 @@ class UkrCompanyConverter(CompanyConverter):
                 if company.bylaw != bylaw:
                     company.bylaw = bylaw
                     update_fields.append('bylaw')
-                if convert_to_string_if_exists(company.registration_date) != registration_date:
+                if to_lower_string_if_exists(company.registration_date) != registration_date:
                     company.registration_date = registration_date
                     update_fields.append('registration_date')
                 if company.registration_info != registration_info:

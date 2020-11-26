@@ -8,12 +8,14 @@ from business_register.converter.business_converter import BusinessConverter
 from data_ocean.downloader import Downloader
 from requests.auth import HTTPBasicAuth
 from django.conf import settings
+from data_ocean.converter import Converter
+from data_ocean.utils import to_lower_string_if_exists
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
-class PepConverter(BusinessConverter):
+class PepConverterFromJson(BusinessConverter):
 
     def __init__(self):
         super().__init__()
@@ -276,9 +278,6 @@ class PepConverter(BusinessConverter):
                 if pep.pep_type_eng != pep_type_eng:
                     pep.pep_type_eng = pep_type_eng
                     update_fields.append('pep_type_eng')
-                if pep.url != url:
-                    pep.url = url
-                    update_fields.append('url')
                 if pep.is_dead != is_dead:
                     pep.is_dead = is_dead
                     update_fields.append('is_dead')
@@ -301,7 +300,7 @@ class PepConverter(BusinessConverter):
                 self.save_or_update_pep_related_companies(related_companies_list, pep)
 
 
-class PepLinksLoader:
+class PepConverterFromDB(Converter):
 
     def __init__(self):
         self.host = settings.PEP_SOURCE_HOST
@@ -309,9 +308,49 @@ class PepLinksLoader:
         self.database = settings.PEP_SOURCE_DATABASE
         self.user = settings.PEP_SOURCE_USER
         self.password = settings.PEP_SOURCE_PASSWORD
-        self.QUERY = ('SELECT from_person_id, to_person_id, from_relationship_type, '
-                      'to_relationship_type, date_established, date_confirmed, date_finished '
-                      'FROM core_person2person;')
+        self.all_peps_dict = self.put_all_objects_to_dict('source_id', 'business_register', 'Pep')
+        # self.all_company_links_with_peps = self.to_dict_all_companies_links_with_peps()
+        self.PEP_QUERY = ('SELECT id, last_name, first_name, patronymic, '
+                          'last_name_en, first_name_en, patronymic_en, names, is_pep, '
+                          'dob, city_of_birth_uk, city_of_birth_en, '
+                          'reputation_sanctions_uk, reputation_sanctions_en, '
+                          'reputation_convictions_uk, reputation_convictions_en, '
+                          'reputation_assets_uk, reputation_assets_en, '
+                          'reputation_crimes_uk, reputation_crimes_en, '
+                          'reputation_manhunt_uk, reputation_manhunt_en, wiki_uk, wiki_en, '
+                          'type_of_official, reason_of_termination, termination_date '
+                          'FROM core_person;'
+                          )
+        self.PEPS_LINKS_QUERY = ('SELECT from_person_id, to_person_id, '
+                                 'from_relationship_type, to_relationship_type, '
+                                 'date_established, date_confirmed, date_finished '
+                                 'FROM core_person2person;')
+        self.PEPS_COMPANIES_QUERY = ('SELECT from_person_id, to_company_id, '
+                                     'date_established, date_confirmed, date_finished, category, '
+                                     'edrpou, state_company, short_name_en, name '
+                                     'FROM core_person2company '
+                                     'INNER JOIN core_company on to_company_id=core_company.id '
+                                     "WHERE category NOT LIKE 'bank_customer' "
+                                     'ORDER BY from_person_id;')
+        self.REASONS_OF_TERMINATION = {
+            1: Pep.DIED,
+            2: Pep.RESIGNED,
+            3: Pep.LINKED_PEP_DIED,
+            4: Pep.LINKED_PEP_RESIGNED,
+            5: Pep.LEGISLATION_CHANGED,
+            6: Pep.COMPANY_STATUS_CHANGED,
+        }
+        self.PEP_TYPES = {
+            1: Pep.NATIONAL_PEP,
+            2: Pep.FOREIGN_PEP,
+            3: Pep.PEP_FROM_INTERNATIONAL_ORGANISATION,
+            4: Pep.PEP_ASSOCIATED_PERSON,
+            5: Pep.PEP_FAMILY_MEMBER,
+        }
+
+    # def to_dict_all_companies_links_with_peps(self):
+    #     return {str(link.pep.source_id) + str(link.company.antac_id):
+    #                 link for link in CompanyLinkWithPep.objects.all()}
 
     def get_pep_data(self, host=None, port=None):
 
@@ -329,12 +368,21 @@ class PepLinksLoader:
         logger.info(f'business_pep: psycopg2 connection is active: {not connection.closed}')
 
         with connection.cursor() as cursor:
-            cursor.execute(self.QUERY)
-            data = cursor.fetchall()
-            logger.info(f'business_pep: psycopg2 result data length: {len(data)} elements.')
+            cursor.execute(self.PEP_QUERY)
+            pep_data = cursor.fetchall()
+            logger.info(f'business_pep: psycopg2 result data length: {len(pep_data)} elements.')
+
+            cursor.execute(self.PEPS_LINKS_QUERY)
+            pep_links_data = cursor.fetchall()
+            logger.info(f'business_pep: psycopg2 result data length: {len(pep_links_data)} elements.')
+
+            cursor.execute(self.PEPS_COMPANIES_QUERY)
+            pep_companies_data = cursor.fetchall()
+            logger.info(f'business_pep: psycopg2 result data length: {len(pep_companies_data)} elements.')
+
         connection.close()
 
-        return data
+        return pep_data, pep_links_data, pep_companies_data
 
     def get_data_from_source_db(self):
 
@@ -361,19 +409,19 @@ class PepLinksLoader:
                 port=tunnel.local_bind_port,
             )
 
-    def save_pep_links(self, data):
-        for link in data:
-            from_person_source_db_id = str(link[0])
-            from_person = Pep.objects.filter(code=from_person_source_db_id).first()
+    def save_or_update_peps_links(self, peps_links_data):
+        for link in peps_links_data:
+            from_person_source_id = link[0]
+            from_person = self.all_peps_dict.get(from_person_source_id)
             if not from_person:
                 logger.info(f'No such pep in our DB. '
-                            f'Check records in the source DB with id {from_person_source_db_id}')
+                            f'Check records in the source DB with id {from_person_source_id}')
                 continue
-            to_person_source_db_id = str(link[1])
-            to_person = Pep.objects.filter(code=to_person_source_db_id).first()
+            to_person_source_id = link[1]
+            to_person = self.all_peps_dict.get(to_person_source_id)
             if not to_person:
                 logger.info(f'No such pep in our DB. '
-                            f'Check records in the source DB with id {to_person_source_db_id}')
+                            f'Check records in the source DB with id {to_person_source_id}')
                 continue
             from_person_relationship_type = link[2]
             to_person_relationship_type = link[3]
@@ -414,10 +462,266 @@ class PepLinksLoader:
                 if update_fields:
                     stored_link.save(update_fields=update_fields)
 
+    def create_company_link_with_pep(self, company, pep, company_short_name_eng, category,
+                                     start_date, confirmation_date, end_date, is_state_company):
+        CompanyLinkWithPep.objects.create(
+            company=company,
+            pep=pep,
+            company_short_name_eng=company_short_name_eng,
+            category=category,
+            start_date=start_date,
+            confirmation_date=confirmation_date,
+            end_date=end_date,
+            is_state_company=is_state_company
+        )
+
+    def save_or_update_peps_companies(self, peps_companies_data):
+        for link in peps_companies_data:
+            pep_source_id = link[0]
+            pep = self.all_peps_dict.get(pep_source_id)
+            if not pep:
+                logger.info(f'No such pep in our DB. '
+                            f'Check records in the source DB with id {pep_source_id}')
+                continue
+            company_antac_id = link[1]
+            start_date = to_lower_string_if_exists(link[2])
+            confirmation_date = to_lower_string_if_exists(link[3])
+            end_date = to_lower_string_if_exists(link[4])
+            category = link[5]
+            edrpou = link[6]
+            is_state_company = link[7]
+            company_short_name_eng = link[8]
+            company_name = link[9]
+            company = Company.objects.filter(antac_id=company_antac_id).first()
+            if not company and edrpou:
+                company = Company.objects.filter(edrpou=edrpou).first()
+                if company:
+                    company.antac_id = company_antac_id
+                    company.save(update_fields=['antac_id'])
+            if not company:
+                company = Company.objects.create(name=company_name, edrpou=edrpou,
+                                                 code=company_name + edrpou,
+                                                 antac_id=company_antac_id, from_antac_only=True)
+                self.create_company_link_with_pep(company, pep, company_short_name_eng, category,
+                                                  start_date, confirmation_date, end_date,
+                                                  is_state_company)
+            else:
+                already_stored_link = CompanyLinkWithPep.objects.filter(pep=pep, company=company).first()
+                if already_stored_link:
+                    update_fields = []
+                    if already_stored_link.company_short_name_eng != company_short_name_eng:
+                        already_stored_link.company_short_name_eng = company_short_name_eng
+                        update_fields.append('company_short_name_eng')
+                    if already_stored_link.category != category:
+                        already_stored_link.category = category
+                        update_fields.append('category')
+                    if already_stored_link.start_date != start_date:
+                        already_stored_link.start_date = start_date
+                        update_fields.append('start_date')
+                    if already_stored_link.confirmation_date != confirmation_date:
+                        already_stored_link.confirmation_date = confirmation_date
+                        update_fields.append('confirmation_date')
+                    if already_stored_link.end_date != end_date:
+                        already_stored_link.end_date = end_date
+                        update_fields.append('end_date')
+                    if already_stored_link.is_state_company != is_state_company:
+                        already_stored_link.is_state_company = is_state_company
+                        update_fields.append('is_state_company')
+                    if update_fields:
+                        already_stored_link.save(update_fields=update_fields)
+                else:
+                    self.create_company_link_with_pep(company, pep, company_short_name_eng, category,
+                                                      start_date, confirmation_date, end_date,
+                                                      is_state_company)
+
+    def save_or_update_peps(self, peps_data):
+        for pep_data in peps_data:
+            source_id = pep_data[0]
+            code = str(source_id)
+            last_name = pep_data[1].lower()
+            first_name = pep_data[2].lower()
+            middle_name = pep_data[3].lower()
+            fullname = f'{last_name} {first_name} {middle_name}'
+            fullname_eng = f'{pep_data[4]} {pep_data[5]} {pep_data[6]}'.lower()
+            fullname_transcriptions_eng = pep_data[7].lower()
+            is_pep = pep_data[8]
+            date_of_birth = to_lower_string_if_exists(pep_data[9])
+            place_of_birth = to_lower_string_if_exists(pep_data[10])
+            place_of_birth_eng = to_lower_string_if_exists(pep_data[11])
+            sanctions = pep_data[12]
+            sanctions_eng = pep_data[13]
+            criminal_record = pep_data[14]
+            criminal_record_eng = pep_data[15]
+            assets_info = pep_data[16]
+            assets_info_eng = pep_data[17]
+            criminal_proceedings = pep_data[18]
+            criminal_proceedings_eng = pep_data[19]
+            wanted = pep_data[20]
+            wanted_eng = pep_data[21]
+            info = pep_data[22]
+            info_eng = pep_data[23]
+            pep_type_number = pep_data[24]
+            pep_type = self.PEP_TYPES.get(pep_type_number) if pep_type_number else None
+            reason_of_termination_number = to_lower_string_if_exists(pep_data[25])
+            reason_of_termination = (self.PEP_TYPES.get(reason_of_termination_number)
+                                     if reason_of_termination_number else None)
+            is_dead = (reason_of_termination_number == 1)
+            termination_date = to_lower_string_if_exists(pep_data[26])
+
+            # last_job_title = pep_data.get('last_job_title')
+            # if last_job_title:
+            #     last_job_title = last_job_title.lower()
+            # last_job_title_eng = pep_data.get('last_job_title_en')
+            # if last_job_title_eng:
+            #     last_job_title_eng = last_job_title_eng.lower()
+            # last_employer = pep_data.get('last_workplace')
+            # if last_employer:
+            #     last_employer = last_employer.lower()
+            # last_employer_eng = pep_data.get('last_workplace_en')
+            # if last_employer_eng:
+            #     last_employer_eng = last_employer_eng.lower()
+            #
+            pep = self.all_peps_dict.get(source_id)
+            if not pep:
+                pep = Pep.objects.create(
+                    code=code,
+                    first_name=first_name,
+                    middle_name=middle_name,
+                    last_name=last_name,
+                    fullname=fullname,
+                    fullname_eng=fullname_eng,
+                    fullname_transcriptions_eng=fullname_transcriptions_eng,
+                    # last_job_title=last_job_title,
+                    # last_job_title_eng=last_job_title_eng,
+                    # last_employer=last_employer,
+                    # last_employer_eng=last_employer_eng,
+                    info=info,
+                    info_eng=info_eng,
+                    sanctions=sanctions,
+                    sanctions_eng=sanctions_eng,
+                    criminal_record=criminal_record,
+                    criminal_record_eng=criminal_record_eng,
+                    assets_info=assets_info,
+                    assets_info_eng=assets_info_eng,
+                    criminal_proceedings=criminal_proceedings,
+                    criminal_proceedings_eng=criminal_proceedings_eng,
+                    wanted=wanted,
+                    wanted_eng=wanted_eng,
+                    date_of_birth=date_of_birth,
+                    place_of_birth=place_of_birth,
+                    place_of_birth_eng=place_of_birth_eng,
+                    is_pep=is_pep,
+                    pep_type=pep_type,
+                    is_dead=is_dead,
+                    termination_date=termination_date,
+                    reason_of_termination=reason_of_termination,
+                    source_id=source_id
+                )
+                self.all_peps_dict[source_id] = pep
+            else:
+                update_fields = []
+                if pep.first_name != first_name:
+                    pep.first_name = first_name
+                    update_fields.append('first_name')
+                if pep.middle_name != middle_name:
+                    pep.middle_name = middle_name
+                    update_fields.append('middle_name')
+                if pep.last_name != last_name:
+                    pep.last_name = last_name
+                    update_fields.append('last_name')
+                if pep.fullname_transcriptions_eng != fullname_transcriptions_eng:
+                    pep.fullname_transcriptions_eng = fullname_transcriptions_eng
+                    update_fields.append('fullname_transcriptions_eng')
+                # if pep.last_job_title != last_job_title:
+                #     pep.last_job_title = last_job_title
+                #     update_fields.append('last_job_title')
+                # if pep.last_job_title_eng != last_job_title_eng:
+                #     pep.last_job_title_eng = last_job_title_eng
+                #     update_fields.append('last_job_title_eng')
+                # if pep.last_employer != last_employer:
+                #     pep.last_employer = last_employer
+                #     update_fields.append('last_employer')
+                # if pep.last_employer_eng != last_employer_eng:
+                #     pep.last_employer_eng = last_employer_eng
+                #     update_fields.append('last_employer_eng')
+                if pep.info != info:
+                    pep.info = info
+                    update_fields.append('info')
+                if pep.info_eng != info_eng:
+                    pep.info_eng = info_eng
+                    update_fields.append('info_eng')
+                if pep.sanctions != sanctions:
+                    pep.sanctions = sanctions
+                    update_fields.append('sanctions')
+                if pep.sanctions_eng != sanctions_eng:
+                    pep.sanctions_eng = sanctions_eng
+                    update_fields.append('sanctions_eng')
+                if pep.criminal_record != criminal_record:
+                    pep.criminal_record = criminal_record
+                    update_fields.append('criminal_record')
+                if pep.criminal_record_eng != criminal_record_eng:
+                    pep.criminal_record_eng = criminal_record_eng
+                    update_fields.append('criminal_record_eng')
+                if pep.assets_info != assets_info:
+                    pep.assets_info = assets_info
+                    update_fields.append('assets_info')
+                if pep.assets_info_eng != assets_info_eng:
+                    pep.assets_info_eng = assets_info_eng
+                    update_fields.append('assets_info_eng')
+                if pep.criminal_proceedings != criminal_proceedings:
+                    pep.criminal_proceedings = criminal_proceedings
+                    update_fields.append('criminal_proceedings')
+                if pep.criminal_proceedings_eng != criminal_proceedings_eng:
+                    pep.criminal_proceedings_eng = criminal_proceedings_eng
+                    update_fields.append('criminal_proceedings_eng')
+                if pep.wanted != wanted:
+                    pep.wanted = wanted
+                    update_fields.append('wanted')
+                if pep.wanted_eng != wanted_eng:
+                    pep.wanted_eng = wanted_eng
+                    update_fields.append('wanted_eng')
+                if pep.date_of_birth != date_of_birth:
+                    pep.date_of_birth = date_of_birth
+                    update_fields.append('date_of_birth')
+                if pep.place_of_birth != place_of_birth:
+                    pep.place_of_birth = place_of_birth
+                    update_fields.append('place_of_birth')
+                if pep.place_of_birth_eng != place_of_birth_eng:
+                    pep.place_of_birth_eng = place_of_birth_eng
+                    update_fields.append('place_of_birth_eng')
+                if pep.is_pep != is_pep:
+                    pep.is_pep = is_pep
+                    update_fields.append('is_pep')
+                if pep.pep_type != pep_type:
+                    pep.pep_type = pep_type
+                    update_fields.append('pep_type')
+                if pep.is_dead != is_dead:
+                    pep.is_dead = is_dead
+                    update_fields.append('is_dead')
+                if pep.termination_date != termination_date:
+                    pep.termination_date = termination_date
+                    update_fields.append('termination_date')
+                if pep.reason_of_termination != reason_of_termination:
+                    pep.reason_of_termination = reason_of_termination
+                    update_fields.append('reason_of_termination')
+                if pep.source_id != source_id:
+                    pep.source_id = source_id
+                    update_fields.append('source_id')
+                if len(update_fields):
+                    pep.save(update_fields=update_fields)
+
     def process(self):
-        data = self.get_data_from_source_db()
-        logger.info(f'business_pep: save_pep_links started with {len(data)} elements ...')
-        self.save_pep_links(data)
+        peps_data, peps_links_data, pep_companies_data = self.get_data_from_source_db()
+        logger.info(f'business_pep: save_or_update_peps started with {len(peps_data)} elements ...')
+        self.save_or_update_peps(peps_data)
+        logger.info(f'business_pep: save_or_update_peps finished.')
+
+        logger.info(f'business_pep: save_pep_links started with {len(peps_links_data)} elements ...')
+        self.save_or_update_peps_links(peps_links_data)
+        logger.info(f'business_pep: save_pep_links finish.')
+
+        logger.info(f'business_pep: save_pep_links started with {len(pep_companies_data)} elements ...')
+        self.save_or_update_peps_companies(pep_companies_data)
         logger.info(f'business_pep: save_pep_links finish.')
 
 
@@ -435,36 +739,21 @@ class PepDownloader(Downloader):
         logger.info(f'{self.reg_name}: Update started...')
 
         self.log_init()
-        self.download()
 
         self.log_obj.update_start = timezone.now()
         self.log_obj.save()
 
-        logger.info(f'{self.reg_name}: CompanyLinkWithPep.truncate() started...')
-        CompanyLinkWithPep.truncate()
-        logger.info(f'{self.reg_name}: CompanyLinkWithPep.truncate() finished successfully.')
-
-        logger.info(f'{self.reg_name}: Company.objects.filter(from_antac_only=True).delete() started...')
-        Company.objects.filter(from_antac_only=True).delete()
-        logger.info(f'{self.reg_name}: Company.objects.filter(from_antac_only=True).delete() finished successfully.')
-
-        logger.info(f'{self.reg_name}: save_to_db({self.file_path}) started ...')
-        PepConverter().save_to_db(self.file_path)
-        logger.info(f'{self.reg_name}: save_to_db({self.file_path}) finished successfully.')
+        logger.info(f'{self.reg_name}: process() started ...')
+        PepConverterFromDB().process()
+        logger.info(f'{self.reg_name}: process() finished successfully.')
 
         self.log_obj.update_finish = timezone.now()
         self.log_obj.update_status = True
         self.log_obj.save()
 
-        self.remove_file()
-
         self.vacuum_analyze(table_list=['business_register_pep', ])
 
         total_records = Pep.objects.count()
         self.update_total_records(settings.ALL_PEPS_DATASET_NAME, total_records)
-
-        logger.info(f'{self.reg_name}: PepLinksLoader().process() started...')
-        PepLinksLoader().process()
-        logger.info(f'{self.reg_name}: PepLinksLoader().process() finished successfully.')
 
         logger.info(f'{self.reg_name}: Update finished successfully.')
