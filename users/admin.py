@@ -21,8 +21,10 @@ class DataOceanUserChangeForm(UserChangeForm):
 class DataOceanUserAdmin(UserAdmin):
     add_form = DataOceanUserCreationForm
     form = DataOceanUserChangeForm
-    list_display = ('last_name', 'first_name', 'email', 'is_staff', 'is_active',)
-    list_filter = ('last_name', 'first_name', 'email', 'is_staff', 'is_active',)
+    list_display = ('last_name', 'first_name', 'email', 'date_joined', 'last_login', 'date_of_birth', 'organization',
+                    'position', 'language', 'is_staff', 'is_active', 'is_superuser')
+    list_filter = ('last_name', 'first_name', 'email', 'date_joined', 'last_login', 'date_of_birth', 'organization',
+                   'position', 'language', 'is_staff', 'is_active', 'is_superuser')
     fieldsets = (
         (None, {'fields': ('last_name', 'first_name', 'email', 'password')}),
         ('Permissions', {'fields': ('is_staff', 'is_active')}),
@@ -35,4 +37,3 @@ class DataOceanUserAdmin(UserAdmin):
     )
     search_fields = ('email',)
     ordering = ('email',)
-
