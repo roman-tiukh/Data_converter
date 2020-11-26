@@ -114,10 +114,11 @@ class UkrCompanyConverter(CompanyConverter):
     def save_or_update_founders(self, founders_from_record, company):
         already_stored_founders = list(Founder.objects.filter(company=company))
         for item in founders_from_record:
-            # checking if there is additional data except name
             info = item.text
-            if info.endswith('ВІДСУТНІЙ'):
+            # checking if field contains data
+            if not info or info.endswith('ВІДСУТНІЙ'):
                 continue
+            # checking if there is additional data except name
             if ',' in item.text:
                 name, is_beneficiary, address, equity = self.extract_founder_data(item.text)
                 name = name.lower()
