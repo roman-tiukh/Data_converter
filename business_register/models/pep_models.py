@@ -6,6 +6,33 @@ from data_ocean.models import DataOceanModel
 
 
 class Pep(DataOceanModel):
+    DIED = 'died'
+    RESIGNED = 'resigned'
+    LINKED_PEP_DIED = 'linked pep died'
+    LINKED_PEP_RESIGNED = 'linked pep resigned'
+    LEGISLATION_CHANGED = 'legislation changed'
+    COMPANY_STATUS_CHANGED = 'company status changed'
+    REASONS = (
+        (DIED, 'Помер'),
+        (RESIGNED, 'Звільнився або закінчилися повноваження'),
+        (LINKED_PEP_DIED, "Пов'язана особа або член сім'ї-публічний діяч помер"),
+        (LINKED_PEP_RESIGNED, "Пов'язана особа або член сім'ї-публічний діяч припинив ним бути"),
+        (LEGISLATION_CHANGED, 'Змінилося законодавство, що визначає статус публічного діяча'),
+        (COMPANY_STATUS_CHANGED, 'Змінилася форма власності компанії, посада в який надавала статус публічного діяча'),
+    )
+    NATIONAL_PEP = 'national PEP'
+    FOREIGN_PEP = 'foreign PEP'
+    PEP_FROM_INTERNATIONAL_ORGANISATION = 'PEP with political functions in international organization'
+    PEP_ASSOCIATED_PERSON = 'associated person with PEP'
+    PEP_FAMILY_MEMBER = "member of PEP`s family"
+    TYPES = (
+        (NATIONAL_PEP, 'Національний публічний діяч'),
+        (FOREIGN_PEP, 'Іноземний публічний діяч'),
+        (PEP_FROM_INTERNATIONAL_ORGANISATION, 'Діяч, що виконує політичні функції у міжнародній організації'),
+        (PEP_ASSOCIATED_PERSON, "Пов'язана особа"),
+        (PEP_FAMILY_MEMBER, "Член сім'ї"),
+    )
+
     code = models.CharField(max_length=15, unique=True)
     first_name = models.CharField("ім'я", max_length=20)
     middle_name = models.CharField('по батькові', max_length=25)
@@ -21,9 +48,8 @@ class Pep(DataOceanModel):
     is_pep = models.BooleanField('є публічним діячем', default=True)
     related_persons = models.ManyToManyField('self', "пов'язані особи",
                                              through='RelatedPersonsLink')
-    pep_type = models.CharField('тип публічного діяча', max_length=60, null=True)
+    pep_type = models.CharField('тип публічного діяча', choices=TYPES, max_length=60, null=True, blank=True)
     pep_type_eng = models.CharField('тип публічного діяча англійською', max_length=60, null=True)
-    url = models.URLField('посилання на профіль публічного діяча', max_length=512)
     info = models.TextField('додаткова інформація', null=True)
     info_eng = models.TextField('додаткова інформація англійською', null=True)
     sanctions = models.TextField('відомі санкції проти особи', null=True)
@@ -46,7 +72,7 @@ class Pep(DataOceanModel):
     termination_date = models.CharField('дата припинення статусу публічного діяча', max_length=10,
                                         null=True)
     reason_of_termination = models.CharField('причина припинення статусу публічного діяча',
-                                             max_length=125, null=True)
+                                             choices=REASONS, max_length=125, null=True, blank=True)
     reason_of_termination_eng = models.CharField('причина припинення статусу публічного діяча англійською',
                                                  max_length=125, null=True)
     source_id = models.PositiveIntegerField("id from original ANTAC`s DB", unique=True,
@@ -159,6 +185,17 @@ class RelatedPersonsLink(DataOceanModel):
 
 
 class CompanyLinkWithPep(DataOceanModel):
+    BANK_CUSTOMER = 'bank_customer'
+    OWNER = 'owner'
+    MANAGER = 'manager'
+    OTHER = 'other'
+    CATEGORIES = (
+        (BANK_CUSTOMER, 'Клієнт банку'),
+        (OWNER, 'Власник'),
+        (MANAGER, 'Керівник'),
+        (OTHER, 'Інше'),
+    )
+
     company = models.ForeignKey(Company, on_delete=models.CASCADE,
                                 related_name='relationships_with_peps',
                                 verbose_name="пов'язана з публічним діячем компанія")
@@ -168,6 +205,7 @@ class CompanyLinkWithPep(DataOceanModel):
     company_name_eng = models.CharField('назва компанії англійською', max_length=500, null=True)
     company_short_name_eng = models.CharField('скорочена назва компанії англійською',
                                               max_length=500, null=True)
+    category = models.CharField('категорія', max_length=15, choices=CATEGORIES, null=True, default=None, blank=True)
     relationship_type = models.CharField("тип зв'язку із публічним діячем", max_length=550,
                                          null=True)
     relationship_type_eng = models.CharField("тип зв'язку із публічним діячем англійською",

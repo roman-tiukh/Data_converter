@@ -14,7 +14,7 @@ from business_register.models.company_models import (
 from data_ocean.converter import BulkCreateManager
 from data_ocean.downloader import Downloader
 from data_ocean.utils import (cut_first_word, format_date_to_yymmdd, get_first_word,
-                              convert_to_string_if_exists)
+                              to_lower_string_if_exists)
 from location_register.converter.address import AddressConverter
 
 logger = logging.getLogger(__name__)
@@ -518,7 +518,7 @@ class UkrCompanyConverter(CompanyConverter):
                 if company.bylaw != bylaw:
                     company.bylaw = bylaw
                     update_fields.append('bylaw')
-                if convert_to_string_if_exists(company.registration_date) != registration_date:
+                if to_lower_string_if_exists(company.registration_date) != registration_date:
                     company.registration_date = registration_date
                     update_fields.append('registration_date')
                 if company.registration_info != registration_info:

@@ -9,7 +9,7 @@ from lxml import html
 from business_register.converter.company_converters.company import CompanyConverter
 from business_register.models.company_models import Company
 from data_ocean.downloader import Downloader
-from data_ocean.utils import format_date_to_yymmdd, convert_to_string_if_exists
+from data_ocean.utils import format_date_to_yymmdd, to_lower_string_if_exists
 from location_register.converter.address import AddressConverter
 
 # Standard instance of a logger with __name__
@@ -65,7 +65,7 @@ class UkCompanyConverter(CompanyConverter):
                     if company.status != status:
                         company.status = status
                         update_fields.append('status')
-                    if convert_to_string_if_exists(company.registration_date) != registration_date:
+                    if to_lower_string_if_exists(company.registration_date) != registration_date:
                         company.registration_date = registration_date
                         update_fields.append('registration_date')
                     if company.code != code:

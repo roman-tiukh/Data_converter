@@ -97,11 +97,13 @@ class CompanyListSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
 
 
 class PepShortSerializer(serializers.ModelSerializer):
+    pep_type = serializers.CharField(source='get_pep_type_display')
+
     class Meta:
         model = Pep
         fields = (
             'id', 'fullname', 'last_job_title', 'last_employer',
-            'is_pep', 'pep_type', 'url'
+            'is_pep', 'pep_type'
         )
 
 
@@ -111,7 +113,7 @@ class CompanyLinkWithPepSerializer(serializers.ModelSerializer):
     class Meta:
         model = CompanyLinkWithPep
         fields = (
-            'pep', 'company_name_eng', 'company_short_name_eng', 'relationship_type',
+            'pep', 'company_name_eng', 'company_short_name_eng', 'category', 'relationship_type',
             'relationship_type_eng', 'start_date', 'end_date', 'is_state_company'
         )
 
@@ -188,11 +190,12 @@ class ToRelatedPersonLinkSerializer(serializers.ModelSerializer):
 
 class PepLinkWithCompanySerializer(serializers.ModelSerializer):
     company = CompanyShortSerializer()
+    category = serializers.CharField(source='get_category_display')
 
     class Meta:
         model = CompanyLinkWithPep
         fields = (
-            'company', 'company_name_eng', 'company_short_name_eng',
+            'company', 'company_name_eng', 'company_short_name_eng', 'category',
             'relationship_type', 'relationship_type_eng', 'start_date', 'end_date',
             'is_state_company',
         )
@@ -200,11 +203,12 @@ class PepLinkWithCompanySerializer(serializers.ModelSerializer):
 
 class PepDetailLinkWithCompanySerializer(serializers.ModelSerializer):
     company = CountFoundedCompaniesSerializer()
+    category = serializers.CharField(source='get_category_display')
 
     class Meta:
         model = CompanyLinkWithPep
         fields = (
-            'company', 'company_name_eng', 'company_short_name_eng', 'relationship_type',
+            'company', 'company_name_eng', 'company_short_name_eng', 'category', 'relationship_type',
             'relationship_type_eng', 'start_date', 'end_date', 'is_state_company',
         )
 
@@ -215,6 +219,8 @@ class PepDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     related_companies = serializers.SerializerMethodField()
     # other companies founded by persons with the same fullname as pep
     check_companies = CountFoundedCompaniesSerializer(many=True)
+    pep_type = serializers.CharField(source='get_pep_type_display')
+    reason_of_termination = serializers.CharField(source='get_reason_of_termination_display')
 
     def get_related_companies(self, obj):
         queryset = obj.related_companies.select_related('company', 'company__company_type', 'company__status').all()
@@ -225,7 +231,7 @@ class PepDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
         fields = (
             'id', 'fullname', 'fullname_eng', 'fullname_transcriptions_eng', 'last_job_title',
             'last_job_title_eng', 'last_employer', 'last_employer_eng', 'is_pep', 'pep_type',
-            'pep_type_eng', 'url', 'info', 'info_eng', 'sanctions', 'sanctions_eng',
+            'pep_type_eng', 'info', 'info_eng', 'sanctions', 'sanctions_eng',
             'criminal_record', 'criminal_record_eng', 'assets_info', 'assets_info_eng',
             'criminal_proceedings', 'criminal_proceedings_eng', 'wanted', 'wanted_eng',
             'date_of_birth', 'place_of_birth', 'place_of_birth_eng', 'is_dead',
@@ -238,13 +244,15 @@ class PepDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
 class PepListSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     related_persons = PepShortSerializer(many=True)
     related_companies = PepLinkWithCompanySerializer(many=True)
+    pep_type = serializers.CharField(source='get_pep_type_display')
+    reason_of_termination = serializers.CharField(source='get_reason_of_termination_display')
 
     class Meta:
         model = Pep
         fields = (
             'id', 'fullname', 'fullname_eng', 'fullname_transcriptions_eng', 'last_job_title',
             'last_job_title_eng', 'last_employer', 'last_employer_eng', 'is_pep', 'pep_type',
-            'pep_type_eng', 'url', 'info', 'info_eng', 'sanctions', 'sanctions_eng',
+            'pep_type_eng', 'info', 'info_eng', 'sanctions', 'sanctions_eng',
             'criminal_record', 'criminal_record_eng', 'assets_info', 'assets_info_eng',
             'criminal_proceedings', 'criminal_proceedings_eng', 'wanted', 'wanted_eng',
             'date_of_birth', 'place_of_birth', 'place_of_birth_eng', 'is_dead',

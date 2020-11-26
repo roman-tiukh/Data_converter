@@ -63,9 +63,9 @@ def format_date_to_yymmdd(str_ddmmyy):
 
 
 # checking if exists, then converting to string
-def convert_to_string_if_exists(value):
+def to_lower_string_if_exists(value):
     if value:
-        return str(value)
+        return str(value).lower()
     return None
 
 

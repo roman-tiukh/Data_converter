@@ -42,6 +42,8 @@ class Company(DataOceanModel):  # constraint for not null in both name & short_n
                                   verbose_name='орган реєстрації')
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True,
                                verbose_name='є підрозділом компанії/організації')
+    antac_id = models.PositiveIntegerField("id from ANTAC`s DB", unique=True,
+                                           db_index=True, null=True, default=None, blank=True)
     from_antac_only = models.BooleanField(null=True)
     code = models.CharField(max_length=510, db_index=True)
     history = HistoricalRecords()
