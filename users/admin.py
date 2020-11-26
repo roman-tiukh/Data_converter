@@ -37,3 +37,4 @@ class DataOceanUserAdmin(UserAdmin):
     )
     search_fields = ('email',)
     ordering = ('email',)
+
