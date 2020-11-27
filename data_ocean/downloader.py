@@ -48,14 +48,16 @@ class Downloader(ABC):
     def get_headers(self):
         return self.headers
 
-    def unzip_file(self):
+    def is_zip_file(self):
         if not zipfile.is_zipfile(self.file_path):
             msg = f'Error! {self.file_path} is not a Zip file!'
             self.log_obj.unzip_message = msg
             self.log_obj.save()
             logger.exception(f'{self.reg_name}: {msg}')
-            exit(1)
+            raise Exception('Unzip error!', msg)
+        return True
 
+    def test_zip_file(self):
         logger.info(f'{self.reg_name}: Test archive {self.file_path} start...')
         test_error = subprocess.run(['unzip', '-t', self.file_path]).returncode
         if test_error:
@@ -63,29 +65,49 @@ class Downloader(ABC):
             self.log_obj.unzip_message = msg
             self.log_obj.save()
             logger.exception(f'{self.reg_name}: {msg}')
-            exit(1)
+            raise Exception('Unzip error!', msg)
         logger.info(f'{self.reg_name}: Test archive finished successfully.')
+        return True
 
+    def get_zip_filelist(self):
         file_list = zipfile.ZipFile(self.file_path).namelist()
         logger.info(f'{self.reg_name}: Archive file list: {file_list}')
-        for i in file_list:
-            if self.unzip_required_file_sign in i:
-                logger.info(f'{self.reg_name}: Unzipping {self.file_path} ...')
-                unzip_status = subprocess.run(['unzip', '-o', self.file_path, i, '-d', self.local_path]).returncode
-                if not unzip_status:
-                    logger.info(f'{self.reg_name}: Unzipping {self.file_path} finished successfully.')
-                    self.file_name = i
-                    self.file_path = self.local_path + self.file_name
-                    self.log_obj.unzip_file_name = self.file_name
-                    self.log_obj.unzip_status = True
-                    self.log_obj.save()
-                    return
+        return file_list
 
+    def unzip_result(self, i):
+        logger.info(f'{self.reg_name}: Unzipping {self.file_path} ...')
+        unzip_status = subprocess.run(['unzip', '-o', self.file_path, i, '-d', self.local_path]).returncode
+        if not unzip_status:
+            logger.info(f'{self.reg_name}: Unzipping {self.file_path} finished successfully.')
+            self.remove_file()
+            self.file_name = i
+            self.file_path = self.local_path + self.file_name
+            self.log_obj.unzip_file_name = self.file_name
+            self.log_obj.unzip_status = True
+            self.log_obj.save()
+            return True
+
+        msg = f'Error! Unzip failed for {self.file_path}! Return status: {unzip_status}!'
+        self.log_obj.unzip_message = msg
+        self.log_obj.save()
+        logger.exception(f'{self.reg_name}: {msg}')
+        raise Exception('Error!', msg)
+
+    def no_req_sign(self):
         msg = f'Error! Unzip failed for {self.file_path}! File with required sign not found!'
         self.log_obj.unzip_message = msg
         self.log_obj.save()
         logger.exception(f'{self.reg_name}: {msg}')
-        exit(1)
+        raise Exception('Error!', msg)
+
+    def unzip_source_file(self):
+        self.is_zip_file()
+        self.test_zip_file()
+        for i in self.get_zip_filelist():
+            if self.unzip_required_file_sign in i:
+                if self.unzip_result(i):
+                    return
+        self.no_req_sign()
 
     def file_size_is_correct(self):
         if os.path.isfile(self.file_path):
@@ -156,10 +178,10 @@ class Downloader(ABC):
             self.log_obj.download_message = f'{e}'[:255]
             self.log_obj.save()
             logger.exception(f'{self.reg_name}: {e}')
-            exit(1)
+            raise Exception('Error!', e)
 
         if self.unzip_after_download:
-            self.unzip_file()
+            self.unzip_source_file()
 
     def update_total_records(self, dataset_name, total_records):
         dataset = Dataset.objects.get(name=dataset_name)

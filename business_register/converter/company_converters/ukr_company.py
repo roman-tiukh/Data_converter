@@ -1,5 +1,6 @@
 import logging
 import re
+from time import sleep
 
 import requests
 from django.conf import settings
@@ -738,7 +739,7 @@ class UkrCompanyDownloader(Downloader):
     chunk_size = 16 * 1024 * 1024
     reg_name = 'business_ukr_company'
     zip_required_file_sign = 'ufop_full'
-    unzip_required_file_sign = 'EDR_UO_FULL'
+    unzip_required_file_sign = 'EDR_UO'
     unzip_after_download = True
     source_dataset_url = settings.BUSINESS_UKR_COMPANY_SOURCE_PACKAGE
 
@@ -750,7 +751,7 @@ class UkrCompanyDownloader(Downloader):
             return
 
         for i in r.json()['result']['resources']:
-            if self.zip_required_file_sign in i['url']:
+            if self.zip_required_file_sign not in i['url']:
                 return i['url']
 
     def get_source_file_name(self):
@@ -769,12 +770,16 @@ class UkrCompanyDownloader(Downloader):
         logger.info(f'{self.reg_name}: process() with {self.file_path} started ...')
         ukr_company = UkrCompanyConverter()
         ukr_company.LOCAL_FILE_NAME = self.file_name
+        sleep(5)
         ukr_company.process()
         logger.info(f'{self.reg_name}: process() with {self.file_path} finished successfully.')
 
         self.log_obj.update_finish = timezone.now()
         self.log_obj.update_status = True
         self.log_obj.save()
+
+        sleep(5)
+        self.vacuum_analyze(table_list=['business_register_company', ])
 
         self.remove_file()
 

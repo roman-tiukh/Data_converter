@@ -198,7 +198,7 @@ class Converter:
                     logger.error(msg)
                     traceback.print_exc()
                     print(msg)
-                    exit(1)
+                    raise Exception('Error!', msg)
                 records.clear()
                 print('>>> Saved successfully')
         if records_len:
