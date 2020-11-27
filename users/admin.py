@@ -21,11 +21,13 @@ class DataOceanUserChangeForm(UserChangeForm):
 class DataOceanUserAdmin(UserAdmin):
     add_form = DataOceanUserCreationForm
     form = DataOceanUserChangeForm
-    list_display = ('last_name', 'first_name', 'email', 'is_staff', 'is_active',)
-    list_filter = ('last_name', 'first_name', 'email', 'is_staff', 'is_active',)
+    list_display = ('last_name', 'first_name', 'email', 'date_joined', 'last_login', 'date_of_birth', 'organization',
+                    'language', 'is_staff', 'is_active')
+    list_filter = ('date_joined', 'last_login', 'date_of_birth', 'language', 'is_staff', 'is_active', 'is_superuser')
     fieldsets = (
-        (None, {'fields': ('last_name', 'first_name', 'email', 'password')}),
-        ('Permissions', {'fields': ('is_staff', 'is_active')}),
+        (None, {'fields': ('id', 'last_name', 'first_name', 'email', 'date_joined', 'last_login', 'date_of_birth',
+                           'organization', 'position', 'language', 'password')}),
+        ('Permissions', {'fields': ('is_staff', 'is_active', 'is_superuser')}),
     )
     add_fieldsets = (
         (None, {
@@ -33,6 +35,14 @@ class DataOceanUserAdmin(UserAdmin):
             'fields': ('email', 'password1', 'password2', 'is_staff', 'is_active')}
          ),
     )
-    search_fields = ('email',)
-    ordering = ('email',)
+    search_fields = ('last_name', 'first_name', 'email', 'organization')
+    ordering = ('date_joined',)
 
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
