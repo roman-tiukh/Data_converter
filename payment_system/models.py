@@ -371,7 +371,7 @@ class ProjectSubscription(DataOceanModel):
     @classmethod
     def update_expire_subscriptions(cls) -> str:
         project_subscriptions_for_update = ProjectSubscription.objects.filter(
-            expiring_date__gte=timezone.localdate()
+            expiring_date__lte=timezone.localdate(),
         )
 
         if not project_subscriptions_for_update:
