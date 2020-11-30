@@ -198,7 +198,7 @@ class InvitationListView(generics.ListAPIView):
 
 class SubscriptionsListView(generics.ListAPIView):
     serializer_class = SubscriptionSerializer
-    queryset = Subscription.objects.all()
+    queryset = Subscription.objects.filter(is_custom=False)
     pagination_class = None
 
 
@@ -215,19 +215,26 @@ class InvoiceListView(generics.ListAPIView):
     pagination_class = None
 
 
-class ProjectSubscriptionCreateView(generics.CreateAPIView):
-    serializer_class = ProjectSubscriptionSerializer
-    queryset = ProjectSubscription.objects.all()
+class ProjectAddSubscriptionView(ProjectViewMixin, APIView):
+    def put(self, request, pk, subscription_id):
+        project = get_object_or_404(self.get_queryset(), pk=pk)
+        self.check_object_permissions(self.request, project)
+
+        subscription = get_object_or_404(Subscription, pk=subscription_id)
+
+        project.add_subscription(subscription)
+
+        return Response(status=204)
 
 
-class ProjectSubscriptionDisableView(generics.GenericAPIView):
-    serializer_class = ProjectSubscriptionSerializer
-    queryset = ProjectSubscription.objects.all()
-
-    def put(self, request, pk):
-        project_subscription = self.get_object()
-
-        project_subscription.disable()
-
-        serializer = self.get_serializer(instance=project_subscription)
-        return Response(serializer.data)
+# class ProjectSubscriptionDisableView(generics.GenericAPIView):
+#     serializer_class = ProjectSubscriptionSerializer
+#     queryset = ProjectSubscription.objects.all()
+#
+#     def put(self, request, pk):
+#         project_subscription: ProjectSubscription = self.get_object()
+#
+#         project_subscription.disable()
+#
+#         serializer = self.get_serializer(instance=project_subscription)
+#         return Response(serializer.data)

@@ -10,9 +10,11 @@ from payment_system.models import (
 
 
 class ProjectSubscriptionSerializer(serializers.ModelSerializer):
-
     def create(self, validated_data):
-        return ProjectSubscription.create(**validated_data)
+        return ProjectSubscription.create(
+            project=validated_data['project'],
+            subscription=validated_data['subscription'],
+        )
 
     class Meta:
         model = ProjectSubscription
@@ -57,6 +59,9 @@ class ProjectListSerializer(serializers.ModelSerializer):
     role = serializers.SerializerMethodField(read_only=True)
     status = serializers.SerializerMethodField(read_only=True)
     owner = serializers.CharField(source='owner.get_full_name', read_only=True)
+    users_count = serializers.SerializerMethodField(read_only=True)
+
+    active_subscription = serializers.CharField(source='active_subscription.name', read_only=True)
 
     def get_is_default(self, obj):
         return obj.user_projects.get(user=self.context['request'].user).is_default
@@ -67,11 +72,15 @@ class ProjectListSerializer(serializers.ModelSerializer):
     def get_status(self, obj):
         return obj.user_projects.get(user=self.context['request'].user).status
 
+    def get_users_count(self, obj):
+        return obj.users.count()
+
     class Meta:
         model = Project
         fields = [
             'id', 'name', 'description', 'is_active',
             'is_default', 'role', 'status', 'owner',
+            'users_count', 'active_subscription',
         ]
         read_only_fields = fields
 
@@ -123,8 +132,9 @@ class SubscriptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subscription
         read_only_fields = (
-            'id', 'custom', 'name', 'description', 'price',
+            'id', 'name', 'description', 'price',
             'requests_limit', 'duration', 'grace_period',
+            'is_custom', 'is_default',
         )
         fields = read_only_fields
 
