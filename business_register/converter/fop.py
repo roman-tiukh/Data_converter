@@ -1,4 +1,6 @@
 import logging
+from time import sleep
+import re
 import requests
 from django.utils import timezone
 from data_ocean.downloader import Downloader
@@ -274,14 +276,14 @@ class FopConverter(BusinessConverter):
             self.bulk_manager.commit(ExchangeDataFop)
         self.bulk_manager.queues['business_register.FopToKved'] = []
         self.bulk_manager.queues['business_register.ExchangeDataFop'] = []
-    print("For storing run FopConverter().process_full()")
+    print("For storing run FopConverter().process()")
 
 
 class FopDownloader(Downloader):
     chunk_size = 16 * 1024 * 1024
     reg_name = 'business_fop'
-    zip_required_file_sign = 'ufop_full'
-    unzip_required_file_sign = 'EDR_FOP_FULL'
+    zip_required_file_sign = re.compile(r'UFOP_[0-3]')
+    unzip_required_file_sign = 'EDR_FOP'
     unzip_after_download = True
     source_dataset_url = settings.BUSINESS_FOP_SOURCE_PACKAGE
 
@@ -293,7 +295,9 @@ class FopDownloader(Downloader):
             return
 
         for i in r.json()['result']['resources']:
-            if self.zip_required_file_sign in i['url']:
+            # 17-ufop_25-11-2020.zip       <---
+            # 17-ufop_full_07-08-2020.zip
+            if re.search(self.zip_required_file_sign, i['name']):
                 return i['url']
 
     def get_source_file_name(self):
@@ -309,18 +313,20 @@ class FopDownloader(Downloader):
         self.log_obj.update_start = timezone.now()
         self.log_obj.save()
 
-        logger.info(f'{self.reg_name}: process_full() with {self.file_path} started ...')
+        logger.info(f'{self.reg_name}: process() with {self.file_path} started ...')
         fop = FopConverter()
         fop.LOCAL_FILE_NAME = self.file_name
+        sleep(5)
         fop.process()
-        logger.info(f'{self.reg_name}: process_full() with {self.file_path} finished successfully.')
+        logger.info(f'{self.reg_name}: process() with {self.file_path} finished successfully.')
 
         self.log_obj.update_finish = timezone.now()
         self.log_obj.update_status = True
         self.log_obj.save()
 
-        self.remove_file()
-
+        sleep(5)
         self.vacuum_analyze(table_list=['business_register_fop', ])
+
+        self.remove_file()
 
         logger.info(f'{self.reg_name}: Update finished successfully.')
