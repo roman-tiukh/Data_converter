@@ -5,6 +5,8 @@ import os
 import traceback
 import zipfile
 from collections import defaultdict
+from datetime import datetime
+from time import sleep
 from xml.etree.ElementTree import iterparse
 import requests
 import xmltodict
@@ -200,9 +202,24 @@ class Converter:
                     print(msg)
                     raise Exception('Error!', msg)
                 records.clear()
+
+                # http://lxml.de/parsing.html#modifying-the-tree
+                # Based on Liza Daly fast_iter
+                # http://www.ibm.com/developerworks/xml/library/x-hiperfparse/
+                # See also http://effbot.org/zone/element-iterparse.htm
+                #
+                # It safe to call clear() here because no descendants will be accessed
+                elem.clear()
+                # # Also eliminate now-empty references from the root node to elem
+                for ancestor in elem.xpath('ancestor-or-self::*'):
+                    while ancestor.getprevious() is not None:
+                        del ancestor.getparent()[0]
+
                 print('>>> Saved successfully')
         if records_len:
             self.save_to_db(records)
+
+        del elements
         print('All the records have been rewritten.')
 
     print('Converter has imported.')

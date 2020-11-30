@@ -738,7 +738,7 @@ class UkrCompanyConverter(CompanyConverter):
 class UkrCompanyDownloader(Downloader):
     chunk_size = 16 * 1024 * 1024
     reg_name = 'business_ukr_company'
-    zip_required_file_sign = 'ufop_full'
+    zip_required_file_sign = re.compile(r'UFOP_[0-3]')
     unzip_required_file_sign = 'EDR_UO'
     unzip_after_download = True
     source_dataset_url = settings.BUSINESS_UKR_COMPANY_SOURCE_PACKAGE
@@ -751,7 +751,9 @@ class UkrCompanyDownloader(Downloader):
             return
 
         for i in r.json()['result']['resources']:
-            if self.zip_required_file_sign not in i['url']:
+            # 17-ufop_25-11-2020.zip       <---
+            # 17-ufop_full_07-08-2020.zip
+            if re.search(self.zip_required_file_sign, i['name']):
                 return i['url']
 
     def get_source_file_name(self):
