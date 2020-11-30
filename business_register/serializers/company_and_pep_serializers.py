@@ -15,30 +15,6 @@ HistoricalFounder = apps.get_model('business_register', 'HistoricalFounder')
 HistoricalSigner = apps.get_model('business_register', 'HistoricalSigner')
 
 
-class HistoricalAssigneeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = HistoricalAssignee
-        fields = '__all__'
-
-
-class HistoricalCompanyDetailSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = HistoricalCompanyDetail
-        fields = '__all__'
-
-
-class HistoricalFounderSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = HistoricalFounder
-        fields = '__all__'
-
-
-class HistoricalSignerSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = HistoricalSigner
-        fields = '__all__'
-
-
 class BancruptcyReadjustmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = BancruptcyReadjustment
@@ -182,9 +158,33 @@ class CompanyDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
         )
 
 
+class HistoricalAssigneeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HistoricalAssignee
+        fields = '__all__'
+
+
 class HistoricalCompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = HistoricalCompany
+        fields = '__all__'
+
+
+class HistoricalCompanyDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HistoricalCompanyDetail
+        fields = '__all__'
+
+
+class HistoricalFounderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HistoricalFounder
+        fields = '__all__'
+
+
+class HistoricalSignerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HistoricalSigner
         fields = '__all__'
 
 

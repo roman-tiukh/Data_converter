@@ -18,28 +18,6 @@ HistoricalCompanyDetail = apps.get_model('business_register', 'HistoricalCompany
 HistoricalFounder = apps.get_model('business_register', 'HistoricalFounder')
 HistoricalSigner = apps.get_model('business_register', 'HistoricalSigner')
 
-class HistoricalCompanyView(CachedViewMixin, viewsets.ReadOnlyModelViewSet):
-    queryset = HistoricalCompany.objects.all()
-    serializer_class = HistoricalCompanySerializer
-
-class HistoricalAssigneeView(CachedViewMixin, viewsets.ReadOnlyModelViewSet):
-    queryset = HistoricalAssignee.objects.all()
-    serializer_class = HistoricalAssigneeSerializer
-
-class HistoricalCompanyDetailView(CachedViewMixin, viewsets.ReadOnlyModelViewSet):
-    queryset = HistoricalCompanyDetail.objects.all()
-    serializer_class = HistoricalCompanyDetailSerializer
-
-
-class HistoricalFounderView(CachedViewMixin, viewsets.ReadOnlyModelViewSet):
-    queryset = HistoricalFounder.objects.all()
-    serializer_class = HistoricalFounderSerializer
-
-
-class HistoricalSignerView(CachedViewMixin, viewsets.ReadOnlyModelViewSet):
-    queryset = HistoricalSigner.objects.all()
-    serializer_class = HistoricalSignerSerializer
-
 
 class CompanyViewSet(CachedViewMixin, viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated | PepSchemaToken]
@@ -63,3 +41,28 @@ class CompanyViewSet(CachedViewMixin, viewsets.ReadOnlyModelViewSet):
         if self.action == 'list':
             return self.queryset.exclude(from_antac_only=True).filter(country__name='ukraine')
         return self.queryset.filter(country__name='ukraine')
+
+
+class HistoricalAssigneeView(CachedViewMixin, viewsets.ReadOnlyModelViewSet):
+    queryset = HistoricalAssignee.objects.all()
+    serializer_class = HistoricalAssigneeSerializer
+
+
+class HistoricalCompanyView(CachedViewMixin, viewsets.ReadOnlyModelViewSet):
+    queryset = HistoricalCompany.objects.all()
+    serializer_class = HistoricalCompanySerializer
+
+
+class HistoricalCompanyDetailView(CachedViewMixin, viewsets.ReadOnlyModelViewSet):
+    queryset = HistoricalCompanyDetail.objects.all()
+    serializer_class = HistoricalCompanyDetailSerializer
+
+
+class HistoricalFounderView(CachedViewMixin, viewsets.ReadOnlyModelViewSet):
+    queryset = HistoricalFounder.objects.all()
+    serializer_class = HistoricalFounderSerializer
+
+
+class HistoricalSignerView(CachedViewMixin, viewsets.ReadOnlyModelViewSet):
+    queryset = HistoricalSigner.objects.all()
+    serializer_class = HistoricalSignerSerializer
