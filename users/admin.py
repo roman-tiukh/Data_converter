@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 
-from users.models import DataOceanUser
+from users.models import DataOceanUser, Question
 
 
 class DataOceanUserCreationForm(UserCreationForm):
@@ -40,6 +40,33 @@ class DataOceanUserAdmin(UserAdmin):
 
     def has_change_permission(self, request, obj=None):
         return False
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(Question)
+class QuestionAdmin(admin.ModelAdmin):
+    list_display = (
+        'text',
+        'user',
+        'answered'
+    )
+    exclude = ('deleted_at',)
+    list_filter = (
+        'user',
+        'answered',
+        'created_at'
+    )
+    search_fields = ('text',)
+    readonly_fields = (
+        'text',
+        'user'
+    )
+    ordering = ('created_at',)
 
     def has_add_permission(self, request):
         return False

@@ -80,3 +80,13 @@ class CandidateUserModel(models.Model):
 
     def __str__(self):
         return self.email
+
+
+class Question(DataOceanModel):
+    text = models.TextField('текст запитання', max_length=500)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+                             related_name='questions')
+    answered = models.BooleanField('чи була надана відповідь', default=False)
+
+    def __str__(self):
+        return self.text
