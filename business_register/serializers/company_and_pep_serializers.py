@@ -9,6 +9,10 @@ from business_register.models.company_models import (
 from business_register.models.pep_models import CompanyLinkWithPep, Pep, RelatedPersonsLink
 
 HistoricalCompany = apps.get_model('business_register', 'HistoricalCompany')
+HistoricalAssignee = apps.get_model('business_register', 'HistoricalAssignee')
+HistoricalCompanyDetail = apps.get_model('business_register', 'HistoricalCompanyDetail')
+HistoricalFounder = apps.get_model('business_register', 'HistoricalFounder')
+HistoricalSigner = apps.get_model('business_register', 'HistoricalSigner')
 
 
 class BancruptcyReadjustmentSerializer(serializers.ModelSerializer):
@@ -154,9 +158,33 @@ class CompanyDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
         )
 
 
+class HistoricalAssigneeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HistoricalAssignee
+        fields = '__all__'
+
+
 class HistoricalCompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = HistoricalCompany
+        fields = '__all__'
+
+
+class HistoricalCompanyDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HistoricalCompanyDetail
+        fields = '__all__'
+
+
+class HistoricalFounderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HistoricalFounder
+        fields = '__all__'
+
+
+class HistoricalSignerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HistoricalSigner
         fields = '__all__'
 
 
