@@ -156,7 +156,8 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
         'rest_framework_xml.renderers.XMLRenderer',
-    ]
+    ],
+    'EXCEPTION_HANDLER': 'data_converter.drf_exc_handler.exception_handler',
 }
 
 SITE_ID = 1
