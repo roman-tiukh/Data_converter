@@ -12,6 +12,19 @@ from data_ocean.models import Register
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from data_ocean.serializers import RegisterSerializer
+from rest_framework.permissions import IsAuthenticated
+from payment_system.permissions import AccessFromProjectToken
+
+
+class CachedViewMixin:
+    @method_decorator(cache_page(60 * 15))
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
+
+class RegisterViewMixin:
+    # TODO: remove IsAuthenticated after project-tokens will be finished.
+    permission_classes = [IsAuthenticated | AccessFromProjectToken]
 
 
 class DOEndpointEnumerator(EndpointEnumerator):
@@ -58,15 +71,10 @@ class Views(GenericAPIView):
         return Response(data)
 
 
-class RegisterView(viewsets.ReadOnlyModelViewSet):
+class RegisterView(RegisterViewMixin, viewsets.ReadOnlyModelViewSet):
     queryset = Register.objects.all()
     serializer_class = RegisterSerializer
     filterset_class = RegisterFilter
     filter_backends = [DjangoFilterBackend, SearchFilter]
     search_fields = ['name', 'source_register_id', 'status', ]
 
-
-class CachedViewMixin:
-    @method_decorator(cache_page(60 * 15))
-    def dispatch(self, *args, **kwargs):
-        return super().dispatch(*args, **kwargs)

@@ -1,8 +1,12 @@
+from django.utils import timezone
 from rest_framework import permissions
 from rest_framework.permissions import SAFE_METHODS
+from rest_framework.request import Request
+from django.conf import settings
 
 from .models import (
     Project,
+    ProjectSubscription,
 )
 
 
@@ -19,3 +23,28 @@ class ProjectPermission(permissions.BasePermission):
             else:
                 return obj.has_write_perms(user=user)
         return False
+
+
+class AccessFromProjectToken(permissions.BasePermission):
+    def has_permission(self, request: Request, view):
+        auth_header = request.headers.get('authorization')
+        if not auth_header or type(auth_header) != str:
+            return False
+        auth_words = auth_header.split()
+        if len(auth_words) != 2 or auth_words[0] != settings.PROJECT_TOKEN_KEYWORD:
+            return False
+        token = auth_words[1]
+        try:
+            project = Project.objects.get(token=token)
+        except Project.DoesNotExist:
+            return False
+
+        current_p2s = project.active_p2s
+        if current_p2s.requests_left <= 0:
+            return False
+
+        if current_p2s.expiring_date <= timezone.localdate():
+            current_p2s.expire()
+
+        request._request.project = project
+        return True

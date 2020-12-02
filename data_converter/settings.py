@@ -59,7 +59,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'stats.middleware.ApiUsageMiddleware'
+    'stats.middleware.ApiUsageMiddleware',
+    'payment_system.middleware.RequestsLimitMiddleware',
 ]
 
 INTERNAL_IPS = [
@@ -237,6 +238,10 @@ DEFAULT_SUBSCRIPTION_NAME = 'Freemium'
 
 DEFAULT_PROJECT_NAME = 'Default project'
 DEFAULT_PROJECT_DESCRIPTION = 'This is auto created default project'
+
+# PROJECT_TOKEN_KEYWORD - its a token prefix, example:
+# Authorization: DataOcean <project_token>
+PROJECT_TOKEN_KEYWORD = 'DataOcean'
 
 # DATASET`S CONSTANTS ==================
 ALL_PEPS_DATASET_NAME = 'all PEPs list'

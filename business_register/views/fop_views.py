@@ -4,11 +4,13 @@ from rest_framework import viewsets
 from business_register.filters import FopFilterSet
 from business_register.models.fop_models import Fop
 from business_register.serializers.fop_serializers import FopSerializer
-from data_ocean.views import CachedViewMixin
+from data_ocean.views import CachedViewMixin, RegisterViewMixin
 from rest_framework.filters import SearchFilter
 
 
-class FopViewSet(CachedViewMixin, viewsets.ReadOnlyModelViewSet):
+class FopViewSet(RegisterViewMixin,
+                 CachedViewMixin,
+                 viewsets.ReadOnlyModelViewSet):
     queryset = Fop.objects.select_related(
         'status', 'authority'
     ).prefetch_related(

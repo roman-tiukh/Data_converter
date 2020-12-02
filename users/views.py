@@ -44,7 +44,7 @@ class UserListView(generics.ListAPIView):
     serializer_class = DataOceanUserSerializer
 
 
-class CustomRegisterView(views.APIView):
+class CustomRegistrationView(views.APIView):
     permission_classes = (AllowAny,)
 
     def post(self, request: Request, *args, **kwargs):
@@ -114,7 +114,7 @@ class CustomRegisterView(views.APIView):
         }, status=200)
 
 
-class CustomRegisterConfirmView(views.APIView):
+class CustomRegistrationConfirmView(views.APIView):
     permission_classes = (AllowAny,)
 
     def post(self, request: Request, user_id: int, confirm_code: str, *args, **kwargs):
