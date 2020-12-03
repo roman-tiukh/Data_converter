@@ -2,13 +2,15 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.filters import SearchFilter
 
-from data_ocean.views import CachedViewMixin
+from data_ocean.views import CachedViewMixin, RegisterViewMixin
 from location_register.filters import DrvBuildingFilterSet
 from location_register.models.drv_models import DrvBuilding
 from location_register.serializers.drv_serializers import DrvBuildingSerializer
 
 
-class DrvBuildingViewSet(CachedViewMixin, viewsets.ReadOnlyModelViewSet):
+class DrvBuildingViewSet(RegisterViewMixin,
+                         CachedViewMixin,
+                         viewsets.ReadOnlyModelViewSet):
     queryset = DrvBuilding.objects.select_related(
         'region', 'district', 'council', 'ato', 'street', 'zip_code',
     ).all()

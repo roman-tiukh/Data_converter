@@ -34,7 +34,7 @@ from location_register.views.koatuu_views import (KoatuuFirstLevelViewSet,
                                                   KoatuuSecondLevelViewSet,
                                                   KoatuuThirdLevelViewSet,
                                                   KoatuuFourthLevelViewSet)
-from users.views import CustomRegisterView, CustomRegisterConfirmView, LandingMailView, RefreshTokenView
+from users.views import CustomRegistrationView, CustomRegistrationConfirmView, LandingMailView, RefreshTokenView
 
 router = routers.DefaultRouter()
 
@@ -75,10 +75,10 @@ urlpatterns = [
     path('api/accounts/profile/', TemplateView.as_view(template_name='users/profile.html')),
     path('api/accounts/', include('allauth.urls')),
 
-    path('api/rest-auth/registration/', CustomRegisterView.as_view(), name='custom_registration'),
+    path('api/rest-auth/registration/', CustomRegistrationView.as_view(), name='custom_registration'),
     path(
         'api/rest-auth/registration-confirm/<int:user_id>/<str:confirm_code>/',
-        CustomRegisterConfirmView.as_view(),
+        CustomRegistrationConfirmView.as_view(),
         name='custom_registration_confirm',
     ),
     path('api/rest-auth/refresh-token/', RefreshTokenView.as_view(), name='refresh_token'),

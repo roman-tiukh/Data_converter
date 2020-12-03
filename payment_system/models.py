@@ -11,7 +11,7 @@ from data_ocean.utils import generate_key
 class Project(DataOceanModel):
     name = models.CharField(max_length=50)
     description = models.CharField(max_length=500, blank=True, default='')
-    token = models.CharField(max_length=40, unique=True)
+    token = models.CharField(max_length=40, unique=True, db_index=True)
     disabled_at = models.DateTimeField(null=True, blank=True, default=None)
     users = models.ManyToManyField(settings.AUTH_USER_MODEL, through='UserProject',
                                    related_name='projects')
@@ -20,8 +20,18 @@ class Project(DataOceanModel):
 
     def save(self, *args, **kwargs):
         if not self.token:
-            self.token = generate_key()
+            self.generate_new_token()
         super().save(*args, **kwargs)
+
+    def generate_new_token(self):
+        def get_token_safe():
+            new_key = generate_key()
+            if Project.objects.filter(token=new_key).exists():
+                return get_token_safe()
+            else:
+                return new_key
+
+        self.token = get_token_safe()
 
     @classmethod
     def create(cls, owner, name, description='', is_default=False):
@@ -127,7 +137,7 @@ class Project(DataOceanModel):
         self.save(update_fields=['disabled_at'])
 
     def refresh_token(self):
-        self.token = generate_key()
+        self.generate_new_token()
         self.save(update_fields=['token'])
 
     def has_read_perms(self, user):
@@ -192,10 +202,12 @@ class Project(DataOceanModel):
         ).user
 
     @property
-    def active_subscription(self):
-        return self.project_subscriptions.get(
-            status=ProjectSubscription.ACTIVE,
-        ).subscription
+    def active_subscription(self) -> 'Subscription':
+        return self.active_p2s.subscription
+
+    @property
+    def active_p2s(self) -> 'ProjectSubscription':
+        return self.project_subscriptions.get(status=ProjectSubscription.ACTIVE)
 
 
 class Subscription(DataOceanModel):
@@ -333,9 +345,11 @@ class ProjectSubscription(DataOceanModel):
                                 related_name='project_subscriptions')
     subscription = models.ForeignKey('Subscription', on_delete=models.CASCADE,
                                      related_name='project_subscriptions')
-    status = models.CharField(choices=STATUSES, max_length=10)
+    status = models.CharField(choices=STATUSES, max_length=10, db_index=True)
     expiring_date = models.DateField(null=True, blank=True)
     is_grace_period = models.BooleanField(blank=True, default=True)
+    requests_left = models.IntegerField()
+    requests_used = models.IntegerField(blank=True, default=0)
 
     def validate_unique(self, exclude=None):
         super().validate_unique(exclude)
@@ -368,10 +382,31 @@ class ProjectSubscription(DataOceanModel):
         self.expiring_date = None
         self.save()
 
+    def expire(self):
+        try:
+            next_p2s = ProjectSubscription.objects.get(
+                project=self.project,
+                status=ProjectSubscription.FUTURE,
+            )
+        except ProjectSubscription.DoesNotExist:
+            if self.subscription.is_default:
+                self.expiring_date += timezone.timedelta(days=self.subscription.duration)
+                self.save()
+            else:
+                self.status = ProjectSubscription.PAST
+                self.save()
+                self.project.add_default_subscription()
+        else:
+            self.status = ProjectSubscription.PAST
+            self.save()
+            next_p2s.status = ProjectSubscription.ACTIVE
+            next_p2s.save()
+
     @classmethod
     def update_expire_subscriptions(cls) -> str:
         project_subscriptions_for_update = ProjectSubscription.objects.filter(
             expiring_date__lte=timezone.localdate(),
+            status=ProjectSubscription.ACTIVE,
         )
 
         if not project_subscriptions_for_update:
@@ -379,28 +414,13 @@ class ProjectSubscription(DataOceanModel):
 
         i = 0
         for current_p2s in project_subscriptions_for_update:
-            try:
-                next_p2s = ProjectSubscription.objects.get(
-                    project=current_p2s.project,
-                    status=ProjectSubscription.FUTURE,
-                )
-            except ProjectSubscription.DoesNotExist:
-                if current_p2s.subscription.is_default:
-                    current_p2s.expiring_date += timezone.timedelta(days=current_p2s.subscription.duration)
-                    current_p2s.save()
-                else:
-                    current_p2s.status = ProjectSubscription.PAST
-                    current_p2s.save()
-                    current_p2s.project.add_default_subscription()
-            else:
-                current_p2s.status = ProjectSubscription.PAST
-                current_p2s.save()
-                next_p2s.status = ProjectSubscription.ACTIVE
-                next_p2s.save()
+            current_p2s.expire()
             i += 1
         return f'Success! {i} subscriptions updated'
 
     def save(self, *args, **kwargs):
+        if not getattr(self, 'id', None):
+            self.requests_left = self.subscription.requests_limit
         self.validate_unique()
         super().save(*args, **kwargs)
 

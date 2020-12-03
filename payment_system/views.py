@@ -1,4 +1,3 @@
-from django.core.mail import send_mail
 from django.db.models import Prefetch
 from rest_framework import generics, status
 from django.shortcuts import get_object_or_404
