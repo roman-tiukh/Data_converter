@@ -38,10 +38,4 @@ class Migration(migrations.Migration):
             code=set_requests_left,
             reverse_code=migrations.RunPython.noop,
         ),
-        migrations.AlterField(
-            model_name='projectsubscription',
-            name='status',
-            field=models.CharField(choices=[('active', 'Active'), ('past', 'Past'), ('future', 'Future')],
-                                   db_index=True, max_length=10),
-        ),
     ]
