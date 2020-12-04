@@ -61,10 +61,14 @@ class CustomLoginSerializer(LoginSerializer):
 
 class TokenSerializer(serializers.ModelSerializer):
     user = DataOceanUserSerializer()
+    project_token = serializers.SerializerMethodField(read_only=True)
+
+    def get_project_token(self, token: Token):
+        return token.user.user_projects.get(is_default=True).project.token
 
     class Meta:
         model = Token
-        fields = ('key', 'user')
+        fields = ('key', 'user', 'project_token')
 
 
 class CustomPasswordResetSerializer(PasswordResetSerializer):

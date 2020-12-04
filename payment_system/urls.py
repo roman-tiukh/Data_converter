@@ -11,13 +11,12 @@ from payment_system.views import (
     SubscriptionsListView,
     ProjectDeactivateUserView,
     ProjectActivateUserView,
-    InvoiceListView,
-    InvoiceRetrieveView,
     ProjectInviteUserView,
     ProjectUserConfirmInviteView,
     InvitationListView,
     ProjectCancelInviteView,
     ProjectUserRejectInviteView,
+    CurrentUserProjectTokenView,
 )
 
 urlpatterns = [
@@ -39,8 +38,11 @@ urlpatterns = [
     path('project/<int:pk>/confirm-invite/', ProjectUserConfirmInviteView.as_view()),
     path('project/<int:pk>/reject-invite/', ProjectUserRejectInviteView.as_view()),
 
+    path('project/current/', CurrentUserProjectTokenView.as_view()),
+
     path('project/<int:pk>/', ProjectRetrieveView.as_view()),
     path('project/', ProjectListForUserView.as_view()),
+
 
     path('invitations/', InvitationListView.as_view()),
 

@@ -56,11 +56,13 @@ class Project(DataOceanModel):
                 'name': settings.DEFAULT_SUBSCRIPTION_NAME,
             },
         )
+        date_now = timezone.localdate()
         return ProjectSubscription.objects.create(
             project=self,
             subscription=default_subscription,
             status=ProjectSubscription.ACTIVE,
-            expiring_date=timezone.localdate() + timezone.timedelta(days=default_subscription.duration)
+            start_date=date_now,
+            expiring_date=date_now + timezone.timedelta(days=default_subscription.duration),
         )
 
     def invite_user(self, email: str):
@@ -152,21 +154,30 @@ class Project(DataOceanModel):
         assert isinstance(subscription, Subscription)
         current_p2s = ProjectSubscription.objects.get(
             project=self,
-            status=ProjectSubscription.ACTIVE
+            status=ProjectSubscription.ACTIVE,
         )
         if subscription.is_default:
             raise RestValidationError({
                 'detail': 'Cant add default subscription.'
             })
+        if ProjectSubscription.objects.filter(
+            project=self,
+            status=ProjectSubscription.FUTURE,
+        ).exists():
+            raise RestValidationError({
+                'detail': 'Can\'t add second future subscription.'
+            })
 
         if current_p2s.subscription.is_default:
             current_p2s.status = ProjectSubscription.PAST
             current_p2s.save()
+            date_now = timezone.localdate()
             new_p2s = ProjectSubscription.objects.create(
                 project=self,
                 subscription=subscription,
                 status=ProjectSubscription.ACTIVE,
-                expiring_date=timezone.localdate() + timezone.timedelta(days=subscription.grace_period),
+                start_date=date_now,
+                expiring_date=date_now + timezone.timedelta(days=subscription.grace_period),
                 is_grace_period=True,
             )
         else:
@@ -184,6 +195,7 @@ class Project(DataOceanModel):
                 project=self,
                 subscription=subscription,
                 status=ProjectSubscription.FUTURE,
+                start_date=current_p2s.expiring_date,
                 expiring_date=(current_p2s.expiring_date +
                                timezone.timedelta(days=subscription.grace_period)),
                 is_grace_period=True,
@@ -253,9 +265,9 @@ class Invoice(DataOceanModel):
         help_text='This operation is irreversible, you cannot '
                   'cancel the payment of the subscription for the project.'
     )
-    project_subscription = models.ForeignKey(
+    project_subscription = models.OneToOneField(
         'ProjectSubscription', on_delete=models.PROTECT,
-        related_name='invoices',
+        related_name='invoice',
     )
     note = models.CharField(max_length=500, blank=True, default='')
     disable_grace_period_block = models.BooleanField(
@@ -345,9 +357,13 @@ class ProjectSubscription(DataOceanModel):
                                 related_name='project_subscriptions')
     subscription = models.ForeignKey('Subscription', on_delete=models.CASCADE,
                                      related_name='project_subscriptions')
+
     status = models.CharField(choices=STATUSES, max_length=10, db_index=True)
-    expiring_date = models.DateField(null=True, blank=True)
+
+    start_date = models.DateField()
+    expiring_date = models.DateField()
     is_grace_period = models.BooleanField(blank=True, default=True)
+
     requests_left = models.IntegerField()
     requests_used = models.IntegerField(blank=True, default=0)
 
@@ -370,8 +386,10 @@ class ProjectSubscription(DataOceanModel):
 
     def paid_up(self):
         assert self.is_grace_period
-        now = timezone.localdate()
-        used_grace_days = (now - self.created_at.date()).days
+        date_now = timezone.localdate()
+        used_grace_days = 0
+        if self.start_date < date_now:
+            used_grace_days = (date_now - self.start_date).days
         days_left = self.subscription.duration - used_grace_days
         self.expiring_date += timezone.timedelta(days=days_left)
         self.is_grace_period = False
@@ -429,6 +447,7 @@ class ProjectSubscription(DataOceanModel):
 
     class Meta:
         verbose_name = "relation between the project and its subscriptions"
+        ordering = ['-created_at']
 
 
 class Invitation(DataOceanModel):

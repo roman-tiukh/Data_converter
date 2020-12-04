@@ -31,12 +31,14 @@ class SubscriptionToProjectSerializer(serializers.ModelSerializer):
     requests_limit = serializers.IntegerField(source='subscription.requests_limit')
     duration = serializers.IntegerField(source='subscription.duration')
     grace_period = serializers.IntegerField(source='subscription.duration')
+    is_paid = serializers.BooleanField(source='invoice.is_paid')
 
     class Meta:
         model = ProjectSubscription
         fields = [
             'id', 'name', 'status', 'expiring_date',
             'price', 'requests_limit', 'duration', 'grace_period',
+            'requests_left', 'requests_used', 'is_paid',
         ]
         read_only_fields = fields
 
@@ -61,7 +63,7 @@ class ProjectListSerializer(serializers.ModelSerializer):
     owner = serializers.CharField(source='owner.get_full_name', read_only=True)
     users_count = serializers.SerializerMethodField(read_only=True)
 
-    active_subscription = serializers.CharField(source='active_subscription.name', read_only=True)
+    active_subscription = SubscriptionToProjectSerializer(source='active_p2s', read_only=True)
 
     def get_is_default(self, obj):
         return obj.user_projects.get(user=self.context['request'].user).is_default
@@ -163,4 +165,11 @@ class InvitationListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Invitation
         fields = ['id', 'project_id', 'project_name', 'project_owner', 'updated_at']
+        read_only_fields = fields
+
+
+class ProjectTokenSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Project
+        fields = ['token']
         read_only_fields = fields
