@@ -68,7 +68,7 @@ class DataOceanUser(AbstractUser):
         )
 
     def __str__(self):
-        return self.email
+        return self.get_full_name()
 
 
 class CandidateUserModel(models.Model):

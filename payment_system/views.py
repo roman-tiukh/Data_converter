@@ -243,6 +243,7 @@ class CurrentUserProjectTokenView(ProjectViewMixin, generics.GenericAPIView):
         serializer = self.get_serializer(project)
         return Response(serializer.data)
 
+
 # class ProjectSubscriptionDisableView(generics.GenericAPIView):
 #     serializer_class = ProjectSubscriptionSerializer
 #     queryset = ProjectSubscription.objects.all()

@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     'django_filters',
     # 'debug_toolbar',
     'drf_yasg',
+    'rangefilter',  # plugin for django admin
     'corsheaders',
     'rest_framework',
     'rest_framework.authtoken',
