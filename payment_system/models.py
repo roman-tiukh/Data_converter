@@ -13,6 +13,7 @@ class Project(DataOceanModel):
     description = models.CharField(max_length=500, blank=True, default='')
     token = models.CharField(max_length=40, unique=True, db_index=True)
     disabled_at = models.DateTimeField(null=True, blank=True, default=None)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, models.CASCADE)
     users = models.ManyToManyField(settings.AUTH_USER_MODEL, through='UserProject',
                                    related_name='projects')
     subscriptions = models.ManyToManyField('Subscription', through='ProjectSubscription',
@@ -37,7 +38,8 @@ class Project(DataOceanModel):
     def create(cls, owner, name, description='', is_default=False):
         new_project = Project.objects.create(
             name=name,
-            description=description
+            description=description,
+            owner=owner,
         )
         new_project.user_projects.create(
             user=owner,
@@ -56,11 +58,15 @@ class Project(DataOceanModel):
                 'name': settings.DEFAULT_SUBSCRIPTION_NAME,
             },
         )
+        date_now = timezone.localdate()
         return ProjectSubscription.objects.create(
             project=self,
             subscription=default_subscription,
             status=ProjectSubscription.ACTIVE,
-            expiring_date=timezone.localdate() + timezone.timedelta(days=default_subscription.duration)
+            start_date=date_now,
+            duration=default_subscription.duration,
+            grace_period=default_subscription.grace_period,
+            expiring_date=date_now + timezone.timedelta(days=default_subscription.duration),
         )
 
     def invite_user(self, email: str):
@@ -152,54 +158,72 @@ class Project(DataOceanModel):
         assert isinstance(subscription, Subscription)
         current_p2s = ProjectSubscription.objects.get(
             project=self,
-            status=ProjectSubscription.ACTIVE
+            status=ProjectSubscription.ACTIVE,
         )
         if subscription.is_default:
             raise RestValidationError({
-                'detail': 'Cant add default subscription.'
+                'detail': 'Can\'t add default subscription.'
+            })
+        if ProjectSubscription.objects.filter(
+            project=self,
+            status=ProjectSubscription.FUTURE,
+        ).exists():
+            raise RestValidationError({
+                'detail': 'Can\'t add second future subscription.'
+            })
+
+        grace_period_used = self.project_subscriptions.filter(
+            status=ProjectSubscription.PAST,
+            subscription__is_default=False,
+            is_grace_period=True,
+        ).exists()
+        if grace_period_used:
+            raise RestValidationError({
+                'detail': 'You have subscription on a grace period, cant add new subscription',
             })
 
         if current_p2s.subscription.is_default:
             current_p2s.status = ProjectSubscription.PAST
             current_p2s.save()
+            date_now = timezone.localdate()
             new_p2s = ProjectSubscription.objects.create(
                 project=self,
                 subscription=subscription,
                 status=ProjectSubscription.ACTIVE,
-                expiring_date=timezone.localdate() + timezone.timedelta(days=subscription.grace_period),
+                start_date=date_now,
+                duration=subscription.duration,
+                grace_period=subscription.grace_period,
+                expiring_date=date_now + timezone.timedelta(days=subscription.grace_period),
                 is_grace_period=True,
             )
         else:
-            grace_period_used = self.project_subscriptions.filter(
-                status=ProjectSubscription.PAST,
-                subscription__is_default=False,
-                is_grace_period=True,
-            ).exists()
-            if current_p2s.is_grace_period or grace_period_used:
+            if current_p2s.is_grace_period:
                 raise RestValidationError({
                     'detail': 'You have subscription on a grace period, cant add new subscription',
                 })
-
             new_p2s = ProjectSubscription.objects.create(
                 project=self,
                 subscription=subscription,
                 status=ProjectSubscription.FUTURE,
+                start_date=current_p2s.expiring_date,
+                duration=subscription.duration,
+                grace_period=subscription.grace_period,
                 expiring_date=(current_p2s.expiring_date +
                                timezone.timedelta(days=subscription.grace_period)),
                 is_grace_period=True,
             )
-        new_p2s.invoices.create()
+        Invoice.objects.create(project_subscription=new_p2s)
         return new_p2s
 
     @property
     def is_active(self):
         return self.disabled_at is None
 
-    @property
-    def owner(self):
-        return self.user_projects.get(
-            role=UserProject.OWNER,
-        ).user
+    # @property
+    # def owner(self):
+    #     return self.user_projects.get(
+    #         role=UserProject.OWNER,
+    #     ).user
 
     @property
     def active_subscription(self) -> 'Subscription':
@@ -234,7 +258,9 @@ class Subscription(DataOceanModel):
         if self.is_default:
             exists = Subscription.objects.filter(is_default=True).exclude(pk=self.pk).exists()
             if exists:
-                raise ValidationError('Default subscription already exists')
+                raise ValidationError({
+                    'is_default': 'Default subscription already exists',
+                })
 
     def save(self, *args, **kwargs):
         self.validate_unique()
@@ -253,9 +279,9 @@ class Invoice(DataOceanModel):
         help_text='This operation is irreversible, you cannot '
                   'cancel the payment of the subscription for the project.'
     )
-    project_subscription = models.ForeignKey(
+    project_subscription = models.OneToOneField(
         'ProjectSubscription', on_delete=models.PROTECT,
-        related_name='invoices',
+        related_name='invoice',
     )
     note = models.CharField(max_length=500, blank=True, default='')
     disable_grace_period_block = models.BooleanField(
@@ -274,6 +300,7 @@ class Invoice(DataOceanModel):
             invoice_old = Invoice.objects.get(pk=self.pk)
             if p2s.is_grace_period and not invoice_old.is_paid and self.is_paid:
                 p2s.paid_up()
+                self.disable_grace_period_block = False
             else:
                 if self.disable_grace_period_block and not invoice_old.disable_grace_period_block:
                     p2s.is_grace_period = False
@@ -285,6 +312,9 @@ class Invoice(DataOceanModel):
 
     def __str__(self):
         return f'Invoice #{self.id}'
+
+    class Meta:
+        ordering = ['-created_at']
 
 
 class UserProject(DataOceanModel):
@@ -345,11 +375,18 @@ class ProjectSubscription(DataOceanModel):
                                 related_name='project_subscriptions')
     subscription = models.ForeignKey('Subscription', on_delete=models.CASCADE,
                                      related_name='project_subscriptions')
+
     status = models.CharField(choices=STATUSES, max_length=10, db_index=True)
-    expiring_date = models.DateField(null=True, blank=True)
+
+    start_date = models.DateField()
+    expiring_date = models.DateField()
     is_grace_period = models.BooleanField(blank=True, default=True)
+
     requests_left = models.IntegerField()
     requests_used = models.IntegerField(blank=True, default=0)
+
+    duration = models.SmallIntegerField(help_text='days')
+    grace_period = models.SmallIntegerField(help_text='days')
 
     def validate_unique(self, exclude=None):
         super().validate_unique(exclude)
@@ -370,10 +407,15 @@ class ProjectSubscription(DataOceanModel):
 
     def paid_up(self):
         assert self.is_grace_period
-        now = timezone.localdate()
-        used_grace_days = (now - self.created_at.date()).days
-        days_left = self.subscription.duration - used_grace_days
-        self.expiring_date += timezone.timedelta(days=days_left)
+        date_now = timezone.localdate()
+        used_grace_days = 0
+        if date_now > self.start_date:
+            used_grace_days = (date_now - self.start_date).days
+
+        if date_now >= self.expiring_date:
+            used_grace_days = self.grace_period
+        days_left = self.duration - used_grace_days
+        self.expiring_date = date_now + timezone.timedelta(days=days_left)
         self.is_grace_period = False
         self.save()
 
@@ -390,7 +432,7 @@ class ProjectSubscription(DataOceanModel):
             )
         except ProjectSubscription.DoesNotExist:
             if self.subscription.is_default:
-                self.expiring_date += timezone.timedelta(days=self.subscription.duration)
+                self.expiring_date += timezone.timedelta(days=self.duration)
                 self.save()
             else:
                 self.status = ProjectSubscription.PAST
@@ -429,6 +471,7 @@ class ProjectSubscription(DataOceanModel):
 
     class Meta:
         verbose_name = "relation between the project and its subscriptions"
+        ordering = ['-created_at']
 
 
 class Invitation(DataOceanModel):
