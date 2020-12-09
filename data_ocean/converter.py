@@ -5,6 +5,8 @@ import os
 import traceback
 import zipfile
 from collections import defaultdict
+from datetime import datetime
+from time import sleep
 from xml.etree.ElementTree import iterparse
 import requests
 import xmltodict
@@ -166,9 +168,12 @@ class Converter:
                                                                        model_name).objects.all()}
 
     def process(self, start_index=0):
-        records = etree.Element('RECORDS')
-        elements = etree.iterparse(self.LOCAL_FOLDER + self.LOCAL_FILE_NAME, tag=self.RECORD_TAG,
-                                   recover=True)
+        records = []
+        elements = etree.iterparse(
+            source=self.LOCAL_FOLDER + self.LOCAL_FILE_NAME,
+            tag=self.RECORD_TAG,
+            recover=False,
+        )
 
         for _ in range(start_index):
             next(elements)
@@ -180,12 +185,12 @@ class Converter:
             if records_len == 0:
                 chunk_start_index = i
 
+            for text in elem.iter():
+                print('\t%28s\t%s' % (text.tag, text.text))
+            records.append(elem)
+
             if records_len < self.CHUNK_SIZE:
-                for text in elem.iter():
-                    print('\t%28s\t%s' % (text.tag, text.text))
-                records.append(elem)
                 i += 1
-                # print(i, 'record\n\n...........................................')
             else:
                 print(f'>>> Start save to db records {chunk_start_index}-{i}')
                 try:
@@ -195,11 +200,26 @@ class Converter:
                     logger.error(msg)
                     traceback.print_exc()
                     print(msg)
-                    exit(1)
+                    raise Exception('Error!', msg)
                 records.clear()
+
+                # http://lxml.de/parsing.html#modifying-the-tree
+                # Based on Liza Daly fast_iter
+                # http://www.ibm.com/developerworks/xml/library/x-hiperfparse/
+                # See also http://effbot.org/zone/element-iterparse.htm
+                #
+                # It safe to call clear() here because no descendants will be accessed
+                elem.clear()
+                # # Also eliminate now-empty references from the root node to elem
+                for ancestor in elem.xpath('ancestor-or-self::*'):
+                    while ancestor.getprevious() is not None:
+                        del ancestor.getparent()[0]
+
                 print('>>> Saved successfully')
         if records_len:
             self.save_to_db(records)
+
+        del elements
         print('All the records have been rewritten.')
 
     print('Converter has imported.')

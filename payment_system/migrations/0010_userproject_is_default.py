@@ -16,7 +16,7 @@ def default_projects(apps, schema):
     Subscription = apps.get_model('payment_system', 'Subscription')
 
     for user in User.objects.all():
-        u2p = user.user_projects.filter(role=payment_system_models.UserProject.INITIATOR).first()
+        u2p = user.user_projects.filter(role='initiator').first()
         if u2p:
             u2p.is_default = True
             u2p.save()
@@ -29,8 +29,8 @@ def default_projects(apps, schema):
             UserProject.objects.create(
                 project=new_project,
                 user=user,
-                role=payment_system_models.UserProject.INITIATOR,
-                status=payment_system_models.UserProject.ACTIVE,
+                role='initiator',
+                status='active',
                 is_default=True,
             )
             def_sub, created = Subscription.objects.get_or_create(
@@ -40,7 +40,7 @@ def default_projects(apps, schema):
             ProjectSubscription.objects.create(
                 project=new_project,
                 subscription=def_sub,
-                status=payment_system_models.ProjectSubscription.ACTIVE,
+                status='active',
                 expiring_date=timezone.localdate() + timezone.timedelta(days=30)
             )
 

@@ -2,7 +2,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.filters import SearchFilter
 
-from data_ocean.views import CachedViewMixin
+from data_ocean.views import CachedViewMixin, RegisterViewMixin
 from location_register.filters import (KoatuuFirstLevelFilterSet, KoatuuSecondLevelFilterSet,
                                        KoatuuThirdLevelFilterSet, KoatuuFourthLevelFilterSet)
 from location_register.models.koatuu_models import (KoatuuFirstLevel, KoatuuSecondLevel,
@@ -13,7 +13,9 @@ from location_register.serializers.koatuu_serializers import (KoatuuFirstLevelSe
                                                               KoatuuFourthLevelSerializer)
 
 
-class KoatuuFirstLevelViewSet(CachedViewMixin, viewsets.ReadOnlyModelViewSet):
+class KoatuuFirstLevelViewSet(RegisterViewMixin,
+                              CachedViewMixin,
+                              viewsets.ReadOnlyModelViewSet):
     queryset = KoatuuFirstLevel.objects.prefetch_related('second_level_places').all()
     serializer_class = KoatuuFirstLevelSerializer
     filter_backends = (DjangoFilterBackend, SearchFilter)
@@ -21,7 +23,9 @@ class KoatuuFirstLevelViewSet(CachedViewMixin, viewsets.ReadOnlyModelViewSet):
     search_fields = ('code', 'name')
 
 
-class KoatuuSecondLevelViewSet(CachedViewMixin, viewsets.ReadOnlyModelViewSet):
+class KoatuuSecondLevelViewSet(RegisterViewMixin,
+                               CachedViewMixin,
+                               viewsets.ReadOnlyModelViewSet):
     queryset = (KoatuuSecondLevel.objects.select_related('first_level')
                 .prefetch_related('third_level_places')
                 .all())
@@ -31,7 +35,9 @@ class KoatuuSecondLevelViewSet(CachedViewMixin, viewsets.ReadOnlyModelViewSet):
     search_fields = ('code', 'name')
 
 
-class KoatuuThirdLevelViewSet(CachedViewMixin, viewsets.ReadOnlyModelViewSet):
+class KoatuuThirdLevelViewSet(RegisterViewMixin,
+                              CachedViewMixin,
+                              viewsets.ReadOnlyModelViewSet):
     queryset = (KoatuuThirdLevel.objects.select_related('first_level', 'second_level')
                 .prefetch_related('fourth_level_places')
                 .all())
@@ -41,7 +47,9 @@ class KoatuuThirdLevelViewSet(CachedViewMixin, viewsets.ReadOnlyModelViewSet):
     search_fields = ('code', 'name')
 
 
-class KoatuuFourthLevelViewSet(CachedViewMixin, viewsets.ReadOnlyModelViewSet):
+class KoatuuFourthLevelViewSet(RegisterViewMixin,
+                               CachedViewMixin,
+                               viewsets.ReadOnlyModelViewSet):
     queryset = KoatuuFourthLevel.objects.select_related(
         'first_level', 'second_level', 'third_level', 'category').all()
     serializer_class = KoatuuFourthLevelSerializer

@@ -1,5 +1,6 @@
 import logging
 import re
+from time import sleep
 
 import requests
 from django.conf import settings
@@ -14,7 +15,7 @@ from business_register.models.company_models import (
 from data_ocean.converter import BulkCreateManager
 from data_ocean.downloader import Downloader
 from data_ocean.utils import (cut_first_word, format_date_to_yymmdd, get_first_word,
-                              convert_to_string_if_exists)
+                              to_lower_string_if_exists)
 from location_register.converter.address import AddressConverter
 
 logger = logging.getLogger(__name__)
@@ -114,10 +115,11 @@ class UkrCompanyConverter(CompanyConverter):
     def save_or_update_founders(self, founders_from_record, company):
         already_stored_founders = list(Founder.objects.filter(company=company))
         for item in founders_from_record:
-            # checking if there is additional data except name
             info = item.text
-            if info.endswith('ВІДСУТНІЙ'):
+            # checking if field contains data
+            if not info or info.endswith('ВІДСУТНІЙ'):
                 continue
+            # checking if there is additional data except name
             if ',' in item.text:
                 name, is_beneficiary, address, equity = self.extract_founder_data(item.text)
                 name = name.lower()
@@ -518,7 +520,7 @@ class UkrCompanyConverter(CompanyConverter):
                 if company.bylaw != bylaw:
                     company.bylaw = bylaw
                     update_fields.append('bylaw')
-                if convert_to_string_if_exists(company.registration_date) != registration_date:
+                if to_lower_string_if_exists(company.registration_date) != registration_date:
                     company.registration_date = registration_date
                     update_fields.append('registration_date')
                 if company.registration_info != registration_info:
@@ -736,8 +738,8 @@ class UkrCompanyConverter(CompanyConverter):
 class UkrCompanyDownloader(Downloader):
     chunk_size = 16 * 1024 * 1024
     reg_name = 'business_ukr_company'
-    zip_required_file_sign = 'ufop_full'
-    unzip_required_file_sign = 'EDR_UO_FULL'
+    zip_required_file_sign = re.compile(r'UFOP_[0-3]')
+    unzip_required_file_sign = 'EDR_UO'
     unzip_after_download = True
     source_dataset_url = settings.BUSINESS_UKR_COMPANY_SOURCE_PACKAGE
 
@@ -749,7 +751,9 @@ class UkrCompanyDownloader(Downloader):
             return
 
         for i in r.json()['result']['resources']:
-            if self.zip_required_file_sign in i['url']:
+            # 17-ufop_25-11-2020.zip       <---
+            # 17-ufop_full_07-08-2020.zip
+            if re.search(self.zip_required_file_sign, i['name']):
                 return i['url']
 
     def get_source_file_name(self):
@@ -768,12 +772,16 @@ class UkrCompanyDownloader(Downloader):
         logger.info(f'{self.reg_name}: process() with {self.file_path} started ...')
         ukr_company = UkrCompanyConverter()
         ukr_company.LOCAL_FILE_NAME = self.file_name
+        sleep(5)
         ukr_company.process()
         logger.info(f'{self.reg_name}: process() with {self.file_path} finished successfully.')
 
         self.log_obj.update_finish = timezone.now()
         self.log_obj.update_status = True
         self.log_obj.save()
+
+        sleep(5)
+        self.vacuum_analyze(table_list=['business_register_company', ])
 
         self.remove_file()
 

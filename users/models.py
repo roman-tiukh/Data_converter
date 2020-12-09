@@ -6,7 +6,7 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework.authtoken.models import Token
 
 from data_ocean.models import DataOceanModel
-from payment_system.models import Project, ProjectSubscription
+from payment_system.models import Invitation
 
 
 class DataOceanUserManager(BaseUserManager):
@@ -60,8 +60,15 @@ class DataOceanUser(AbstractUser):
 
     objects = DataOceanUserManager()
 
+    @property
+    def invitations(self):
+        return Invitation.objects.filter(
+            email=self.email,
+            deleted_at__isnull=True,
+        )
+
     def __str__(self):
-        return self.email
+        return self.get_full_name()
 
 
 class CandidateUserModel(models.Model):
@@ -73,3 +80,13 @@ class CandidateUserModel(models.Model):
 
     def __str__(self):
         return self.email
+
+
+class Question(DataOceanModel):
+    text = models.TextField('текст запитання', max_length=500)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+                             related_name='questions')
+    answered = models.BooleanField('чи була надана відповідь', default=False)
+
+    def __str__(self):
+        return self.text
