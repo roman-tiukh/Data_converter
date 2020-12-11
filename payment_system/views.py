@@ -1,9 +1,8 @@
-from django.core.mail import send_mail
 from django.db.models import Prefetch
-from rest_framework import generics, status
+from django.http import Http404
+from rest_framework import generics
 from django.shortcuts import get_object_or_404
 from rest_framework import status
-from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
@@ -12,20 +11,19 @@ from payment_system.permissions import ProjectPermission
 from payment_system.models import (
     Project,
     UserProject,
-    ProjectSubscription,
     Subscription,
-    Invoice, Invitation,
+    Invoice,
+    Invitation,
 )
 from payment_system.serializers import (
     ProjectListSerializer,
     ProjectSerializer,
-    ProjectSubscriptionSerializer,
     SubscriptionSerializer,
     InvoiceSerializer,
     ProjectInviteUserSerializer,
     InvitationListSerializer,
+    ProjectTokenSerializer,
 )
-from users.models import DataOceanUser
 
 
 class ProjectViewMixin:
@@ -198,7 +196,7 @@ class InvitationListView(generics.ListAPIView):
 
 class SubscriptionsListView(generics.ListAPIView):
     serializer_class = SubscriptionSerializer
-    queryset = Subscription.objects.all()
+    queryset = Subscription.objects.filter(is_custom=False)
     pagination_class = None
 
 
@@ -215,19 +213,45 @@ class InvoiceListView(generics.ListAPIView):
     pagination_class = None
 
 
-class ProjectSubscriptionCreateView(generics.CreateAPIView):
-    serializer_class = ProjectSubscriptionSerializer
-    queryset = ProjectSubscription.objects.all()
+class ProjectAddSubscriptionView(ProjectViewMixin, APIView):
+    def put(self, request, pk, subscription_id):
+        project = get_object_or_404(self.get_queryset(), pk=pk)
+        self.check_object_permissions(self.request, project)
+
+        subscription = get_object_or_404(Subscription, pk=subscription_id)
+
+        project.add_subscription(subscription)
+
+        return Response(status=204)
 
 
-class ProjectSubscriptionDisableView(generics.GenericAPIView):
-    serializer_class = ProjectSubscriptionSerializer
-    queryset = ProjectSubscription.objects.all()
+class CurrentUserProjectTokenView(ProjectViewMixin, generics.GenericAPIView):
+    serializer_class = ProjectTokenSerializer
 
-    def put(self, request, pk):
-        project_subscription = self.get_object()
+    def get_queryset(self):
+        return Project.objects.filter(
+            users__in=[self.request.user],
+            user_projects__status=UserProject.ACTIVE,
+            user_projects__is_default=True,
+        )
 
-        project_subscription.disable()
-
-        serializer = self.get_serializer(instance=project_subscription)
+    def get(self, request):
+        project = self.get_queryset().first()
+        if not project:
+            raise Http404('No project matches the given query.')
+        self.check_object_permissions(request, project)
+        serializer = self.get_serializer(project)
         return Response(serializer.data)
+
+
+# class ProjectSubscriptionDisableView(generics.GenericAPIView):
+#     serializer_class = ProjectSubscriptionSerializer
+#     queryset = ProjectSubscription.objects.all()
+#
+#     def put(self, request, pk):
+#         project_subscription: ProjectSubscription = self.get_object()
+#
+#         project_subscription.disable()
+#
+#         serializer = self.get_serializer(instance=project_subscription)
+#         return Response(serializer.data)

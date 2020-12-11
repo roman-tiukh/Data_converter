@@ -20,7 +20,9 @@ from django.views.generic import TemplateView
 from rest_auth.views import PasswordResetConfirmView
 from rest_framework import routers
 
-from business_register.views.company_views import CompanyViewSet, HistoricalCompanyView
+from business_register.views.company_views import (CompanyViewSet, HistoricalCompanyView, HistoricalAssigneeView,
+    HistoricalCompanyDetailView, HistoricalFounderView, HistoricalSignerView
+)
 from business_register.views.fop_views import FopViewSet
 from business_register.views.kved_views import KvedViewSet
 from business_register.views.pep_views import PepViewSet
@@ -32,7 +34,7 @@ from location_register.views.koatuu_views import (KoatuuFirstLevelViewSet,
                                                   KoatuuSecondLevelViewSet,
                                                   KoatuuThirdLevelViewSet,
                                                   KoatuuFourthLevelViewSet)
-from users.views import CustomRegisterView, CustomRegisterConfirmView, LandingMailView, RefreshTokenView
+from users.views import CustomRegistrationView, CustomRegistrationConfirmView, LandingMailView, RefreshTokenView
 
 router = routers.DefaultRouter()
 
@@ -51,6 +53,10 @@ router.register(r'koatuu-third-level', KoatuuThirdLevelViewSet, basename='koatuu
 router.register(r'koatuu-fourth-level', KoatuuFourthLevelViewSet, basename='koatuu_fourth_level')
 router.register(r'register', RegisterView, basename='register')
 router.register(r'historical-company', HistoricalCompanyView, basename='historical_company')
+router.register(r'historical-assignee', HistoricalAssigneeView, basename='historical_assignee')
+router.register(r'historical-company-detail', HistoricalCompanyDetailView, basename='historical_company_detail')
+router.register(r'historical-founder', HistoricalFounderView, basename='historical_founder')
+router.register(r'historical-signer', HistoricalSignerView, basename='historical_signer')
 router.register(r'pep', PepViewSet, basename='pep')
 
 urlpatterns = [
@@ -69,10 +75,10 @@ urlpatterns = [
     path('api/accounts/profile/', TemplateView.as_view(template_name='users/profile.html')),
     path('api/accounts/', include('allauth.urls')),
 
-    path('api/rest-auth/registration/', CustomRegisterView.as_view(), name='custom_registration'),
+    path('api/rest-auth/registration/', CustomRegistrationView.as_view(), name='custom_registration'),
     path(
         'api/rest-auth/registration-confirm/<int:user_id>/<str:confirm_code>/',
-        CustomRegisterConfirmView.as_view(),
+        CustomRegistrationConfirmView.as_view(),
         name='custom_registration_confirm',
     ),
     path('api/rest-auth/refresh-token/', RefreshTokenView.as_view(), name='refresh_token'),

@@ -1,12 +1,14 @@
-from rest_framework.authtoken.models import Token
-from rest_auth.registration.serializers import RegisterSerializer
-from rest_framework import serializers
-from rest_auth.serializers import LoginSerializer, PasswordResetSerializer
-from django.utils.translation import ugettext_lazy as _
-from django.utils.text import format_lazy
 from difflib import SequenceMatcher
+
+from django.utils.text import format_lazy
+from django.utils.translation import ugettext_lazy as _
+from rest_auth.registration.serializers import RegisterSerializer
+from rest_auth.serializers import LoginSerializer, PasswordResetSerializer
+from rest_framework import serializers
+from rest_framework.authtoken.models import Token
+
 from .forms import CustomPasswordResetForm
-from .models import DataOceanUser
+from .models import DataOceanUser, Question
 
 
 class DataOceanUserSerializer(serializers.ModelSerializer):
@@ -59,10 +61,14 @@ class CustomLoginSerializer(LoginSerializer):
 
 class TokenSerializer(serializers.ModelSerializer):
     user = DataOceanUserSerializer()
+    project_token = serializers.SerializerMethodField(read_only=True)
+
+    def get_project_token(self, token: Token):
+        return token.user.user_projects.get(is_default=True).project.token
 
     class Meta:
         model = Token
-        fields = ('key', 'user')
+        fields = ('key', 'user', 'project_token')
 
 
 class CustomPasswordResetSerializer(PasswordResetSerializer):
@@ -74,3 +80,20 @@ class LandingMailSerializer(serializers.Serializer):
     email = serializers.EmailField()
     subject = serializers.CharField(max_length=150)
     message = serializers.CharField(max_length=500)
+
+
+class QuestionSerializer(serializers.ModelSerializer):
+    text = serializers.CharField(max_length=500, min_length=5, allow_blank=False,
+                                 trim_whitespace=True)
+
+    class Meta:
+        model = Question
+        read_only_fields = ['user', 'answered', 'created_at']
+        fields = ['text', ] + read_only_fields
+
+    def create(self, validated_data):
+        user = self.context['request'].user
+        return Question.objects.create(
+            text=validated_data['text'],
+            user=user,
+        )

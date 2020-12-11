@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     'django_filters',
     # 'debug_toolbar',
     'drf_yasg',
+    'rangefilter',  # plugin for django admin
     'corsheaders',
     'rest_framework',
     'rest_framework.authtoken',
@@ -59,7 +60,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'stats.middleware.ApiUsageMiddleware'
+    'stats.middleware.ApiUsageMiddleware',
+    'payment_system.middleware.RequestsLimitMiddleware',
 ]
 
 INTERNAL_IPS = [
@@ -156,7 +158,8 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
         'rest_framework_xml.renderers.XMLRenderer',
-    ]
+    ],
+    'EXCEPTION_HANDLER': 'data_converter.drf_exc_handler.exception_handler',
 }
 
 SITE_ID = 1
@@ -236,6 +239,10 @@ DEFAULT_SUBSCRIPTION_NAME = 'Freemium'
 
 DEFAULT_PROJECT_NAME = 'Default project'
 DEFAULT_PROJECT_DESCRIPTION = 'This is auto created default project'
+
+# PROJECT_TOKEN_KEYWORD - its a token prefix, example:
+# Authorization: DataOcean <project_token>
+PROJECT_TOKEN_KEYWORD = 'DataOcean'
 
 # DATASET`S CONSTANTS ==================
 ALL_PEPS_DATASET_NAME = 'all PEPs list'

@@ -7,18 +7,16 @@ from payment_system.views import (
     ProjectRefreshTokenView,
     ProjectDisableView,
     ProjectActivateView,
-    ProjectSubscriptionCreateView,
-    ProjectSubscriptionDisableView,
+    ProjectAddSubscriptionView,
     SubscriptionsListView,
     ProjectDeactivateUserView,
     ProjectActivateUserView,
-    InvoiceListView,
-    InvoiceRetrieveView,
     ProjectInviteUserView,
     ProjectUserConfirmInviteView,
     InvitationListView,
     ProjectCancelInviteView,
     ProjectUserRejectInviteView,
+    CurrentUserProjectTokenView,
 )
 
 urlpatterns = [
@@ -40,16 +38,21 @@ urlpatterns = [
     path('project/<int:pk>/confirm-invite/', ProjectUserConfirmInviteView.as_view()),
     path('project/<int:pk>/reject-invite/', ProjectUserRejectInviteView.as_view()),
 
+    path('project/current/', CurrentUserProjectTokenView.as_view()),
+
     path('project/<int:pk>/', ProjectRetrieveView.as_view()),
     path('project/', ProjectListForUserView.as_view()),
+
 
     path('invitations/', InvitationListView.as_view()),
 
     path('subscriptions/', SubscriptionsListView.as_view()),
 
-    path('invoice/<int:pk>/', InvoiceRetrieveView.as_view()),
-    path('invoice/', InvoiceListView.as_view()),
+    # path('invoice/<int:pk>/', InvoiceRetrieveView.as_view()),
+    # path('invoice/', InvoiceListView.as_view()),
 
-    path('project-subscription/create/', ProjectSubscriptionCreateView.as_view()),
-    path('project-subscription/<int:pk>/disable/', ProjectSubscriptionDisableView.as_view()),
+    path('project/<int:pk>/add-subscription/<int:subscription_id>/',
+         ProjectAddSubscriptionView.as_view()),
+
+    # path('project-subscription/<int:pk>/disable/', ProjectSubscriptionDisableView.as_view()),
 ]

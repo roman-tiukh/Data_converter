@@ -10,11 +10,14 @@ from business_register.filters import PepFilterSet
 from business_register.models.pep_models import Pep
 from business_register.permissions import PepSchemaToken
 from business_register.serializers.company_and_pep_serializers import PepListSerializer, PepDetailSerializer
-from data_ocean.views import CachedViewMixin
+from data_ocean.views import CachedViewMixin, RegisterViewMixin
+from payment_system.permissions import AccessFromProjectToken
 
 
-class PepViewSet(CachedViewMixin, viewsets.ReadOnlyModelViewSet):
-    permission_classes = [IsAuthenticated | PepSchemaToken]
+class PepViewSet(RegisterViewMixin,
+                 CachedViewMixin,
+                 viewsets.ReadOnlyModelViewSet):
+    permission_classes = [RegisterViewMixin.permission_classes[0] | PepSchemaToken]
     queryset = Pep.objects.all()
     serializer_class = PepListSerializer
     filter_backends = (DjangoFilterBackend, SearchFilter)

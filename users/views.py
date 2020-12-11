@@ -14,9 +14,9 @@ from django.conf import settings
 from django.template.loader import render_to_string
 from data_ocean.postman import send_plain_mail
 from .models import DataOceanUser, CandidateUserModel
-from .serializers import DataOceanUserSerializer, CustomRegisterSerializer, LandingMailSerializer
+from .serializers import (DataOceanUserSerializer, CustomRegisterSerializer, LandingMailSerializer,
+                          QuestionSerializer)
 from rest_framework.authtoken.models import Token
-
 
 REGISTRATION_CONFIRM_SUBJECT = 'Підтвердження реєстрації на Data Ocean'
 REGISTRATION_CONFIRM_MSG = (
@@ -26,7 +26,6 @@ REGISTRATION_CONFIRM_MSG = (
     "Якщо Вами ці дії не проводились, проігноруйте цей лист.\r\n"
     "З повагою, Data Ocean"
 )
-
 
 REGISTRATION_SUCCESS_SUBJECT = 'Ласкаво просимо у Data Ocean!'
 REGISTRATION_SUCCESS_MSG = (
@@ -45,8 +44,8 @@ class UserListView(generics.ListAPIView):
     serializer_class = DataOceanUserSerializer
 
 
-class CustomRegisterView(views.APIView):
-    permission_classes = (AllowAny, )
+class CustomRegistrationView(views.APIView):
+    permission_classes = (AllowAny,)
 
     def post(self, request: Request, *args, **kwargs):
 
@@ -115,7 +114,7 @@ class CustomRegisterView(views.APIView):
         }, status=200)
 
 
-class CustomRegisterConfirmView(views.APIView):
+class CustomRegistrationConfirmView(views.APIView):
     permission_classes = (AllowAny,)
 
     def post(self, request: Request, user_id: int, confirm_code: str, *args, **kwargs):
@@ -204,7 +203,7 @@ class LandingMailView(views.APIView):
                 subject=subject,
                 message=msg,
                 from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=(settings.SUPPORT_EMAIL, ),
+                recipient_list=(settings.SUPPORT_EMAIL,),
                 fail_silently=True,
             )
 
@@ -220,3 +219,7 @@ class RefreshTokenView(views.APIView):
         return Response({
             "token": token.key
         }, status=200)
+
+
+class QuestionCreateView(generics.CreateAPIView):
+    serializer_class = QuestionSerializer
