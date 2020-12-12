@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.utils import timezone
+
 from .models import Subscription, Invoice, ProjectSubscription
 from rangefilter.filter import DateRangeFilter
 
@@ -64,14 +66,14 @@ class InvoiceAdmin(admin.ModelAdmin):
         # 'is_paid',
         'get_expiring_date',
         'paid_at',
-        'disable_grace_period_block',
+        'grace_period_block',
         'note',
     )
     list_filter = (
         'project_subscription__subscription',
         ('paid_at', DateRangeFilter),
         ('project_subscription__expiring_date', DateRangeFilter),
-        'disable_grace_period_block',
+        'grace_period_block',
     )
     search_fields = (
         'project_subscription__project__owner__email',
@@ -82,14 +84,32 @@ class InvoiceAdmin(admin.ModelAdmin):
     exclude = ('deleted_at',)
 
     def get_readonly_fields(self, request, obj=None):
-        readonly_fields = {'project_subscription'}
+        readonly_fields = {
+            'project_subscription',
+            'start_date',
+            'end_date',
+            'requests_limit',
+            'subscription_name',
+            'project_name',
+            'price',
+            'is_custom_subscription',
+        }
         if obj:
-            if obj.is_paid or obj.disable_grace_period_block:
+            if timezone.localdate() < obj.project_subscription.expiring_date:
+                readonly_fields.add('grace_period_block')
+            else:
                 readonly_fields.add('paid_at')
-                readonly_fields.add('disable_grace_period_block')
+            if obj.is_paid or not obj.grace_period_block:
+                readonly_fields.add('paid_at')
+                readonly_fields.add('grace_period_block')
             if obj.project_subscription.status == ProjectSubscription.PAST:
                 readonly_fields.add('paid_at')
         return list(readonly_fields)
+
+    def get_form(self, request, obj=None, change=False, **kwargs):
+        form = super().get_form(request, obj=obj, change=change, **kwargs)
+        form.base_fields['note'].widget.attrs['rows'] = 2
+        return form
 
     def has_add_permission(self, request):
         return False

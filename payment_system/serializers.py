@@ -9,36 +9,34 @@ from payment_system.models import (
 )
 
 
-class ProjectSubscriptionSerializer(serializers.ModelSerializer):
-    def create(self, validated_data):
-        return ProjectSubscription.create(
-            project=validated_data['project'],
-            subscription=validated_data['subscription'],
-        )
-
-    class Meta:
-        model = ProjectSubscription
-        read_only_fields = ['status', 'expiring_date']
-        fields = [
-            'id', 'project', 'subscription'
-        ] + read_only_fields
+# class ProjectSubscriptionSerializer(serializers.ModelSerializer):
+#     def create(self, validated_data):
+#         return ProjectSubscription.create(
+#             project=validated_data['project'],
+#             subscription=validated_data['subscription'],
+#         )
+#
+#     class Meta:
+#         model = ProjectSubscription
+#         read_only_fields = ['status', 'expiring_date']
+#         fields = [
+#             'id', 'project', 'subscription'
+#         ] + read_only_fields
 
 
 class SubscriptionToProjectSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(source='subscription.id')
+    subscription_id = serializers.IntegerField(source='subscription.id')
     name = serializers.CharField(source='subscription.name')
     price = serializers.IntegerField(source='subscription.price')
     requests_limit = serializers.IntegerField(source='subscription.requests_limit')
-    duration = serializers.IntegerField(source='subscription.duration')
-    grace_period = serializers.IntegerField(source='subscription.duration')
-    is_paid = serializers.BooleanField(source='invoice.is_paid')
 
     class Meta:
         model = ProjectSubscription
         fields = [
-            'id', 'name', 'status', 'expiring_date',
+            'id', 'subscription_id', 'name', 'status', 'expiring_date',
             'price', 'requests_limit', 'duration', 'grace_period',
             'requests_left', 'requests_used', 'is_paid',
+            'payment_date', 'payment_overdue_days',
         ]
         read_only_fields = fields
 
