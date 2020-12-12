@@ -1,8 +1,18 @@
 from django.contrib import admin
+from django.contrib import messages
 from django.utils import timezone
 
 from .models import Subscription, Invoice, ProjectSubscription
 from rangefilter.filter import DateRangeFilter
+
+
+def set_default_subscription(model_admin, request, queryset):
+    if queryset.count() != 1:
+        model_admin.message_user(request, 'Only one subscription can be default', messages.ERROR)
+        return
+    Subscription.objects.update(is_default=False)
+    queryset.update(is_default=True)
+set_default_subscription.short_description = 'Set subscription as default'
 
 
 @admin.register(Subscription)
@@ -35,6 +45,16 @@ class SubscriptionAdmin(admin.ModelAdmin):
         'is_custom',
         'is_default',
     )
+    readonly_fields = (
+        'is_default',
+    )
+    actions = [set_default_subscription]
+    actions_on_bottom = True
+
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        del actions['delete_selected']
+        return actions
 
 
 @admin.register(Invoice)

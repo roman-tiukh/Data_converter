@@ -399,7 +399,7 @@ class ProjectSubscription(DataOceanModel):
     )
     project = models.ForeignKey('Project', on_delete=models.CASCADE,
                                 related_name='project_subscriptions')
-    subscription = models.ForeignKey('Subscription', on_delete=models.CASCADE,
+    subscription = models.ForeignKey('Subscription', on_delete=models.PROTECT,
                                      related_name='project_subscriptions')
 
     status = models.CharField(choices=STATUSES, max_length=10, db_index=True)
