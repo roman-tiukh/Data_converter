@@ -20,7 +20,7 @@ INSTALL ON UBUNTU 18.04 (DEV)
 - postgres=# `create database your_db_name;`
 - postgres=# `create user your_db_user with password 'your_db_password';`
 - postgres=# `grant all on database your_db_name to your_db_user;`
-- postgres=# `/q`
+- postgres=# `\q`
 
 ###### Install Python 3.7
 - $ `sudo apt install software-properties-common`
