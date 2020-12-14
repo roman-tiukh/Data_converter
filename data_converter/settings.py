@@ -247,3 +247,4 @@ PROJECT_TOKEN_KEYWORD = 'DataOcean'
 
 # DATASET`S CONSTANTS ==================
 ALL_PEPS_DATASET_NAME = 'all PEPs list'
+ALL_FOPS_DATASET_NAME = 'all FOPs list'

@@ -24,7 +24,7 @@ class FopConverter(BusinessConverter):
         self.LOCAL_FOLDER = settings.LOCAL_FOLDER
         self.LOCAL_FILE_NAME = settings.LOCAL_FILE_NAME_FOP
         self.CHUNK_SIZE = settings.CHUNK_SIZE_FOP
-        self.RECORD_TAG = 'SUBJECT'
+        self.RECORD_TAG = 'RECORD'
         self.bulk_manager = BulkCreateManager()
         self.new_fops_foptokveds = {}
         self.new_fops_exchange_data = {}
@@ -155,7 +155,7 @@ class FopConverter(BusinessConverter):
                                                 end_date=end_date, end_number=end_number)
                 self.bulk_manager.add(exchange_data)
 
-    def save_to_db(self, records):
+    def save_detailed_fop_to_db(self, records):
         for record in records:
             fullname = record.xpath('NAME')[0].text
             if not fullname:
@@ -276,6 +276,58 @@ class FopConverter(BusinessConverter):
             self.bulk_manager.commit(ExchangeDataFop)
         self.bulk_manager.queues['business_register.FopToKved'] = []
         self.bulk_manager.queues['business_register.ExchangeDataFop'] = []
+
+    def save_or_update_kved(self, kved, fop):
+        current_fop_to_kved = FopToKved.objects.filter(
+            fop=fop,
+            kved=kved
+        ).first()
+        if not current_fop_to_kved:
+            FopToKved.objects.create(
+                fop=fop,
+                kved=kved,
+                primary_kved=True
+            )
+        else:
+            if not current_fop_to_kved.primary_kved:
+                current_fop_to_kved.primary_kved = True
+                current_fop_to_kved.save(update_fields=['primary_kved', ])
+
+    def save_to_db(self, records):
+        for record in records:
+            fullname = record.xpath('FIO')[0].text
+            if not fullname:
+                logger.warning(f'ФОП без прізвища: {record}')
+                continue
+            if len(fullname) > 100:
+                logger.warning(f'ФОП із задовгим прізвищем: {record}')
+                continue
+            fullname = fullname.lower()
+            address = record.xpath('ADDRESS')[0].text
+            if not address:
+                address = 'EMPTY'
+            code = fullname + address
+            status = self.save_or_get_status(record.xpath('STAN')[0].text)
+            fop = Fop.objects.filter(code=code).first()
+            if not fop:
+                fop = Fop.objects.create(
+                    fullname=fullname,
+                    address=address,
+                    status=status,
+                    code=code)
+            else:
+                # TODO: make a decision: our algorithm when Fop changes fullname or address?
+                update_fields = []
+                if fop.status != status:
+                    fop.status = status
+                    update_fields.append('status')
+                if len(update_fields):
+                    fop.save(update_fields=update_fields)
+            kved_data = record.xpath('KVED')[0].text
+            if kved_data and ' ' in kved_data:
+                kved = self.extract_kved(kved_data)
+                self.save_or_update_kved(kved, fop)
+
     print("For storing run FopConverter().process()")
 
 
@@ -326,6 +378,8 @@ class FopDownloader(Downloader):
 
         sleep(5)
         self.vacuum_analyze(table_list=['business_register_fop', ])
+        total_records = Fop.objects.count()
+        self.update_total_records(settings.ALL_FOPS_DATASET_NAME, total_records)
 
         self.remove_file()
 
