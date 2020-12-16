@@ -56,6 +56,7 @@ class Project(DataOceanModel):
             defaults={
                 'requests_limit': 1000,
                 'name': settings.DEFAULT_SUBSCRIPTION_NAME,
+                'grace_period': 30,
             },
         )
         date_now = timezone.localdate()
@@ -467,6 +468,19 @@ class ProjectSubscription(DataOceanModel):
         self.expiring_date = None
         self.save()
 
+    def reset(self):
+        self.is_grace_period = True
+        self.requests_left = self.subscription.requests_limit
+        self.requests_used = 0
+        self.duration = self.subscription.duration
+        self.grace_period = self.subscription.grace_period
+        self.start_date = self.expiring_date
+
+        if self.subscription.is_default:
+            self.expiring_date += timezone.timedelta(days=self.duration)
+        else:
+            self.expiring_date += timezone.timedelta(days=self.grace_period)
+
     def expire(self):
         try:
             future_p2s = ProjectSubscription.objects.get(
@@ -475,7 +489,7 @@ class ProjectSubscription(DataOceanModel):
             )
         except ProjectSubscription.DoesNotExist:
             if self.subscription.is_default:
-                self.expiring_date += timezone.timedelta(days=self.duration)
+                self.reset()
                 self.save()
             else:
                 if self.is_grace_period:
@@ -483,13 +497,7 @@ class ProjectSubscription(DataOceanModel):
                     self.save()
                     self.project.add_default_subscription()
                 else:
-                    self.is_grace_period = True
-                    self.requests_left = self.subscription.requests_limit
-                    self.requests_used = 0
-                    self.duration = self.subscription.duration
-                    self.grace_period = self.subscription.grace_period
-                    self.start_date = self.expiring_date
-                    self.expiring_date += timezone.timedelta(days=self.grace_period)
+                    self.reset()
                     self.save()
                     Invoice.objects.create(project_subscription=self)
         else:
