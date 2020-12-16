@@ -658,18 +658,20 @@ class UkrCompanyConverter(CompanyConverter):
         # self.branch_bulk_manager.create_queues['business_register.Signer'] = []
 
     def save_or_update_kved(self, kved, company):
-        current_primary_kved = CompanyToKved.objects.filter(company=company, kved=kved,
-                                                            primary_kved=True).first()
-        if not current_primary_kved:
+        current_fop_to_kved = CompanyToKved.objects.filter(
+            company=company,
+            kved=kved
+        ).first()
+        if not current_fop_to_kved:
             CompanyToKved.objects.create(
                 company=company,
                 kved=kved,
                 primary_kved=True
             )
         else:
-            if current_primary_kved.kved != kved:
-                current_primary_kved.kved = kved
-                current_primary_kved.save(update_fields=['kved'])
+            if not current_fop_to_kved.primary_kved:
+                current_fop_to_kved.primary_kved = True
+                current_fop_to_kved.save(update_fields=['primary_kved', ])
 
     def save_to_db(self, records):
         country = AddressConverter().save_or_get_country('Ukraine')
@@ -722,12 +724,9 @@ class UkrCompanyConverter(CompanyConverter):
                     update_fields.append('country')
                 if update_fields:
                     company.save(update_fields=update_fields)
-            kved = record.xpath('KVED')[0].text
-            if kved and ' ' in kved:
-                kved_info = kved.split(' ', 1)
-                kved_code = kved_info[0]
-                kved_name = kved_info[1]
-                kved = self.get_kved_from_DB(kved_code, kved_name)
+            kved_data = record.xpath('KVED')[0].text
+            if kved_data and ' ' in kved_data:
+                kved = self.extract_kved(kved_data)
                 self.save_or_update_kved(kved, company)
             if len(record.xpath('FOUNDERS')[0]):
                 self.save_or_update_founders(record.xpath('FOUNDERS')[0], company)

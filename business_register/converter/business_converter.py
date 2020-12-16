@@ -84,3 +84,9 @@ class BusinessConverter(Converter):
             self.all_taxpayer_types_dict[taxpayer_type] = new_taxpayer_type
             return new_taxpayer_type
         return self.all_taxpayer_types_dict[taxpayer_type]
+
+    def extract_kved(self, kved_data):
+        kved_info = kved_data.split(' ', 1)
+        kved_code = kved_info[0]
+        kved_name = kved_info[1]
+        return self.get_kved_from_DB(kved_code, kved_name)
