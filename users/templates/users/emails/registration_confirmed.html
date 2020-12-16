@@ -1,0 +1,18 @@
+{% extends "data_ocean/emails/_base.html" %}
+
+{% block content %}
+
+    <p style="font-family: Roboto;font-weight: normal;font-size: 16px;line-height: 24px;margin-bottom: 30px;">{{ user_name }},
+        <br>
+        <br>
+        Вітаємо у Data Ocean!
+        За допомогою наших сервісів Ви отримаєте доступ до відкритих реєстрів, наборів даних та звітностей. За
+        замовчуванням для Вас створений <a href="{{ default_project_link }}">новий проєкт</a>.
+        Ваш пакет - Freemium.
+        <br>
+        <br>
+        Потрібно <a href="{{ tariffs_link }}">більше можливостей</a>?
+    </p>
+
+    <p style="font-family: Roboto;font-weight: normal;font-size: 16px;line-height: 24px;">З повагою, <br>Data Ocean</p>
+{% endblock content %}

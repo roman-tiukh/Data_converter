@@ -185,14 +185,14 @@ class Converter:
             if records_len == 0:
                 chunk_start_index = i
 
-            for text in elem.iter():
-                print('\t%28s\t%s' % (text.tag, text.text))
+            # for text in elem.iter():
+            #     print('\t%28s\t%s' % (text.tag, text.text))
             records.append(elem)
 
             if records_len < self.CHUNK_SIZE:
                 i += 1
             else:
-                print(f'>>> Start save to db records {chunk_start_index}-{i}')
+                # print(f'>>> Start save to db records {chunk_start_index}-{i}')
                 try:
                     self.save_to_db(records)
                 except Exception as e:

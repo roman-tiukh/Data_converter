@@ -56,6 +56,7 @@ class Project(DataOceanModel):
             defaults={
                 'requests_limit': 1000,
                 'name': settings.DEFAULT_SUBSCRIPTION_NAME,
+                'grace_period': 30,
             },
         )
         date_now = timezone.localdate()
@@ -171,15 +172,24 @@ class Project(DataOceanModel):
             raise RestValidationError({
                 'detail': 'Can\'t add second future subscription.'
             })
-
+        # grace_period_used = self.project_subscriptions.filter(
+        #     status=ProjectSubscription.PAST,
+        #     subscription__is_default=False,
+        #     is_grace_period=True,
+        # ).exists()
         grace_period_used = self.project_subscriptions.filter(
-            status=ProjectSubscription.PAST,
+            # status=ProjectSubscription.PAST,
             subscription__is_default=False,
-            is_grace_period=True,
+            invoices__grace_period_block=True,
         ).exists()
         if grace_period_used:
             raise RestValidationError({
                 'detail': 'You have subscription on a grace period, cant add new subscription',
+            })
+
+        if current_p2s.subscription == subscription:
+            raise RestValidationError({
+                'detail': f'You already on {subscription.name}',
             })
 
         if current_p2s.subscription.is_default:
@@ -196,6 +206,7 @@ class Project(DataOceanModel):
                 expiring_date=date_now + timezone.timedelta(days=subscription.grace_period),
                 is_grace_period=True,
             )
+            Invoice.objects.create(project_subscription=new_p2s)
         else:
             if current_p2s.is_grace_period:
                 raise RestValidationError({
@@ -212,7 +223,6 @@ class Project(DataOceanModel):
                                timezone.timedelta(days=subscription.grace_period)),
                 is_grace_period=True,
             )
-        Invoice.objects.create(project_subscription=new_p2s)
         return new_p2s
 
     @property
@@ -279,35 +289,52 @@ class Invoice(DataOceanModel):
         help_text='This operation is irreversible, you cannot '
                   'cancel the payment of the subscription for the project.'
     )
-    project_subscription = models.OneToOneField(
+    project_subscription = models.ForeignKey(
         'ProjectSubscription', on_delete=models.PROTECT,
-        related_name='invoice',
+        related_name='invoices',
     )
-    note = models.CharField(max_length=500, blank=True, default='')
-    disable_grace_period_block = models.BooleanField(
-        blank=True, default=False,
-        help_text='If set to True, then the user will be allowed '
+    grace_period_block = models.BooleanField(
+        blank=True, default=True,
+        help_text='If set to False, then the user will be allowed '
                   'to use "grace period" again, the opportunity to pay will be lost'
     )
+    note = models.TextField(blank=True, default='')
+
+    # information about payment
+    start_date = models.DateField()
+    end_date = models.DateField()
+    requests_limit = models.IntegerField()
+    subscription_name = models.CharField(max_length=200)
+    project_name = models.CharField(max_length=100)
+    price = models.IntegerField()
+    is_custom_subscription = models.BooleanField()
 
     @property
     def is_paid(self):
         return bool(self.paid_at)
 
     def save(self, *args, **kwargs):
+        p2s = self.project_subscription
         if getattr(self, 'id', False):
-            p2s = self.project_subscription
             invoice_old = Invoice.objects.get(pk=self.pk)
             if p2s.is_grace_period and not invoice_old.is_paid and self.is_paid:
                 p2s.paid_up()
-                self.disable_grace_period_block = False
-            else:
-                if self.disable_grace_period_block and not invoice_old.disable_grace_period_block:
-                    p2s.is_grace_period = False
-                    p2s.save()
-                elif not self.disable_grace_period_block and invoice_old.disable_grace_period_block:
-                    p2s.is_grace_period = True
-                    p2s.save()
+                self.grace_period_block = False
+            # else:
+            #     if self.grace_period_block and not invoice_old.grace_period_block:
+            #         p2s.is_grace_period = False
+            #         p2s.save()
+            #     elif not self.disable_grace_period_block and invoice_old.disable_grace_period_block:
+            #         p2s.is_grace_period = True
+            #         p2s.save()
+        else:
+            self.start_date = p2s.start_date
+            self.end_date = p2s.start_date + timezone.timedelta(days=p2s.duration)
+            self.requests_limit = p2s.subscription.requests_limit
+            self.subscription_name = p2s.subscription.name
+            self.project_name = p2s.project.name
+            self.price = p2s.subscription.price
+            self.is_custom_subscription = p2s.subscription.is_custom
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -373,7 +400,7 @@ class ProjectSubscription(DataOceanModel):
     )
     project = models.ForeignKey('Project', on_delete=models.CASCADE,
                                 related_name='project_subscriptions')
-    subscription = models.ForeignKey('Subscription', on_delete=models.CASCADE,
+    subscription = models.ForeignKey('Subscription', on_delete=models.PROTECT,
                                      related_name='project_subscriptions')
 
     status = models.CharField(choices=STATUSES, max_length=10, db_index=True)
@@ -405,6 +432,23 @@ class ProjectSubscription(DataOceanModel):
         check_unique_status(ProjectSubscription.ACTIVE)
         check_unique_status(ProjectSubscription.FUTURE)
 
+    @property
+    def payment_date(self):
+        if self.is_grace_period:
+            return self.start_date
+        return self.expiring_date
+
+    @property
+    def payment_overdue_days(self):
+        if self.is_grace_period and self.status == ProjectSubscription.ACTIVE:
+            return (timezone.localdate() - self.start_date).days
+        return None
+
+    @property
+    def is_paid(self):
+        last_invoice = self.invoices.order_by('-created_at').first()
+        return last_invoice and last_invoice.is_paid
+
     def paid_up(self):
         assert self.is_grace_period
         date_now = timezone.localdate()
@@ -424,25 +468,44 @@ class ProjectSubscription(DataOceanModel):
         self.expiring_date = None
         self.save()
 
+    def reset(self):
+        self.is_grace_period = True
+        self.requests_left = self.subscription.requests_limit
+        self.requests_used = 0
+        self.duration = self.subscription.duration
+        self.grace_period = self.subscription.grace_period
+        self.start_date = self.expiring_date
+
+        if self.subscription.is_default:
+            self.expiring_date += timezone.timedelta(days=self.duration)
+        else:
+            self.expiring_date += timezone.timedelta(days=self.grace_period)
+
     def expire(self):
         try:
-            next_p2s = ProjectSubscription.objects.get(
+            future_p2s = ProjectSubscription.objects.get(
                 project=self.project,
                 status=ProjectSubscription.FUTURE,
             )
         except ProjectSubscription.DoesNotExist:
             if self.subscription.is_default:
-                self.expiring_date += timezone.timedelta(days=self.duration)
+                self.reset()
                 self.save()
             else:
-                self.status = ProjectSubscription.PAST
-                self.save()
-                self.project.add_default_subscription()
+                if self.is_grace_period:
+                    self.status = ProjectSubscription.PAST
+                    self.save()
+                    self.project.add_default_subscription()
+                else:
+                    self.reset()
+                    self.save()
+                    Invoice.objects.create(project_subscription=self)
         else:
             self.status = ProjectSubscription.PAST
             self.save()
-            next_p2s.status = ProjectSubscription.ACTIVE
-            next_p2s.save()
+            future_p2s.status = ProjectSubscription.ACTIVE
+            future_p2s.save()
+            Invoice.objects.create(project_subscription=future_p2s)
 
     @classmethod
     def update_expire_subscriptions(cls) -> str:
@@ -467,7 +530,7 @@ class ProjectSubscription(DataOceanModel):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f'{self.project.owner.get_full_name()} | {self.project.name} | {self.subscription}'
+        return f'{self.project.owner} | {self.project.name} | {self.subscription}'
 
     class Meta:
         verbose_name = "relation between the project and its subscriptions"
