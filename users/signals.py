@@ -1,6 +1,6 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from .models import DataOceanUser
+from users.models import DataOceanUser
 from payment_system.models import Project
 from django.conf import settings
 
