@@ -19,6 +19,10 @@ class Project(DataOceanModel):
     subscriptions = models.ManyToManyField('Subscription', through='ProjectSubscription',
                                            related_name='projects')
 
+    @property
+    def frontend_link(self):
+        return f'{settings.FRONTEND_SITE_URL}/system/profile/projects/{self.id}/'
+
     def save(self, *args, **kwargs):
         if not self.token:
             self.generate_new_token()
@@ -166,8 +170,8 @@ class Project(DataOceanModel):
                 'detail': 'Can\'t add default subscription.'
             })
         if ProjectSubscription.objects.filter(
-            project=self,
-            status=ProjectSubscription.FUTURE,
+                project=self,
+                status=ProjectSubscription.FUTURE,
         ).exists():
             raise RestValidationError({
                 'detail': 'Can\'t add second future subscription.'
