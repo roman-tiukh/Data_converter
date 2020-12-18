@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-12-17 19:26+0000\n"
+"POT-Creation-Date: 2020-12-18 20:12+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -29,31 +29,31 @@ msgstr "Українська"
 msgid "English"
 msgstr "Англійська"
 
-#: payment_system/models.py:76 payment_system/models.py:107
+#: payment_system/models.py:79 payment_system/models.py:110
 msgid "User already in project"
 msgstr "Користувач вже в проекті"
 
-#: payment_system/models.py:79
+#: payment_system/models.py:82
 msgid "User already invited"
 msgstr "Користувача вже запрошено"
 
-#: payment_system/models.py:96
+#: payment_system/models.py:99
 msgid "User is not invited"
 msgstr "Користувача не запрошено"
 
-#: payment_system/models.py:119
+#: payment_system/models.py:122
 msgid "You cannot deactivate an owner from his own project"
 msgstr "Ви не можете відключити власника від його власного проекту"
 
-#: payment_system/models.py:121
+#: payment_system/models.py:124
 msgid "User already deactivated"
 msgstr "Користувача вже деактивовано"
 
-#: payment_system/models.py:128
+#: payment_system/models.py:131
 msgid "User already activated"
 msgstr "Користувач вже активований"
 
-#: payment_system/models.py:137
+#: payment_system/models.py:139
 msgid "You cannot disable default project"
 msgstr "Ви не можете вимкнути базовий проект"
 
@@ -61,47 +61,47 @@ msgstr "Ви не можете вимкнути базовий проект"
 msgid "Can't add default subscription"
 msgstr "Не вдається додати базовий тарифний план"
 
-#: payment_system/models.py:174
+#: payment_system/models.py:172
 msgid "Can't add second future subscription"
 msgstr "Не вдається додати другий майбутній тарифний план"
 
-#: payment_system/models.py:188
-msgid "You have subscription on a grace period, cant add new subscription"
+#: payment_system/models.py:184
+msgid "Project have subscription on a grace period, cant add new subscription"
 msgstr ""
-"Ви маєте тарифний план на пільговому періоді, не можете додати новий "
+"Проєкт маєте тарифний план на пільговому періоді, не можете додати новий "
 "тарифний план"
 
-#: payment_system/models.py:193
-msgid "You already on {}"
-msgstr "Ви вже на {}"
+#: payment_system/models.py:187
+msgid "Project already on {}"
+msgstr "Проєкт вже на {}"
 
-#: payment_system/models.py:214
-msgid "You have subscription on a grace period, can't add new subscription"
+#: payment_system/models.py:206
+msgid "Project have subscription on a grace period, can't add new subscription"
 msgstr ""
-"Ви маєте тарифний план на пільговому періоді, не можете додати новий "
+"Проєкт має тарифний план на пільговому періоді, не можете додати новий "
 "тарифний план"
 
-#: payment_system/models.py:273
+#: payment_system/models.py:263
 msgid "Default subscription already exists"
 msgstr "Базовий тарифний план уже існує"
 
-#: payment_system/models.py:379
+#: payment_system/models.py:368
 msgid "User can only have one default project"
 msgstr "Користувач може мати лише один базовий проект"
 
-#: payment_system/models.py:398
+#: payment_system/models.py:387
 msgid "Active"
 msgstr "Активний"
 
-#: payment_system/models.py:399
+#: payment_system/models.py:388
 msgid "Past"
 msgstr "Минулий"
 
-#: payment_system/models.py:400
+#: payment_system/models.py:389
 msgid "Future"
 msgstr "Майбутній"
 
-#: payment_system/models.py:434
+#: payment_system/models.py:422
 msgid "Only one {} subscription in project"
 msgstr "У проекті лише один {} тарифний план"
 
@@ -241,18 +241,18 @@ msgstr "Прізвище"
 msgid "Your password can’t be too similar to"
 msgstr "Ваш пароль не може бути надто схожим на"
 
-#: users/views.py:66
+#: users/views.py:48
 msgid "User with this email is already exists"
 msgstr "Користувач з цією електронною поштою вже існує"
 
-#: users/views.py:98 users/views.py:160 users/views.py:193 users/views.py:199
-msgid "Email not sent. Try again later."
-msgstr "Лист на електронну пошту не надіслано. Спробуйте ще раз пізніше."
-
-#: users/views.py:125 users/views.py:141
+#: users/views.py:87 users/views.py:103
 msgid "Confirmation link is broken"
 msgstr "Посилання на підтвердження пошкоджено."
 
-#: users/views.py:129
+#: users/views.py:91
 msgid "Confirmation link is expired."
 msgstr "Дія посилання на підтвердження закінчилась."
+
+#: users/views.py:137 users/views.py:143
+msgid "Email not sent. Try again later."
+msgstr "Лист на електронну пошту не надіслано. Спробуйте ще раз пізніше."

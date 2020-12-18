@@ -1,8 +1,9 @@
 from django.contrib import admin
 from django.contrib import messages
+from django import forms
 from django.utils import timezone
 
-from .models import Subscription, Invoice, ProjectSubscription
+from .models import Subscription, Invoice, ProjectSubscription, Project
 from rangefilter.filter import DateRangeFilter
 
 
@@ -135,4 +136,73 @@ class InvoiceAdmin(admin.ModelAdmin):
         return False
 
     def has_delete_permission(self, request, obj=None):
+        return False
+
+
+class ProjectForm(forms.ModelForm):
+    subscription = forms.ModelChoiceField(
+        queryset=Subscription.objects.filter(is_default=False),
+        label='Add subscription to project',
+        required=True,
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        self.instance.add_subscription(cleaned_data['subscription'])
+        return cleaned_data
+
+    class Meta:
+        model = Project
+        fields = ('subscription',)
+
+
+@admin.register(Project)
+class ProjectAdmin(admin.ModelAdmin):
+    def get_expiring_date(self, obj: Project):
+        return obj.active_p2s.expiring_date
+    get_expiring_date.short_description = 'Expiring date'
+
+    def get_is_paid(self, obj: Project):
+        return obj.active_p2s.is_paid
+    get_is_paid.short_description = 'Is paid'
+
+    list_display = (
+        'id',
+        'name',
+        'owner',
+        'disabled_at',
+        'active_subscription',
+        'get_expiring_date',
+        'get_is_paid',
+    )
+    list_display_links = ('name',)
+    list_filter = (
+        'disabled_at',
+        # ('disabled_at', DateRangeFilter),
+    )
+    search_fields = (
+        'owner__email',
+        'owner__first_name',
+        'owner__last_name',
+        'name',
+    )
+    readonly_fields = (
+        'id',
+        'name',
+        'owner',
+        'description',
+        'disabled_at',
+        'active_subscription',
+        'get_expiring_date',
+        'get_is_paid',
+    )
+    form = ProjectForm
+
+    def save_model(self, request, obj, form, change):
+        return obj
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_add_permission(self, request):
         return False
