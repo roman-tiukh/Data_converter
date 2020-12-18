@@ -111,7 +111,7 @@ class CustomRegistrationConfirmView(views.APIView):
         )
 
         # send mail
-        default_project = real_user.user_projects.filter(is_default=True).project
+        default_project = real_user.user_projects.get(is_default=True).project
         send_registration_confirmed_message(real_user, default_project)
         return Response(DataOceanUserSerializer(real_user).data, status=200)
 
