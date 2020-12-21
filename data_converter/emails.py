@@ -15,14 +15,14 @@ def send_confirm_email_message(user, confirm_link):
     )
 
 
-def send_registration_confirmed_message(user, default_project_link):
+def send_registration_confirmed_message(user, default_project):
     send_template_mail(
         to=[user.email, ],
         subject='Вітаємо у Data Ocean!',
         template='users/emails/registration_confirmed.html',
         context={
             'user_name': user.first_name,
-            'default_project_link': default_project_link,
+            'default_project': default_project,
             'tariffs_link': TARIFFS_LINK
         }
     )

@@ -34,7 +34,7 @@ def exception_handler(exc, context):
                     new_dict[key] = value
             detail = new_dict
         elif hasattr(exc, "message"):
-            detail = exc.message
+            detail = {'detail': exc.message}
         elif hasattr(exc, "messages"):
             detail = exc.messages
         else:
