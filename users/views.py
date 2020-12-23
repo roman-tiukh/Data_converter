@@ -14,7 +14,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from data_converter.emails import (send_confirm_email_message, send_registration_confirmed_message)
+from users.emails import (send_confirm_email_message, send_registration_confirmed_message)
 from data_ocean.postman import send_plain_mail
 from .models import DataOceanUser, CandidateUserModel
 from .serializers import (DataOceanUserSerializer, CustomRegisterSerializer, LandingMailSerializer,

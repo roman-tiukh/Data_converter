@@ -3,7 +3,7 @@ import re
 from django.conf import settings
 from django.contrib.auth.forms import PasswordResetForm
 
-from data_converter.emails import send_reset_password_message
+from users.emails import send_reset_password_message
 from .models import DataOceanUser
 
 
