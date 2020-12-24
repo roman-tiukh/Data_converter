@@ -42,7 +42,7 @@ class CompanyViewSet(RegisterViewMixin,
     def get_queryset(self):
         if self.action == 'list':
             return self.queryset.exclude(from_antac_only=True).filter(country__name='ukraine')
-        return self.queryset.filter(country__name='ukraine')
+        return self.queryset
 
 
 class HistoricalAssigneeView(RegisterViewMixin,

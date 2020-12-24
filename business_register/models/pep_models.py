@@ -186,12 +186,14 @@ class RelatedPersonsLink(DataOceanModel):
 
 class CompanyLinkWithPep(DataOceanModel):
     BANK_CUSTOMER = 'bank_customer'
+    BY_POSITION = 'by_position'
     OWNER = 'owner'
     MANAGER = 'manager'
     OTHER = 'other'
     CATEGORIES = (
         (BANK_CUSTOMER, 'Клієнт банку'),
         (OWNER, 'Власник'),
+        (BY_POSITION, 'За позицією'),
         (MANAGER, 'Керівник'),
         (OTHER, 'Інше'),
     )

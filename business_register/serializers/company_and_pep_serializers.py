@@ -126,7 +126,10 @@ class CompanyDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     relationships_with_peps = serializers.SerializerMethodField()
 
     def get_relationships_with_peps(self, obj):
-        queryset = obj.relationships_with_peps.exclude(relationship_type='клієнт банку')
+        queryset = obj.relationships_with_peps.filter(
+            category__in=[CompanyLinkWithPep.OWNER,
+                          CompanyLinkWithPep.MANAGER]
+        )
         return CompanyLinkWithPepSerializer(queryset, many=True).data
 
     country = serializers.StringRelatedField()

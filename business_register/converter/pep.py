@@ -1,14 +1,16 @@
 import logging
-from django.utils import timezone
+
 import psycopg2
 import sshtunnel
+from django.conf import settings
+from django.utils import timezone
+from requests.auth import HTTPBasicAuth
+
+from business_register.converter.business_converter import BusinessConverter
 from business_register.models.company_models import Company
 from business_register.models.pep_models import Pep, RelatedPersonsLink, CompanyLinkWithPep
-from business_register.converter.business_converter import BusinessConverter
-from data_ocean.downloader import Downloader
-from requests.auth import HTTPBasicAuth
-from django.conf import settings
 from data_ocean.converter import Converter
+from data_ocean.downloader import Downloader
 from data_ocean.utils import to_lower_string_if_exists
 
 logger = logging.getLogger(__name__)
@@ -330,7 +332,6 @@ class PepConverterFromDB(Converter):
                                      'edrpou, state_company, short_name_en, name '
                                      'FROM core_person2company '
                                      'INNER JOIN core_company on to_company_id=core_company.id '
-                                     "WHERE category NOT LIKE 'bank_customer' "
                                      'ORDER BY from_person_id;')
         self.REASONS_OF_TERMINATION = {
             1: Pep.DIED,
@@ -567,20 +568,6 @@ class PepConverterFromDB(Converter):
                                      if reason_of_termination_number else None)
             is_dead = (reason_of_termination_number == 1)
             termination_date = to_lower_string_if_exists(pep_data[26])
-
-            # last_job_title = pep_data.get('last_job_title')
-            # if last_job_title:
-            #     last_job_title = last_job_title.lower()
-            # last_job_title_eng = pep_data.get('last_job_title_en')
-            # if last_job_title_eng:
-            #     last_job_title_eng = last_job_title_eng.lower()
-            # last_employer = pep_data.get('last_workplace')
-            # if last_employer:
-            #     last_employer = last_employer.lower()
-            # last_employer_eng = pep_data.get('last_workplace_en')
-            # if last_employer_eng:
-            #     last_employer_eng = last_employer_eng.lower()
-            #
             pep = self.all_peps_dict.get(source_id)
             if not pep:
                 pep = Pep.objects.create(
@@ -591,10 +578,6 @@ class PepConverterFromDB(Converter):
                     fullname=fullname,
                     fullname_eng=fullname_eng,
                     fullname_transcriptions_eng=fullname_transcriptions_eng,
-                    # last_job_title=last_job_title,
-                    # last_job_title_eng=last_job_title_eng,
-                    # last_employer=last_employer,
-                    # last_employer_eng=last_employer_eng,
                     info=info,
                     info_eng=info_eng,
                     sanctions=sanctions,
@@ -632,18 +615,6 @@ class PepConverterFromDB(Converter):
                 if pep.fullname_transcriptions_eng != fullname_transcriptions_eng:
                     pep.fullname_transcriptions_eng = fullname_transcriptions_eng
                     update_fields.append('fullname_transcriptions_eng')
-                # if pep.last_job_title != last_job_title:
-                #     pep.last_job_title = last_job_title
-                #     update_fields.append('last_job_title')
-                # if pep.last_job_title_eng != last_job_title_eng:
-                #     pep.last_job_title_eng = last_job_title_eng
-                #     update_fields.append('last_job_title_eng')
-                # if pep.last_employer != last_employer:
-                #     pep.last_employer = last_employer
-                #     update_fields.append('last_employer')
-                # if pep.last_employer_eng != last_employer_eng:
-                #     pep.last_employer_eng = last_employer_eng
-                #     update_fields.append('last_employer_eng')
                 if pep.info != info:
                     pep.info = info
                     update_fields.append('info')
