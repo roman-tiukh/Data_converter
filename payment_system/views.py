@@ -6,6 +6,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
+from django.utils.translation import gettext_lazy as _
 
 from payment_system.permissions import ProjectPermission
 from payment_system.models import (
@@ -238,7 +239,7 @@ class CurrentUserProjectTokenView(ProjectViewMixin, generics.GenericAPIView):
     def get(self, request):
         project = self.get_queryset().first()
         if not project:
-            raise Http404('No project matches the given query.')
+            raise Http404(_('No project matches the given query'))
         self.check_object_permissions(request, project)
         serializer = self.get_serializer(project)
         return Response(serializer.data)

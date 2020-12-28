@@ -5,7 +5,7 @@
     <p style="font-family: Roboto;font-weight: normal;font-size: 16px;line-height: 24px;margin-bottom: 30px;">Вітаємо!
         <br>
         <br>
-        {{ user_name }}, {{ member_full_name }} підтвердив Ваше запрошення. Вдалої спільної
+        {{ user.first_name }}, {{ member.get_full_name }} підтвердив Ваше запрошення. Вдалої спільної
         роботи над проєктом!
     </p>
     <p style="font-family: Roboto;font-weight: normal;font-size: 16px;line-height: 24px;">З повагою, <br>Data Ocean</p>
