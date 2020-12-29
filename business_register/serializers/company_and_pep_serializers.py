@@ -126,10 +126,22 @@ class CompanyDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     relationships_with_peps = serializers.SerializerMethodField()
 
     def get_relationships_with_peps(self, obj):
-        queryset = obj.relationships_with_peps.filter(
-            category__in=[CompanyLinkWithPep.OWNER,
-                          CompanyLinkWithPep.MANAGER]
-        )
+        peps_category_parameter = self.context['request'].query_params.get('peps_category')
+        if peps_category_parameter == 'none':
+            return []
+        used_categories = [CompanyLinkWithPep.OWNER, CompanyLinkWithPep.MANAGER]
+        if peps_category_parameter:
+            categories = peps_category_parameter.split(',')
+            for category in categories:
+                if category not in used_categories:
+                    categories.remove(category)
+            queryset = obj.relationships_with_peps.filter(
+                category__in=categories
+            )
+        else:
+            queryset = obj.relationships_with_peps.filter(
+                category__in=used_categories
+            )
         return CompanyLinkWithPepSerializer(queryset, many=True).data
 
     country = serializers.StringRelatedField()
