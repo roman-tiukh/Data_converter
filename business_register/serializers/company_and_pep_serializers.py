@@ -211,6 +211,7 @@ class FromRelatedPersonLinkSerializer(serializers.ModelSerializer):
         fields = (
             'to_person',
             'to_person_relationship_type',
+            'relationship_category',
             'start_date',
             'confirmation_date',
             'end_date',
@@ -225,6 +226,7 @@ class ToRelatedPersonLinkSerializer(serializers.ModelSerializer):
         fields = (
             'from_person',
             'from_person_relationship_type',
+            'relationship_category',
             'start_date',
             'confirmation_date',
             'end_date',

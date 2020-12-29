@@ -140,6 +140,15 @@ class PepDeclaration(DataOceanModel):
 
 
 class RelatedPersonsLink(DataOceanModel):
+    FAMILY = 'family'
+    BUSINESS = 'business'
+    PERSONAL = 'personal'
+    CATEGORIES = (
+        (FAMILY, 'родина'),
+        (BUSINESS, 'бізнес'),
+        (PERSONAL, "персональний зв'язок"),
+    )
+
     from_person = models.ForeignKey(
         Pep, on_delete=models.CASCADE,
         verbose_name="пов'язана особа",
@@ -159,6 +168,13 @@ class RelatedPersonsLink(DataOceanModel):
         "тип зв'язку іншої особи із першою",
         max_length=90,
         null=True,
+    )
+    relationship_category = models.CharField(
+        "категорія зв'язку між особами",
+        choices=CATEGORIES,
+        max_length=20,
+        null=True,
+        blank=True
     )
     start_date = models.CharField(
         "дата виникнення зв'язку",
