@@ -15,6 +15,24 @@ HistoricalFounder = apps.get_model('business_register', 'HistoricalFounder')
 HistoricalSigner = apps.get_model('business_register', 'HistoricalSigner')
 
 
+def filter_with_parameter(obj, parameter, used_categories, model_related_name, serializer):
+    if parameter == 'none':
+        return []
+    if parameter:
+        categories = parameter.split(',')
+        for category in categories:
+            if category not in used_categories:
+                categories.remove(category)
+        queryset = getattr(obj, model_related_name).filter(
+            category__in=categories
+        )
+    else:
+        queryset = getattr(obj, model_related_name).filter(
+            category__in=used_categories
+        )
+    return serializer(queryset, many=True).data
+
+
 class BancruptcyReadjustmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = BancruptcyReadjustment
@@ -126,23 +144,15 @@ class CompanyDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     relationships_with_peps = serializers.SerializerMethodField()
 
     def get_relationships_with_peps(self, obj):
-        peps_category_parameter = self.context['request'].query_params.get('peps_category')
-        if peps_category_parameter == 'none':
-            return []
-        used_categories = [CompanyLinkWithPep.OWNER, CompanyLinkWithPep.MANAGER]
-        if peps_category_parameter:
-            categories = peps_category_parameter.split(',')
-            for category in categories:
-                if category not in used_categories:
-                    categories.remove(category)
-            queryset = obj.relationships_with_peps.filter(
-                category__in=categories
-            )
-        else:
-            queryset = obj.relationships_with_peps.filter(
-                category__in=used_categories
-            )
-        return CompanyLinkWithPepSerializer(queryset, many=True).data
+        return filter_with_parameter(
+            obj=obj,
+            parameter=self.context['request'].query_params.get('peps_relations'),
+            used_categories=[
+                CompanyLinkWithPep.OWNER,
+                CompanyLinkWithPep.MANAGER
+            ],
+            model_related_name='relationships_with_peps',
+            serializer=CompanyLinkWithPepSerializer)
 
     country = serializers.StringRelatedField()
     founders = FounderSerializer(many=True)
@@ -211,7 +221,7 @@ class FromRelatedPersonLinkSerializer(serializers.ModelSerializer):
         fields = (
             'to_person',
             'to_person_relationship_type',
-            'relationship_category',
+            'category',
             'start_date',
             'confirmation_date',
             'end_date',
@@ -226,7 +236,7 @@ class ToRelatedPersonLinkSerializer(serializers.ModelSerializer):
         fields = (
             'from_person',
             'from_person_relationship_type',
-            'relationship_category',
+            'category',
             'start_date',
             'confirmation_date',
             'end_date',
@@ -259,16 +269,67 @@ class PepDetailLinkWithCompanySerializer(serializers.ModelSerializer):
 
 
 class PepDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
-    from_person_links = FromRelatedPersonLinkSerializer(many=True)
-    to_person_links = ToRelatedPersonLinkSerializer(many=True)
+    from_person_links = serializers.SerializerMethodField()
+    to_person_links = serializers.SerializerMethodField()
     related_companies = serializers.SerializerMethodField()
     # other companies founded by persons with the same fullname as pep
     check_companies = CountFoundedCompaniesSerializer(many=True)
     pep_type = serializers.CharField(source='get_pep_type_display')
     reason_of_termination = serializers.CharField(source='get_reason_of_termination_display')
 
+    def get_from_person_links(self, obj):
+        return filter_with_parameter(
+            obj=obj,
+            parameter=self.context['request'].query_params.get('pep_relations'),
+            used_categories=[
+                RelatedPersonsLink.FAMILY,
+                RelatedPersonsLink.BUSINESS,
+                RelatedPersonsLink.PERSONAL
+            ],
+            model_related_name='from_person_links',
+            serializer=FromRelatedPersonLinkSerializer)
+
+    def get_to_person_links(self, obj):
+        return filter_with_parameter(
+            obj=obj,
+            parameter=self.context['request'].query_params.get('pep_relations'),
+            used_categories=[
+                RelatedPersonsLink.FAMILY,
+                RelatedPersonsLink.BUSINESS,
+                RelatedPersonsLink.PERSONAL
+            ],
+            model_related_name='to_person_links',
+            serializer=ToRelatedPersonLinkSerializer
+        )
+
     def get_related_companies(self, obj):
-        queryset = obj.related_companies.select_related('company', 'company__company_type', 'company__status').all()
+        parameter = self.context['request'].query_params.get('company_relations')
+        if parameter == 'none':
+            return []
+        used_categories = [
+            CompanyLinkWithPep.OWNER,
+            CompanyLinkWithPep.MANAGER
+        ]
+        if parameter:
+            categories = parameter.split(',')
+            for category in categories:
+                if category not in used_categories:
+                    categories.remove(category)
+            queryset = obj.related_companies.filter(
+                category__in=categories
+            ).select_related(
+                'company',
+                'company__company_type',
+                'company__status'
+            )
+        else:
+            queryset = obj.related_companies.filter(
+                category__in=used_categories
+            ).select_related(
+                'company',
+                'company__company_type',
+                'company__status'
+            )
         return PepDetailLinkWithCompanySerializer(queryset, many=True).data
 
     class Meta:

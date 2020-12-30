@@ -458,7 +458,7 @@ class PepConverterFromDB(Converter):
                 continue
             from_person_relationship_type = link[2]
             to_person_relationship_type = link[3]
-            relationship_category = self.PEP_RELATIONSHIPS_TYPES_TO_CATEGORIES.get(from_person_relationship_type)
+            category = self.PEP_RELATIONSHIPS_TYPES_TO_CATEGORIES.get(from_person_relationship_type)
             start_date = link[4]
             confirmation_date = link[5]
             end_date = link[6]
@@ -472,7 +472,7 @@ class PepConverterFromDB(Converter):
                     to_person_id=to_person.id,
                     from_person_relationship_type=from_person_relationship_type,
                     to_person_relationship_type=to_person_relationship_type,
-                    relationship_category=relationship_category,
+                    category=category,
                     start_date=start_date,
                     confirmation_date=confirmation_date,
                     end_date=end_date
@@ -485,9 +485,9 @@ class PepConverterFromDB(Converter):
                 if stored_link.to_person_relationship_type != to_person_relationship_type:
                     stored_link.to_person_relationship_type = to_person_relationship_type
                     update_fields.append('to_person_relationship_type')
-                if stored_link.relationship_category != relationship_category:
-                    stored_link.relationship_category = relationship_category
-                    update_fields.append('relationship_category')
+                if stored_link.category != category:
+                    stored_link.category = category
+                    update_fields.append('category')
                 if stored_link.start_date != start_date:
                     stored_link.start_date = start_date
                     update_fields.append('start_date')

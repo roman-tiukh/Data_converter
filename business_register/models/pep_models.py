@@ -169,7 +169,7 @@ class RelatedPersonsLink(DataOceanModel):
         max_length=90,
         null=True,
     )
-    relationship_category = models.CharField(
+    category = models.CharField(
         "категорія зв'язку між особами",
         choices=CATEGORIES,
         max_length=20,
