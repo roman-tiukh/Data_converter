@@ -33,7 +33,7 @@ class Pep(DataOceanModel):
         (PEP_FAMILY_MEMBER, "Член сім'ї"),
     )
 
-    code = models.CharField(max_length=15, unique=True)
+    code = models.CharField(max_length=15, unique=True, db_index=True)
     first_name = models.CharField("ім'я", max_length=20)
     middle_name = models.CharField('по батькові', max_length=25)
     last_name = models.CharField('прізвище', max_length=30)
@@ -76,7 +76,7 @@ class Pep(DataOceanModel):
     reason_of_termination_eng = models.CharField('причина припинення статусу публічного діяча англійською',
                                                  max_length=125, null=True)
     source_id = models.PositiveIntegerField("id from original ANTAC`s DB", unique=True,
-                                            db_index=True, null=True, blank=True)
+                                            null=True, blank=True)
     history = HistoricalRecords(excluded_fields=['url', 'code'])
 
     @property

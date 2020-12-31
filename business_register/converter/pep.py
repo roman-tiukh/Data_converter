@@ -310,8 +310,7 @@ class PepConverterFromDB(Converter):
         self.database = settings.PEP_SOURCE_DATABASE
         self.user = settings.PEP_SOURCE_USER
         self.password = settings.PEP_SOURCE_PASSWORD
-        self.all_peps_dict = self.put_all_objects_to_dict('source_id', 'business_register', 'Pep')
-        # self.all_company_links_with_peps = self.to_dict_all_companies_links_with_peps()
+        self.all_peps_dict = self.put_all_objects_to_dict('code', 'business_register', 'Pep')
         self.PEP_QUERY = ('SELECT id, last_name, first_name, patronymic, '
                           'last_name_en, first_name_en, patronymic_en, names, is_pep, '
                           'dob, city_of_birth_uk, city_of_birth_en, '
@@ -605,7 +604,7 @@ class PepConverterFromDB(Converter):
                                      if reason_of_termination_number else None)
             is_dead = (reason_of_termination_number == 1)
             termination_date = to_lower_string_if_exists(pep_data[26])
-            pep = self.all_peps_dict.get(source_id)
+            pep = self.all_peps_dict.get(code)
             if not pep:
                 pep = Pep.objects.create(
                     code=code,
@@ -637,7 +636,7 @@ class PepConverterFromDB(Converter):
                     reason_of_termination=reason_of_termination,
                     source_id=source_id
                 )
-                self.all_peps_dict[source_id] = pep
+                self.all_peps_dict[code] = pep
             else:
                 update_fields = []
                 if pep.first_name != first_name:
