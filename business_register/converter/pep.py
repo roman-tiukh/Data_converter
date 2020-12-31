@@ -575,8 +575,6 @@ class PepConverterFromDB(Converter):
     def save_or_update_peps(self, peps_data):
         for pep_data in peps_data:
             source_id = pep_data[0]
-            if source_id == 52294:
-                print(peps_data)
             code = str(source_id)
             last_name = pep_data[1].lower()
             first_name = pep_data[2].lower()
