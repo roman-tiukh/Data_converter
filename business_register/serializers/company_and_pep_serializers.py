@@ -33,6 +33,14 @@ def filter_with_parameter(obj, parameter, used_categories, model_related_name, s
     return serializer(queryset, many=True).data
 
 
+def filter_property(obj, parameter, model_related_name, serializer):
+    if parameter == 'none':
+        return []
+    else:
+        result = getattr(obj, model_related_name)
+        return serializer(result, many=True).data
+
+
 class BancruptcyReadjustmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = BancruptcyReadjustment
@@ -142,6 +150,7 @@ class CompanyLinkWithPepSerializer(serializers.ModelSerializer):
 
 class CompanyDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     relationships_with_peps = serializers.SerializerMethodField()
+    founder_of = serializers.SerializerMethodField()
 
     def get_relationships_with_peps(self, obj):
         return filter_with_parameter(
@@ -152,11 +161,19 @@ class CompanyDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
                 CompanyLinkWithPep.MANAGER
             ],
             model_related_name='relationships_with_peps',
-            serializer=CompanyLinkWithPepSerializer)
+            serializer=CompanyLinkWithPepSerializer
+        )
+
+    def get_founder_of(self, obj):
+        return filter_property(
+            obj=obj,
+            parameter=self.context['request'].query_params.get('show_founder_of'),
+            model_related_name='founder_of',
+            serializer=CountFoundedCompaniesSerializer
+        )
 
     country = serializers.StringRelatedField()
     founders = FounderSerializer(many=True)
-    founder_of = CountFoundedCompaniesSerializer(many=True)
     authorized_capital = serializers.FloatField()
     parent = serializers.StringRelatedField()
     predecessors = serializers.StringRelatedField(many=True)
@@ -273,7 +290,7 @@ class PepDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     to_person_links = serializers.SerializerMethodField()
     related_companies = serializers.SerializerMethodField()
     # other companies founded by persons with the same fullname as pep
-    check_companies = CountFoundedCompaniesSerializer(many=True)
+    check_companies = serializers.SerializerMethodField()
     pep_type = serializers.CharField(source='get_pep_type_display')
     reason_of_termination = serializers.CharField(source='get_reason_of_termination_display')
 
@@ -331,6 +348,14 @@ class PepDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
                 'company__status'
             )
         return PepDetailLinkWithCompanySerializer(queryset, many=True).data
+
+    def get_check_companies(self, obj):
+        return filter_property(
+            obj=obj,
+            parameter=self.context['request'].query_params.get('show_check_companies'),
+            model_related_name='check_companies',
+            serializer=CountFoundedCompaniesSerializer
+        )
 
     class Meta:
         model = Pep
