@@ -5,7 +5,7 @@
     <p style="font-family: Roboto;font-weight: normal;font-size: 16px;line-height: 24px;margin-bottom: 30px;"> Вітаємо!
         <br>
         <br>
-        {{ user_name }}, Ви видалили користувача {{ member_full_name }} з проєкту {{ project_name }}.
+        {{ user.first_name }}, Ви видалили користувача {{ member.get_full_name }} з проєкту {{ project.name }}.
         Ви завжди можете змінювати доступ користувачів у налаштуваннях проєкту.
     </p>
     <p style="font-family: Roboto;font-weight: normal;font-size: 16px;line-height: 24px;">З повагою, <br>Data Ocean</p>

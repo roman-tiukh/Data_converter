@@ -5,7 +5,7 @@
     <p style="font-family: Roboto;font-weight: normal;font-size: 16px;line-height: 24px;margin-bottom: 30px;">Вітаємо!
         <br>
         <br>
-        {{ user_name }}, {{ owner_full_name }} запросив Вас до проєкту {{ project_name }}.
+        {{ user.first_name }}, {{ owner.get_full_name }} запросив Вас до проєкту {{ project.name }}.
         Для початку роботи підтвердіть свою участь за посиланням:
         <br>
     </p>

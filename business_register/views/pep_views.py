@@ -1,17 +1,15 @@
-from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
-from rest_framework.filters import SearchFilter
 from rest_framework.decorators import action
+from rest_framework.filters import SearchFilter
+from rest_framework.response import Response
 
 from business_register.filters import PepFilterSet
 from business_register.models.pep_models import Pep
 from business_register.permissions import PepSchemaToken
 from business_register.serializers.company_and_pep_serializers import PepListSerializer, PepDetailSerializer
 from data_ocean.views import CachedViewMixin, RegisterViewMixin
-from payment_system.permissions import AccessFromProjectToken
 
 
 class PepViewSet(RegisterViewMixin,

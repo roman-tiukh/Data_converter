@@ -1,14 +1,16 @@
 import logging
-from django.utils import timezone
+
 import psycopg2
 import sshtunnel
+from django.conf import settings
+from django.utils import timezone
+from requests.auth import HTTPBasicAuth
+
+from business_register.converter.business_converter import BusinessConverter
 from business_register.models.company_models import Company
 from business_register.models.pep_models import Pep, RelatedPersonsLink, CompanyLinkWithPep
-from business_register.converter.business_converter import BusinessConverter
-from data_ocean.downloader import Downloader
-from requests.auth import HTTPBasicAuth
-from django.conf import settings
 from data_ocean.converter import Converter
+from data_ocean.downloader import Downloader
 from data_ocean.utils import to_lower_string_if_exists
 
 logger = logging.getLogger(__name__)
@@ -308,8 +310,7 @@ class PepConverterFromDB(Converter):
         self.database = settings.PEP_SOURCE_DATABASE
         self.user = settings.PEP_SOURCE_USER
         self.password = settings.PEP_SOURCE_PASSWORD
-        self.all_peps_dict = self.put_all_objects_to_dict('source_id', 'business_register', 'Pep')
-        # self.all_company_links_with_peps = self.to_dict_all_companies_links_with_peps()
+        self.all_peps_dict = self.put_all_objects_to_dict('code', 'business_register', 'Pep')
         self.PEP_QUERY = ('SELECT id, last_name, first_name, patronymic, '
                           'last_name_en, first_name_en, patronymic_en, names, is_pep, '
                           'dob, city_of_birth_uk, city_of_birth_en, '
@@ -330,7 +331,6 @@ class PepConverterFromDB(Converter):
                                      'edrpou, state_company, short_name_en, name '
                                      'FROM core_person2company '
                                      'INNER JOIN core_company on to_company_id=core_company.id '
-                                     "WHERE category NOT LIKE 'bank_customer' "
                                      'ORDER BY from_person_id;')
         self.REASONS_OF_TERMINATION = {
             1: Pep.DIED,
@@ -346,6 +346,38 @@ class PepConverterFromDB(Converter):
             3: Pep.PEP_FROM_INTERNATIONAL_ORGANISATION,
             4: Pep.PEP_ASSOCIATED_PERSON,
             5: Pep.PEP_FAMILY_MEMBER,
+        }
+        self.PEP_RELATIONSHIPS_TYPES_TO_CATEGORIES = {
+            "ділові зв'язки": RelatedPersonsLink.BUSINESS,
+            "особисті зв'язки": RelatedPersonsLink.PERSONAL,
+            'особи, які спільно проживають': RelatedPersonsLink.FAMILY,
+            "пов'язані спільним побутом і мають взаємні права та обов'язки": RelatedPersonsLink.FAMILY,
+            'усиновлювач': RelatedPersonsLink.FAMILY,
+            'падчерка': RelatedPersonsLink.FAMILY,
+            'дід': RelatedPersonsLink.FAMILY,
+            'рідний брат': RelatedPersonsLink.FAMILY,
+            'мати': RelatedPersonsLink.FAMILY,
+            'син': RelatedPersonsLink.FAMILY,
+            'невістка': RelatedPersonsLink.FAMILY,
+            'внук': RelatedPersonsLink.FAMILY,
+            'мачуха': RelatedPersonsLink.FAMILY,
+            'особа, яка перебуває під опікою або піклуванням': RelatedPersonsLink.FAMILY,
+            'усиновлений': RelatedPersonsLink.FAMILY,
+            'внучка': RelatedPersonsLink.FAMILY,
+            'батько': RelatedPersonsLink.FAMILY,
+            'рідна сестра': RelatedPersonsLink.FAMILY,
+            'зять': RelatedPersonsLink.FAMILY,
+            'чоловік': RelatedPersonsLink.FAMILY,
+            'опікун чи піклувальник': RelatedPersonsLink.FAMILY,
+            'дочка': RelatedPersonsLink.FAMILY,
+            'свекор': RelatedPersonsLink.FAMILY,
+            'тесть': RelatedPersonsLink.FAMILY,
+            'теща': RelatedPersonsLink.FAMILY,
+            'баба': RelatedPersonsLink.FAMILY,
+            'пасинок': RelatedPersonsLink.FAMILY,
+            'вітчим': RelatedPersonsLink.FAMILY,
+            'дружина': RelatedPersonsLink.FAMILY,
+            'свекруха': RelatedPersonsLink.FAMILY,
         }
 
     # def to_dict_all_companies_links_with_peps(self):
@@ -425,6 +457,7 @@ class PepConverterFromDB(Converter):
                 continue
             from_person_relationship_type = link[2]
             to_person_relationship_type = link[3]
+            category = self.PEP_RELATIONSHIPS_TYPES_TO_CATEGORIES.get(from_person_relationship_type)
             start_date = link[4]
             confirmation_date = link[5]
             end_date = link[6]
@@ -438,6 +471,7 @@ class PepConverterFromDB(Converter):
                     to_person_id=to_person.id,
                     from_person_relationship_type=from_person_relationship_type,
                     to_person_relationship_type=to_person_relationship_type,
+                    category=category,
                     start_date=start_date,
                     confirmation_date=confirmation_date,
                     end_date=end_date
@@ -450,6 +484,9 @@ class PepConverterFromDB(Converter):
                 if stored_link.to_person_relationship_type != to_person_relationship_type:
                     stored_link.to_person_relationship_type = to_person_relationship_type
                     update_fields.append('to_person_relationship_type')
+                if stored_link.category != category:
+                    stored_link.category = category
+                    update_fields.append('category')
                 if stored_link.start_date != start_date:
                     stored_link.start_date = start_date
                     update_fields.append('start_date')
@@ -567,21 +604,7 @@ class PepConverterFromDB(Converter):
                                      if reason_of_termination_number else None)
             is_dead = (reason_of_termination_number == 1)
             termination_date = to_lower_string_if_exists(pep_data[26])
-
-            # last_job_title = pep_data.get('last_job_title')
-            # if last_job_title:
-            #     last_job_title = last_job_title.lower()
-            # last_job_title_eng = pep_data.get('last_job_title_en')
-            # if last_job_title_eng:
-            #     last_job_title_eng = last_job_title_eng.lower()
-            # last_employer = pep_data.get('last_workplace')
-            # if last_employer:
-            #     last_employer = last_employer.lower()
-            # last_employer_eng = pep_data.get('last_workplace_en')
-            # if last_employer_eng:
-            #     last_employer_eng = last_employer_eng.lower()
-            #
-            pep = self.all_peps_dict.get(source_id)
+            pep = self.all_peps_dict.get(code)
             if not pep:
                 pep = Pep.objects.create(
                     code=code,
@@ -591,10 +614,6 @@ class PepConverterFromDB(Converter):
                     fullname=fullname,
                     fullname_eng=fullname_eng,
                     fullname_transcriptions_eng=fullname_transcriptions_eng,
-                    # last_job_title=last_job_title,
-                    # last_job_title_eng=last_job_title_eng,
-                    # last_employer=last_employer,
-                    # last_employer_eng=last_employer_eng,
                     info=info,
                     info_eng=info_eng,
                     sanctions=sanctions,
@@ -617,7 +636,7 @@ class PepConverterFromDB(Converter):
                     reason_of_termination=reason_of_termination,
                     source_id=source_id
                 )
-                self.all_peps_dict[source_id] = pep
+                self.all_peps_dict[code] = pep
             else:
                 update_fields = []
                 if pep.first_name != first_name:
@@ -632,18 +651,6 @@ class PepConverterFromDB(Converter):
                 if pep.fullname_transcriptions_eng != fullname_transcriptions_eng:
                     pep.fullname_transcriptions_eng = fullname_transcriptions_eng
                     update_fields.append('fullname_transcriptions_eng')
-                # if pep.last_job_title != last_job_title:
-                #     pep.last_job_title = last_job_title
-                #     update_fields.append('last_job_title')
-                # if pep.last_job_title_eng != last_job_title_eng:
-                #     pep.last_job_title_eng = last_job_title_eng
-                #     update_fields.append('last_job_title_eng')
-                # if pep.last_employer != last_employer:
-                #     pep.last_employer = last_employer
-                #     update_fields.append('last_employer')
-                # if pep.last_employer_eng != last_employer_eng:
-                #     pep.last_employer_eng = last_employer_eng
-                #     update_fields.append('last_employer_eng')
                 if pep.info != info:
                     pep.info = info
                     update_fields.append('info')

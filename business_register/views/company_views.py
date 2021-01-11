@@ -2,7 +2,7 @@ from django.apps import apps
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.filters import SearchFilter
-from rest_framework.permissions import IsAuthenticated
+
 from business_register.filters import CompanyFilterSet
 from business_register.models.company_models import Company
 from business_register.permissions import PepSchemaToken
@@ -42,7 +42,7 @@ class CompanyViewSet(RegisterViewMixin,
     def get_queryset(self):
         if self.action == 'list':
             return self.queryset.exclude(from_antac_only=True).filter(country__name='ukraine')
-        return self.queryset.filter(country__name='ukraine')
+        return self.queryset
 
 
 class HistoricalAssigneeView(RegisterViewMixin,
