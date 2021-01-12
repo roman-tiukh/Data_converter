@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from django.utils.translation import gettext_lazy as _
+from rest_framework.permissions import AllowAny
 
 from payment_system.permissions import ProjectPermission
 from payment_system.models import (
@@ -196,6 +197,7 @@ class InvitationListView(generics.ListAPIView):
 
 
 class SubscriptionsListView(generics.ListAPIView):
+    permission_classes = [AllowAny]
     serializer_class = SubscriptionSerializer
     queryset = Subscription.objects.filter(is_custom=False)
     pagination_class = None
