@@ -13,7 +13,7 @@ from stats import logic
 from stats.serializers import TopKvedSerializer, CompanyTypeCountSerializer
 from .models import ApiUsageTracking
 from .cache_warming import WarmedCacheGetAPIView
-from payment_system.models import Project, UserProject
+from payment_system.models import UserProject
 
 
 class StatsTestView(WarmedCacheGetAPIView):
@@ -119,8 +119,10 @@ class RegisteredFopsCountView(WarmedCacheGetAPIView):
 class UsersInProjectsView(views.APIView):
     def get(self, request):
         user = request.user
-        user_projects = UserProject.objects.filter(user_id=user.id).values_list('project')
-        users_count = UserProject.objects.filter(project__in=list(user_projects)).order_by('user').distinct('user').count()
+        user_projects = UserProject.objects.filter(user=user).values_list('project', flat=True)
+        users_count = UserProject.objects.filter(project__in=list(user_projects)).exclude(
+            user=user
+        ).order_by('user').distinct('user').count()
         return Response({
             'users_count': users_count
         }, status=200)
