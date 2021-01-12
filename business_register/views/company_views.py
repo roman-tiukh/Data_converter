@@ -2,6 +2,7 @@ from django.apps import apps
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.filters import SearchFilter
+from rest_framework.response import Response
 
 from business_register.filters import CompanyFilterSet
 from business_register.models.company_models import Company
@@ -69,8 +70,21 @@ class HistoricalCompanyDetailView(RegisterViewMixin,
 class HistoricalFounderView(RegisterViewMixin,
                             CachedViewMixin,
                             viewsets.ReadOnlyModelViewSet):
+    lookup_field = 'company'
     queryset = HistoricalFounder.objects.all()
     serializer_class = HistoricalFounderSerializer
+
+    def retrieve(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        queryset = queryset.filter(*args, **kwargs)
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 class HistoricalSignerView(RegisterViewMixin,
