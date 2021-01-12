@@ -117,16 +117,10 @@ class RegisteredFopsCountView(WarmedCacheGetAPIView):
         }
 
 class UsersInProjectsView(views.APIView):
-    @staticmethod
-    def get(request):
+    def get(self, request):
         user = request.user
-        user_projects = Project.objects.filter(owner=user.id)
-        users_list = []
-        for project in user_projects:
-            users_list += UserProject.objects.filter(project=project).values_list('user')
-        users_count = len(set(users_list))
+        user_projects = UserProject.objects.filter(user_id=user.id).values_list('project')
+        users_count = UserProject.objects.filter(project__in=list(user_projects)).order_by('user').distinct('user').count()
         return Response({
             'users_count': users_count
         }, status=200)
-
-
