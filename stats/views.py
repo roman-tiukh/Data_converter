@@ -116,6 +116,7 @@ class RegisteredFopsCountView(WarmedCacheGetAPIView):
             'company_count': Fop.objects.count()
         }
 
+    
 class UsersInProjectsView(views.APIView):
     def get(self, request):
         user = request.user
