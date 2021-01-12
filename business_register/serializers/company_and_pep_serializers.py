@@ -232,6 +232,7 @@ class HistoricalSignerSerializer(serializers.ModelSerializer):
 
 class FromRelatedPersonLinkSerializer(serializers.ModelSerializer):
     to_person = PepShortSerializer()
+    category_display = serializers.CharField(source='get_category_display')
 
     class Meta:
         model = RelatedPersonsLink
@@ -239,6 +240,7 @@ class FromRelatedPersonLinkSerializer(serializers.ModelSerializer):
             'to_person',
             'to_person_relationship_type',
             'category',
+            'category_display',
             'start_date',
             'confirmation_date',
             'end_date',
@@ -247,6 +249,7 @@ class FromRelatedPersonLinkSerializer(serializers.ModelSerializer):
 
 class ToRelatedPersonLinkSerializer(serializers.ModelSerializer):
     from_person = PepShortSerializer()
+    category_display = serializers.CharField(source='get_category_display')
 
     class Meta:
         model = RelatedPersonsLink
@@ -254,6 +257,7 @@ class ToRelatedPersonLinkSerializer(serializers.ModelSerializer):
             'from_person',
             'from_person_relationship_type',
             'category',
+            'category_display',
             'start_date',
             'confirmation_date',
             'end_date',
@@ -262,25 +266,26 @@ class ToRelatedPersonLinkSerializer(serializers.ModelSerializer):
 
 class PepLinkWithCompanySerializer(serializers.ModelSerializer):
     company = CompanyShortSerializer()
-    category = serializers.CharField(source='get_category_display')
+    category_display = serializers.CharField(source='get_category_display')
 
     class Meta:
         model = CompanyLinkWithPep
         fields = (
             'company', 'company_name_eng', 'company_short_name_eng', 'category',
-            'relationship_type', 'relationship_type_eng', 'start_date', 'end_date',
-            'is_state_company',
+            'category_display', 'relationship_type', 'relationship_type_eng',
+            'start_date', 'end_date', 'is_state_company',
         )
 
 
 class PepDetailLinkWithCompanySerializer(serializers.ModelSerializer):
     company = CountFoundedCompaniesSerializer()
-    category = serializers.CharField(source='get_category_display')
+    category_display = serializers.CharField(source='get_category_display')
 
     class Meta:
         model = CompanyLinkWithPep
         fields = (
-            'company', 'company_name_eng', 'company_short_name_eng', 'category', 'relationship_type',
+            'company', 'company_name_eng', 'company_short_name_eng',
+            'category', 'category_display', 'relationship_type',
             'relationship_type_eng', 'start_date', 'end_date', 'is_state_company',
         )
 
