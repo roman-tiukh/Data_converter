@@ -380,10 +380,6 @@ class PepConverterFromDB(Converter):
             'свекруха': RelatedPersonsLink.FAMILY,
         }
 
-    # def to_dict_all_companies_links_with_peps(self):
-    #     return {str(link.pep.source_id) + str(link.company.antac_id):
-    #                 link for link in CompanyLinkWithPep.objects.all()}
-
     def get_pep_data(self, host=None, port=None):
 
         host = host or self.host
@@ -444,13 +440,13 @@ class PepConverterFromDB(Converter):
     def save_or_update_peps_links(self, peps_links_data):
         for link in peps_links_data:
             from_person_source_id = link[0]
-            from_person = self.all_peps_dict.get(from_person_source_id)
+            from_person = self.all_peps_dict.get(str(from_person_source_id))
             if not from_person:
                 logger.info(f'No such pep in our DB. '
                             f'Check records in the source DB with id {from_person_source_id}')
                 continue
             to_person_source_id = link[1]
-            to_person = self.all_peps_dict.get(to_person_source_id)
+            to_person = self.all_peps_dict.get(str(to_person_source_id))
             if not to_person:
                 logger.info(f'No such pep in our DB. '
                             f'Check records in the source DB with id {to_person_source_id}')
@@ -515,7 +511,7 @@ class PepConverterFromDB(Converter):
     def save_or_update_peps_companies(self, peps_companies_data):
         for link in peps_companies_data:
             pep_source_id = link[0]
-            pep = self.all_peps_dict.get(pep_source_id)
+            pep = self.all_peps_dict.get(str(pep_source_id))
             if not pep:
                 logger.info(f'No such pep in our DB. '
                             f'Check records in the source DB with id {pep_source_id}')
@@ -531,7 +527,7 @@ class PepConverterFromDB(Converter):
             company_name = link[9]
             company = Company.objects.filter(antac_id=company_antac_id).first()
             if not company and edrpou:
-                company = Company.objects.filter(edrpou=edrpou).first()
+                company = Company.objects.filter(edrpou=edrpou, country__name='ukraine').first()
                 if company:
                     company.antac_id = company_antac_id
                     company.save(update_fields=['antac_id'])
