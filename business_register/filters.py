@@ -1,3 +1,4 @@
+from django.apps import apps
 from django.db.models import Q
 from django_filters import rest_framework as filters
 from business_register.models.company_models import Company
@@ -5,6 +6,9 @@ from business_register.models.fop_models import Fop
 from business_register.models.pep_models import Pep
 
 from .models.kved_models import Kved
+
+
+HistoricalFounder = apps.get_model('business_register', 'HistoricalFounder')
 
 
 class CompanyFilterSet(filters.FilterSet):
@@ -100,3 +104,6 @@ class PepFilterSet(filters.FilterSet):
             'is_pep': ['exact'],
             'is_dead': ['exact'],
         }
+
+class HistoricalFounderFilterSet(filters.FilterSet):
+    history_date = filters.DateFromToRangeFilter()
