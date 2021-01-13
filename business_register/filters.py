@@ -101,5 +101,6 @@ class PepFilterSet(filters.FilterSet):
             'is_dead': ['exact'],
         }
 
+
 class HistoricalFounderFilterSet(filters.FilterSet):
     history_date = filters.DateFromToRangeFilter()
