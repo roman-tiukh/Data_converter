@@ -29,6 +29,7 @@ class SubscriptionToProjectSerializer(serializers.ModelSerializer):
     name = serializers.CharField(source='subscription.name')
     price = serializers.IntegerField(source='subscription.price')
     requests_limit = serializers.IntegerField(source='subscription.requests_limit')
+    is_default = serializers.BooleanField(source='subscription.is_default')
 
     class Meta:
         model = ProjectSubscription
@@ -36,7 +37,7 @@ class SubscriptionToProjectSerializer(serializers.ModelSerializer):
             'id', 'subscription_id', 'name', 'status', 'expiring_date',
             'price', 'requests_limit', 'duration', 'grace_period',
             'requests_left', 'requests_used', 'is_paid',
-            'payment_date', 'payment_overdue_days',
+            'payment_date', 'payment_overdue_days', 'is_default',
         ]
         read_only_fields = fields
 

@@ -2,12 +2,12 @@
 
 {% block content %}
 
-    <p style="font-family: Roboto;font-weight: normal;font-size: 16px;line-height: 24px;margin-bottom: 30px;">{{ user_name }},
+    <p style="font-family: Roboto;font-weight: normal;font-size: 16px;line-height: 24px;margin-bottom: 30px;">{{ user.first_name }},
         <br>
         <br>
         Вітаємо у Data Ocean!
         За допомогою наших сервісів Ви отримаєте доступ до відкритих реєстрів, наборів даних та звітностей. За
-        замовчуванням для Вас створений <a href="{{ default_project_link }}">новий проєкт</a>.
+        замовчуванням для Вас створений <a href="{{ default_project.frontend_link }}">новий проєкт</a>.
         Ваш пакет - Freemium.
         <br>
         <br>

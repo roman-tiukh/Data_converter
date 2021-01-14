@@ -1,42 +1,24 @@
-import hmac
 import hashlib
+import hmac
 import re
 from datetime import timedelta
+
+from django.conf import settings
+from django.contrib.auth.hashers import make_password
+from django.core.mail import send_mail
+from django.utils import timezone
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import generics, views
+from rest_framework.authtoken.models import Token
+from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
-from django.core.mail import send_mail
-from django.contrib.auth.hashers import make_password
-from django.utils.translation import ugettext_lazy as _
-from django.utils import timezone
-from django.conf import settings
-from django.template.loader import render_to_string
+
+from users.emails import (send_confirm_email_message, send_registration_confirmed_message)
 from data_ocean.postman import send_plain_mail
 from .models import DataOceanUser, CandidateUserModel
 from .serializers import (DataOceanUserSerializer, CustomRegisterSerializer, LandingMailSerializer,
                           QuestionSerializer)
-from rest_framework.authtoken.models import Token
-
-REGISTRATION_CONFIRM_SUBJECT = 'Підтвердження реєстрації на Data Ocean'
-REGISTRATION_CONFIRM_MSG = (
-    "{first_name}, ми отримали запит на реєстрацію у системі Data Ocean.\r\n"
-    "Щоб підтвердити адресу Вашої електронної пошти, "
-    "перейдіть за цим посиланням: \r\n{confirm_link}\r\n"
-    "Якщо Вами ці дії не проводились, проігноруйте цей лист.\r\n"
-    "З повагою, Data Ocean"
-)
-
-REGISTRATION_SUCCESS_SUBJECT = 'Ласкаво просимо у Data Ocean!'
-REGISTRATION_SUCCESS_MSG = (
-    "Дякуємо за реєстрацію у системі Data Ocean.\r\n"
-    "Data Ocean — провайдер зручного доступу до відкритих даних.\r\n"
-    "Ми розробляємо спеціальний сервіс, де Ви зможете "
-    "отримати доступ до всіх важливих та існуючих регістрів, даних та звітностей.\r\n \r\n"
-    "Якщо у Вас з'явились питання або пропозиції, зв'яжіться з нами info@dataocean.us. "
-    "Будемо раді співпрацювати з Вами. Запевняємо, що наша співпраця буде плідною!\r\n"
-    "З повагою, Data Ocean"
-)
 
 
 class UserListView(generics.ListAPIView):
@@ -85,27 +67,7 @@ class CustomRegistrationView(views.APIView):
         # create a letter to the candidate to confirm the email
         domain = re.sub(r'/$', '', settings.FRONTEND_SITE_URL)
         confirm_link = f'{domain}/auth/sign-up/confirmation/{user.id}/{user.confirm_code}/'
-        message = REGISTRATION_CONFIRM_MSG.format(first_name=user.first_name, confirm_link=confirm_link)
-        template_html = render_to_string(
-            'users/emails/registration_confirm.html',
-            context={'first_name': user.first_name, 'confirm_link': confirm_link}
-        )
-        # send mail
-        if settings.SEND_MAIL_BY_POSTMAN:
-            # use POSTMAN
-            send_status_code = send_plain_mail(user.email, REGISTRATION_CONFIRM_SUBJECT, message)
-            if send_status_code != 201:
-                return Response({'detail': _('Email not sent. Try again later.')}, status=503)
-        else:
-            # use EMAIL_BACKEND
-            send_mail(
-                subject=REGISTRATION_CONFIRM_SUBJECT,
-                message=message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=(user.email,),
-                fail_silently=True,
-                html_message=template_html,
-            )
+        send_confirm_email_message(user, confirm_link)
 
         return Response({
             "email": user.email,
@@ -148,27 +110,9 @@ class CustomRegistrationConfirmView(views.APIView):
             last_name=user.last_name,
         )
 
-        template_html = render_to_string(
-            'users/emails/registration_success.html',
-            context={'site_url': settings.FRONTEND_SITE_URL, 'support_email': settings.SUPPORT_EMAIL}
-        )
         # send mail
-        if settings.SEND_MAIL_BY_POSTMAN:
-            # use POSTMAN
-            send_status_code = send_plain_mail(user.email, REGISTRATION_SUCCESS_SUBJECT, REGISTRATION_SUCCESS_MSG)
-            if send_status_code != 201:
-                return Response({'detail': _('Email not sent. Try again later.')}, status=400)
-        else:
-            # use EMAIL_BACKEND
-            send_mail(
-                subject=REGISTRATION_SUCCESS_SUBJECT,
-                message=REGISTRATION_SUCCESS_MSG,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=(user.email,),
-                fail_silently=True,
-                html_message=template_html,
-            )
-
+        default_project = real_user.user_projects.get(is_default=True).project
+        send_registration_confirmed_message(real_user, default_project)
         return Response(DataOceanUserSerializer(real_user).data, status=200)
 
 

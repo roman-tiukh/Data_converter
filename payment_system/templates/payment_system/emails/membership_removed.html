@@ -5,8 +5,8 @@
     <p style="font-family: Roboto;font-weight: normal;font-size: 16px;line-height: 24px;margin-bottom: 30px;">Вітаємо!
         <br>
         <br>
-        {{ user_name }}, {{ owner_full_name }} видалив Вас із проєкту {{ project_name }}.
-        Для відновлення доступу до проекту зв’яжіться з {{ owner_first_name }}.
+        {{ user.first_name }}, {{ owner.get_full_name }} видалив Вас із проєкту {{ project.name }}.
+        Для відновлення доступу до проекту зв’яжіться з {{ owner.first_name }}.
     </p>
     <p style="font-family: Roboto;font-weight: normal;font-size: 16px;line-height: 24px;">З повагою, <br>Data Ocean</p>
 {% endblock content %}

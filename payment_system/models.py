@@ -2,7 +2,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
-from rest_framework.exceptions import ValidationError as RestValidationError
+from django.utils.translation import gettext, gettext_lazy as _
 
 from data_ocean.models import DataOceanModel
 from data_ocean.utils import generate_key
@@ -18,6 +18,10 @@ class Project(DataOceanModel):
                                    related_name='projects')
     subscriptions = models.ManyToManyField('Subscription', through='ProjectSubscription',
                                            related_name='projects')
+
+    @property
+    def frontend_link(self):
+        return f'{settings.FRONTEND_SITE_URL}/system/profile/projects/{self.id}/'
 
     def save(self, *args, **kwargs):
         if not self.token:
@@ -72,10 +76,10 @@ class Project(DataOceanModel):
 
     def invite_user(self, email: str):
         if self.user_projects.filter(user__email=email).exists():
-            raise RestValidationError({'detail': 'User already in project'})
+            raise ValidationError(_('User already in project'))
 
         if self.invitations.filter(email=email, deleted_at__isnull=True).exists():
-            raise RestValidationError({'detail': 'User already invited'})
+            raise ValidationError(_('User already invited'))
 
         invitation, created = Invitation.objects.get_or_create(
             email=email, project=self,
@@ -92,7 +96,7 @@ class Project(DataOceanModel):
                 email=user.email, deleted_at__isnull=True,
             )
         except Invitation.DoesNotExist:
-            raise RestValidationError({'detail': 'User is not invited'})
+            raise ValidationError(_('User is not invited'))
         return invitation
 
     def reject_invitation(self, user):
@@ -103,7 +107,7 @@ class Project(DataOceanModel):
         invitation = self._check_user_invitation(user)
 
         if user in self.users.all():
-            raise RestValidationError({'detail': 'User already in project'})
+            raise ValidationError(_('User already in project'))
 
         self.user_projects.create(
             user=user,
@@ -115,16 +119,16 @@ class Project(DataOceanModel):
     def deactivate_user(self, user_id):
         u2p = self.user_projects.get(user_id=user_id)
         if u2p.role == UserProject.OWNER:
-            raise RestValidationError({'detail': 'You cannot deactivate an owner from his own project'})
+            raise ValidationError(_('You cannot deactivate an owner from his own project'))
         if u2p.status == UserProject.DEACTIVATED:
-            raise RestValidationError({'detail': 'User already deactivated'})
+            raise ValidationError(_('User already deactivated'))
         u2p.status = UserProject.DEACTIVATED
         u2p.save(update_fields=['status'])
 
     def activate_user(self, user_id):
         u2p = self.user_projects.get(user_id=user_id)
         if u2p.status == UserProject.ACTIVE:
-            raise RestValidationError({'detail': 'User already activated'})
+            raise ValidationError(_('User already activated'))
         u2p.status = UserProject.ACTIVE
         u2p.save(update_fields=['status'])
         # should I add sending email here?
@@ -132,9 +136,7 @@ class Project(DataOceanModel):
     def disable(self):
         for u2p in self.user_projects.all():
             if u2p.is_default:
-                raise RestValidationError({
-                    'detail': 'You cannot disable default project',
-                })
+                raise ValidationError(_('You cannot disable default project'))
 
         self.disabled_at = timezone.now()
         self.save(update_fields=['disabled_at'])
@@ -162,16 +164,12 @@ class Project(DataOceanModel):
             status=ProjectSubscription.ACTIVE,
         )
         if subscription.is_default:
-            raise RestValidationError({
-                'detail': 'Can\'t add default subscription.'
-            })
+            raise ValidationError(_('Can\'t add default subscription'))
         if ProjectSubscription.objects.filter(
-            project=self,
-            status=ProjectSubscription.FUTURE,
+                project=self,
+                status=ProjectSubscription.FUTURE,
         ).exists():
-            raise RestValidationError({
-                'detail': 'Can\'t add second future subscription.'
-            })
+            raise ValidationError(_('Can\'t add second future subscription'))
         # grace_period_used = self.project_subscriptions.filter(
         #     status=ProjectSubscription.PAST,
         #     subscription__is_default=False,
@@ -183,14 +181,10 @@ class Project(DataOceanModel):
             invoices__grace_period_block=True,
         ).exists()
         if grace_period_used:
-            raise RestValidationError({
-                'detail': 'You have subscription on a grace period, cant add new subscription',
-            })
+            raise ValidationError(_('Project have subscription on a grace period, cant add new subscription'))
 
         if current_p2s.subscription == subscription:
-            raise RestValidationError({
-                'detail': f'You already on {subscription.name}',
-            })
+            raise ValidationError(gettext('Project already on {}').format(subscription.name))
 
         if current_p2s.subscription.is_default:
             current_p2s.status = ProjectSubscription.PAST
@@ -209,9 +203,7 @@ class Project(DataOceanModel):
             Invoice.objects.create(project_subscription=new_p2s)
         else:
             if current_p2s.is_grace_period:
-                raise RestValidationError({
-                    'detail': 'You have subscription on a grace period, cant add new subscription',
-                })
+                raise ValidationError(_('Project have subscription on a grace period, can\'t add new subscription'))
             new_p2s = ProjectSubscription.objects.create(
                 project=self,
                 subscription=subscription,
@@ -268,9 +260,7 @@ class Subscription(DataOceanModel):
         if self.is_default:
             exists = Subscription.objects.filter(is_default=True).exclude(pk=self.pk).exists()
             if exists:
-                raise ValidationError({
-                    'is_default': 'Default subscription already exists',
-                })
+                raise ValidationError(_('Default subscription already exists'))
 
     def save(self, *args, **kwargs):
         self.validate_unique()
@@ -375,7 +365,7 @@ class UserProject(DataOceanModel):
                 user=self.user, is_default=True,
             ).exclude(id=self.id).count()
             if default_count:
-                raise ValidationError('User can only have one default project')
+                raise ValidationError(_('User can only have one default project'))
 
     def save(self, *args, **kwargs):
         self.validate_unique()
@@ -394,9 +384,9 @@ class ProjectSubscription(DataOceanModel):
     PAST = 'past'
     FUTURE = 'future'
     STATUSES = (
-        (ACTIVE, 'Active'),
-        (PAST, 'Past'),
-        (FUTURE, 'Future'),
+        (ACTIVE, _('Active')),
+        (PAST, _('Past')),
+        (FUTURE, _('Future')),
     )
     project = models.ForeignKey('Project', on_delete=models.CASCADE,
                                 related_name='project_subscriptions')
@@ -425,9 +415,11 @@ class ProjectSubscription(DataOceanModel):
                     status=status,
                 ).exclude(pk=self.pk).exists()
                 if is_exists:
-                    raise ValidationError({
-                        'detail': f'Only one {status} subscription in project',
-                    })
+                    for code, verbose in self.STATUSES:
+                        if code == status:
+                            status = verbose
+                            break
+                    raise ValidationError(gettext('Only one {} subscription in project').format(status))
 
         check_unique_status(ProjectSubscription.ACTIVE)
         check_unique_status(ProjectSubscription.FUTURE)
