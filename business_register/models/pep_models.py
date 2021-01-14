@@ -33,7 +33,7 @@ class Pep(DataOceanModel):
         (PEP_FAMILY_MEMBER, "Член сім'ї"),
     )
 
-    code = models.CharField(max_length=15, unique=True)
+    code = models.CharField(max_length=15, unique=True, db_index=True)
     first_name = models.CharField("ім'я", max_length=20)
     middle_name = models.CharField('по батькові', max_length=25)
     last_name = models.CharField('прізвище', max_length=30)
@@ -76,7 +76,7 @@ class Pep(DataOceanModel):
     reason_of_termination_eng = models.CharField('причина припинення статусу публічного діяча англійською',
                                                  max_length=125, null=True)
     source_id = models.PositiveIntegerField("id from original ANTAC`s DB", unique=True,
-                                            db_index=True, null=True, blank=True)
+                                            null=True, blank=True)
     history = HistoricalRecords(excluded_fields=['url', 'code'])
 
     @property
@@ -140,6 +140,15 @@ class PepDeclaration(DataOceanModel):
 
 
 class RelatedPersonsLink(DataOceanModel):
+    FAMILY = 'family'
+    BUSINESS = 'business'
+    PERSONAL = 'personal'
+    CATEGORIES = (
+        (FAMILY, 'родина'),
+        (BUSINESS, 'бізнес'),
+        (PERSONAL, "персональний зв'язок"),
+    )
+
     from_person = models.ForeignKey(
         Pep, on_delete=models.CASCADE,
         verbose_name="пов'язана особа",
@@ -159,6 +168,13 @@ class RelatedPersonsLink(DataOceanModel):
         "тип зв'язку іншої особи із першою",
         max_length=90,
         null=True,
+    )
+    category = models.CharField(
+        "категорія зв'язку між особами",
+        choices=CATEGORIES,
+        max_length=20,
+        null=True,
+        blank=True
     )
     start_date = models.CharField(
         "дата виникнення зв'язку",

@@ -378,8 +378,10 @@ class FopDownloader(Downloader):
 
         sleep(5)
         self.vacuum_analyze(table_list=['business_register_fop', ])
-        total_records = Fop.objects.count()
-        self.update_total_records(settings.ALL_FOPS_DATASET_NAME, total_records)
+        new_total_records = Fop.objects.count()
+        self.update_field(settings.ALL_FOPS_DATASET_NAME, 'total_records', new_total_records)
+        self.update_field(settings.ALL_FOPS_DATASET_NAME, 'updated_at', timezone.now())
+
 
         self.remove_file()
 

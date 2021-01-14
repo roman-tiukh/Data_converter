@@ -92,6 +92,7 @@ class BancruptcyReadjustment(DataOceanModel):
     reason = models.TextField('підстава', null=True)
     sbj_state = models.CharField(max_length=345, null=True)
     head_name = models.CharField(max_length=515, null=True)
+    history = HistoricalRecords()
 
     def __str__(self):
         return self.sbj_state
@@ -116,6 +117,7 @@ class CompanyToKved(DataOceanModel):  # constraint for only only one truth in pr
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='kveds')
     kved = models.ForeignKey(Kved, on_delete=models.CASCADE, verbose_name='КВЕД')
     primary_kved = models.BooleanField('зазначений як основний', default=False)
+    history = HistoricalRecords()
 
     class Meta:
         verbose_name = 'КВЕДи компанії'
@@ -133,6 +135,7 @@ class ExchangeDataCompany(DataOceanModel):
     start_number = models.CharField(max_length=555, null=True)
     end_date = models.DateField(null=True)
     end_number = models.CharField(max_length=555, null=True)
+    history = HistoricalRecords()
 
     def __str__(self):
         return self.authority.name
@@ -178,6 +181,7 @@ class CompanyToPredecessor(DataOceanModel):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='predecessors',
                                 verbose_name='є попередником організації')
     predecessor = models.ForeignKey(Predecessor, on_delete=models.CASCADE)
+    history = HistoricalRecords()
 
     def __str__(self):
         return self.predecessor.name
@@ -201,6 +205,7 @@ class TerminationStarted(DataOceanModel):
     sbj_state = models.CharField(max_length=530, null=True)
     signer_name = models.CharField(max_length=480, null=True)
     creditor_reg_end_date = models.DateField(null=True)
+    history = HistoricalRecords()
 
     def __str__(self):
         return self.sbj_state

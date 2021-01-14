@@ -5,7 +5,7 @@ from users.models import DataOceanUser
 
 # FIXME: subscription_link?
 def send_new_subscription_message(user: DataOceanUser, project_subscription: ProjectSubscription,
-                                  subscription_link,):
+                                  subscription_link, ):
     send_template_mail(
         to=[user.email],
         subject='Ви підписалися на новий пакет послуг',

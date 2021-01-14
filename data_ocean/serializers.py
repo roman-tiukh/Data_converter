@@ -26,7 +26,7 @@ class TaxpayerTypeSerializer(serializers.ModelSerializer):
 class EndPointSerializer(serializers.ModelSerializer):
     class Meta:
         model = Dataset
-        fields = ['name', 'endpoint', 'type']
+        fields = ['name', 'endpoint', 'type', 'total_records', 'updated_at']
 
 
 class RegisterSerializer(serializers.ModelSerializer):

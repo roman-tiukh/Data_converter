@@ -17,7 +17,7 @@ from payment_system.permissions import AccessFromProjectToken
 
 
 class CachedViewMixin:
-    @method_decorator(cache_page(60 * 15))
+    @method_decorator(cache_page(60 * 60 * 24))
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)
 
