@@ -34,8 +34,11 @@ class UkCompanyConverter(CompanyConverter):
                 )
                 company_type = self.save_or_get_company_type(row['CompanyCategory'], 'en')
                 status = self.save_or_get_status(row['CompanyStatus'])
-                registration_date = format_date_to_yymmdd(row['IncorporationDate'])
-                company = Company.objects.filter(edrpou=number).first()
+                if len(row['IncorporationDate']) == 10:
+                    registration_date = format_date_to_yymmdd(row['IncorporationDate'])
+                else:
+                    registration_date = None
+                company = Company.objects.filter(code=code).first()
                 if not company:
                     company = Company(
                         name=name,
