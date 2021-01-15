@@ -2,8 +2,9 @@ from django.apps import apps
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.filters import SearchFilter
+from rest_framework.response import Response
 
-from business_register.filters import CompanyFilterSet
+from business_register.filters import CompanyFilterSet, HistoricalFounderFilterSet
 from business_register.models.company_models import Company
 from business_register.permissions import PepSchemaToken
 from business_register.serializers.company_and_pep_serializers import (
@@ -69,8 +70,23 @@ class HistoricalCompanyDetailView(RegisterViewMixin,
 class HistoricalFounderView(RegisterViewMixin,
                             CachedViewMixin,
                             viewsets.ReadOnlyModelViewSet):
-    queryset = HistoricalFounder.objects.all()
+    lookup_field = 'company_id'
+    queryset = HistoricalFounder.objects.order_by('-history_date')
     serializer_class = HistoricalFounderSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = HistoricalFounderFilterSet
+
+    def retrieve(self, request, company_id):
+        queryset = self.filter_queryset(self.get_queryset())
+        queryset = queryset.filter(company_id=company_id)
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 class HistoricalSignerView(RegisterViewMixin,
