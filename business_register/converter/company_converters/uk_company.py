@@ -38,7 +38,11 @@ class UkCompanyConverter(CompanyConverter):
                     registration_date = format_date_to_yymmdd(row['IncorporationDate'])
                 else:
                     registration_date = None
-                company = Company.objects.filter(code=code).first()
+                source = Company.GREAT_BRITAIN_REGISTER
+                company = (Company.objects
+                           .exclude(from_antac_only=True)
+                           .exclude(country__name='ukraine')
+                           .filter(edrpou=number).first())
                 if not company:
                     company = Company(
                         name=name,
@@ -48,7 +52,8 @@ class UkCompanyConverter(CompanyConverter):
                         country=country,
                         status=status,
                         registration_date=registration_date,
-                        code=code
+                        code=code,
+                        source=Company.GREAT_BRITAIN_REGISTER
                     )
                     company.save()
                 else:
@@ -74,7 +79,9 @@ class UkCompanyConverter(CompanyConverter):
                     if company.code != code:
                         company.code = code
                         update_fields.append('code')
-
+                    if company.source != source:
+                        company.source = source
+                        update_fields.append('source')
                     if update_fields:
                         company.save(update_fields=update_fields)
 

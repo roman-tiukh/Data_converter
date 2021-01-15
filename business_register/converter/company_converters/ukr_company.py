@@ -690,7 +690,11 @@ class UkrCompanyConverter(CompanyConverter):
             if boss:
                 boss = boss.lower()
             # ToDo: resolve the problem of having records with the same company name amd edrpou
-            company = Company.objects.filter(code=code).first()
+            company = (Company.objects
+                       .exclude(from_antac_only=True)
+                       .filter(code=code)
+                       .first())
+            source = Company.UKRAINE_REGISTER
             if not company:
                 company = Company.objects.create(
                     name=name,
@@ -700,7 +704,8 @@ class UkrCompanyConverter(CompanyConverter):
                     status=status,
                     boss=boss,
                     country=country,
-                    code=code
+                    code=code,
+                    source=source
                 )
             else:
                 update_fields = []
@@ -722,6 +727,9 @@ class UkrCompanyConverter(CompanyConverter):
                 if company.country != country:
                     company.country = country
                     update_fields.append('country')
+                if company.source != source:
+                    company.source = source
+                    update_fields.append('source')
                 if update_fields:
                     company.save(update_fields=update_fields)
             kved_data = record.xpath('KVED')[0].text
