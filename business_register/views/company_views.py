@@ -1,7 +1,7 @@
 from django.apps import apps
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
-from rest_framework.filters import SearchFilter, OrderingFilter
+from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
 
 from business_register.filters import CompanyFilterSet, HistoricalFounderFilterSet
@@ -71,11 +71,9 @@ class HistoricalFounderView(RegisterViewMixin,
                             CachedViewMixin,
                             viewsets.ReadOnlyModelViewSet):
     lookup_field = 'company_id'
-    queryset = HistoricalFounder.objects.all()
+    queryset = HistoricalFounder.objects.order_by('-history_date')
     serializer_class = HistoricalFounderSerializer
-    filter_backends = [DjangoFilterBackend, OrderingFilter]
-    ordering_fields = ['history_date']
-    ordering = ['-history_date']
+    filter_backends = [DjangoFilterBackend]
     filterset_class = HistoricalFounderFilterSet
 
     def retrieve(self, request, company_id):
