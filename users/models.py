@@ -4,9 +4,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from rest_framework.authtoken.models import Token
-
 from data_ocean.models import DataOceanModel
-from payment_system.models import Invitation
 
 
 class DataOceanUserManager(BaseUserManager):
@@ -62,6 +60,7 @@ class DataOceanUser(AbstractUser):
 
     @property
     def invitations(self):
+        from payment_system.models import Invitation
         return Invitation.objects.filter(
             email=self.email,
             deleted_at__isnull=True,

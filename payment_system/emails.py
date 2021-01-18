@@ -1,11 +1,14 @@
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from payment_system.models import ProjectSubscription, Project, Subscription, UserProject
+
 from django.conf import settings
 
 from data_converter.email_utils import send_template_mail
-from payment_system.models import ProjectSubscription, Project, Subscription, UserProject
 from users.models import DataOceanUser
 
 
-def member_activated(user: DataOceanUser, project: Project):
+def member_activated(user: 'DataOceanUser', project: 'Project'):
     send_template_mail(
         to=[user.email],
         subject='Доступ до проєкту відновлено',
@@ -17,7 +20,7 @@ def member_activated(user: DataOceanUser, project: Project):
     )
 
 
-def member_removed(user: DataOceanUser, project: Project):
+def member_removed(user: 'DataOceanUser', project: 'Project'):
     send_template_mail(
         to=[user.email],
         subject='Вас видалили з проєкту',
@@ -29,7 +32,7 @@ def member_removed(user: DataOceanUser, project: Project):
     )
 
 
-def membership_confirmed(user: DataOceanUser, member: DataOceanUser):
+def membership_confirmed(user: 'DataOceanUser', member: DataOceanUser):
     send_template_mail(
         to=[user.email],
         subject='Користувач, якого Ви додали до проєкту, підтвердив ваше запрошення',
@@ -41,7 +44,7 @@ def membership_confirmed(user: DataOceanUser, member: DataOceanUser):
     )
 
 
-def new_invitation(invited_email: str, project: Project):
+def new_invitation(invited_email: str, project: 'Project'):
     is_user_exists = DataOceanUser.objects.filter(email=invited_email).exists()
     frontend_link = settings.FRONTEND_SITE_URL
     send_template_mail(
@@ -57,7 +60,7 @@ def new_invitation(invited_email: str, project: Project):
 
 
 # TODO: Add here PDF document as attachment
-def new_invoice(project: Project):
+def new_invoice(project: 'Project'):
     owner = project.owner
     send_template_mail(
         to=[owner.email],
@@ -70,7 +73,7 @@ def new_invoice(project: Project):
     )
 
 
-def new_subscription(project_subscription: ProjectSubscription):
+def new_subscription(project_subscription: 'ProjectSubscription'):
     owner = project_subscription.project.owner
     send_template_mail(
         to=[owner.email],
@@ -83,7 +86,7 @@ def new_subscription(project_subscription: ProjectSubscription):
     )
 
 
-def payment_confirmed(project_subscription: ProjectSubscription):
+def payment_confirmed(project_subscription: 'ProjectSubscription'):
     owner = project_subscription.project.owner
     send_template_mail(
         to=[owner.email],
@@ -97,7 +100,8 @@ def payment_confirmed(project_subscription: ProjectSubscription):
     )
 
 
-def project_non_payment(project: Project):
+def project_non_payment(project: 'Project'):
+    from payment_system.models import Subscription
     default_subscription = Subscription.get_default_subscription()
     owner = project.owner
     send_template_mail(
@@ -112,7 +116,8 @@ def project_non_payment(project: Project):
     )
 
 
-def token_has_been_changed(project: Project):
+def token_has_been_changed(project: 'Project'):
+    from payment_system.models import UserProject
     users = project.users.exclude(
         user_projects__role=UserProject.OWNER,
         user_projects__status=UserProject.DEACTIVATED,
@@ -129,7 +134,7 @@ def token_has_been_changed(project: Project):
 
 
 # TODO: Add here PDF document as attachment
-def tomorrow_payment_day(project_subscription: ProjectSubscription):
+def tomorrow_payment_day(project_subscription: 'ProjectSubscription'):
     owner = project_subscription.project.owner
     send_template_mail(
         to=[owner.email],
