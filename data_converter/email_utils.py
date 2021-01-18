@@ -4,8 +4,9 @@ from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 
 
-def send_template_mail(to, subject, template, context, fail_silently=True,
-                       asynchronously=True, from_email=None):
+def send_template_mail(to: [str], subject: str, template: str, context: dict,
+                       from_email: str = None, fail_silently: bool = True,
+                       asynchronously: bool = True):
     html = render_to_string(template, context)
     e_message = EmailMessage(
         subject=subject,
@@ -17,7 +18,7 @@ def send_template_mail(to, subject, template, context, fail_silently=True,
     if not asynchronously:
         e_message.send(fail_silently=fail_silently)
     else:
-        # we have toe use Celery here
+        # TODO: we have to use Celery here
         Thread(
             target=e_message.send,
             kwargs={'fail_silently': fail_silently}

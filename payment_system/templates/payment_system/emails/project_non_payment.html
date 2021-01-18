@@ -1,0 +1,14 @@
+{% extends "data_ocean/emails/_base.html" %}
+
+{% block content %}
+
+  <p style="font-family: Roboto;font-weight: normal;font-size: 16px;line-height: 24px;margin-bottom: 30px;">
+    {% include "data_ocean/emails/hi_there.html" with first_name=user.first_name %}
+    <br>
+    <br>
+    через відсутність оплати проєкт {{ project.name }}
+    переведено на безкоштовний тарифний план
+    без можливості його зміни.
+    Для відновлення роботи за попередніми умовами - зверніться до служби підтримки.
+  </p>
+{% endblock content %}

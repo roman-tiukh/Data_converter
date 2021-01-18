@@ -115,8 +115,8 @@ class ProjectSerializer(serializers.ModelSerializer):
             owner=user,
             name=validated_data['name'],
             description=validated_data.get('description', ''),
-        )
 
+        )
     class Meta:
         model = Project
         read_only_fields = [
@@ -144,7 +144,7 @@ class InvoiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Invoice
         read_only_fields = (
-            'id', 'paid_at', 'info', 'project', 'subscription',
+            'id', 'paid_at', 'note',
         )
         fields = read_only_fields
 

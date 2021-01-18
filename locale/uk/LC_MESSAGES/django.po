@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-12-18 20:12+0000\n"
+"POT-Creation-Date: 2021-01-15 15:00+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -29,85 +29,13 @@ msgstr "Українська"
 msgid "English"
 msgstr "Англійська"
 
-#: payment_system/models.py:79 payment_system/models.py:110
-msgid "User already in project"
-msgstr "Користувач вже в проекті"
-
-#: payment_system/models.py:82
-msgid "User already invited"
-msgstr "Користувача вже запрошено"
-
-#: payment_system/models.py:99
-msgid "User is not invited"
-msgstr "Користувача не запрошено"
-
-#: payment_system/models.py:122
-msgid "You cannot deactivate an owner from his own project"
-msgstr "Ви не можете відключити власника від його власного проекту"
-
-#: payment_system/models.py:124
-msgid "User already deactivated"
-msgstr "Користувача вже деактивовано"
-
-#: payment_system/models.py:131
-msgid "User already activated"
-msgstr "Користувач вже активований"
-
-#: payment_system/models.py:139
-msgid "You cannot disable default project"
-msgstr "Ви не можете вимкнути базовий проект"
-
-#: payment_system/models.py:167
-msgid "Can't add default subscription"
-msgstr "Не вдається додати базовий тарифний план"
-
-#: payment_system/models.py:172
-msgid "Can't add second future subscription"
-msgstr "Не вдається додати другий майбутній тарифний план"
-
-#: payment_system/models.py:184
-msgid "Project have subscription on a grace period, cant add new subscription"
+#: data_ocean/templates/data_ocean/emails/hi_there.html:3
+msgid "there"
 msgstr ""
-"Проєкт маєте тарифний план на пільговому періоді, не можете додати новий "
-"тарифний план"
 
-#: payment_system/models.py:187
-msgid "Project already on {}"
-msgstr "Проєкт вже на {}"
-
-#: payment_system/models.py:206
-msgid "Project have subscription on a grace period, can't add new subscription"
-msgstr ""
-"Проєкт має тарифний план на пільговому періоді, не можете додати новий "
-"тарифний план"
-
-#: payment_system/models.py:263
-msgid "Default subscription already exists"
-msgstr "Базовий тарифний план уже існує"
-
-#: payment_system/models.py:368
-msgid "User can only have one default project"
-msgstr "Користувач може мати лише один базовий проект"
-
-#: payment_system/models.py:387
-msgid "Active"
-msgstr "Активний"
-
-#: payment_system/models.py:388
-msgid "Past"
-msgstr "Минулий"
-
-#: payment_system/models.py:389
-msgid "Future"
-msgstr "Майбутній"
-
-#: payment_system/models.py:422
-msgid "Only one {} subscription in project"
-msgstr "У проекті лише один {} тарифний план"
-
-#: payment_system/views.py:242
-msgid "No project matches the given query"
-msgstr "Жоден проект не відповідає даному запиту"
+#: data_ocean/templates/data_ocean/emails/hi_there.html:4
+msgid "Hi"
+msgstr "Вітаємо"
 
 #: users/lc_messages/uk/rest_auth.py:5
 msgid "View is not defined, pass it as a context variable"
