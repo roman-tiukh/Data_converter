@@ -1,68 +1,38 @@
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from payment_system.models import ProjectSubscription, Project, Subscription, UserProject
+
+from django.conf import settings
+
 from data_converter.email_utils import send_template_mail
-from payment_system.models import ProjectSubscription, Project, Invoice
 from users.models import DataOceanUser
 
 
-# FIXME: subscription_link?
-def send_new_subscription_message(user: DataOceanUser, project_subscription: ProjectSubscription,
-                                  subscription_link, ):
+def member_activated(user: 'DataOceanUser', project: 'Project'):
     send_template_mail(
         to=[user.email],
-        subject='Ви підписалися на новий пакет послуг',
-        template='payment_system/emails/new_subscription.html',
-        context={
-            'user': user,
-            'subscription_link': subscription_link,
-            'project_subscription': project_subscription,
-            'FUTURE': ProjectSubscription.FUTURE,
-        }
-    )
-
-
-# FIXME: invited member dont have name, only email.
-def send_invited_member_message(user: DataOceanUser, project: Project, member: DataOceanUser):
-    send_template_mail(
-        to=[user.email],
-        subject='Ви додали нового користувача до проєкту',
-        template='payment_system/emails/invited_member.html',
+        subject='Доступ до проєкту відновлено',
+        template='payment_system/emails/member_activated.html',
         context={
             'user': user,
             'project': project,
-            'member': member
-        }
+        },
     )
 
 
-# FIXME: we dont have confirm_link, only accept in UI, and user can be not registered
-def send_confirm_membership_message(user: DataOceanUser, owner: DataOceanUser,
-                                    project: Project, confirm_link):
+def member_removed(user: 'DataOceanUser', project: 'Project'):
     send_template_mail(
         to=[user.email],
-        subject='Вас запросили до нового проєкту',
-        template='payment_system/emails/confirm_membership.html',
+        subject='Вас видалили з проєкту',
+        template='payment_system/emails/member_removed.html',
         context={
             'user': user,
-            'owner': owner,
-            'project_name': project,
-            'confirm_link': confirm_link
-        }
+            'project': project,
+        },
     )
 
 
-# FIXME: link = settings.FRONTEND_URL?
-def send_project_token_message(user: DataOceanUser, link):
-    send_template_mail(
-        to=[user.email],
-        subject='Доступ до токена',
-        template='payment_system/emails/project_token.html',
-        context={
-            'user': user,
-            'link': link
-        }
-    )
-
-
-def send_membership_confirmed_message(user: DataOceanUser, member: DataOceanUser):
+def membership_confirmed(user: 'DataOceanUser', member: DataOceanUser):
     send_template_mail(
         to=[user.email],
         subject='Користувач, якого Ви додали до проєкту, підтвердив ваше запрошення',
@@ -70,47 +40,108 @@ def send_membership_confirmed_message(user: DataOceanUser, member: DataOceanUser
         context={
             'user': user,
             'member': member,
-        }
+        },
     )
 
 
-# FIXME: видалили?
-def send_removed_member_message(user: DataOceanUser, member: DataOceanUser, project: Project):
+def new_invitation(invited_email: str, project: 'Project'):
+    is_user_exists = DataOceanUser.objects.filter(email=invited_email).exists()
+    frontend_link = settings.FRONTEND_SITE_URL
     send_template_mail(
-        to=[user.email],
-        subject='Ви видалили користувача з проєкту',
-        template='payment_system/emails/removed_member.html',
+        to=[invited_email],
+        subject='Вас запросили до нового проєкту',
+        template='payment_system/emails/new_invitation.html',
         context={
-            'user': user,
-            'member': member,
-            'project': project
-        }
+            'project': project,
+            'is_user_exists': is_user_exists,
+            'frontend_link': frontend_link,
+        },
     )
 
 
-# FIXME: видалили?
-def send_membership_removed_message(user: DataOceanUser, owner: DataOceanUser, project: Project):
+# TODO: Add here PDF document as attachment
+def new_invoice(project: 'Project'):
+    owner = project.owner
     send_template_mail(
-        to=[user.email],
-        subject='Вас видалили із проєкту',
-        template='payment_system/emails/membership_removed.html',
-        context={
-            'user': user,
-            'owner': owner,
-            'project': project
-        }
-    )
-
-
-# TODO: create property in Invoice model - frontend_link
-def send_new_invoice_message(user: DataOceanUser, invoice: Invoice, invoice_link: str):
-    send_template_mail(
-        to=[user.email],
-        subject='Новий рахунок',
+        to=[owner.email],
+        subject='Рахунок на оплату',
         template='payment_system/emails/new_invoice.html',
         context={
-            'user': user,
-            'invoice': invoice,
-            'invoice_link': invoice_link,
-        }
+            'user': owner,
+            'project': project,
+        },
+    )
+
+
+def new_subscription(project_subscription: 'ProjectSubscription'):
+    owner = project_subscription.project.owner
+    send_template_mail(
+        to=[owner.email],
+        subject='Ви підписалися на новий тарифний план',
+        template='payment_system/emails/new_subscription.html',
+        context={
+            'user': owner,
+            'project_subscription': project_subscription,
+        },
+    )
+
+
+def payment_confirmed(project_subscription: 'ProjectSubscription'):
+    owner = project_subscription.project.owner
+    send_template_mail(
+        to=[owner.email],
+        subject='Оплату підтверджено',
+        template='payment_system/emails/payment_confirmed.html',
+        context={
+            'user': owner,
+            'project': project_subscription.project,
+            'subscription': project_subscription.subscription,
+        },
+    )
+
+
+def project_non_payment(project: 'Project'):
+    from payment_system.models import Subscription
+    default_subscription = Subscription.get_default_subscription()
+    owner = project.owner
+    send_template_mail(
+        to=[owner.email],
+        subject='Ваш проєкт переведено на безкоштовний тарифний план через несплату',
+        template='payment_system/emails/project_non_payment.html',
+        context={
+            'user': owner,
+            'project': project,
+            'default_subscription': default_subscription,
+        },
+    )
+
+
+def token_has_been_changed(project: 'Project'):
+    from payment_system.models import UserProject
+    users = project.users.exclude(
+        user_projects__role=UserProject.OWNER,
+        user_projects__status=UserProject.DEACTIVATED,
+    ).values_list('email', flat=True)
+
+    send_template_mail(
+        to=users,
+        subject='Токен у проєкті був змінений',
+        template='payment_system/emails/token_has_been_changed.html',
+        context={
+            'project': project,
+        },
+    )
+
+
+# TODO: Add here PDF document as attachment
+def tomorrow_payment_day(project_subscription: 'ProjectSubscription'):
+    owner = project_subscription.project.owner
+    send_template_mail(
+        to=[owner.email],
+        subject='У Вас не оплачено рахунок',
+        template='payment_system/emails/tomorrow_payment_day.html',
+        context={
+            'user': owner,
+            'project': project_subscription.project,
+        },
     )

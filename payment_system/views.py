@@ -1,7 +1,9 @@
 from django.db.models import Prefetch
 from django.http import Http404
+from django.utils import translation
+from django.views import View
 from rest_framework import generics
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -258,3 +260,17 @@ class CurrentUserProjectTokenView(ProjectViewMixin, generics.GenericAPIView):
 #
 #         serializer = self.get_serializer(instance=project_subscription)
 #         return Response(serializer.data)
+
+# TODO: remove this
+class TestEmailView(View):
+    def get(self, request):
+        with translation.override('uk'):
+            project = Project.objects.all().first()
+            return render(
+                request=request,
+                template_name='payment_system/emails/new_invitation.html',
+                context={
+                    'owner': project.owner,
+                    'project': project,
+                }
+            )

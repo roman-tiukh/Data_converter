@@ -1,0 +1,14 @@
+{% extends "data_ocean/emails/_base.html" %}
+
+{% block content %}
+
+  <p style="font-family: Roboto;font-weight: normal;font-size: 16px;line-height: 24px;margin-bottom: 30px;">
+    {% include "data_ocean/emails/hi_there.html" %}
+    <br>
+    <br>
+    Зверніть увагу, що змінився токен доступу у проєкті {{ project.name }}.
+    Актуальний токен відображається у профілі проєкту,
+    перелік доступних проєктів - у профілі користувача.
+    Для коректної роботи завжди використовуйте актуальний токен доступу.
+  </p>
+{% endblock content %}

@@ -7,14 +7,16 @@ from django.utils.translation import gettext, gettext_lazy as _
 from data_ocean.models import DataOceanModel
 from data_ocean.utils import generate_key
 
+from payment_system import emails
+
 
 class Project(DataOceanModel):
     name = models.CharField(max_length=50)
     description = models.CharField(max_length=500, blank=True, default='')
     token = models.CharField(max_length=40, unique=True, db_index=True)
     disabled_at = models.DateTimeField(null=True, blank=True, default=None)
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL, models.CASCADE)
-    users = models.ManyToManyField(settings.AUTH_USER_MODEL, through='UserProject',
+    owner = models.ForeignKey('users.DataOceanUser', models.CASCADE)
+    users = models.ManyToManyField('users.DataOceanUser', through='UserProject',
                                    related_name='projects')
     subscriptions = models.ManyToManyField('Subscription', through='ProjectSubscription',
                                            related_name='projects')
@@ -88,7 +90,7 @@ class Project(DataOceanModel):
             invitation.deleted_at = None
             invitation.save(update_fields=['deleted_at'])
 
-        print(f'EMAIL: user {email} invited')
+        emails.new_invitation(email, self)
 
     def _check_user_invitation(self, user):
         try:
@@ -115,6 +117,7 @@ class Project(DataOceanModel):
             status=UserProject.ACTIVE,
         )
         invitation.soft_delete()
+        emails.membership_confirmed(self.owner, user)
 
     def deactivate_user(self, user_id):
         u2p = self.user_projects.get(user_id=user_id)
@@ -124,6 +127,7 @@ class Project(DataOceanModel):
             raise ValidationError(_('User already deactivated'))
         u2p.status = UserProject.DEACTIVATED
         u2p.save(update_fields=['status'])
+        emails.member_removed(u2p.user, self)
 
     def activate_user(self, user_id):
         u2p = self.user_projects.get(user_id=user_id)
@@ -131,7 +135,7 @@ class Project(DataOceanModel):
             raise ValidationError(_('User already activated'))
         u2p.status = UserProject.ACTIVE
         u2p.save(update_fields=['status'])
-        # should I add sending email here?
+        emails.member_activated(u2p.user, self)
 
     def disable(self):
         for u2p in self.user_projects.all():
@@ -148,6 +152,7 @@ class Project(DataOceanModel):
     def refresh_token(self):
         self.generate_new_token()
         self.save(update_fields=['token'])
+        emails.token_has_been_changed(self)
 
     def has_read_perms(self, user):
         u2p: UserProject = self.user_projects.get(user=user)
@@ -215,6 +220,7 @@ class Project(DataOceanModel):
                                timezone.timedelta(days=subscription.grace_period)),
                 is_grace_period=True,
             )
+        emails.new_subscription(new_p2s)
         return new_p2s
 
     @property
@@ -310,6 +316,7 @@ class Invoice(DataOceanModel):
             if p2s.is_grace_period and not invoice_old.is_paid and self.is_paid:
                 p2s.paid_up()
                 self.grace_period_block = False
+                emails.payment_confirmed(p2s)
             # else:
             #     if self.grace_period_block and not invoice_old.grace_period_block:
             #         p2s.is_grace_period = False
@@ -325,6 +332,10 @@ class Invoice(DataOceanModel):
             self.project_name = p2s.project.name
             self.price = p2s.subscription.price
             self.is_custom_subscription = p2s.subscription.is_custom
+
+            # TODO: need to generate PDF and add to email as attachment
+            emails.new_invoice(p2s.project)
+
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -349,7 +360,7 @@ class UserProject(DataOceanModel):
         (DEACTIVATED, "Deactivated"),
     )
 
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+    user = models.ForeignKey('users.DataOceanUser', on_delete=models.CASCADE,
                              related_name='user_projects')
     project = models.ForeignKey('Project', on_delete=models.CASCADE, related_name='user_projects')
     role = models.CharField(choices=ROLES, max_length=20)
@@ -488,6 +499,7 @@ class ProjectSubscription(DataOceanModel):
                     self.status = ProjectSubscription.PAST
                     self.save()
                     self.project.add_default_subscription()
+                    emails.project_non_payment(self.project)
                 else:
                     self.reset()
                     self.save()
@@ -500,8 +512,19 @@ class ProjectSubscription(DataOceanModel):
             Invoice.objects.create(project_subscription=future_p2s)
 
     @classmethod
+    def send_tomorrow_payment_emails(cls):
+        project_subscriptions_for_update = cls.objects.filter(
+            expiring_date=timezone.localdate() + timezone.timedelta(days=2),
+            status=ProjectSubscription.ACTIVE,
+            is_grace_period=True,
+        )
+        for p2s in project_subscriptions_for_update:
+            emails.tomorrow_payment_day(p2s)
+
+    @classmethod
     def update_expire_subscriptions(cls) -> str:
-        project_subscriptions_for_update = ProjectSubscription.objects.filter(
+        cls.send_tomorrow_payment_emails()
+        project_subscriptions_for_update = cls.objects.filter(
             expiring_date__lte=timezone.localdate(),
             status=ProjectSubscription.ACTIVE,
         )
@@ -533,7 +556,7 @@ class Invitation(DataOceanModel):
     email = models.EmailField()
     project = models.ForeignKey('Project', models.CASCADE, related_name='invitations')
 
-    # who_invited = models.ForeignKey(settings.AUTH_USER_MODEL, models.CASCADE,
+    # who_invited = models.ForeignKey('users.DataOceanUser', models.CASCADE,
     #                                 related_name='who_invitations')
 
     class Meta:

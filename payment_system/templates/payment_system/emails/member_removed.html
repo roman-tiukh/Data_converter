@@ -5,7 +5,7 @@
     {% include "data_ocean/emails/hi_there.html" with first_name=user.first_name %}
     <br>
     <br>
-    Ви підписалися на тарифний план {{ project_subscription.subscription.name }}.
-    Дія почнеться з {{ project_subscription.start_date }}.
+    Вас видалили із проєкту {{ project.name }}.
+    Для відновлення доступу зв’яжіться з його власником.
   </p>
 {% endblock content %}
