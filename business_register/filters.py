@@ -102,5 +102,41 @@ class PepFilterSet(filters.FilterSet):
         }
 
 
+class HistoricalAssigneeFilterSet(filters.FilterSet):
+    history_date = filters.DateFromToRangeFilter()
+
+
+class HistoricalBancruptcyReadjustmentFilterSet(filters.FilterSet):
+    history_date = filters.DateFromToRangeFilter()
+
+
+class HistoricalCompanyFilterSet(filters.FilterSet):
+    history_date = filters.DateFromToRangeFilter()
+
+
+class HistoricalCompanyDetailFilterSet(filters.FilterSet):
+    history_date = filters.DateFromToRangeFilter()
+
+
+class HistoricalCompanyToKvedFilterSet(filters.FilterSet):
+    history_date = filters.DateFromToRangeFilter()
+
+
+class HistoricalCompanyToPredecessorFilterSet(filters.FilterSet):
+    history_date = filters.DateFromToRangeFilter()
+
+
+class HistoricalExchangeDataCompanyFilterSet(filters.FilterSet):
+    history_date = filters.DateFromToRangeFilter()
+
+
 class HistoricalFounderFilterSet(filters.FilterSet):
+    history_date = filters.DateFromToRangeFilter()
+
+
+class HistoricalSignerFilterSet(filters.FilterSet):
+    history_date = filters.DateFromToRangeFilter()
+
+
+class HistoricalTerminationStartedFilterSet(filters.FilterSet):
     history_date = filters.DateFromToRangeFilter()
