@@ -19,6 +19,7 @@ urlpatterns = [
     path('report-builder/',
          ReportBuilderView.as_view(),
          name='report_builder'),
+    path('count-users/', views.UsersInProjectsView.as_view()),
 
     path('test/', views.StatsTestView.as_view()),
 ]

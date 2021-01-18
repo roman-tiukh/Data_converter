@@ -533,7 +533,7 @@ class PepConverterFromDB(Converter):
                     company.save(update_fields=['antac_id'])
             if not company:
                 company = Company.objects.create(name=company_name, edrpou=edrpou,
-                                                 code=company_name + edrpou,
+                                                 code=company_name + edrpou, source=Company.ANTAC,
                                                  antac_id=company_antac_id, from_antac_only=True)
                 self.create_company_link_with_pep(company, pep, company_short_name_eng, category,
                                                   start_date, confirmation_date, end_date,
@@ -756,7 +756,8 @@ class PepDownloader(Downloader):
 
         self.vacuum_analyze(table_list=['business_register_pep', ])
 
-        total_records = Pep.objects.count()
-        self.update_total_records(settings.ALL_PEPS_DATASET_NAME, total_records)
+        new_total_records = Pep.objects.count()
+        self.update_field(settings.ALL_PEPS_DATASET_NAME, 'total_records', new_total_records)
+        self.update_field(settings.ALL_PEPS_DATASET_NAME, 'updated_at', timezone.now())
 
         logger.info(f'{self.reg_name}: Update finished successfully.')
