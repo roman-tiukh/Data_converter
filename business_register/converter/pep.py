@@ -296,6 +296,7 @@ class PepConverterFromJson(BusinessConverter):
                     pep.source_id = source_id
                     update_fields.append('source_id')
                 if len(update_fields):
+                    update_fields.append('updated_at')
                     pep.save(update_fields=update_fields)
 
             if len(related_companies_list):
@@ -493,6 +494,7 @@ class PepConverterFromDB(Converter):
                     stored_link.end_date = end_date
                     update_fields.append('end_date')
                 if update_fields:
+                    update_fields.append('updated_at')
                     stored_link.save(update_fields=update_fields)
 
     def create_company_link_with_pep(self, company, pep, company_short_name_eng, category,
@@ -528,13 +530,13 @@ class PepConverterFromDB(Converter):
             company = Company.objects.filter(antac_id=company_antac_id).first()
             if company and company.country__name != 'ukraine':
                 company.source = Company.ANTAC
-                company.save(update_fields=['source'])
+                company.save(update_fields=['source', 'updated_at'])
 
             if not company and edrpou:
                 company = Company.objects.filter(edrpou=edrpou, country__name='ukraine').first()
                 if company:
                     company.antac_id = company_antac_id
-                    company.save(update_fields=['antac_id'])
+                    company.save(update_fields=['antac_id', 'updated_at'])
             if not company:
                 company = Company.objects.create(name=company_name, edrpou=edrpou,
                                                  code=company_name + edrpou, source=Company.ANTAC,
@@ -565,6 +567,7 @@ class PepConverterFromDB(Converter):
                         already_stored_link.is_state_company = is_state_company
                         update_fields.append('is_state_company')
                     if update_fields:
+                        update_fields.append('updated_at')
                         already_stored_link.save(update_fields=update_fields)
                 else:
                     self.create_company_link_with_pep(company, pep, company_short_name_eng, category,
@@ -715,6 +718,7 @@ class PepConverterFromDB(Converter):
                     pep.source_id = source_id
                     update_fields.append('source_id')
                 if len(update_fields):
+                    update_fields.append('updated_at')
                     pep.save(update_fields=update_fields)
 
     def process(self):

@@ -88,7 +88,7 @@ class Project(DataOceanModel):
         )
         if not created:
             invitation.deleted_at = None
-            invitation.save(update_fields=['deleted_at'])
+            invitation.save(update_fields=['deleted_at', 'updated_at'])
 
         emails.new_invitation(email, self)
 
@@ -126,7 +126,7 @@ class Project(DataOceanModel):
         if u2p.status == UserProject.DEACTIVATED:
             raise ValidationError(_('User already deactivated'))
         u2p.status = UserProject.DEACTIVATED
-        u2p.save(update_fields=['status'])
+        u2p.save(update_fields=['status', 'updated_at'])
         emails.member_removed(u2p.user, self)
 
     def activate_user(self, user_id):
@@ -134,7 +134,7 @@ class Project(DataOceanModel):
         if u2p.status == UserProject.ACTIVE:
             raise ValidationError(_('User already activated'))
         u2p.status = UserProject.ACTIVE
-        u2p.save(update_fields=['status'])
+        u2p.save(update_fields=['status', 'updated_at'])
         emails.member_activated(u2p.user, self)
 
     def disable(self):
@@ -143,15 +143,15 @@ class Project(DataOceanModel):
                 raise ValidationError(_('You cannot disable default project'))
 
         self.disabled_at = timezone.now()
-        self.save(update_fields=['disabled_at'])
+        self.save(update_fields=['disabled_at', 'updated_at'])
 
     def activate(self):
         self.disabled_at = None
-        self.save(update_fields=['disabled_at'])
+        self.save(update_fields=['disabled_at', 'updated_at'])
 
     def refresh_token(self):
         self.generate_new_token()
-        self.save(update_fields=['token'])
+        self.save(update_fields=['token', 'updated_at'])
         emails.token_has_been_changed(self)
 
     def has_read_perms(self, user):

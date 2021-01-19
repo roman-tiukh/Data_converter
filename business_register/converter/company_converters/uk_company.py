@@ -83,6 +83,7 @@ class UkCompanyConverter(CompanyConverter):
                         company.source = source
                         update_fields.append('source')
                     if update_fields:
+                        update_fields.append('updated_at')
                         company.save(update_fields=update_fields)
 
             print('All companies from UK register were saved')

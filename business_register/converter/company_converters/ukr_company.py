@@ -146,6 +146,7 @@ class UkrCompanyConverter(CompanyConverter):
                             stored_founder.equity = equity
                             update_fields.append('equity')
                         if update_fields:
+                            update_fields.append('updated_at')
                             stored_founder.save(update_fields=update_fields)
                         already_stored_founders.remove(stored_founder)
                         break
@@ -198,6 +199,7 @@ class UkrCompanyConverter(CompanyConverter):
                             stored_founder.address = address
                             update_fields.append('address')
                         if update_fields:
+                            update_fields.append('updated_at')
                             stored_founder.save(update_fields=update_fields)
                         already_stored_founders.remove(stored_founder)
                         break
@@ -533,6 +535,7 @@ class UkrCompanyConverter(CompanyConverter):
                     company.authority = authority
                     update_fields.append('authority')
                 if update_fields:
+                    update_fields.append('updated_at')
                     company.save(update_fields=update_fields)
                     # self.bulk_manager.add_update(company)
             if len(record.xpath('FOUNDERS')[0]):
@@ -671,7 +674,7 @@ class UkrCompanyConverter(CompanyConverter):
         else:
             if not current_fop_to_kved.primary_kved:
                 current_fop_to_kved.primary_kved = True
-                current_fop_to_kved.save(update_fields=['primary_kved', ])
+                current_fop_to_kved.save(update_fields=['primary_kved', 'updated_at'])
 
     def save_to_db(self, records):
         country = AddressConverter().save_or_get_country('Ukraine')
@@ -731,6 +734,7 @@ class UkrCompanyConverter(CompanyConverter):
                     company.source = source
                     update_fields.append('source')
                 if update_fields:
+                    update_fields.append('updated_at')
                     company.save(update_fields=update_fields)
             kved_data = record.xpath('KVED')[0].text
             if kved_data and ' ' in kved_data:

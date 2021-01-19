@@ -186,5 +186,5 @@ class Downloader(ABC):
     def update_field(self, dataset_name, field_name, new_field_value):
         dataset = Dataset.objects.get(name=dataset_name)
         setattr(dataset, field_name, new_field_value)
-        dataset.save(update_fields=[field_name])
+        dataset.save(update_fields=[field_name, 'updated_at'])
 

@@ -19,4 +19,5 @@ class Command(BaseCommand):
                         update_fields.append('name')
                         break
             if update_fields:
+                update_fields.append('updated_at')
                 company_type.save(update_fields=update_fields)
