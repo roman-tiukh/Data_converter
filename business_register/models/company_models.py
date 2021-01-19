@@ -80,6 +80,10 @@ class Company(DataOceanModel):  # constraint for not null in both name & short_n
     def is_closed(self):
         return self.status.name == 'припинено'
 
+    @property
+    def is_foreign(self):
+        return self.country.name != 'ukraine'
+
     class Meta:
         verbose_name = 'компанія/організація'
         ordering = ['id']

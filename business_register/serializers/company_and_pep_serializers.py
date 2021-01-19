@@ -87,9 +87,10 @@ class CountFoundedCompaniesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
         fields = (
-            'id', 'name', 'short_name', 'company_type', 'edrpou',
-            'status', 'founder_of_count', 'is_closed', 'from_antac_only',
+            'id', 'name', 'short_name', 'company_type', 'edrpou', 'status', 'founder_of_count',
+            'is_closed', 'is_foreign', 'from_antac_only',
         )
+        read_only_fields = ('is_closed', 'is_foreign')
 
 
 class CompanyShortSerializer(serializers.ModelSerializer):

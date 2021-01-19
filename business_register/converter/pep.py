@@ -526,6 +526,10 @@ class PepConverterFromDB(Converter):
             company_short_name_eng = link[8]
             company_name = link[9]
             company = Company.objects.filter(antac_id=company_antac_id).first()
+            if company and company.country__name != 'ukraine':
+                company.source = Company.ANTAC
+                company.save(update_fields=['source'])
+
             if not company and edrpou:
                 company = Company.objects.filter(edrpou=edrpou, country__name='ukraine').first()
                 if company:
