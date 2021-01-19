@@ -15,7 +15,7 @@ class Project(DataOceanModel):
     description = models.CharField(max_length=500, blank=True, default='')
     token = models.CharField(max_length=40, unique=True, db_index=True)
     disabled_at = models.DateTimeField(null=True, blank=True, default=None)
-    owner = models.ForeignKey('users.DataOceanUser', models.CASCADE)
+    owner = models.ForeignKey('users.DataOceanUser', models.CASCADE, related_name='owned_projects')
     users = models.ManyToManyField('users.DataOceanUser', through='UserProject',
                                    related_name='projects')
     subscriptions = models.ManyToManyField('Subscription', through='ProjectSubscription',
@@ -175,17 +175,16 @@ class Project(DataOceanModel):
                 status=ProjectSubscription.FUTURE,
         ).exists():
             raise ValidationError(_('Can\'t add second future subscription'))
-        # grace_period_used = self.project_subscriptions.filter(
-        #     status=ProjectSubscription.PAST,
-        #     subscription__is_default=False,
-        #     is_grace_period=True,
-        # ).exists()
-        grace_period_used = self.project_subscriptions.filter(
-            # status=ProjectSubscription.PAST,
-            subscription__is_default=False,
-            invoices__grace_period_block=True,
-        ).exists()
-        if grace_period_used:
+
+        grace_period_used = []
+        for project in self.owner.owned_projects.all():
+            grace_period_used.append(
+                project.project_subscriptions.filter(
+                    subscription__is_default=False,
+                    invoices__grace_period_block=True,
+                ).exists()
+            )
+        if any(grace_period_used):
             raise ValidationError(_('Project have subscription on a grace period, cant add new subscription'))
 
         if current_p2s.subscription == subscription:
