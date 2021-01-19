@@ -76,7 +76,6 @@ class Company(DataOceanModel):  # constraint for not null in both name & short_n
             return 0
         return Founder.objects.filter(edrpou=self.edrpou).count()
 
-    # ToDo: check status is present
     @property
     def is_closed(self):
         if not self.status:
