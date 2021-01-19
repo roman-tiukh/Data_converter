@@ -76,12 +76,17 @@ class Company(DataOceanModel):  # constraint for not null in both name & short_n
             return 0
         return Founder.objects.filter(edrpou=self.edrpou).count()
 
+    # ToDo: check status is present
     @property
     def is_closed(self):
+        if not self.status:
+            return None
         return self.status.name == 'припинено'
 
     @property
     def is_foreign(self):
+        if not self.country:
+            return None
         return self.country.name != 'ukraine'
 
     class Meta:
