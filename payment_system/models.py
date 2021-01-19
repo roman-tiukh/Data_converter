@@ -168,8 +168,8 @@ class Project(DataOceanModel):
             project=self,
             status=ProjectSubscription.ACTIVE,
         )
-        if subscription.is_default:
-            raise ValidationError(_('Can\'t add default subscription'))
+        # if subscription.is_default:
+        #     raise ValidationError(_('Can\'t add default subscription'))
         if ProjectSubscription.objects.filter(
                 project=self,
                 status=ProjectSubscription.FUTURE,
@@ -209,6 +209,12 @@ class Project(DataOceanModel):
         else:
             if current_p2s.is_grace_period:
                 raise ValidationError(_('Project have subscription on a grace period, can\'t add new subscription'))
+
+            if subscription.is_default:
+                duration = subscription.duration
+            else:
+                duration = subscription.grace_period
+
             new_p2s = ProjectSubscription.objects.create(
                 project=self,
                 subscription=subscription,
@@ -217,7 +223,7 @@ class Project(DataOceanModel):
                 duration=subscription.duration,
                 grace_period=subscription.grace_period,
                 expiring_date=(current_p2s.expiring_date +
-                               timezone.timedelta(days=subscription.grace_period)),
+                               timezone.timedelta(days=duration)),
                 is_grace_period=True,
             )
         emails.new_subscription(new_p2s)
@@ -509,7 +515,8 @@ class ProjectSubscription(DataOceanModel):
             self.save()
             future_p2s.status = ProjectSubscription.ACTIVE
             future_p2s.save()
-            Invoice.objects.create(project_subscription=future_p2s)
+            if not future_p2s.subscription.is_default:
+                Invoice.objects.create(project_subscription=future_p2s)
 
     @classmethod
     def send_tomorrow_payment_emails(cls):
