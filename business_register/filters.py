@@ -102,5 +102,5 @@ class PepFilterSet(filters.FilterSet):
         }
 
 
-class HistoricalFounderFilterSet(filters.FilterSet):
+class HistoricalCompanyRelatedFilterSet(filters.FilterSet):
     history_date = filters.DateFromToRangeFilter()

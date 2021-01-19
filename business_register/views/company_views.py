@@ -4,20 +4,28 @@ from rest_framework import viewsets
 from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
 
-from business_register.filters import CompanyFilterSet, HistoricalFounderFilterSet
+from business_register.filters import CompanyFilterSet, HistoricalCompanyRelatedFilterSet
 from business_register.models.company_models import Company
 from business_register.permissions import PepSchemaToken
 from business_register.serializers.company_and_pep_serializers import (
-    CompanyListSerializer, CompanyDetailSerializer, HistoricalCompanySerializer, HistoricalAssigneeSerializer,
-    HistoricalCompanyDetailSerializer, HistoricalFounderSerializer, HistoricalSignerSerializer
+    CompanyListSerializer, CompanyDetailSerializer, HistoricalAssigneeSerializer,
+    HistoricalBancruptcyReadjustmentSerializer, HistoricalCompanySerializer, HistoricalCompanyDetailSerializer,
+    HistoricalCompanyToKvedSerializer, HistoricalCompanyToPredecessorSerializer,
+    HistoricalExchangeDataCompanySerializer, HistoricalFounderSerializer, HistoricalSignerSerializer,
+    HistoricalTerminationStartedSerializer
 )
 from data_ocean.views import CachedViewMixin, RegisterViewMixin
 
-HistoricalCompany = apps.get_model('business_register', 'HistoricalCompany')
 HistoricalAssignee = apps.get_model('business_register', 'HistoricalAssignee')
+HistoricalBancruptcyReadjustment = apps.get_model('business_register', 'HistoricalBancruptcyReadjustment')
+HistoricalCompany = apps.get_model('business_register', 'HistoricalCompany')
 HistoricalCompanyDetail = apps.get_model('business_register', 'HistoricalCompanyDetail')
+HistoricalCompanyToKved = apps.get_model('business_register', 'HistoricalCompanyToKved')
+HistoricalCompanyToPredecessor = apps.get_model('business_register', 'HistoricalCompanyToPredecessor')
+HistoricalExchangeDataCompany = apps.get_model('business_register', 'HistoricalExchangeDataCompany')
 HistoricalFounder = apps.get_model('business_register', 'HistoricalFounder')
 HistoricalSigner = apps.get_model('business_register', 'HistoricalSigner')
+HistoricalTerminationStarted = apps.get_model('business_register', 'HistoricalTerminationStarted')
 
 
 class CompanyViewSet(RegisterViewMixin,
@@ -46,35 +54,12 @@ class CompanyViewSet(RegisterViewMixin,
         return self.queryset
 
 
-class HistoricalAssigneeView(RegisterViewMixin,
-                             CachedViewMixin,
-                             viewsets.ReadOnlyModelViewSet):
-    queryset = HistoricalAssignee.objects.all()
-    serializer_class = HistoricalAssigneeSerializer
-
-
-class HistoricalCompanyView(RegisterViewMixin,
-                            CachedViewMixin,
-                            viewsets.ReadOnlyModelViewSet):
-    queryset = HistoricalCompany.objects.all()
-    serializer_class = HistoricalCompanySerializer
-
-
-class HistoricalCompanyDetailView(RegisterViewMixin,
-                                  CachedViewMixin,
-                                  viewsets.ReadOnlyModelViewSet):
-    queryset = HistoricalCompanyDetail.objects.all()
-    serializer_class = HistoricalCompanyDetailSerializer
-
-
-class HistoricalFounderView(RegisterViewMixin,
-                            CachedViewMixin,
-                            viewsets.ReadOnlyModelViewSet):
+class HistoricalCompanyRelatedViewSet(RegisterViewMixin,
+                                      CachedViewMixin,
+                                      viewsets.ReadOnlyModelViewSet):
     lookup_field = 'company_id'
-    queryset = HistoricalFounder.objects.order_by('-history_date')
-    serializer_class = HistoricalFounderSerializer
     filter_backends = [DjangoFilterBackend]
-    filterset_class = HistoricalFounderFilterSet
+    filterset_class = HistoricalCompanyRelatedFilterSet
 
     def retrieve(self, request, company_id):
         queryset = self.filter_queryset(self.get_queryset())
@@ -89,8 +74,51 @@ class HistoricalFounderView(RegisterViewMixin,
         return Response(serializer.data)
 
 
-class HistoricalSignerView(RegisterViewMixin,
-                           CachedViewMixin,
-                           viewsets.ReadOnlyModelViewSet):
-    queryset = HistoricalSigner.objects.all()
+class HistoricalAssigneeView(HistoricalCompanyRelatedViewSet):
+    queryset = HistoricalAssignee.objects.order_by('-history_date')
+    serializer_class = HistoricalAssigneeSerializer
+
+
+class HistoricalBancruptcyReadjustmentView(HistoricalCompanyRelatedViewSet):
+    queryset = HistoricalBancruptcyReadjustment.objects.order_by('-history_date')
+    serializer_class = HistoricalBancruptcyReadjustmentSerializer
+
+
+class HistoricalCompanyView(HistoricalCompanyRelatedViewSet):
+    queryset = HistoricalCompany.objects.order_by('-history_date')
+    serializer_class = HistoricalCompanySerializer
+
+
+class HistoricalCompanyDetailView(HistoricalCompanyRelatedViewSet):
+    queryset = HistoricalCompanyDetail.objects.order_by('-history_date')
+    serializer_class = HistoricalCompanyDetailSerializer
+
+
+class HistoricalCompanyToKvedView(HistoricalCompanyRelatedViewSet):
+    queryset = HistoricalCompanyToKved.objects.order_by('-history_date')
+    serializer_class = HistoricalCompanyToKvedSerializer
+
+
+class HistoricalCompanyToPredecessorView(HistoricalCompanyRelatedViewSet):
+    queryset = HistoricalCompanyToPredecessor.objects.order_by('-history_date')
+    serializer_class = HistoricalCompanyToPredecessorSerializer
+
+
+class HistoricalExchangeDataCompanyView(HistoricalCompanyRelatedViewSet):
+    queryset = HistoricalExchangeDataCompany.objects.order_by('-history_date')
+    serializer_class = HistoricalExchangeDataCompanySerializer
+
+
+class HistoricalFounderView(HistoricalCompanyRelatedViewSet):
+    queryset = HistoricalFounder.objects.order_by('-history_date')
+    serializer_class = HistoricalFounderSerializer
+
+
+class HistoricalSignerView(HistoricalCompanyRelatedViewSet):
+    queryset = HistoricalSigner.objects.order_by('-history_date')
     serializer_class = HistoricalSignerSerializer
+
+
+class HistoricalTerminationStartedView(HistoricalCompanyRelatedViewSet):
+    queryset = HistoricalTerminationStarted.objects.order_by('-history_date')
+    serializer_class = HistoricalTerminationStartedSerializer
