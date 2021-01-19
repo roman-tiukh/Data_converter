@@ -18,6 +18,7 @@ from payment_system.models import (
     Subscription,
     Invoice,
     Invitation,
+    ProjectSubscription,
 )
 from payment_system.serializers import (
     ProjectListSerializer,
@@ -27,6 +28,7 @@ from payment_system.serializers import (
     ProjectInviteUserSerializer,
     InvitationListSerializer,
     ProjectTokenSerializer,
+    ProjectSubscriptionSerializer,
 )
 
 
@@ -205,17 +207,49 @@ class SubscriptionsListView(generics.ListAPIView):
     pagination_class = None
 
 
-# TODO: permissions for user
-class InvoiceRetrieveView(generics.RetrieveAPIView):
-    queryset = Invoice
-    serializer_class = InvoiceSerializer
+# TODO: PDF View
+# class InvoiceRetrieveView(generics.RetrieveAPIView):
+#     queryset = Invoice.objects.all()
+#     serializer_class = InvoiceSerializer
 
 
-# TODO: permissions for user
-class InvoiceListView(generics.ListAPIView):
-    queryset = Invoice
+class InvoicesViewMixin:
     serializer_class = InvoiceSerializer
     pagination_class = None
+
+    def get_queryset(self):
+        user = self.request.user
+        return Invoice.objects.filter(project_subscription__project__owner=user)
+
+
+class UserInvoicesListView(InvoicesViewMixin, generics.ListAPIView):
+    pass
+
+
+class SubscriptionInvoicesListView(InvoicesViewMixin, generics.ListAPIView):
+    permission_classes = ProjectViewMixin.permission_classes
+
+    def list(self, request, *args, **kwargs):
+        p2s = get_object_or_404(ProjectSubscription, pk=kwargs['pk'])
+        self.check_object_permissions(request, p2s.project)
+        invoices = self.get_queryset().filter(project_subscription=p2s)
+        serializer = self.get_serializer(invoices, many=True)
+        return Response(serializer.data)
+
+
+class ProjectSubscriptionRetrieveView(generics.RetrieveAPIView):
+    serializer_class = ProjectSubscriptionSerializer
+    permission_classes = ProjectViewMixin.permission_classes
+
+    def get_queryset(self):
+        user = self.request.user
+        return ProjectSubscription.objects.filter(project__owner=user)
+
+    def retrieve(self, request, *args, **kwargs):
+        p2s = get_object_or_404(ProjectSubscription, pk=kwargs['pk'])
+        self.check_object_permissions(request, p2s.project)
+        serializer = self.get_serializer(p2s)
+        return Response(serializer.data)
 
 
 class ProjectAddSubscriptionView(ProjectViewMixin, APIView):
