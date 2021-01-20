@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-01-15 15:00+0000\n"
+"POT-Creation-Date: 2021-01-20 13:14+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -121,39 +121,39 @@ msgstr "Пароль було скинуто з новим паролем."
 msgid "New password has been saved."
 msgstr "Новий пароль збережено."
 
-#: users/models.py:24
+#: users/models.py:22
 msgid "The Email must be set"
 msgstr "Електронна пошта повинна бути вказана"
 
-#: users/models.py:39
+#: users/models.py:37
 msgid "Superuser must have is_staff=True."
 msgstr "У суперкористувача повинно бути встановлено is_staff=True."
 
-#: users/models.py:41
+#: users/models.py:39
 msgid "Superuser must have is_superuser=True."
 msgstr "У суперкористувача повинно бути встановлено is_superuser=True."
 
-#: users/models.py:47 users/models.py:75
+#: users/models.py:45 users/models.py:74
 msgid "email address"
 msgstr "адреса електронної пошти"
 
-#: users/models.py:52
+#: users/models.py:50
 msgid "language"
 msgstr "мова"
 
-#: users/models.py:76
+#: users/models.py:75
 msgid "password"
 msgstr "пароль"
 
-#: users/models.py:77
+#: users/models.py:76
 msgid "first name"
 msgstr "ім'я"
 
-#: users/models.py:78
+#: users/models.py:77
 msgid "last name"
 msgstr "прізвище"
 
-#: users/models.py:79
+#: users/models.py:78
 msgid "expire at"
 msgstr "діє до"
 

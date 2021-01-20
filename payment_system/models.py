@@ -1,8 +1,13 @@
+import io
+import os
+
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.utils import timezone
+from django.template.loader import render_to_string
+from django.utils import timezone, translation
 from django.utils.translation import gettext, gettext_lazy as _
+from weasyprint import HTML
 
 from data_ocean.models import DataOceanModel
 from data_ocean.utils import generate_key
@@ -307,12 +312,25 @@ class Invoice(DataOceanModel):
     requests_limit = models.IntegerField()
     subscription_name = models.CharField(max_length=200)
     project_name = models.CharField(max_length=100)
-    price = models.IntegerField()
     is_custom_subscription = models.BooleanField()
+
+    price = models.IntegerField()
 
     @property
     def is_paid(self):
         return bool(self.paid_at)
+
+    @property
+    def tax(self):
+        if not self.price:
+            return 0
+        return round(self.price * 0.2, 2)
+
+    @property
+    def price_with_tax(self):
+        if not self.price:
+            return 0
+        return round(self.price + self.tax, 2)
 
     def save(self, *args, **kwargs):
         p2s = self.project_subscription
@@ -342,6 +360,27 @@ class Invoice(DataOceanModel):
             emails.new_invoice(p2s.project)
 
         super().save(*args, **kwargs)
+
+    def get_pdf(self, user) -> io.BytesIO:
+        lang = user.language
+        payment_dir = os.path.join(settings.BASE_DIR, 'payment_system')
+        seller = ''
+        with open(os.path.join(payment_dir, 'credentials', f'{lang}.txt')) as f:
+            seller += f.read().strip('\n')
+
+        with translation.override(user.language):
+            html_string = render_to_string('payment_system/invoice.html', {
+                'seller': seller,
+                'invoice': self,
+                'user': user,
+                'p2s': self.project_subscription,
+            })
+
+        html = HTML(string=html_string, base_url=payment_dir)
+        result = html.write_pdf()
+        file = io.BytesIO(result)
+        file.name = 'Invoice from ' + str(self.created_at) + '.pdf'
+        return file
 
     def __str__(self):
         return f'Invoice #{self.id}'
