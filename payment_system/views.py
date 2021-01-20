@@ -1,9 +1,7 @@
 from django.db.models import Prefetch
-from django.http import Http404
-from django.utils import translation
-from django.views import View
+from django.http import Http404, FileResponse
 from rest_framework import generics
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -237,6 +235,15 @@ class SubscriptionInvoicesListView(InvoicesViewMixin, generics.ListAPIView):
         return Response(serializer.data)
 
 
+class InvoicePDFView(APIView):
+    queryset = Invoice.objects.all()
+
+    def get(self, request, pk):
+        invoice: Invoice = get_object_or_404(Invoice, pk=pk)
+        file = invoice.get_pdf(request.user)
+        return FileResponse(file, content_type="application/pdf")
+
+
 class ProjectSubscriptionRetrieveView(generics.RetrieveAPIView):
     serializer_class = ProjectSubscriptionSerializer
     permission_classes = ProjectViewMixin.permission_classes
@@ -283,28 +290,17 @@ class CurrentUserProjectTokenView(ProjectViewMixin, generics.GenericAPIView):
         return Response(serializer.data)
 
 
-# class ProjectSubscriptionDisableView(generics.GenericAPIView):
-#     serializer_class = ProjectSubscriptionSerializer
-#     queryset = ProjectSubscription.objects.all()
-#
-#     def put(self, request, pk):
-#         project_subscription: ProjectSubscription = self.get_object()
-#
-#         project_subscription.disable()
-#
-#         serializer = self.get_serializer(instance=project_subscription)
-#         return Response(serializer.data)
 
 # TODO: remove this
-class TestEmailView(View):
-    def get(self, request):
-        with translation.override('uk'):
-            project = Project.objects.all().first()
-            return render(
-                request=request,
-                template_name='payment_system/emails/new_invitation.html',
-                context={
-                    'owner': project.owner,
-                    'project': project,
-                }
-            )
+# class TestEmailView(View):
+#     def get(self, request):
+#         with translation.override('uk'):
+#             project = Project.objects.all().first()
+#             return render(
+#                 request=request,
+#                 template_name='payment_system/emails/new_invitation.html',
+#                 context={
+#                     'owner': project.owner,
+#                     'project': project,
+#                 }
+#             )

@@ -17,10 +17,10 @@ from payment_system.views import (
     ProjectCancelInviteView,
     ProjectUserRejectInviteView,
     CurrentUserProjectTokenView,
-    TestEmailView,
     UserInvoicesListView,
     SubscriptionInvoicesListView,
     ProjectSubscriptionRetrieveView,
+    InvoicePDFView,
 )
 
 urlpatterns = [
@@ -51,7 +51,7 @@ urlpatterns = [
 
     path('subscriptions/', SubscriptionsListView.as_view()),
 
-    # path('invoice/<int:pk>/', InvoiceRetrieveView.as_view()),
+    path('invoice/<int:pk>/', InvoicePDFView.as_view()),
     path('invoices/', UserInvoicesListView.as_view()),
     path('subscription/<int:pk>/invoices/', SubscriptionInvoicesListView.as_view()),
 
@@ -59,8 +59,4 @@ urlpatterns = [
 
     path('project/<int:pk>/add-subscription/<int:subscription_id>/',
          ProjectAddSubscriptionView.as_view()),
-
-    path('email/', TestEmailView.as_view()),
-
-    # path('project-subscription/<int:pk>/disable/', ProjectSubscriptionDisableView.as_view()),
 ]
