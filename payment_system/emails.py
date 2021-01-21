@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from payment_system.models import ProjectSubscription, Project, Subscription, UserProject
+    from payment_system.models import ProjectSubscription, Project, Subscription, UserProject, Invoice
 
 from django.conf import settings
 
@@ -60,8 +60,9 @@ def new_invitation(invited_email: str, project: 'Project'):
 
 
 # TODO: Add here PDF document as attachment
-def new_invoice(project: 'Project'):
+def new_invoice(invoice: 'Invoice', project: 'Project'):
     owner = project.owner
+    pdf = invoice.get_pdf()
     send_template_mail(
         to=[owner.email],
         subject='Рахунок на оплату',
@@ -70,6 +71,13 @@ def new_invoice(project: 'Project'):
             'user': owner,
             'project': project,
         },
+        attachments=[
+            (
+                pdf.name,
+                pdf.read(),
+                'application/pdf',
+            ),
+        ],
     )
 
 
@@ -133,9 +141,12 @@ def token_has_been_changed(project: 'Project'):
     )
 
 
-# TODO: Add here PDF document as attachment
 def tomorrow_payment_day(project_subscription: 'ProjectSubscription'):
     owner = project_subscription.project.owner
+    invoice = project_subscription.latest_invoice
+    if not invoice or invoice.is_paid:
+        return
+    pdf = invoice.get_pdf()
     send_template_mail(
         to=[owner.email],
         subject='У Вас не оплачено рахунок',
@@ -144,4 +155,11 @@ def tomorrow_payment_day(project_subscription: 'ProjectSubscription'):
             'user': owner,
             'project': project_subscription.project,
         },
+        attachments=[
+            (
+                pdf.name,
+                pdf.read(),
+                'application/pdf',
+            ),
+        ],
     )

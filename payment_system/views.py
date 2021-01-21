@@ -240,7 +240,7 @@ class InvoicePDFView(APIView):
 
     def get(self, request, pk):
         invoice: Invoice = get_object_or_404(Invoice, pk=pk)
-        file = invoice.get_pdf(request.user)
+        file = invoice.get_pdf()
         return FileResponse(file, content_type="application/pdf")
 
 
