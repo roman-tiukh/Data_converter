@@ -1,4 +1,5 @@
 from threading import Thread
+from typing import List
 
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
@@ -6,7 +7,7 @@ from django.template.loader import render_to_string
 
 def send_template_mail(to: [str], subject: str, template: str, context: dict,
                        from_email: str = None, fail_silently: bool = True,
-                       asynchronously: bool = True, attachments: list[tuple] = ()):
+                       asynchronously: bool = True, attachments: List[tuple] = ()):
     html = render_to_string(template, context)
     e_message = EmailMessage(
         subject=subject,

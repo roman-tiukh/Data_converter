@@ -1,4 +1,5 @@
 {% extends "data_ocean/emails/_base.html" %}
+{% load i18n %}
 
 {% block content %}
 
@@ -6,9 +7,11 @@
     {% include "data_ocean/emails/hi_there.html" %}
     <br>
     <br>
-    Зверніть увагу, що змінився токен доступу у проєкті {{ project.name }}.
-    Актуальний токен відображається у профілі проєкту,
-    перелік доступних проєктів - у профілі користувача.
-    Для коректної роботи завжди використовуйте актуальний токен доступу.
+    {% blocktrans with project=project.name trimmed %}
+      Note that the token in the project {{ project }} has been changed.
+      The current token is displayed in the project profile,
+      the list of available projects is displayed in the user profile.
+      Always use up-to-date token for proper access.
+    {% endblocktrans %}
   </p>
 {% endblock content %}

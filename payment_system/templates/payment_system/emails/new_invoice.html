@@ -1,4 +1,5 @@
 {% extends "data_ocean/emails/_base.html" %}
+{% load i18n %}
 
 {% block content %}
 
@@ -6,9 +7,11 @@
     {% include "data_ocean/emails/hi_there.html" with first_name=user.first_name %}
     <br>
     <br>
-    за умовами Вашого тарифного плану,
-    сьогодні потрібно здійснити оплату за проєкт {{ project.name }}.
-    У вкладенні Ви знайдете рахунок.
-    Ви завжди можете змінити тарифний план згідно Ваших потреб.
+    {% blocktrans with project=project.name trimmed %}
+      According to the terms of your subscription,
+      today you need to pay for the project {{ project }}.
+      In the attachment, you will find an account.
+      You can always change the subscription according to your needs.
+    {% endblocktrans %}
   </p>
 {% endblock content %}

@@ -1,6 +1,5 @@
 {% load i18n %}
 
-{% trans "there" as there %}
 {% trans "Hi" as hi %}
 {% get_current_language as lang %}
 
@@ -10,6 +9,6 @@
   {% if lang == 'uk' %}
     {{ hi }}!
   {% else %}
-    {{ hi }} {{ there }}!
+    {{ hi }} there!
   {% endif %}
 {% endif %}

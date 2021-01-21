@@ -1,4 +1,5 @@
 {% extends "data_ocean/emails/_base.html" %}
+{% load i18n %}
 
 {% block content %}
 
@@ -6,9 +7,8 @@
     {% include "data_ocean/emails/hi_there.html" with first_name=user.first_name %}
     <br>
     <br>
-    підтверджуємо оплату за проєкт {{ project.name }}.
-    Ви можете користуватися усіма перевагами тарифного плану {{ subscription.name }}.
-    Ви завжди можете змінити тарифний план згідно потреб.
-    Дякуємо, що Ви з нами!
+    {% trans 'We confirm payment for the project' %} {{ project.name }}.
+    {% trans 'You can join all revisions of the subscription' %} {{ subscription.name }}.
+    {% trans 'Thank you for being with us' %}!
   </p>
 {% endblock content %}
