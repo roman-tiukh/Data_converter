@@ -146,6 +146,7 @@ class UkrCompanyConverter(CompanyConverter):
                             stored_founder.equity = equity
                             update_fields.append('equity')
                         if update_fields:
+                            update_fields.append('updated_at')
                             stored_founder.save(update_fields=update_fields)
                         already_stored_founders.remove(stored_founder)
                         break
@@ -198,6 +199,7 @@ class UkrCompanyConverter(CompanyConverter):
                             stored_founder.address = address
                             update_fields.append('address')
                         if update_fields:
+                            update_fields.append('updated_at')
                             stored_founder.save(update_fields=update_fields)
                         already_stored_founders.remove(stored_founder)
                         break
@@ -533,6 +535,7 @@ class UkrCompanyConverter(CompanyConverter):
                     company.authority = authority
                     update_fields.append('authority')
                 if update_fields:
+                    update_fields.append('updated_at')
                     company.save(update_fields=update_fields)
                     # self.bulk_manager.add_update(company)
             if len(record.xpath('FOUNDERS')[0]):
@@ -671,7 +674,7 @@ class UkrCompanyConverter(CompanyConverter):
         else:
             if not current_fop_to_kved.primary_kved:
                 current_fop_to_kved.primary_kved = True
-                current_fop_to_kved.save(update_fields=['primary_kved', ])
+                current_fop_to_kved.save(update_fields=['primary_kved', 'updated_at'])
 
     def save_to_db(self, records):
         country = AddressConverter().save_or_get_country('Ukraine')
@@ -690,7 +693,11 @@ class UkrCompanyConverter(CompanyConverter):
             if boss:
                 boss = boss.lower()
             # ToDo: resolve the problem of having records with the same company name amd edrpou
-            company = Company.objects.filter(code=code).first()
+            company = (Company.objects
+                       .exclude(from_antac_only=True)
+                       .filter(code=code)
+                       .first())
+            source = Company.UKRAINE_REGISTER
             if not company:
                 company = Company.objects.create(
                     name=name,
@@ -700,7 +707,8 @@ class UkrCompanyConverter(CompanyConverter):
                     status=status,
                     boss=boss,
                     country=country,
-                    code=code
+                    code=code,
+                    source=source
                 )
             else:
                 update_fields = []
@@ -722,7 +730,11 @@ class UkrCompanyConverter(CompanyConverter):
                 if company.country != country:
                     company.country = country
                     update_fields.append('country')
+                if company.source != source:
+                    company.source = source
+                    update_fields.append('source')
                 if update_fields:
+                    update_fields.append('updated_at')
                     company.save(update_fields=update_fields)
             kved_data = record.xpath('KVED')[0].text
             if kved_data and ' ' in kved_data:
@@ -781,6 +793,9 @@ class UkrCompanyDownloader(Downloader):
 
         sleep(5)
         self.vacuum_analyze(table_list=['business_register_company', ])
+        new_total_records = Company.objects.filter(country__name='ukraine').count()
+        self.update_field(settings.ALL_COMPANIES_DATASET_NAME, 'total_records', new_total_records)
+        self.update_field(settings.COMPANY_DATASET_NAME, 'updated_at', timezone.now())
 
         self.remove_file()
 

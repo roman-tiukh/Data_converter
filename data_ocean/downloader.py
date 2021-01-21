@@ -183,7 +183,8 @@ class Downloader(ABC):
         if self.unzip_after_download:
             self.unzip_source_file()
 
-    def update_total_records(self, dataset_name, total_records):
+    def update_field(self, dataset_name, field_name, new_field_value):
         dataset = Dataset.objects.get(name=dataset_name)
-        dataset.total_records = total_records
-        dataset.save(update_fields=['total_records'])
+        setattr(dataset, field_name, new_field_value)
+        dataset.save(update_fields=[field_name, 'updated_at'])
+

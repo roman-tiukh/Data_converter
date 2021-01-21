@@ -141,7 +141,7 @@ class InvoiceAdmin(admin.ModelAdmin):
 
 class ProjectForm(forms.ModelForm):
     subscription = forms.ModelChoiceField(
-        queryset=Subscription.objects.filter(is_default=False),
+        queryset=Subscription.objects.all(),
         label='Add subscription to project',
         required=True,
     )

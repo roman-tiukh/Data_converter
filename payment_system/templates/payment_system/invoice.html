@@ -1,0 +1,72 @@
+{% load i18n %}
+{% load currency %}
+
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Invoice</title>
+    <link rel="stylesheet" href="static/payment_system/invoice_stylesheet.css">
+  </head>
+  <body>
+    <table class="parties">
+      <tbody>
+        <tr>
+          <th>{% trans 'Seller:' %}</th>
+          <td>{{ seller }}</td>
+        </tr>
+        <tr>
+          <th>{% trans 'Recipient:' %}</th>
+          <td>
+            {{ invoice.project_name }}, <br />
+            {{ user.email }} <br />
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="title">
+      {% trans 'Invoice #' %}{{ invoice.id }} {% trans 'from' %}
+      {{ invoice.created_at|date:'d E Y' }}
+    </div>
+    <table class="items">
+      <colgroup>
+        <col style="width: 70%">
+        <col style="width: 30%">
+      </colgroup>
+      <thead>
+        <tr>
+          <th>{% trans 'Name of product' %}</th>
+          <th>{% trans 'Price without tax' %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            {% trans 'Subscription' %} {{ invoice.subscription_name }}
+          </td>
+          <td>{{ invoice.price|floatformat:2 }}</td>
+        </tr>
+        <tr>
+          <td class="tr b-0">
+            {% trans 'Tax' %}(20%)
+          </td>
+          <td>{{ invoice.tax|floatformat:2 }}</td>
+        </tr>
+        <tr>
+          <td class="b-0 tr">
+            {% trans 'Total with tax:' %}
+          </td>
+          <td>{{ invoice.price_with_tax|floatformat:2 }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="amount-words">
+      {% trans 'Total with tax:' %}
+      {{ invoice.price_with_tax|uah2words }}
+    </div>
+    {% if invoice.is_paid %}
+      <div class="paid">
+        {% trans 'PAID' %}
+      </div>
+    {% endif %}
+  </body>
+</html>

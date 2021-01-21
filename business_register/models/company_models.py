@@ -22,6 +22,16 @@ class CompanyType(DataOceanModel):
 
 
 class Company(DataOceanModel):  # constraint for not null in both name & short_name fields
+    UKRAINE_REGISTER = 'ukr'
+    GREAT_BRITAIN_REGISTER = 'gb'
+    ANTAC = 'antac'
+    SOURCES = (
+        (UKRAINE_REGISTER,
+         'Єдиний державний реєстр юридичних осіб, фізичних осіб – підприємців та громадських формувань України'),
+        (GREAT_BRITAIN_REGISTER, 'Companies House'),
+        (ANTAC, 'Центр протидії корупції'),
+    )
+
     INVALID = 'invalid'  # constant for empty edrpou fild etc.
     name = models.CharField('назва', max_length=500, null=True)
     short_name = models.CharField('коротка назва', max_length=500, null=True)
@@ -45,6 +55,8 @@ class Company(DataOceanModel):  # constraint for not null in both name & short_n
     antac_id = models.PositiveIntegerField("id from ANTAC`s DB", unique=True,
                                            db_index=True, null=True, default=None, blank=True)
     from_antac_only = models.BooleanField(null=True)
+    source = models.CharField('джерело даних', max_length=5, choices=SOURCES, null=True,
+                              blank=True, default=None)
     code = models.CharField(max_length=510, db_index=True)
     history = HistoricalRecords()
 
@@ -66,7 +78,15 @@ class Company(DataOceanModel):  # constraint for not null in both name & short_n
 
     @property
     def is_closed(self):
+        if not self.status:
+            return None
         return self.status.name == 'припинено'
+
+    @property
+    def is_foreign(self):
+        if not self.country:
+            return None
+        return self.country.name != 'ukraine'
 
     class Meta:
         verbose_name = 'компанія/організація'

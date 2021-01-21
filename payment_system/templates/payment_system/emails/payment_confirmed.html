@@ -1,0 +1,14 @@
+{% extends "data_ocean/emails/_base.html" %}
+{% load i18n %}
+
+{% block content %}
+
+  <p style="font-family: Roboto;font-weight: normal;font-size: 16px;line-height: 24px;margin-bottom: 30px;">
+    {% include "data_ocean/emails/hi_there.html" with first_name=user.first_name %}
+    <br>
+    <br>
+    {% trans 'We confirm payment for the project' %} {{ project.name }}.
+    {% trans 'You can join all revisions of the subscription' %} {{ subscription.name }}.
+    {% trans 'Thank you for being with us' %}!
+  </p>
+{% endblock content %}

@@ -1,11 +1,18 @@
+import io
+import os
+
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.utils import timezone
+from django.template.loader import render_to_string
+from django.utils import timezone, translation
 from django.utils.translation import gettext, gettext_lazy as _
+from weasyprint import HTML
 
 from data_ocean.models import DataOceanModel
 from data_ocean.utils import generate_key
+
+from payment_system import emails
 
 
 class Project(DataOceanModel):
@@ -13,8 +20,8 @@ class Project(DataOceanModel):
     description = models.CharField(max_length=500, blank=True, default='')
     token = models.CharField(max_length=40, unique=True, db_index=True)
     disabled_at = models.DateTimeField(null=True, blank=True, default=None)
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL, models.CASCADE)
-    users = models.ManyToManyField(settings.AUTH_USER_MODEL, through='UserProject',
+    owner = models.ForeignKey('users.DataOceanUser', models.CASCADE, related_name='owned_projects')
+    users = models.ManyToManyField('users.DataOceanUser', through='UserProject',
                                    related_name='projects')
     subscriptions = models.ManyToManyField('Subscription', through='ProjectSubscription',
                                            related_name='projects')
@@ -86,9 +93,9 @@ class Project(DataOceanModel):
         )
         if not created:
             invitation.deleted_at = None
-            invitation.save(update_fields=['deleted_at'])
+            invitation.save(update_fields=['deleted_at', 'updated_at'])
 
-        print(f'EMAIL: user {email} invited')
+        emails.new_invitation(email, self)
 
     def _check_user_invitation(self, user):
         try:
@@ -115,6 +122,7 @@ class Project(DataOceanModel):
             status=UserProject.ACTIVE,
         )
         invitation.soft_delete()
+        emails.membership_confirmed(self.owner, user)
 
     def deactivate_user(self, user_id):
         u2p = self.user_projects.get(user_id=user_id)
@@ -123,15 +131,16 @@ class Project(DataOceanModel):
         if u2p.status == UserProject.DEACTIVATED:
             raise ValidationError(_('User already deactivated'))
         u2p.status = UserProject.DEACTIVATED
-        u2p.save(update_fields=['status'])
+        u2p.save(update_fields=['status', 'updated_at'])
+        emails.member_removed(u2p.user, self)
 
     def activate_user(self, user_id):
         u2p = self.user_projects.get(user_id=user_id)
         if u2p.status == UserProject.ACTIVE:
             raise ValidationError(_('User already activated'))
         u2p.status = UserProject.ACTIVE
-        u2p.save(update_fields=['status'])
-        # should I add sending email here?
+        u2p.save(update_fields=['status', 'updated_at'])
+        emails.member_activated(u2p.user, self)
 
     def disable(self):
         for u2p in self.user_projects.all():
@@ -139,15 +148,16 @@ class Project(DataOceanModel):
                 raise ValidationError(_('You cannot disable default project'))
 
         self.disabled_at = timezone.now()
-        self.save(update_fields=['disabled_at'])
+        self.save(update_fields=['disabled_at', 'updated_at'])
 
     def activate(self):
         self.disabled_at = None
-        self.save(update_fields=['disabled_at'])
+        self.save(update_fields=['disabled_at', 'updated_at'])
 
     def refresh_token(self):
         self.generate_new_token()
-        self.save(update_fields=['token'])
+        self.save(update_fields=['token', 'updated_at'])
+        emails.token_has_been_changed(self)
 
     def has_read_perms(self, user):
         u2p: UserProject = self.user_projects.get(user=user)
@@ -163,24 +173,23 @@ class Project(DataOceanModel):
             project=self,
             status=ProjectSubscription.ACTIVE,
         )
-        if subscription.is_default:
-            raise ValidationError(_('Can\'t add default subscription'))
+        # if subscription.is_default:
+        #     raise ValidationError(_('Can\'t add default subscription'))
         if ProjectSubscription.objects.filter(
                 project=self,
                 status=ProjectSubscription.FUTURE,
         ).exists():
             raise ValidationError(_('Can\'t add second future subscription'))
-        # grace_period_used = self.project_subscriptions.filter(
-        #     status=ProjectSubscription.PAST,
-        #     subscription__is_default=False,
-        #     is_grace_period=True,
-        # ).exists()
-        grace_period_used = self.project_subscriptions.filter(
-            # status=ProjectSubscription.PAST,
-            subscription__is_default=False,
-            invoices__grace_period_block=True,
-        ).exists()
-        if grace_period_used:
+
+        grace_period_used = []
+        for project in self.owner.owned_projects.all():
+            grace_period_used.append(
+                project.project_subscriptions.filter(
+                    subscription__is_default=False,
+                    invoices__grace_period_block=True,
+                ).exists()
+            )
+        if any(grace_period_used):
             raise ValidationError(_('Project have subscription on a grace period, cant add new subscription'))
 
         if current_p2s.subscription == subscription:
@@ -204,6 +213,12 @@ class Project(DataOceanModel):
         else:
             if current_p2s.is_grace_period:
                 raise ValidationError(_('Project have subscription on a grace period, can\'t add new subscription'))
+
+            if subscription.is_default:
+                duration = subscription.duration
+            else:
+                duration = subscription.grace_period
+
             new_p2s = ProjectSubscription.objects.create(
                 project=self,
                 subscription=subscription,
@@ -212,9 +227,10 @@ class Project(DataOceanModel):
                 duration=subscription.duration,
                 grace_period=subscription.grace_period,
                 expiring_date=(current_p2s.expiring_date +
-                               timezone.timedelta(days=subscription.grace_period)),
+                               timezone.timedelta(days=duration)),
                 is_grace_period=True,
             )
+        emails.new_subscription(new_p2s)
         return new_p2s
 
     @property
@@ -296,12 +312,25 @@ class Invoice(DataOceanModel):
     requests_limit = models.IntegerField()
     subscription_name = models.CharField(max_length=200)
     project_name = models.CharField(max_length=100)
-    price = models.IntegerField()
     is_custom_subscription = models.BooleanField()
+
+    price = models.IntegerField()
 
     @property
     def is_paid(self):
         return bool(self.paid_at)
+
+    @property
+    def tax(self):
+        if not self.price:
+            return 0
+        return round(self.price * 0.2, 2)
+
+    @property
+    def price_with_tax(self):
+        if not self.price:
+            return 0
+        return round(self.price + self.tax, 2)
 
     def save(self, *args, **kwargs):
         p2s = self.project_subscription
@@ -310,6 +339,7 @@ class Invoice(DataOceanModel):
             if p2s.is_grace_period and not invoice_old.is_paid and self.is_paid:
                 p2s.paid_up()
                 self.grace_period_block = False
+                emails.payment_confirmed(p2s)
             # else:
             #     if self.grace_period_block and not invoice_old.grace_period_block:
             #         p2s.is_grace_period = False
@@ -325,7 +355,33 @@ class Invoice(DataOceanModel):
             self.project_name = p2s.project.name
             self.price = p2s.subscription.price
             self.is_custom_subscription = p2s.subscription.is_custom
+
+            emails.new_invoice(self, p2s.project)
+
         super().save(*args, **kwargs)
+
+    def get_pdf(self) -> io.BytesIO:
+        user = self.project_subscription.project.owner
+        lang = user.language
+        payment_dir = os.path.join(settings.BASE_DIR, 'payment_system')
+        seller = ''
+        with open(os.path.join(payment_dir, 'credentials', f'{lang}.txt')) as f:
+            seller += f.read().strip('\n')
+
+        with translation.override(user.language):
+            html_string = render_to_string('payment_system/invoice.html', {
+                'seller': seller,
+                'invoice': self,
+                'user': user,
+                'p2s': self.project_subscription,
+            })
+
+        html = HTML(string=html_string, base_url=payment_dir)
+        result = html.write_pdf()
+        file = io.BytesIO(result)
+        file.name = 'Invoice from ' + str(self.created_at) + '.pdf'
+        file.seek(0)
+        return file
 
     def __str__(self):
         return f'Invoice #{self.id}'
@@ -349,7 +405,7 @@ class UserProject(DataOceanModel):
         (DEACTIVATED, "Deactivated"),
     )
 
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+    user = models.ForeignKey('users.DataOceanUser', on_delete=models.CASCADE,
                              related_name='user_projects')
     project = models.ForeignKey('Project', on_delete=models.CASCADE, related_name='user_projects')
     role = models.CharField(choices=ROLES, max_length=20)
@@ -488,6 +544,7 @@ class ProjectSubscription(DataOceanModel):
                     self.status = ProjectSubscription.PAST
                     self.save()
                     self.project.add_default_subscription()
+                    emails.project_non_payment(self.project)
                 else:
                     self.reset()
                     self.save()
@@ -497,11 +554,24 @@ class ProjectSubscription(DataOceanModel):
             self.save()
             future_p2s.status = ProjectSubscription.ACTIVE
             future_p2s.save()
-            Invoice.objects.create(project_subscription=future_p2s)
+            if not future_p2s.subscription.is_default:
+                Invoice.objects.create(project_subscription=future_p2s)
+
+    @classmethod
+    def send_tomorrow_payment_emails(cls):
+        project_subscriptions_for_update = cls.objects.filter(
+            expiring_date=timezone.localdate() + timezone.timedelta(days=2),
+            status=ProjectSubscription.ACTIVE,
+            is_grace_period=True,
+            subscription__is_default=False,
+        )
+        for p2s in project_subscriptions_for_update:
+            emails.tomorrow_payment_day(p2s)
 
     @classmethod
     def update_expire_subscriptions(cls) -> str:
-        project_subscriptions_for_update = ProjectSubscription.objects.filter(
+        cls.send_tomorrow_payment_emails()
+        project_subscriptions_for_update = cls.objects.filter(
             expiring_date__lte=timezone.localdate(),
             status=ProjectSubscription.ACTIVE,
         )
@@ -521,6 +591,10 @@ class ProjectSubscription(DataOceanModel):
         self.validate_unique()
         super().save(*args, **kwargs)
 
+    @property
+    def latest_invoice(self) -> Invoice:
+        return self.invoices.order_by('-created_at').first()
+
     def __str__(self):
         return f'{self.project.owner} | {self.project.name} | {self.subscription}'
 
@@ -533,7 +607,7 @@ class Invitation(DataOceanModel):
     email = models.EmailField()
     project = models.ForeignKey('Project', models.CASCADE, related_name='invitations')
 
-    # who_invited = models.ForeignKey(settings.AUTH_USER_MODEL, models.CASCADE,
+    # who_invited = models.ForeignKey('users.DataOceanUser', models.CASCADE,
     #                                 related_name='who_invitations')
 
     class Meta:
