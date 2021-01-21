@@ -121,9 +121,9 @@ class UsersInProjectsView(views.APIView):
     def get(self, request):
         user = request.user
         user_projects = UserProject.objects.filter(user=user).values_list('project', flat=True)
-        users_count = UserProject.objects.filter(project__in=list(user_projects)).exclude(
-            user=user
-        ).order_by('user').distinct('user').count()
+        users_count = UserProject.objects.filter(project__in=list(user_projects)).order_by(
+            'user'
+        ).distinct('user').count()
         return Response({
             'users_count': users_count
         }, status=200)
