@@ -12,6 +12,7 @@ from business_register.models.pep_models import Pep, RelatedPersonsLink, Company
 from data_ocean.converter import Converter
 from data_ocean.downloader import Downloader
 from data_ocean.utils import to_lower_string_if_exists
+from location_register.converter.address import AddressConverter
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -328,11 +329,14 @@ class PepConverterFromDB(Converter):
                                  'date_established, date_confirmed, date_finished '
                                  'FROM core_person2person;')
         self.PEPS_COMPANIES_QUERY = ('SELECT from_person_id, to_company_id, '
-                                     'date_established, date_confirmed, date_finished, category, '
-                                     'edrpou, state_company, short_name_en, name '
+                                     'core_person2company.date_established, core_person2company.date_confirmed, '
+                                     'core_person2company.date_finished, '
+                                     'category, edrpou, state_company, short_name_en, core_company.name, '
+                                     'core_country.name_en '
                                      'FROM core_person2company '
                                      'INNER JOIN core_company on to_company_id=core_company.id '
-                                     'ORDER BY from_person_id;')
+                                     'INNER JOIN core_company2country on to_company_id = core_company2country.from_company_id '
+                                     'INNER JOIN core_country on to_country_id = core_country.id;')
         self.REASONS_OF_TERMINATION = {
             1: Pep.DIED,
             2: Pep.RESIGNED,
@@ -511,6 +515,7 @@ class PepConverterFromDB(Converter):
         )
 
     def save_or_update_peps_companies(self, peps_companies_data):
+        address_converter = AddressConverter()
         for link in peps_companies_data:
             pep_source_id = link[0]
             pep = self.all_peps_dict.get(str(pep_source_id))
@@ -527,18 +532,20 @@ class PepConverterFromDB(Converter):
             is_state_company = link[7]
             company_short_name_eng = link[8]
             company_name = link[9]
+            country_name = link[10]
+            country = address_converter.save_or_get_country(country_name) if country_name else None
             company = Company.objects.filter(antac_id=company_antac_id).first()
-            if company and company.country__name != 'ukraine':
+            if company and company.from_antac_only:
                 company.source = Company.ANTAC
-                company.save(update_fields=['source', 'updated_at'])
-
+                company.country = country
+                company.save(update_fields=['source', 'country', 'updated_at'])
             if not company and edrpou:
                 company = Company.objects.filter(edrpou=edrpou, country__name='ukraine').first()
                 if company:
                     company.antac_id = company_antac_id
                     company.save(update_fields=['antac_id', 'updated_at'])
             if not company:
-                company = Company.objects.create(name=company_name, edrpou=edrpou,
+                company = Company.objects.create(name=company_name, edrpou=edrpou, country=country,
                                                  code=company_name + edrpou, source=Company.ANTAC,
                                                  antac_id=company_antac_id, from_antac_only=True)
                 self.create_company_link_with_pep(company, pep, company_short_name_eng, category,
