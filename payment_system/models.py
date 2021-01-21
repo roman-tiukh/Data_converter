@@ -356,12 +356,12 @@ class Invoice(DataOceanModel):
             self.price = p2s.subscription.price
             self.is_custom_subscription = p2s.subscription.is_custom
 
-            # TODO: need to generate PDF and add to email as attachment
-            emails.new_invoice(p2s.project)
+            emails.new_invoice(self, p2s.project)
 
         super().save(*args, **kwargs)
 
-    def get_pdf(self, user) -> io.BytesIO:
+    def get_pdf(self) -> io.BytesIO:
+        user = self.project_subscription.project.owner
         lang = user.language
         payment_dir = os.path.join(settings.BASE_DIR, 'payment_system')
         seller = ''
@@ -380,6 +380,7 @@ class Invoice(DataOceanModel):
         result = html.write_pdf()
         file = io.BytesIO(result)
         file.name = 'Invoice from ' + str(self.created_at) + '.pdf'
+        file.seek(0)
         return file
 
     def __str__(self):
@@ -562,6 +563,7 @@ class ProjectSubscription(DataOceanModel):
             expiring_date=timezone.localdate() + timezone.timedelta(days=2),
             status=ProjectSubscription.ACTIVE,
             is_grace_period=True,
+            subscription__is_default=False,
         )
         for p2s in project_subscriptions_for_update:
             emails.tomorrow_payment_day(p2s)
@@ -588,6 +590,10 @@ class ProjectSubscription(DataOceanModel):
             self.requests_left = self.subscription.requests_limit
         self.validate_unique()
         super().save(*args, **kwargs)
+
+    @property
+    def latest_invoice(self) -> Invoice:
+        return self.invoices.order_by('-created_at').first()
 
     def __str__(self):
         return f'{self.project.owner} | {self.project.name} | {self.subscription}'
