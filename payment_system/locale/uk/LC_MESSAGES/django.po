@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-01-21 15:00+0000\n"
+"POT-Creation-Date: 2021-01-22 07:51+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -110,27 +110,31 @@ msgstr ""
 "Проєкт має тарифний план на пільговому періоді, не можете додати новий "
 "тарифний план"
 
-#: payment_system/models.py:279
+#: payment_system/models.py:240
+msgid "Project don't have future subscription"
+msgstr "Проект не має майбутньої підписки"
+
+#: payment_system/models.py:286
 msgid "Default subscription already exists"
 msgstr "Базовий тарифний план уже існує"
 
-#: payment_system/models.py:424
+#: payment_system/models.py:431
 msgid "User can only have one default project"
 msgstr "Користувач може мати лише один базовий проєкт"
 
-#: payment_system/models.py:443
+#: payment_system/models.py:450
 msgid "Active"
 msgstr "Активний"
 
-#: payment_system/models.py:444
+#: payment_system/models.py:451
 msgid "Past"
 msgstr "Минулий"
 
-#: payment_system/models.py:445
+#: payment_system/models.py:452
 msgid "Future"
 msgstr "Майбутній"
 
-#: payment_system/models.py:478
+#: payment_system/models.py:485
 msgid "Only one {} subscription in project"
 msgstr "У проєкті лише один {} тарифний план"
 

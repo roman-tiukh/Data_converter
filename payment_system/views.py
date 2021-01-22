@@ -271,6 +271,16 @@ class ProjectAddSubscriptionView(ProjectViewMixin, APIView):
         return Response(status=204)
 
 
+class ProjectRemoveSubscriptionView(ProjectViewMixin, APIView):
+    def delete(self, request, pk):
+        project = get_object_or_404(self.get_queryset(), pk=pk)
+        self.check_object_permissions(self.request, project)
+
+        project.remove_future_subscription()
+
+        return Response(status=204)
+
+
 class CurrentUserProjectTokenView(ProjectViewMixin, generics.GenericAPIView):
     serializer_class = ProjectTokenSerializer
 
