@@ -536,10 +536,10 @@ class PepConverterFromDB(Converter):
             country = address_converter.save_or_get_country(country_name) if country_name else None
             company = Company.objects.filter(antac_id=company_antac_id).first()
             if company and company.from_antac_only:
-                company.source = Company.ANTAC
                 company.country = country
-                company.save(update_fields=['source', 'country', 'updated_at'])
+                company.save(update_fields=['country', 'updated_at'])
             if not company and edrpou:
+                # ToDo: use source instead country after storing source in the server DB
                 company = Company.objects.filter(edrpou=edrpou, country__name='ukraine').first()
                 if company:
                     company.antac_id = company_antac_id

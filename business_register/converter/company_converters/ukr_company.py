@@ -694,6 +694,7 @@ class UkrCompanyConverter(CompanyConverter):
                 boss = boss.lower()
             # ToDo: resolve the problem of having records with the same company name amd edrpou
             company = (Company.objects
+                       # ToDo: use source after storing source in the server DB
                        .exclude(from_antac_only=True)
                        .filter(code=code)
                        .first())
@@ -721,13 +722,13 @@ class UkrCompanyConverter(CompanyConverter):
                 if company.address != address:
                     company.address = address
                     update_fields.append('address')
-                if company.status != status:
+                if company.status_id != status.id:
                     company.status = status
                     update_fields.append('status')
                 if company.boss != boss:
                     company.boss = boss
                     update_fields.append('boss')
-                if company.country != country:
+                if company.country_id != country.id:
                     company.country = country
                     update_fields.append('country')
                 if company.source != source:
