@@ -233,6 +233,13 @@ class Project(DataOceanModel):
         emails.new_subscription(new_p2s)
         return new_p2s
 
+    def remove_future_subscription(self):
+        try:
+            future_p2s = self.project_subscriptions.get(status=ProjectSubscription.FUTURE)
+        except ProjectSubscription.DoesNotExist:
+            raise ValidationError(_('Project don\'t have future subscription'))
+        future_p2s.delete()
+
     @property
     def is_active(self):
         return self.disabled_at is None
