@@ -1,13 +1,14 @@
-import logging
-import os
-import subprocess
-import zipfile
 from abc import ABC
-
-import requests
+import codecs
 from django.conf import settings
 from django.db import connections
 from django.utils import timezone
+import logging
+import os
+import requests
+import subprocess
+import tempfile
+import zipfile
 
 # import psycopg2
 from data_ocean.models import RegistryUpdaterModel, Register
@@ -22,6 +23,7 @@ class Downloader(ABC):
     data = {}
     headers = {}
     local_path = settings.LOCAL_FOLDER
+    LOCAL_FILE_NAME = settings.LOCAL_FILE_NAME_UO
     chunk_size = 8 * 1024 * 1024
     stream = True
     reg_name = ''
