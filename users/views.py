@@ -6,7 +6,7 @@ from datetime import timedelta
 from django.conf import settings
 from django.contrib.auth.hashers import make_password
 from django.core.mail import send_mail
-from django.utils import timezone
+from django.utils import timezone, translation
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import generics, views
 from rest_framework.authtoken.models import Token
@@ -34,6 +34,7 @@ class CustomRegistrationView(views.APIView):
     permission_classes = (AllowAny,)
 
     def post(self, request: Request, *args, **kwargs):
+        user_language = translation.get_language()
 
         serializer = CustomRegisterSerializer(data=request.data)
         if not serializer.is_valid():
@@ -45,6 +46,7 @@ class CustomRegistrationView(views.APIView):
             password=make_password(serializer.validated_data.get('password1')),  # hash
             first_name=serializer.validated_data.get('first_name'),
             last_name=serializer.validated_data.get('last_name'),
+            language=user_language,
         )
 
         # check if this email is among existing users
@@ -112,6 +114,7 @@ class CustomRegistrationConfirmView(views.APIView):
             password=user.password,
             first_name=user.first_name,
             last_name=user.last_name,
+            language=user.language,
         )
 
         # send mail
