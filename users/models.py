@@ -75,6 +75,13 @@ class CandidateUserModel(models.Model):
     password = models.CharField(_('password'), max_length=128)
     first_name = models.CharField(_('first name'), max_length=30)
     last_name = models.CharField(_('last name'), max_length=150)
+    language = models.CharField(
+        _('language'),
+        max_length=2,
+        choices=settings.LANGUAGES,
+        default=settings.LANGUAGE_CODE,
+        blank=True,
+    )
     expire_at = models.DateTimeField(_('expire at'), null=True, blank=True)
 
     def __str__(self):
