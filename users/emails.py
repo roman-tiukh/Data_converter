@@ -1,16 +1,16 @@
 from data_converter.email_utils import send_template_mail
 from payment_system.models import Project
-from users.models import DataOceanUser
-
+from users.models import DataOceanUser, CandidateUserModel
+from django.utils.translation import ugettext_lazy as _
 
 # TODO: add link, move to settings?
 TARIFFS_LINK = 'link'
 
 
-def send_confirm_email_message(user: DataOceanUser, confirm_link: str):
+def send_confirm_email_message(user: CandidateUserModel, confirm_link: str):
     send_template_mail(
         to=[user.email],
-        subject='Підтвердження реєстрації у Data Ocean',
+        subject=_('Confirmation of registration in Data Ocean'),
         template='users/emails/confirm_email.html',
         context={
             'user': user,
@@ -22,7 +22,7 @@ def send_confirm_email_message(user: DataOceanUser, confirm_link: str):
 def send_registration_confirmed_message(user: DataOceanUser, default_project: Project):
     send_template_mail(
         to=[user.email],
-        subject='Вітаємо у Data Ocean!',
+        subject=_('Welcome to Data Ocean!'),
         template='users/emails/registration_confirmed.html',
         context={
             'user': user,
@@ -35,7 +35,7 @@ def send_registration_confirmed_message(user: DataOceanUser, default_project: Pr
 def send_reset_password_message(user: DataOceanUser, confirm_link):
     send_template_mail(
         to=[user.email],
-        subject='Скидання паролю',
+        subject=_('Password reset'),
         template='users/emails/reset_password.html',
         context={
             'user': user,
