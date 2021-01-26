@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-12-18 20:12+0000\n"
+"POT-Creation-Date: 2021-01-22 13:22+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -29,230 +29,18 @@ msgstr "Українська"
 msgid "English"
 msgstr "Англійська"
 
-#: payment_system/models.py:79 payment_system/models.py:110
-msgid "User already in project"
-msgstr "Користувач вже в проекті"
+#: data_ocean/templates/data_ocean/emails/_base.html:23
+msgid "Regards"
+msgstr "З повагою"
 
-#: payment_system/models.py:82
-msgid "User already invited"
-msgstr "Користувача вже запрошено"
+#: data_ocean/templates/data_ocean/emails/_base.html:47
+msgid "go to website"
+msgstr "перейти на сайт"
 
-#: payment_system/models.py:99
-msgid "User is not invited"
-msgstr "Користувача не запрошено"
+#: data_ocean/templates/data_ocean/emails/_base.html:51
+msgid "All rights reserved"
+msgstr "Всі права захищені"
 
-#: payment_system/models.py:122
-msgid "You cannot deactivate an owner from his own project"
-msgstr "Ви не можете відключити власника від його власного проекту"
-
-#: payment_system/models.py:124
-msgid "User already deactivated"
-msgstr "Користувача вже деактивовано"
-
-#: payment_system/models.py:131
-msgid "User already activated"
-msgstr "Користувач вже активований"
-
-#: payment_system/models.py:139
-msgid "You cannot disable default project"
-msgstr "Ви не можете вимкнути базовий проект"
-
-#: payment_system/models.py:167
-msgid "Can't add default subscription"
-msgstr "Не вдається додати базовий тарифний план"
-
-#: payment_system/models.py:172
-msgid "Can't add second future subscription"
-msgstr "Не вдається додати другий майбутній тарифний план"
-
-#: payment_system/models.py:184
-msgid "Project have subscription on a grace period, cant add new subscription"
-msgstr ""
-"Проєкт маєте тарифний план на пільговому періоді, не можете додати новий "
-"тарифний план"
-
-#: payment_system/models.py:187
-msgid "Project already on {}"
-msgstr "Проєкт вже на {}"
-
-#: payment_system/models.py:206
-msgid "Project have subscription on a grace period, can't add new subscription"
-msgstr ""
-"Проєкт має тарифний план на пільговому періоді, не можете додати новий "
-"тарифний план"
-
-#: payment_system/models.py:263
-msgid "Default subscription already exists"
-msgstr "Базовий тарифний план уже існує"
-
-#: payment_system/models.py:368
-msgid "User can only have one default project"
-msgstr "Користувач може мати лише один базовий проект"
-
-#: payment_system/models.py:387
-msgid "Active"
-msgstr "Активний"
-
-#: payment_system/models.py:388
-msgid "Past"
-msgstr "Минулий"
-
-#: payment_system/models.py:389
-msgid "Future"
-msgstr "Майбутній"
-
-#: payment_system/models.py:422
-msgid "Only one {} subscription in project"
-msgstr "У проекті лише один {} тарифний план"
-
-#: payment_system/views.py:242
-msgid "No project matches the given query"
-msgstr "Жоден проект не відповідає даному запиту"
-
-#: users/lc_messages/uk/rest_auth.py:5
-msgid "View is not defined, pass it as a context variable"
-msgstr "View не визначено, передайте його як змінну контексту"
-
-#: users/lc_messages/uk/rest_auth.py:9
-msgid "Define adapter_class in view"
-msgstr "Визначте adapter_class у view"
-
-#: users/lc_messages/uk/rest_auth.py:13
-msgid "Define callback_url in view"
-msgstr "Визначте callback_url у view"
-
-#: users/lc_messages/uk/rest_auth.py:17
-msgid "Define client_class in view"
-msgstr "Визначте client_class у view"
-
-#: users/lc_messages/uk/rest_auth.py:21
-msgid "Incorrect input. access_token or code is required."
-msgstr "Некоректне введення. Необхідний токен доступу або код."
-
-#: users/lc_messages/uk/rest_auth.py:25
-msgid "Incorrect value"
-msgstr "Некоректне значення"
-
-#: users/lc_messages/uk/rest_auth.py:29
-msgid "User is already registered with this e-mail address."
-msgstr "Користувач уже зареєстрований з цією електронною адресою."
-
-#: users/lc_messages/uk/rest_auth.py:33
-msgid "A user is already registered with this e-mail address."
-msgstr "Користувач уже зареєстрований з цією електронною адресою."
-
-#: users/lc_messages/uk/rest_auth.py:37
-msgid "The two password fields didn't match."
-msgstr "Два поля паролів не збіглись."
-
-#: users/lc_messages/uk/rest_auth.py:41
-msgid "Verification e-mail sent."
-msgstr "Електронна пошта для підтвердження надіслана."
-
-#: users/lc_messages/uk/rest_auth.py:45
-msgid "ok"
-msgstr "так"
-
-#: users/lc_messages/uk/rest_auth.py:49
-msgid "Must include \"email\" and \"password\"."
-msgstr "Потрібно включати \"email\" та \"password\"."
-
-#: users/lc_messages/uk/rest_auth.py:53
-msgid "Must include \"username\" and \"password\"."
-msgstr "Потрібно включати \"username\" та \"password\"."
-
-#: users/lc_messages/uk/rest_auth.py:57
-msgid "Must include either \"username\" or \"email\" and \"password\"."
-msgstr "Потрібно включати або \"username\" або \"email\" та \"password\"."
-
-#: users/lc_messages/uk/rest_auth.py:61
-msgid "User account is disabled."
-msgstr "Обліковий запис користувача відключено."
-
-#: users/lc_messages/uk/rest_auth.py:65
-msgid "Unable to log in with provided credentials."
-msgstr "Не вдається увійти за допомогою наданих облікових даних."
-
-#: users/lc_messages/uk/rest_auth.py:69
-msgid "E-mail is not verified."
-msgstr "Електронна пошта не перевірена."
-
-#: users/lc_messages/uk/rest_auth.py:73
-msgid "Successfully logged out."
-msgstr "Успішний вихід."
-
-#: users/lc_messages/uk/rest_auth.py:77
-msgid "Password reset e-mail has been sent."
-msgstr "Електронна пошта для відновлення пароля надіслана."
-
-#: users/lc_messages/uk/rest_auth.py:81
-msgid "Password has been reset with the new password."
-msgstr "Пароль було скинуто з новим паролем."
-
-#: users/lc_messages/uk/rest_auth.py:85
-msgid "New password has been saved."
-msgstr "Новий пароль збережено."
-
-#: users/models.py:24
-msgid "The Email must be set"
-msgstr "Електронна пошта повинна бути вказана"
-
-#: users/models.py:39
-msgid "Superuser must have is_staff=True."
-msgstr "У суперкористувача повинно бути встановлено is_staff=True."
-
-#: users/models.py:41
-msgid "Superuser must have is_superuser=True."
-msgstr "У суперкористувача повинно бути встановлено is_superuser=True."
-
-#: users/models.py:47 users/models.py:75
-msgid "email address"
-msgstr "адреса електронної пошти"
-
-#: users/models.py:52
-msgid "language"
-msgstr "мова"
-
-#: users/models.py:76
-msgid "password"
-msgstr "пароль"
-
-#: users/models.py:77
-msgid "first name"
-msgstr "ім'я"
-
-#: users/models.py:78
-msgid "last name"
-msgstr "прізвище"
-
-#: users/models.py:79
-msgid "expire at"
-msgstr "діє до"
-
-#: users/serializers.py:45
-msgid "First Name"
-msgstr "Ім'я"
-
-#: users/serializers.py:46
-msgid "Last Name"
-msgstr "Прізвище"
-
-#: users/serializers.py:51
-msgid "Your password can’t be too similar to"
-msgstr "Ваш пароль не може бути надто схожим на"
-
-#: users/views.py:48
-msgid "User with this email is already exists"
-msgstr "Користувач з цією електронною поштою вже існує"
-
-#: users/views.py:87 users/views.py:103
-msgid "Confirmation link is broken"
-msgstr "Посилання на підтвердження пошкоджено."
-
-#: users/views.py:91
-msgid "Confirmation link is expired."
-msgstr "Дія посилання на підтвердження закінчилась."
-
-#: users/views.py:137 users/views.py:143
-msgid "Email not sent. Try again later."
-msgstr "Лист на електронну пошту не надіслано. Спробуйте ще раз пізніше."
+#: data_ocean/templates/data_ocean/emails/hi_there.html:3
+msgid "Hi"
+msgstr "Вітаємо"

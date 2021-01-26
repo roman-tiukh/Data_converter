@@ -3,7 +3,7 @@ import re
 from django.conf import settings
 from django.contrib.auth.forms import PasswordResetForm
 
-from users.emails import send_reset_password_message
+from users import emails
 from .models import DataOceanUser
 
 
@@ -22,4 +22,4 @@ class CustomPasswordResetForm(PasswordResetForm):
             domain = re.sub(r'/$', '', settings.FRONTEND_SITE_URL)
             confirm_link = f"{domain}/auth/restore-pass/confirmation/{context['uid']}/{context['token']}/"
             # send mail
-            send_reset_password_message(user, confirm_link)
+            emails.send_reset_password_message(user, confirm_link)

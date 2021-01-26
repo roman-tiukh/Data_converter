@@ -1,32 +1,55 @@
+{% load i18n %}
+{% load static %}
+{% load full_static %}
+
 <!DOCTYPE html>
 <html>
-<head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <meta name="viewport" content="width=device-width"/>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width" />
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <meta charset="UTF-8">
     {#  <title>Title</title>  #}
-    <style type="text/css">* {
-        font-size: 16px;
-    }</style>
-</head>
-<body>
-<div class="content" style="max-width: 500px;padding: 10px 50px;margin: 0 auto;">
-    <img src="https://dataocean.us/static/img/logo.png" alt="DataOcean" width=106>
-    <hr style="margin-top: 15px;">
-    {% block content %}{% endblock %}
-    <hr>
-{#    <div class="bottom">#}
-{#        <a href=""><img src="linkedin.png" style="width: 20px;margin-right: 8px;display:inline;" width="20"#}
-{#                        height="20"/></a>#}
-{#        <a href=""><img src="facebook.png" style="width: 20px;margin-right: 8px;display:inline;" width="20"#}
-{#                        height="20"/></a>#}
-{#        <a href=""><img src="mail.png" style="width: 20px;display: inline;" width="20" height="20"/></a>#}
-{#        <a href="#" style="margin: 0 auto;display: table;margin-top: -22px;">перейти на сайт</a>#}
-{#    </div>#}
-    <h5 style="margin: 0 auto;display: table;font-family: Roboto;font-style: normal;font-weight: normal;font-size: 12px;color: #646464;margin-top: 20px;margin-bottom: 20px;">
-        ©2020 - Data Ocean.Всі права захищені.</h5>
-</div>
+    <style type="text/css">* {font-size: 16px;}</style>
+  </head>
+  <body>
+    <div class="content" style="max-width: 500px;padding: 10px 50px;margin: 0 auto;">
+      <img src="https://dataocean.us/static/img/logo.png" alt="DataOcean" width=106>
+      <hr style="margin-top: 15px;">
 
-</body>
+      {% block content %}{% endblock %}
+
+      <p style="font-family: Roboto;font-weight: normal;font-size: 16px;line-height: 24px;">
+        {% trans 'Regards' %},<br>
+        Data Ocean
+      </p>
+      <hr>
+      <div class="bottom">
+        <a href="https://www.linkedin.com/company/data-ocean/">
+          <img
+              src="{% get_backend_url %}{% static 'social/linkedin.png' %}"
+              style="width: 20px;margin-right: 8px;display:inline;" width="20" height="20"
+              alt="LinkedIn"
+          ></a>
+        <a href="https://www.facebook.com/DataOceanGroup/">
+          <img
+              src="{% get_backend_url %}{% static 'social/facebook.png' %}"
+              style="width: 20px;margin-right: 8px;display:inline;" width="20" height="20"
+              alt="Facebook"
+          ></a>
+        <a href="mailto:info@dataocean.us">
+          <img
+              src="{% get_backend_url %}{% static 'social/mail.png' %}"
+              style="width: 20px;display: inline;" width="20" height="20"
+              alt="mail"
+          ></a>
+        <a href="{% get_frontend_url %}" style="margin: 0 auto;display: table;margin-top: -22px;">
+          {% trans 'go to website' %}
+        </a>
+      </div>
+      <h5 style="margin: 0 auto;display: table;font-family: Roboto;font-style: normal;font-weight: normal;font-size: 12px;color: #646464;margin-top: 20px;margin-bottom: 20px;">
+        ©2020 - Data Ocean. {% trans 'All rights reserved' %}.
+      </h5>
+    </div>
+  </body>
 </html>

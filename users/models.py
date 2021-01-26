@@ -4,9 +4,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from rest_framework.authtoken.models import Token
-
 from data_ocean.models import DataOceanModel
-from payment_system.models import Invitation
 
 
 class DataOceanUserManager(BaseUserManager):
@@ -62,6 +60,7 @@ class DataOceanUser(AbstractUser):
 
     @property
     def invitations(self):
+        from payment_system.models import Invitation
         return Invitation.objects.filter(
             email=self.email,
             deleted_at__isnull=True,
@@ -76,6 +75,13 @@ class CandidateUserModel(models.Model):
     password = models.CharField(_('password'), max_length=128)
     first_name = models.CharField(_('first name'), max_length=30)
     last_name = models.CharField(_('last name'), max_length=150)
+    language = models.CharField(
+        _('language'),
+        max_length=2,
+        choices=settings.LANGUAGES,
+        default=settings.LANGUAGE_CODE,
+        blank=True,
+    )
     expire_at = models.DateTimeField(_('expire at'), null=True, blank=True)
 
     def __str__(self):

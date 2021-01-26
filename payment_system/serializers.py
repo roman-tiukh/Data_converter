@@ -81,7 +81,7 @@ class ProjectListSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'description', 'is_active',
             'is_default', 'role', 'status', 'owner',
-            'users_count', 'active_subscription',
+            'users_count', 'active_subscription', 'token',
         ]
         read_only_fields = fields
 
@@ -115,6 +115,7 @@ class ProjectSerializer(serializers.ModelSerializer):
             owner=user,
             name=validated_data['name'],
             description=validated_data.get('description', ''),
+
         )
 
     class Meta:
@@ -141,10 +142,14 @@ class SubscriptionSerializer(serializers.ModelSerializer):
 
 
 class InvoiceSerializer(serializers.ModelSerializer):
+    project_name = serializers.CharField(source='project_subscription.project.name')
+    # subscription_name = serializers.CharField(source='project_subscription.subscription.name')
+
     class Meta:
         model = Invoice
         read_only_fields = (
-            'id', 'paid_at', 'info', 'project', 'subscription',
+            'id', 'paid_at', 'note', 'subscription_name',
+            'project_name', 'price', 'is_paid',
         )
         fields = read_only_fields
 
@@ -171,4 +176,25 @@ class ProjectTokenSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = ['token']
+        read_only_fields = fields
+
+
+class ProjectShortSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Project
+        fields = ['id', 'name', 'description', 'owner', 'disabled_at']
+        read_only_fields = fields
+
+
+class ProjectSubscriptionSerializer(serializers.ModelSerializer):
+    project = ProjectShortSerializer()
+    subscription = SubscriptionSerializer()
+
+    class Meta:
+        model = ProjectSubscription
+        fields = [
+            'id', 'project', 'subscription', 'status',
+            'start_date', 'expiring_date', 'requests_left',
+            'is_grace_period', 'duration', 'grace_period',
+        ]
         read_only_fields = fields
