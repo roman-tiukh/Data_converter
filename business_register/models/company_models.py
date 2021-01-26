@@ -167,8 +167,8 @@ class Founder(DataOceanModel):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='founders',
                                 verbose_name='є засновником компанії/організації')
     info = models.CharField('наявні дані', max_length=2015)
-    info_additional = models.CharField('додаткові наявні дані', max_length=2015)
-    info_beneficiary = models.CharField('наявні дані бенефіціара', max_length=2015)
+    info_additional = models.CharField('додаткові наявні дані', max_length=2015, null=True)
+    info_beneficiary = models.CharField('наявні дані бенефіціара', max_length=2015, null=True)
     name = models.TextField("назва/повне ім'я", db_index=True)
     edrpou = models.CharField('код ЄДРПОУ', max_length=9, null=True, blank=True, default='',
                               db_index=True)
