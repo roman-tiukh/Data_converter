@@ -235,11 +235,9 @@ class SubscriptionInvoicesListView(InvoicesViewMixin, generics.ListAPIView):
         return Response(serializer.data)
 
 
-class InvoicePDFView(APIView):
-    queryset = Invoice.objects.all()
-
+class InvoicePDFView(InvoicesViewMixin, APIView):
     def get(self, request, pk):
-        invoice: Invoice = get_object_or_404(Invoice, pk=pk)
+        invoice: Invoice = get_object_or_404(self.get_queryset(), pk=pk)
         file = invoice.get_pdf()
         return FileResponse(file, content_type="application/pdf")
 
@@ -267,6 +265,16 @@ class ProjectAddSubscriptionView(ProjectViewMixin, APIView):
         subscription = get_object_or_404(Subscription, pk=subscription_id)
 
         project.add_subscription(subscription)
+
+        return Response(status=204)
+
+
+class ProjectRemoveSubscriptionView(ProjectViewMixin, APIView):
+    def delete(self, request, pk):
+        project = get_object_or_404(self.get_queryset(), pk=pk)
+        self.check_object_permissions(self.request, project)
+
+        project.remove_future_subscription()
 
         return Response(status=204)
 

@@ -1,4 +1,5 @@
 import logging
+import time
 from csv import DictReader
 
 import requests
@@ -21,11 +22,14 @@ class UkCompanyConverter(CompanyConverter):
 
     def save_to_db(self, file):
         with open(file, newline='') as csvfile:
+            index = 0
+
             for row in DictReader(csvfile):
                 name = row['CompanyName'].lower()
+                # number is unique identifier in Company House
                 number = row[' CompanyNumber']
                 code = name + number
-                country = AddressConverter().save_or_get_country(row['CountryOfOrigin'])
+                country = self.save_or_get_country(row['CountryOfOrigin'])
                 address = (
                     f"{row['RegAddress.Country']} {row['RegAddress.PostCode']} "
                     f"{row['RegAddress.County']} {row['RegAddress.PostTown']} "
@@ -39,10 +43,7 @@ class UkCompanyConverter(CompanyConverter):
                 else:
                     registration_date = None
                 source = Company.GREAT_BRITAIN_REGISTER
-                company = (Company.objects
-                           .exclude(from_antac_only=True)
-                           .exclude(country__name='ukraine')
-                           .filter(edrpou=number).first())
+                company = Company.objects.filter(edrpou=number, source=Company.GREAT_BRITAIN_REGISTER).first()
                 if not company:
                     company = Company(
                         name=name,
@@ -61,16 +62,16 @@ class UkCompanyConverter(CompanyConverter):
                     if company.name != name:
                         company.name = name
                         update_fields.append('name')
-                    if company.company_type != company_type:
+                    if company.company_type_id != company_type.id:
                         company.company_type = company_type
                         update_fields.append('company_type')
                     if company.address != address:
                         company.address = address
                         update_fields.append('address')
-                    if company.country != country:
+                    if company.country_id != country.id:
                         company.country = country
                         update_fields.append('country')
-                    if company.status != status:
+                    if company.status_id != status.id:
                         company.status = status
                         update_fields.append('status')
                     if to_lower_string_if_exists(company.registration_date) != registration_date:

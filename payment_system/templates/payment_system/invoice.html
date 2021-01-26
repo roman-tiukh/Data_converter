@@ -12,13 +12,25 @@
       <tbody>
         <tr>
           <th>{% trans 'Seller:' %}</th>
-          <td>{{ seller }}</td>
+          {# TODO: add localization #}
+          <td>
+            <div>ТОВАРИСТВО З ОБМЕЖЕНОЮ ВІДПОВІДАЛЬНІСТЮ “ОКЕАН ДАНИХ”</div>
+            <div>Ідентифікаційний код юр. ос. 44011184,</div>
+            <div>банк АТ КБ “ПРИВАТБАНК”</div>
+            <div>
+              Юридична адреса: Україна, 03179, місто Київ,
+              вул. Чорнобильська, будинок 12, квартира 34
+            </div>
+          </td>
         </tr>
         <tr>
           <th>{% trans 'Recipient:' %}</th>
           <td>
-            {{ invoice.project_name }}, <br />
-            {{ user.email }} <br />
+            {% if user.organization %}
+              <div>{{ user.organization }},</div>
+            {% endif %}
+            <div>{{ user.get_full_name }},</div>
+            <div>{{ user.email }}</div>
           </td>
         </tr>
       </tbody>
@@ -41,7 +53,7 @@
       <tbody>
         <tr>
           <td>
-            {% trans 'Subscription' %} {{ invoice.subscription_name }}
+            {% trans 'Subscription' %} {{ invoice.subscription_name }} ({{ invoice.project_name }})
           </td>
           <td>{{ invoice.price|floatformat:2 }}</td>
         </tr>

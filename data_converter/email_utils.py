@@ -10,7 +10,7 @@ def send_template_mail(to: [str], subject: str, template: str, context: dict,
                        asynchronously: bool = True, attachments: List[tuple] = ()):
     html = render_to_string(template, context)
     e_message = EmailMessage(
-        subject=subject,
+        subject=str(subject),
         body=html,
         from_email=from_email,
         to=to,

@@ -233,6 +233,13 @@ class Project(DataOceanModel):
         emails.new_subscription(new_p2s)
         return new_p2s
 
+    def remove_future_subscription(self):
+        try:
+            future_p2s = self.project_subscriptions.get(status=ProjectSubscription.FUTURE)
+        except ProjectSubscription.DoesNotExist:
+            raise ValidationError(_('Project don\'t have future subscription'))
+        future_p2s.delete()
+
     @property
     def is_active(self):
         return self.disabled_at is None
@@ -362,21 +369,14 @@ class Invoice(DataOceanModel):
 
     def get_pdf(self) -> io.BytesIO:
         user = self.project_subscription.project.owner
-        lang = user.language
-        payment_dir = os.path.join(settings.BASE_DIR, 'payment_system')
-        seller = ''
-        with open(os.path.join(payment_dir, 'credentials', f'{lang}.txt')) as f:
-            seller += f.read().strip('\n')
 
         with translation.override(user.language):
             html_string = render_to_string('payment_system/invoice.html', {
-                'seller': seller,
                 'invoice': self,
                 'user': user,
-                'p2s': self.project_subscription,
             })
 
-        html = HTML(string=html_string, base_url=payment_dir)
+        html = HTML(string=html_string, base_url=os.path.join(settings.BASE_DIR, 'payment_system'))
         result = html.write_pdf()
         file = io.BytesIO(result)
         file.name = 'Invoice from ' + str(self.created_at) + '.pdf'
