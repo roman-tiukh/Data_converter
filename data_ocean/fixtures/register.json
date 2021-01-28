@@ -10,8 +10,8 @@
       "source_register_id": null,
       "source_url_address": "https://pep.org.ua/uk/data",
       "source_api_address": "https://pep.org.ua/opendata/persons/json",
-      "api_list": "/api/pep",
-      "api_detail": "/api/pep/{id}"
+      "api_list": "/api/pep/",
+      "api_detail": "/api/pep/{id}/"
     }
   },
   {
@@ -25,8 +25,8 @@
       "source_register_id": "1c7f3815-3259-45e0-bdf1-64dca07ddc10",
       "source_url_address": "https://data.gov.ua/dataset/b244f35a-e50a-4a80-b704-032c42ba8142/resource/06bbccbd-e19c-40d5-9e18-447b110c0b4c/download/17-ufop_20-05-2020.zip",
       "source_api_address": "https://data.gov.ua/api/3/action/package_show?id=1c7f3815-3259-45e0-bdf1-64dca07ddc10",
-      "api_list": "/api/company/ukr",
-      "api_detail": "/api/company/ukr/{id}"
+      "api_list": "/api/company/ukr/",
+      "api_detail": "/api/company/ukr/{id}/"
     }
   },
   {
@@ -40,8 +40,8 @@
       "source_register_id": "1c7f3815-3259-45e0-bdf1-64dca07ddc10",
       "source_url_address": "https://data.gov.ua/dataset/b244f35a-e50a-4a80-b704-032c42ba8142/resource/06bbccbd-e19c-40d5-9e18-447b110c0b4c/download/17-ufop_20-05-2020.zip",
       "source_api_address": "https://data.gov.ua/api/3/action/package_show?id=1c7f3815-3259-45e0-bdf1-64dca07ddc10",
-      "api_list": "/api/fop",
-      "api_detail": "/api/fop/{id}"
+      "api_list": "/api/fop/",
+      "api_detail": "/api/fop/{id}/"
     }
   },
   {
@@ -55,8 +55,8 @@
       "source_register_id": "e1afb81c-70e4-4009-96a0-b240c36e4603",
       "source_url_address": "https://data.gov.ua/dataset/f8a741b9-af17-48e2-8178-8e161c244549/resource/878a36b5-31af-4c36-86e6-5dbf432e9331/download/kved.json",
       "source_api_address": "https://data.gov.ua/api/3/action/package_show?id=e1afb81c-70e4-4009-96a0-b240c36e4603",
-      "api_list": "/api/kved",
-      "api_detail": "/api/kved/{id}"
+      "api_list": "/api/kved/",
+      "api_detail": "/api/kved/{id}/"
     }
   },
   {
@@ -70,8 +70,8 @@
       "source_register_id": "a2d6c060-e7e6-4471-ac67-42cfa1742a19",
       "source_url_address": "https://data.gov.ua/dataset/75e57837-128b-49e1-a007-5e7dfa7bf6af/resource/e21a1e57-051c-46ea-9c8e-8f30de7d863d/download/28-ex_xml_atu.zip",
       "source_api_address": "https://data.gov.ua/api/3/action/package_show?id=a2d6c060-e7e6-4471-ac67-42cfa1742a19",
-      "api_list": "/api/street",
-      "api_detail": "/api/street/{id}"
+      "api_list": "/api/street/",
+      "api_detail": "/api/street/{id}/"
     }
   },
   {
@@ -85,8 +85,8 @@
       "source_register_id": "dc081fb0-f504-4696-916c-a5b24312ab6e",
       "source_url_address": "https://data.gov.ua/dataset/d945de87-539c-45b4-932a-7dda57daf8d9/resource/296adb7a-476a-40c8-9de6-211327cb3aa1/download/koatuu.json",
       "source_api_address": "https://data.gov.ua/api/3/action/package_show?id=dc081fb0-f504-4696-916c-a5b24312ab6e",
-      "api_list": "/api/koatuu",
-      "api_detail": "/api/koatuu/{id}"
+      "api_list": "/api/koatuu/",
+      "api_detail": "/api/koatuu/{id}/"
     }
   },
   {
@@ -100,8 +100,8 @@
       "source_register_id": null,
       "source_url_address": "https://www.drv.gov.ua/ords/svc/personal/API/Opendata",
       "source_api_address": "https://www.drv.gov.ua/ords/svc/personal/API/Opendata",
-      "api_list": "/api/drvbuilding",
-      "api_detail": "/api/drvbuilding/{id}"
+      "api_list": "/api/drvbuilding/",
+      "api_detail": "/api/drvbuilding/{id}/"
     }
   },
   {
@@ -115,8 +115,8 @@
       "source_register_id": "",
       "source_url_address": "http://download.companieshouse.gov.uk/en_output.html",
       "source_api_address": "",
-      "api_list": "/api/company/uk",
-      "api_detail": "/api/company/uk/{id}"
+      "api_list": "/api/company/uk/",
+      "api_detail": "/api/company/uk/{id}/"
     }
   }
 ]
