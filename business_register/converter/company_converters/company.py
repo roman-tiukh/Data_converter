@@ -158,13 +158,13 @@ class CompanyConverter(BusinessConverter):
     def save_or_get_company_type(self, type_from_record, locale):
         if locale == 'uk':
             name = type_from_record.lower()
-            company_type = self.all_ukr_company_type_dict[name]
+            company_type = self.all_ukr_company_type_dict.get(name)
             if not company_type:
                 name_eng = self.COMPANY_TYPES_UK_EN.get(name)
                 company_type = self.create_company_type(name, name_eng)
         elif locale == 'en':
             name_eng = type_from_record.lower()
-            company_type = self.all_eng_company_type_dict[name_eng]
+            company_type = self.all_eng_company_type_dict.get(name_eng)
             if not company_type:
                 name = self.translate_company_type_name_eng(name_eng)
                 company_type = self.create_company_type(name, name_eng)
