@@ -80,11 +80,11 @@ def uah2words(value):
     lang = translation.get_language()
     if lang == 'uk':
         amount_words = num2words(
-            value, lang=lang, to='currency',
-            currency='UAH', separator=' ', cents=False
+            float(value), lang=lang, to='currency',
+            currency='UAH', separator=' ', cents=False,
         )
     else:
         uah, kop = divmod(value, 1)
         kop = round(kop * 100)
-        amount_words = f'{num2words(uah, lang=lang, to="cardinal")} hryvnias {kop} kopiyok'
+        amount_words = f'{num2words(uah, lang=lang, to="cardinal")} hryvnias {kop:02} kopiyok'
     return amount_words

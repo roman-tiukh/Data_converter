@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-01-22 13:22+0000\n"
+"POT-Creation-Date: 2021-01-28 12:11+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -118,23 +118,23 @@ msgstr "Проект не має майбутньої підписки"
 msgid "Default subscription already exists"
 msgstr "Базовий тарифний план уже існує"
 
-#: payment_system/models.py:431
+#: payment_system/models.py:430
 msgid "User can only have one default project"
 msgstr "Користувач може мати лише один базовий проєкт"
 
-#: payment_system/models.py:450
+#: payment_system/models.py:449
 msgid "Active"
 msgstr "Активний"
 
-#: payment_system/models.py:451
+#: payment_system/models.py:450
 msgid "Past"
 msgstr "Минулий"
 
-#: payment_system/models.py:452
+#: payment_system/models.py:451
 msgid "Future"
 msgstr "Майбутній"
 
-#: payment_system/models.py:485
+#: payment_system/models.py:484
 msgid "Only one {} subscription in project"
 msgstr "У проєкті лише один {} тарифний план"
 
@@ -243,47 +243,37 @@ msgstr ""
 "У Вас не сплачений рахунок. Завтра останній день сплати.Після цього Ваш "
 "проєкт \"%(project)s\" буде переведено на безкоштовний тарифний план."
 
-#: payment_system/templates/payment_system/invoice.html:14
-msgid "Seller:"
-msgstr "Постачальник:"
-
-#: payment_system/templates/payment_system/invoice.html:18
-msgid "Recipient:"
-msgstr "Одержувач:"
-
-#: payment_system/templates/payment_system/invoice.html:27
-msgid "Invoice #"
-msgstr "Рахунок №"
-
-#: payment_system/templates/payment_system/invoice.html:27
-msgid "from"
-msgstr "від"
-
-#: payment_system/templates/payment_system/invoice.html:37
-msgid "Name of product"
-msgstr "Наіменування товару"
-
-#: payment_system/templates/payment_system/invoice.html:38
-msgid "Price without tax"
-msgstr "Ціна без ПДВ"
-
-#: payment_system/templates/payment_system/invoice.html:44
-msgid "Subscription"
-msgstr "Тарифний план"
-
-#: payment_system/templates/payment_system/invoice.html:50
-msgid "Tax"
-msgstr "ПДВ"
-
-#: payment_system/templates/payment_system/invoice.html:56
-#: payment_system/templates/payment_system/invoice.html:63
-msgid "Total with tax:"
-msgstr "Усього з ПДВ:"
-
-#: payment_system/templates/payment_system/invoice.html:68
+#: payment_system/templates/payment_system/invoice.html:115
 msgid "PAID"
 msgstr "ОПЛАЧЕНО"
 
-#: payment_system/views.py:297
+#: payment_system/views.py:295
 msgid "No project matches the given query"
 msgstr "Жоден проєкт не відповідає даному запиту"
+
+#~ msgid "Seller:"
+#~ msgstr "Постачальник:"
+
+#~ msgid "Recipient:"
+#~ msgstr "Одержувач:"
+
+#~ msgid "Invoice #"
+#~ msgstr "Рахунок №"
+
+#~ msgid "from"
+#~ msgstr "від"
+
+#~ msgid "Name of product"
+#~ msgstr "Наіменування товару"
+
+#~ msgid "Price without tax"
+#~ msgstr "Ціна без ПДВ"
+
+#~ msgid "Subscription"
+#~ msgstr "Тарифний план"
+
+#~ msgid "Tax"
+#~ msgstr "ПДВ"
+
+#~ msgid "Total with tax:"
+#~ msgstr "Усього з ПДВ:"
