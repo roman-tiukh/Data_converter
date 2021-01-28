@@ -8,11 +8,16 @@ from business_register.models.company_models import (
 )
 from business_register.models.pep_models import CompanyLinkWithPep, Pep, RelatedPersonsLink
 
-HistoricalCompany = apps.get_model('business_register', 'HistoricalCompany')
 HistoricalAssignee = apps.get_model('business_register', 'HistoricalAssignee')
+HistoricalBancruptcyReadjustment = apps.get_model('business_register', 'HistoricalBancruptcyReadjustment')
+HistoricalCompany = apps.get_model('business_register', 'HistoricalCompany')
 HistoricalCompanyDetail = apps.get_model('business_register', 'HistoricalCompanyDetail')
+HistoricalCompanyToKved = apps.get_model('business_register', 'HistoricalCompanyToKved')
+HistoricalCompanyToPredecessor = apps.get_model('business_register', 'HistoricalCompanyToPredecessor')
+HistoricalExchangeDataCompany = apps.get_model('business_register', 'HistoricalExchangeDataCompany')
 HistoricalFounder = apps.get_model('business_register', 'HistoricalFounder')
 HistoricalSigner = apps.get_model('business_register', 'HistoricalSigner')
+HistoricalTerminationStarted = apps.get_model('business_register', 'HistoricalTerminationStarted')
 
 
 def filter_with_parameter(obj, parameter, used_categories, model_related_name, serializer):
@@ -87,9 +92,10 @@ class CountFoundedCompaniesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
         fields = (
-            'id', 'name', 'short_name', 'company_type', 'edrpou',
-            'status', 'founder_of_count', 'is_closed', 'from_antac_only',
+            'id', 'name', 'short_name', 'company_type', 'edrpou', 'status', 'founder_of_count',
+            'is_closed', 'is_foreign', 'from_antac_only',
         )
+
 
 
 class CompanyShortSerializer(serializers.ModelSerializer):
@@ -206,6 +212,12 @@ class HistoricalAssigneeSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class HistoricalBancruptcyReadjustmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HistoricalBancruptcyReadjustment
+        fields = '__all__'
+
+
 class HistoricalCompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = HistoricalCompany
@@ -218,6 +230,24 @@ class HistoricalCompanyDetailSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class HistoricalCompanyToKvedSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HistoricalCompanyToKved
+        fields = '__all__'
+
+
+class HistoricalCompanyToPredecessorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HistoricalCompanyToPredecessor
+        fields = '__all__'
+
+
+class HistoricalExchangeDataCompanySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HistoricalExchangeDataCompany
+        fields = '__all__'
+
+
 class HistoricalFounderSerializer(serializers.ModelSerializer):
     class Meta:
         model = HistoricalFounder
@@ -227,6 +257,12 @@ class HistoricalFounderSerializer(serializers.ModelSerializer):
 class HistoricalSignerSerializer(serializers.ModelSerializer):
     class Meta:
         model = HistoricalSigner
+        fields = '__all__'
+
+
+class HistoricalTerminationStartedSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HistoricalTerminationStarted
         fields = '__all__'
 
 

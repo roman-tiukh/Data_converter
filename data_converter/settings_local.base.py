@@ -33,6 +33,10 @@ SEND_MAIL_BY_POSTMAN = False
 POSTMAN_TOKEN = 'e7937e4b5a309177b85fad8715bcbd451fdcb67f91696e1968f8dd188ada70a1'
 # URL FOR POSTMAN
 POSTMAN_URL = 'https://postman.org.ua/'
+
+SENDGRID_API_KEY = 'change_me!'
+
+EMAIL_BACKEND = 'data_converter.email_backends.sendgrid.EmailBackend'
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = ''
@@ -85,7 +89,6 @@ CSRF_TRUSTED_ORIGINS = [
 
 LOCAL_FOLDER = 'unzipped_xml/'
 
-EMAIL_BACKEND = 'data_converter.email_backend.SendGridEmailBackend'
 
 DATA_GOV_UA_DATASETS_URL = 'https://data.gov.ua/dataset/'
 DATA_GOV_UA_SOURCE_PACKAGE = 'https://data.gov.ua/api/3/action/package_show?id='

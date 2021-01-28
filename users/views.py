@@ -6,7 +6,7 @@ from datetime import timedelta
 from django.conf import settings
 from django.contrib.auth.hashers import make_password
 from django.core.mail import send_mail
-from django.utils import timezone
+from django.utils import timezone, translation
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import generics, views
 from rest_framework.authtoken.models import Token
@@ -14,11 +14,15 @@ from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from users.emails import (send_confirm_email_message, send_registration_confirmed_message)
+from users import emails
 from data_ocean.postman import send_plain_mail
-from .models import DataOceanUser, CandidateUserModel
-from .serializers import (DataOceanUserSerializer, CustomRegisterSerializer, LandingMailSerializer,
-                          QuestionSerializer)
+from users.models import DataOceanUser, CandidateUserModel
+from users.serializers import (
+    DataOceanUserSerializer,
+    CustomRegisterSerializer,
+    LandingMailSerializer,
+    QuestionSerializer,
+)
 
 
 class UserListView(generics.ListAPIView):
@@ -30,6 +34,7 @@ class CustomRegistrationView(views.APIView):
     permission_classes = (AllowAny,)
 
     def post(self, request: Request, *args, **kwargs):
+        user_language = translation.get_language()
 
         serializer = CustomRegisterSerializer(data=request.data)
         if not serializer.is_valid():
@@ -41,6 +46,7 @@ class CustomRegistrationView(views.APIView):
             password=make_password(serializer.validated_data.get('password1')),  # hash
             first_name=serializer.validated_data.get('first_name'),
             last_name=serializer.validated_data.get('last_name'),
+            language=user_language,
         )
 
         # check if this email is among existing users
@@ -67,7 +73,7 @@ class CustomRegistrationView(views.APIView):
         # create a letter to the candidate to confirm the email
         domain = re.sub(r'/$', '', settings.FRONTEND_SITE_URL)
         confirm_link = f'{domain}/auth/sign-up/confirmation/{user.id}/{user.confirm_code}/'
-        send_confirm_email_message(user, confirm_link)
+        emails.send_confirm_email_message(user, confirm_link)
 
         return Response({
             "email": user.email,
@@ -108,11 +114,12 @@ class CustomRegistrationConfirmView(views.APIView):
             password=user.password,
             first_name=user.first_name,
             last_name=user.last_name,
+            language=user.language,
         )
 
         # send mail
         default_project = real_user.user_projects.get(is_default=True).project
-        send_registration_confirmed_message(real_user, default_project)
+        emails.send_registration_confirmed_message(real_user, default_project)
         return Response(DataOceanUserSerializer(real_user).data, status=200)
 
 

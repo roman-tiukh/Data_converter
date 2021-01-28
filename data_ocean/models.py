@@ -13,7 +13,7 @@ class DataOceanModel(models.Model):
 
     def soft_delete(self):
         self.deleted_at = timezone.now()
-        self.save(update_fields=['deleted_at'])
+        self.save(update_fields=['deleted_at', 'updated_at'])
 
     @classmethod
     def truncate(cls):

@@ -1,0 +1,14 @@
+{% load i18n %}
+
+{% trans "Hi" as hi %}
+{% get_current_language as lang %}
+
+{% if first_name %}
+  {{ hi }} {{ first_name }}!
+{% else %}
+  {% if lang == 'uk' %}
+    {{ hi }}!
+  {% else %}
+    {{ hi }} there!
+  {% endif %}
+{% endif %}

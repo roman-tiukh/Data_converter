@@ -236,5 +236,41 @@
       "type": "retrieve",
       "register_id": 6
     }
+  },
+  {
+    "model": "data_ocean.register",
+    "pk": 7,
+    "fields": {
+      "created_at": "2021-01-22 19:20",
+      "name": "Реєстр компаній Великобританії",
+      "name_eng": "Company House",
+      "source_name": "gov.uk/government/organisations/companies-house",
+      "source_register_id": "",
+      "url_address": "http://download.companieshouse.gov.uk/en_output.html",
+      "api_address": "",
+      "source_last_update": "2021-01-01 00:00"
+    }
+  },
+  {
+    "model": "data_ocean.dataset",
+    "pk": 15,
+    "fields": {
+      "created_at": "2021-01-01 00:00",
+      "name": "all companies from Company House register",
+      "endpoint": "/api/company/uk",
+      "type": "list",
+      "register_id": 7
+    }
+  },
+  {
+    "model": "data_ocean.dataset",
+    "pk": 16,
+    "fields": {
+      "created_at": "2021-01-01 00:00",
+      "name": "company from Company House",
+      "endpoint": "/api/company/uk/{id}",
+      "type": "retrieve",
+      "register_id": 7
+    }
   }
 ]

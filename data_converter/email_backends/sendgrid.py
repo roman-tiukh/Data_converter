@@ -1,10 +1,11 @@
 import logging
+import base64
 
 import sendgrid
 from django.conf import settings
 from django.core.mail.backends.base import BaseEmailBackend
 from python_http_client.exceptions import HTTPError
-from sendgrid.helpers.mail import *
+from sendgrid.helpers.mail import Mail, HtmlContent, Attachment
 
 
 logger = logging.getLogger(__name__)
@@ -22,18 +23,25 @@ class EmailBackend(BaseEmailBackend):
 
     def send_messages(self, email_messages):
         sg = sendgrid.SendGridAPIClient(api_key=self.api_key)
+
         for email_message in email_messages:
-            from_email = Email(email_message.from_email)
-            to_email = To(email_message.to)
-            subject = email_message.subject
-            html_content = HtmlContent(email_message.body)
-            mail = Mail(from_email=from_email, to_emails=to_email, subject=subject,
-                        html_content=html_content)
+            mail = Mail(
+                from_email=email_message.from_email,
+                to_emails=email_message.to,
+                subject=email_message.subject,
+                html_content=HtmlContent(email_message.body),
+            )
+            for attachment in email_message.attachments:
+                mail.add_attachment(Attachment(
+                    file_name=attachment[0],
+                    file_content=base64.b64encode(attachment[1]).decode(),
+                    file_type=attachment[2],
+                ))
             try:
                 response = sg.client.mail.send.post(request_body=mail.get())
                 if response.status_code // 100 != 2:
                     error_message = (
-                        f'Email "{subject}" was not sent to{email_message.to}. '
+                        f'Email "{email_message.subject}" was not sent to {email_message.to}. '
                         f'Status is {response.status_code}'
                     )
                     if self.fail_silently:
@@ -42,6 +50,6 @@ class EmailBackend(BaseEmailBackend):
                         raise SendGridBadStatusError(error_message)
             except HTTPError as error:
                 if self.fail_silently:
-                    logger.exception(f'Email {subject} was not sent to{email_message.to} - {error}')
+                    logger.exception(f'Email {email_message.subject} was not sent to {email_message.to} - {error}')
                 else:
                     raise
