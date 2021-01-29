@@ -24,6 +24,8 @@ class TaxpayerTypeSerializer(serializers.ModelSerializer):
 
 
 class RegisterSerializer(serializers.ModelSerializer):
+    status = serializers.CharField(source='get_status_display')
+
     class Meta:
         model = Register
         fields = [

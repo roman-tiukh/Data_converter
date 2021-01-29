@@ -1,5 +1,6 @@
 from django.db import models, connection
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 
 class DataOceanModel(models.Model):
@@ -60,9 +61,9 @@ class Register(DataOceanModel):
     OUTDATED = 'outdated'
     NOT_SUPPORTED = 'not supported'
     STATUSES = [
-        (RELEVANT, 'Relevant'),
-        (OUTDATED, 'Outdated'),
-        (NOT_SUPPORTED, "Not supported"),
+        (RELEVANT, _('Relevant')),
+        (OUTDATED, _('Outdated')),
+        (NOT_SUPPORTED, _('Not supported')),
     ]
     name = models.CharField('назва', max_length=500, unique=True)
     name_eng = models.CharField('назва англійською', max_length=500, unique=True, null=True)
