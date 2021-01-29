@@ -12,6 +12,7 @@ import requests
 import xmltodict
 from django.apps import apps
 from lxml import etree
+from location_register.models.address_models import Country
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +24,18 @@ class Converter:
     LOCAL_FOLDER = "source_data/"  # local folder for unzipped source files
     DOWNLOAD_FOLDER = "download/"  # folder to downloaded files
     URLS_DICT = {}  # control remote dataset files update
+
+    def __init__(self):
+        self.all_countries_dict = self.put_all_objects_to_dict("name", "location_register", "Country")
+
+    def save_or_get_country(self, name):
+        name = name.lower()
+        if name not in self.all_countries_dict:
+            new_country = Country.objects.create(name=name)
+            self.all_countries_dict[name] = new_country
+            return new_country
+        return self.all_countries_dict[name]
+
 
     def load_json(self, json_file):
         with open(json_file) as file:

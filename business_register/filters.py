@@ -100,3 +100,7 @@ class PepFilterSet(filters.FilterSet):
             'is_pep': ['exact'],
             'is_dead': ['exact'],
         }
+
+
+class HistoricalCompanyRelatedFilterSet(filters.FilterSet):
+    history_date = filters.DateFromToRangeFilter()

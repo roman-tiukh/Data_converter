@@ -8,7 +8,7 @@ from rest_framework.response import Response
 
 from business_register.models.company_models import Company, CompanyToKved, CompanyType
 from business_register.models.fop_models import Fop
-from data_ocean.models import Dataset
+from data_ocean.models import Register
 from stats import logic
 from stats.serializers import TopKvedSerializer, CompanyTypeCountSerializer
 from .models import ApiUsageTracking
@@ -64,7 +64,7 @@ class ProfileStatsView(views.APIView):
         api_requests = ApiUsageTracking.objects.filter(
             user_id=request.user.id
         ).count()
-        endpoints = Dataset.objects.count()
+        endpoints = Register.objects.count()
         return Response({
             "api_requests": api_requests,
             "endpoints": endpoints,
@@ -121,9 +121,9 @@ class UsersInProjectsView(views.APIView):
     def get(self, request):
         user = request.user
         user_projects = UserProject.objects.filter(user=user).values_list('project', flat=True)
-        users_count = UserProject.objects.filter(project__in=list(user_projects)).exclude(
-            user=user
-        ).order_by('user').distinct('user').count()
+        users_count = UserProject.objects.filter(project__in=list(user_projects)).order_by(
+            'user'
+        ).distinct('user').count()
         return Response({
             'users_count': users_count
         }, status=200)

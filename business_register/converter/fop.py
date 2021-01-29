@@ -20,7 +20,7 @@ class FopConverter(BusinessConverter):
 
     def __init__(self):
         self.API_ADDRESS_FOR_DATASET = Register.objects.get(source_register_id=
-                                                            "1c7f3815-3259-45e0-bdf1-64dca07ddc10").api_address
+                                                            "1c7f3815-3259-45e0-bdf1-64dca07ddc10").source_api_address
         self.LOCAL_FOLDER = settings.LOCAL_FOLDER
         self.LOCAL_FILE_NAME = settings.LOCAL_FILE_NAME_FOP
         self.CHUNK_SIZE = settings.CHUNK_SIZE_FOP
@@ -78,7 +78,7 @@ class FopConverter(BusinessConverter):
                         alredy_stored = True
                         if stored_foptokved.primary_kved != is_primary:
                             stored_foptokved.primary_kved = is_primary
-                            stored_foptokved.save(update_fields=['primary_kved'])
+                            stored_foptokved.save(update_fields=['primary_kved', 'updated_at'])
                         already_stored_foptokveds.remove(stored_foptokved)
                         break
             if not alredy_stored:
@@ -246,6 +246,7 @@ class FopConverter(BusinessConverter):
                     fop.authority = authority
                     update_fields.append('authority')
                 if len(update_fields):
+                    update_fields.append('updated_at')
                     fop.save(update_fields=update_fields)
                 if len(fop_kveds):
                     self.update_fop_kveds(fop_kveds, fop)
@@ -291,7 +292,7 @@ class FopConverter(BusinessConverter):
         else:
             if not current_fop_to_kved.primary_kved:
                 current_fop_to_kved.primary_kved = True
-                current_fop_to_kved.save(update_fields=['primary_kved', ])
+                current_fop_to_kved.save(update_fields=['primary_kved', 'updated_at'])
 
     def save_to_db(self, records):
         for record in records:
@@ -322,6 +323,7 @@ class FopConverter(BusinessConverter):
                     fop.status = status
                     update_fields.append('status')
                 if len(update_fields):
+                    update_fields.append('updated_at')
                     fop.save(update_fields=update_fields)
             kved_data = record.xpath('KVED')[0].text
             if kved_data and ' ' in kved_data:
@@ -378,8 +380,8 @@ class FopDownloader(Downloader):
 
         sleep(5)
         self.vacuum_analyze(table_list=['business_register_fop', ])
-        total_records = Fop.objects.count()
-        self.update_total_records(settings.ALL_FOPS_DATASET_NAME, total_records)
+        new_total_records = Fop.objects.count()
+        self.update_field(settings.ALL_FOPS_DATASET_NAME, 'total_records', new_total_records)
 
         self.remove_file()
 

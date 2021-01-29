@@ -334,6 +334,7 @@ class NewKoatuuConverter(Converter):
                 second_level.name = name
                 update_fields.append('name')
             if len(update_fields):
+                update_fields.append('updated_at')
                 second_level.save(update_fields=update_fields)
 
     def save_or_update_third_level(self, first_level_code, second_level_code, category, name,
@@ -363,6 +364,7 @@ class NewKoatuuConverter(Converter):
                 third_level.name = name
                 update_fields.append('name')
             if len(update_fields):
+                update_fields.append('updated_at')
                 third_level.save(update_fields=update_fields)
 
     def save_or_update_fourth_level(self, first_level_code, second_level_code, third_level_code,
@@ -396,6 +398,7 @@ class NewKoatuuConverter(Converter):
                 fourth_level.name = name
                 update_fields.append('name')
             if len(update_fields):
+                update_fields.append('updated_at')
                 fourth_level.save(update_fields=update_fields)
 
     def save_to_db(self, json_file):

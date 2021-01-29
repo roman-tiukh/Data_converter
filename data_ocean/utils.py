@@ -7,22 +7,25 @@ import datetime
 import os
 import re
 
-
 # changing to lowercase, deleting 'р.', 'м.', 'с.', 'смт.', 'смт', 'сщ.', 'с/рада.', 'сщ/рада.', /
 # 'вул.' from a string
+from django.utils import translation
+from num2words import num2words
+
+
 def clean_name(name):
     return re.sub(r'р\.|м\.|с\.|смт\.|сщ\.|с/рада\.|сщ/рада\.|вул\.', "", name.lower()).strip()
 
 
 # a dictionary for storing all abbreviations and full forms
 SHORT_TO_FULL_DICT = {
-    'р-н': 'район',
-    'р-ну': 'району',
     'вул.': 'вулиця ',
     'бульв.': 'бульвар ',
     'просп.': 'проспект ',
     'пров.': 'провулок ',
     'пл.': 'площа ',
+    'р-н': 'район',
+    'р-ну': 'району',
     'обл.': 'область',
     'области': 'області'
 }
@@ -71,3 +74,17 @@ def to_lower_string_if_exists(value):
 
 def generate_key():
     return binascii.hexlify(os.urandom(20)).decode()
+
+
+def uah2words(value):
+    lang = translation.get_language()
+    if lang == 'uk':
+        amount_words = num2words(
+            value, lang=lang, to='currency',
+            currency='UAH', separator=' ', cents=False
+        )
+    else:
+        uah, kop = divmod(value, 1)
+        kop = round(kop * 100)
+        amount_words = f'{num2words(uah, lang=lang, to="cardinal")} hryvnias {kop} kopiyok'
+    return amount_words

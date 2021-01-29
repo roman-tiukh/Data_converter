@@ -1,8 +1,6 @@
 from business_register.converter.business_converter import BusinessConverter
 from business_register.models.company_models import CompanyType
-from data_ocean.postman import send_plain_mail
-from django.core.mail import send_mail
-from django.conf import settings
+from business_register.emails import send_new_company_type_message
 
 
 class CompanyConverter(BusinessConverter):
@@ -108,10 +106,8 @@ class CompanyConverter(BusinessConverter):
             'обмежене партнерство': 'limited partnership',
             'королівська статутна компанія': 'royal charter company',
             'партнерство з обмеженою відповідальністю': 'limited liability partnership',
-            ("приватна компанія з відповідальністю, обмеженою гарантіями її членів з використанням"
-             " 'обмеженої' пільги"):
-                ("pri/lbg/nsc (private, limited by guarantee, no share capital, use of 'limited' "
-                 "exemption"),
+            ("приватна компанія з відповідальністю, обмеженою гарантіями її членів з використанням 'обмеженої' пільги"):
+                ("pri/lbg/nsc (private, limited by guarantee, no share capital, use of 'limited' exemption)"),
             'шотландське благодійне товариство': 'scottish charitable incorporated organisation',
             'приватна компанія з необмеженою відповідальністю': 'private unlimited company',
             'давно існуюча публічна компанія': 'old public company',
@@ -134,10 +130,11 @@ class CompanyConverter(BusinessConverter):
             'публічна акціонерна компанія з обмеженою відповідальністю': 'public limited company',
             'додаткова освіта та передуніверситетський коледж/коледжний корпус':
                 'further education and sixth form college corps',
-            ('приватна/компанія з відповідальністю, обмеженою гарантіями її членів/без '
-             'акціонерного капіталу, використання "обмеженої" пільги (або привілегії)'):
-                ("pri/lbg/nsc (private, limited by guarantee, no share capital, "
-                 "use of 'limited' exemption)")
+            'приватна/компанія з відповідальністю, обмеженою гарантіями її членів/без акціонерного капіталу, використання "обмеженої" пільги (або привілегії)':
+                "pri/lbg/nsc (private, limited by guarantee, no share capital, use of 'limited' exemption)",
+            'публічна компанія великобританії з обмеженою відповідальністю':
+                'united kingdom societas',
+            'консорціум великобританії': 'united kingdom economic interest grouping',
         }
         self.all_ukr_company_type_dict = self.put_all_objects_to_dict('name', "business_register",
                                                                       "CompanyType")
@@ -152,35 +149,25 @@ class CompanyConverter(BusinessConverter):
                 return key
         return None
 
+    def create_company_type(self, name, name_eng):
+        company_type = CompanyType.objects.create(name=name, name_eng=name_eng)
+        print(f'New company type: id={company_type.id}, name={company_type.name}, name_eng={company_type.name_eng}')
+        send_new_company_type_message(company_type)
+        return company_type
+
     def save_or_get_company_type(self, type_from_record, locale):
         if locale == 'uk':
             name = type_from_record.lower()
-            name_eng = self.COMPANY_TYPES_UK_EN.get(name)
+            company_type = self.all_ukr_company_type_dict.get(name)
+            if not company_type:
+                name_eng = self.COMPANY_TYPES_UK_EN.get(name)
+                company_type = self.create_company_type(name, name_eng)
         elif locale == 'en':
             name_eng = type_from_record.lower()
-            name = self.translate_company_type_name_eng(name_eng)
+            company_type = self.all_eng_company_type_dict.get(name_eng)
+            if not company_type:
+                name = self.translate_company_type_name_eng(name_eng)
+                company_type = self.create_company_type(name, name_eng)
         else:
-            raise ValueError(f'Not supported locale - {locale}. Should be "uk" or "en"')
-
-        company_type, created = CompanyType.objects.get_or_create(name=name, name_eng=name_eng)
-
-        if created:
-            subj = f'New company type created: {company_type.id}'
-            msg = f'New company type: \r\nid={company_type.id}, \r\nname={company_type.name}'
-            print(msg)
-            if settings.SEND_MAIL_BY_POSTMAN:
-                # use POSTMAN
-                send_status_code = send_plain_mail(settings.SUPPORT_EMAIL, subj, msg)
-                if send_status_code != 201:
-                    print(f'Warning! Email not send.')
-            else:
-                # use EMAIL_BACKEND
-                send_mail(
-                    subject=subj,
-                    message=msg,
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=(settings.SUPPORT_EMAIL,),
-                    fail_silently=True,
-                )
-
+            raise ValueError(f'This parameter is not valid - {locale}. Should be "uk" or "en"')
         return company_type

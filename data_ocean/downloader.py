@@ -10,7 +10,7 @@ from django.db import connections
 from django.utils import timezone
 
 # import psycopg2
-from data_ocean.models import RegistryUpdaterModel, Dataset
+from data_ocean.models import RegistryUpdaterModel, Register
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -183,7 +183,8 @@ class Downloader(ABC):
         if self.unzip_after_download:
             self.unzip_source_file()
 
-    def update_total_records(self, dataset_name, total_records):
-        dataset = Dataset.objects.get(name=dataset_name)
-        dataset.total_records = total_records
-        dataset.save(update_fields=['total_records'])
+    def update_field(self, register_name, field_name, new_field_value):
+        register = Register.objects.get(name=register_name)
+        setattr(register, field_name, new_field_value)
+        register.save(update_fields=[field_name, 'updated_at'])
+

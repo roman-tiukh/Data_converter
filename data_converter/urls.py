@@ -20,9 +20,13 @@ from django.views.generic import TemplateView
 from rest_auth.views import PasswordResetConfirmView
 from rest_framework import routers
 
-from business_register.views.company_views import (CompanyViewSet, HistoricalCompanyView, HistoricalAssigneeView,
-    HistoricalCompanyDetailView, HistoricalFounderView, HistoricalSignerView
-)
+from business_register.views.company_views import (CompanyViewSet, CompanyUkrViewSet, CompanyUkViewSet,
+                                                   HistoricalAssigneeView,
+                                                   HistoricalBancruptcyReadjustmentView, HistoricalCompanyView,
+                                                   HistoricalCompanyDetailView, HistoricalCompanyToKvedView,
+                                                   HistoricalCompanyToPredecessorView,
+                                                   HistoricalExchangeDataCompanyView, HistoricalFounderView,
+                                                   HistoricalSignerView, HistoricalTerminationStartedView)
 from business_register.views.fop_views import FopViewSet
 from business_register.views.kved_views import KvedViewSet
 from business_register.views.pep_views import PepViewSet
@@ -46,17 +50,28 @@ router.register(r'street', RatuStreetView, basename='street')
 router.register(r'citydistrict', RatuCityDistrictView, basename='citydistrict')
 router.register(r'district', RatuDistrictView, basename='district')
 router.register(r'drvbuilding', DrvBuildingViewSet, basename='drvbuilding')
+router.register(r'company/ukr', CompanyUkrViewSet, basename='company_ukr')
+router.register(r'company/uk', CompanyUkViewSet, basename='company_uk')
 router.register(r'company', CompanyViewSet, basename='company')
 router.register(r'koatuu-first-level', KoatuuFirstLevelViewSet, basename='koatuu_first_level')
 router.register(r'koatuu-second-level', KoatuuSecondLevelViewSet, basename='koatuu_second_level')
 router.register(r'koatuu-third-level', KoatuuThirdLevelViewSet, basename='koatuu_third_level')
 router.register(r'koatuu-fourth-level', KoatuuFourthLevelViewSet, basename='koatuu_fourth_level')
 router.register(r'register', RegisterView, basename='register')
-router.register(r'historical-company', HistoricalCompanyView, basename='historical_company')
 router.register(r'historical-assignee', HistoricalAssigneeView, basename='historical_assignee')
+router.register(r'historical-bancruptcy-readjustment', HistoricalBancruptcyReadjustmentView,
+                basename='historical_bancruptcy_readjustment')
+router.register(r'historical-company', HistoricalCompanyView, basename='historical_company')
 router.register(r'historical-company-detail', HistoricalCompanyDetailView, basename='historical_company_detail')
+router.register(r'historical-company-to-kved', HistoricalCompanyToKvedView, basename='historical_company_to_kved')
+router.register(r'historical-company-to-predecessor', HistoricalCompanyToPredecessorView,
+                basename='historical_company_to_predecessor')
+router.register(r'historical-exchange-data-company', HistoricalExchangeDataCompanyView,
+                basename='historical_exchange_data_company')
 router.register(r'historical-founder', HistoricalFounderView, basename='historical_founder')
 router.register(r'historical-signer', HistoricalSignerView, basename='historical_signer')
+router.register(r'historical-termination-started', HistoricalTerminationStartedView,
+                basename='historical_termination_started')
 router.register(r'pep', PepViewSet, basename='pep')
 
 urlpatterns = [

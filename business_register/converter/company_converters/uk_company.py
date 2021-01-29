@@ -1,4 +1,5 @@
 import logging
+import time
 from csv import DictReader
 
 import requests
@@ -21,11 +22,14 @@ class UkCompanyConverter(CompanyConverter):
 
     def save_to_db(self, file):
         with open(file, newline='') as csvfile:
+            index = 0
+
             for row in DictReader(csvfile):
                 name = row['CompanyName'].lower()
+                # number is unique identifier in Company House
                 number = row[' CompanyNumber']
                 code = name + number
-                country = AddressConverter().save_or_get_country(row['CountryOfOrigin'])
+                country = self.save_or_get_country(row['CountryOfOrigin'])
                 address = (
                     f"{row['RegAddress.Country']} {row['RegAddress.PostCode']} "
                     f"{row['RegAddress.County']} {row['RegAddress.PostTown']} "
@@ -34,8 +38,12 @@ class UkCompanyConverter(CompanyConverter):
                 )
                 company_type = self.save_or_get_company_type(row['CompanyCategory'], 'en')
                 status = self.save_or_get_status(row['CompanyStatus'])
-                registration_date = format_date_to_yymmdd(row['IncorporationDate'])
-                company = Company.objects.filter(edrpou=number).first()
+                if len(row['IncorporationDate']) == 10:
+                    registration_date = format_date_to_yymmdd(row['IncorporationDate'])
+                else:
+                    registration_date = None
+                source = Company.GREAT_BRITAIN_REGISTER
+                company = Company.objects.filter(edrpou=number, source=Company.GREAT_BRITAIN_REGISTER).first()
                 if not company:
                     company = Company(
                         name=name,
@@ -45,7 +53,8 @@ class UkCompanyConverter(CompanyConverter):
                         country=country,
                         status=status,
                         registration_date=registration_date,
-                        code=code
+                        code=code,
+                        source=Company.GREAT_BRITAIN_REGISTER
                     )
                     company.save()
                 else:
@@ -53,16 +62,16 @@ class UkCompanyConverter(CompanyConverter):
                     if company.name != name:
                         company.name = name
                         update_fields.append('name')
-                    if company.company_type != company_type:
+                    if company.company_type_id != company_type.id:
                         company.company_type = company_type
                         update_fields.append('company_type')
                     if company.address != address:
                         company.address = address
                         update_fields.append('address')
-                    if company.country != country:
+                    if company.country_id != country.id:
                         company.country = country
                         update_fields.append('country')
-                    if company.status != status:
+                    if company.status_id != status.id:
                         company.status = status
                         update_fields.append('status')
                     if to_lower_string_if_exists(company.registration_date) != registration_date:
@@ -71,8 +80,11 @@ class UkCompanyConverter(CompanyConverter):
                     if company.code != code:
                         company.code = code
                         update_fields.append('code')
-
+                    if company.source != source:
+                        company.source = source
+                        update_fields.append('source')
                     if update_fields:
+                        update_fields.append('updated_at')
                         company.save(update_fields=update_fields)
 
             print('All companies from UK register were saved')

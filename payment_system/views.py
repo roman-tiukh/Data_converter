@@ -1,5 +1,5 @@
 from django.db.models import Prefetch
-from django.http import Http404
+from django.http import Http404, FileResponse
 from rest_framework import generics
 from django.shortcuts import get_object_or_404
 from rest_framework import status
@@ -16,6 +16,7 @@ from payment_system.models import (
     Subscription,
     Invoice,
     Invitation,
+    ProjectSubscription,
 )
 from payment_system.serializers import (
     ProjectListSerializer,
@@ -25,6 +26,7 @@ from payment_system.serializers import (
     ProjectInviteUserSerializer,
     InvitationListSerializer,
     ProjectTokenSerializer,
+    ProjectSubscriptionSerializer,
 )
 
 
@@ -203,17 +205,56 @@ class SubscriptionsListView(generics.ListAPIView):
     pagination_class = None
 
 
-# TODO: permissions for user
-class InvoiceRetrieveView(generics.RetrieveAPIView):
-    queryset = Invoice
-    serializer_class = InvoiceSerializer
+# TODO: PDF View
+# class InvoiceRetrieveView(generics.RetrieveAPIView):
+#     queryset = Invoice.objects.all()
+#     serializer_class = InvoiceSerializer
 
 
-# TODO: permissions for user
-class InvoiceListView(generics.ListAPIView):
-    queryset = Invoice
+class InvoicesViewMixin:
     serializer_class = InvoiceSerializer
     pagination_class = None
+
+    def get_queryset(self):
+        user = self.request.user
+        return Invoice.objects.filter(project_subscription__project__owner=user)
+
+
+class UserInvoicesListView(InvoicesViewMixin, generics.ListAPIView):
+    pass
+
+
+class SubscriptionInvoicesListView(InvoicesViewMixin, generics.ListAPIView):
+    permission_classes = ProjectViewMixin.permission_classes
+
+    def list(self, request, *args, **kwargs):
+        p2s = get_object_or_404(ProjectSubscription, pk=kwargs['pk'])
+        self.check_object_permissions(request, p2s.project)
+        invoices = self.get_queryset().filter(project_subscription=p2s)
+        serializer = self.get_serializer(invoices, many=True)
+        return Response(serializer.data)
+
+
+class InvoicePDFView(InvoicesViewMixin, APIView):
+    def get(self, request, pk):
+        invoice: Invoice = get_object_or_404(self.get_queryset(), pk=pk)
+        file = invoice.get_pdf()
+        return FileResponse(file, content_type="application/pdf")
+
+
+class ProjectSubscriptionRetrieveView(generics.RetrieveAPIView):
+    serializer_class = ProjectSubscriptionSerializer
+    permission_classes = ProjectViewMixin.permission_classes
+
+    def get_queryset(self):
+        user = self.request.user
+        return ProjectSubscription.objects.filter(project__owner=user)
+
+    def retrieve(self, request, *args, **kwargs):
+        p2s = get_object_or_404(ProjectSubscription, pk=kwargs['pk'])
+        self.check_object_permissions(request, p2s.project)
+        serializer = self.get_serializer(p2s)
+        return Response(serializer.data)
 
 
 class ProjectAddSubscriptionView(ProjectViewMixin, APIView):
@@ -224,6 +265,16 @@ class ProjectAddSubscriptionView(ProjectViewMixin, APIView):
         subscription = get_object_or_404(Subscription, pk=subscription_id)
 
         project.add_subscription(subscription)
+
+        return Response(status=204)
+
+
+class ProjectRemoveSubscriptionView(ProjectViewMixin, APIView):
+    def delete(self, request, pk):
+        project = get_object_or_404(self.get_queryset(), pk=pk)
+        self.check_object_permissions(self.request, project)
+
+        project.remove_future_subscription()
 
         return Response(status=204)
 
@@ -247,14 +298,17 @@ class CurrentUserProjectTokenView(ProjectViewMixin, generics.GenericAPIView):
         return Response(serializer.data)
 
 
-# class ProjectSubscriptionDisableView(generics.GenericAPIView):
-#     serializer_class = ProjectSubscriptionSerializer
-#     queryset = ProjectSubscription.objects.all()
-#
-#     def put(self, request, pk):
-#         project_subscription: ProjectSubscription = self.get_object()
-#
-#         project_subscription.disable()
-#
-#         serializer = self.get_serializer(instance=project_subscription)
-#         return Response(serializer.data)
+
+# TODO: remove this
+# class TestEmailView(View):
+#     def get(self, request):
+#         with translation.override('uk'):
+#             project = Project.objects.all().first()
+#             return render(
+#                 request=request,
+#                 template_name='payment_system/emails/new_invitation.html',
+#                 context={
+#                     'owner': project.owner,
+#                     'project': project,
+#                 }
+#             )

@@ -14,11 +14,12 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
+# ToDo: define how to mark outdated records
 class RatuConverter(Converter):
     def __init__(self):
         self.API_ADDRESS_FOR_DATASET = Register.objects.get(
             source_register_id=settings.LOCATION_RATU_SOURCE_REGISTER_ID
-        ).api_address
+        ).source_api_address
         self.LOCAL_FOLDER = settings.LOCAL_FOLDER
         self.LOCAL_FILE_NAME = settings.LOCAL_FILE_NAME_RATU
         self.CHUNK_SIZE = settings.CHUNK_SIZE_RATU
@@ -42,22 +43,9 @@ class RatuConverter(Converter):
             new_filename = 'ratu.xml'
         return new_filename
 
-    def save_to_db(self, records):
-        for record in records:
-            region = self.save_to_region_table(record.xpath('OBL_NAME')[0].text)
-            district = (self.save_to_district_table(record.xpath('REGION_NAME')[0].text, region)
-                        if record.xpath('REGION_NAME')[0].text else None)
-            city = (self.save_to_city_table(record.xpath('CITY_NAME')[0].text, region, district)
-                    if record.xpath('CITY_NAME')[0].text else None)
-            citydistrict = (self.save_to_citydistrict_table(record.xpath('CITY_REGION_NAME')[0].text,
-                                                            region, district, city)
-                            if record.xpath('CITY_REGION_NAME')[0].text else None)
-            if record.xpath('STREET_NAME')[0].text:
-                self.save_to_street_table(record.xpath('STREET_NAME')[0].text, region, district,
-                                          city, citydistrict)
-
-    def save_to_region_table(self, name):
-        region_name = change_to_full_name(name)
+    def save_or_get_region(self, name):
+        region_name = clean_name(name)
+        region_name = change_to_full_name(region_name)
         if region_name not in self.all_regions_dict:
             region = RatuRegion.objects.create(
                 name=region_name
@@ -66,7 +54,7 @@ class RatuConverter(Converter):
             return region
         return self.all_regions_dict[region_name]
 
-    def save_to_district_table(self, name, region):
+    def save_or_get_district(self, name, region):
         district_name = clean_name(name)
         district_name = change_to_full_name(district_name)
         district_code = region.name + district_name
@@ -80,7 +68,7 @@ class RatuConverter(Converter):
             return district
         return self.all_districts_dict[district_code]
 
-    def save_to_city_table(self, name, region, district):
+    def save_or_get_city(self, name, region, district):
         city_name = clean_name(name)
         district_name = 'EMPTY' if not district else district.name
         city_code = region.name + district_name + city_name
@@ -95,7 +83,7 @@ class RatuConverter(Converter):
             return city
         return self.all_cities_dict[city_code]
 
-    def save_to_citydistrict_table(self, name, region, district, city):
+    def save_or_get_citydistrict(self, name, region, district, city):
         citydistrict_name = clean_name(name)
         citydistrict_code = city.name + citydistrict_name
         if citydistrict_code not in self.all_citydistricts_dict:
@@ -110,8 +98,11 @@ class RatuConverter(Converter):
             return citydistrict
         return self.all_citydistricts_dict[citydistrict_code]
 
-    def save_to_street_table(self, name, region, district, city, citydistrict):
+    def save_street(self, name, region, district, city, citydistrict):
         street_name = change_to_full_name(name)
+        # Saving streets that are located in Kyiv and Sevastopol that are regions
+        if not city:
+            city = self.save_or_get_city(region.name, region, district)
         street_code = city.name + street_name
         if street_code not in self.all_streets_dict:
             street = RatuStreet.objects.create(
@@ -122,6 +113,20 @@ class RatuConverter(Converter):
                 name=street_name,
                 code=street_code
             )
+
+    def save_to_db(self, records):
+        for record in records:
+            region = self.save_or_get_region(record.xpath('OBL_NAME')[0].text)
+            district = (self.save_or_get_district(record.xpath('REGION_NAME')[0].text, region)
+                        if record.xpath('REGION_NAME')[0].text else None)
+            city = (self.save_or_get_city(record.xpath('CITY_NAME')[0].text, region, district)
+                    if record.xpath('CITY_NAME')[0].text else None)
+            citydistrict = (self.save_or_get_citydistrict(record.xpath('CITY_REGION_NAME')[0].text,
+                                                          region, district, city)
+                            if record.xpath('CITY_REGION_NAME')[0].text else None)
+            if record.xpath('STREET_NAME')[0].text:
+                self.save_street(record.xpath('STREET_NAME')[0].text, region, district,
+                                 city, citydistrict)
 
     print(
         'RatuConverter already imported.',

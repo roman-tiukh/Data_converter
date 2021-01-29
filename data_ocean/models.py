@@ -1,5 +1,6 @@
 from django.db import models, connection
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 
 class DataOceanModel(models.Model):
@@ -13,7 +14,7 @@ class DataOceanModel(models.Model):
 
     def soft_delete(self):
         self.deleted_at = timezone.now()
-        self.save(update_fields=['deleted_at'])
+        self.save(update_fields=['deleted_at', 'updated_at'])
 
     @classmethod
     def truncate(cls):
@@ -60,19 +61,19 @@ class Register(DataOceanModel):
     OUTDATED = 'outdated'
     NOT_SUPPORTED = 'not supported'
     STATUSES = [
-        (RELEVANT, 'Relevant'),
-        (OUTDATED, 'Outdated'),
-        (NOT_SUPPORTED, "Not supported"),
+        (RELEVANT, _('Relevant')),
+        (OUTDATED, _('Outdated')),
+        (NOT_SUPPORTED, _('Not supported')),
     ]
     name = models.CharField('назва', max_length=500, unique=True)
     name_eng = models.CharField('назва англійською', max_length=500, unique=True, null=True)
     source_name = models.CharField('назва джерела даних', max_length=300)
-    source_register_id = models.CharField(
-        'ID реєстру у джерелі даних', max_length=36, unique=True, null=True
-    )
-    url_address = models.URLField(max_length=500)
-    api_address = models.URLField(max_length=500, null=True)
-    source_last_update = models.DateTimeField('востаннє оновлено', default=None, null=True)
+    source_register_id = models.CharField('ID реєстру у джерелі даних', max_length=36, null=True)
+    source_url_address = models.URLField(max_length=500)
+    source_api_address = models.URLField(max_length=500, null=True)
+    api_list = models.CharField('ендпоінт списку', max_length=30, unique=True, null=True, blank=True)
+    api_detail = models.CharField("ендпоінт об'єкта", max_length=30, unique=True, null=True, blank=True)
+    total_records = models.PositiveIntegerField('кількість записів', default=1, blank=True)
     status = models.CharField('статус', max_length=15, choices=STATUSES, default=RELEVANT,
                               blank=True)
 
@@ -81,27 +82,8 @@ class Register(DataOceanModel):
         verbose_name = 'реєстр'
 
 
-class Dataset(DataOceanModel):
-    TYPES = (
-        ('list', 'Список'),
-        ('retrieve', "Об'єкт за ID"),
-    )
-    name = models.CharField('назва', max_length=500, unique=True)
-    endpoint = models.CharField('ендпоінт', max_length=300, unique=True)
-    type = models.CharField('тип ендпоінту', max_length=30, choices=TYPES)
-    register = models.ForeignKey(
-        Register, models.CASCADE, verbose_name='Реєстр', related_name='endpoints'
-    )
-    total_records = models.PositiveIntegerField('', null=True, default=1, blank=True)
-
-    class Meta:
-        ordering = ['id']
-        verbose_name = 'набір даних'
-
-
 class RegistryUpdaterModel(models.Model):
     registry_name = models.CharField(max_length=20, db_index=True)
-
     download_start = models.DateTimeField(auto_now_add=True)
     download_finish = models.DateTimeField(null=True, blank=True)
     download_status = models.BooleanField(blank=True, default=False)
