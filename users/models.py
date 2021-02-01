@@ -2,7 +2,7 @@ from django.conf import settings
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from rest_framework.authtoken.models import Token
 from data_ocean.models import DataOceanModel
 
@@ -66,6 +66,29 @@ class DataOceanUser(AbstractUser):
             deleted_at__isnull=True,
         )
 
+    def notify(self, message: str, link: str = None):
+        self.notifications.create(
+            message=message,
+            link=link,
+        )
+
+    def get_alerts(self):
+        """
+        Calculate here list of alerts for user and return it
+        alert structure = {
+            'message': 'some message for user',
+            'link': 'https://dataocean.us/',
+        }
+        """
+        alerts = []
+        # alerts.append({
+        #     'message': 'Lorem ipsum dolor sit amet, consectetur adipiscing eliуushte '
+        #                'tortor imperdiet vuleputate pellentesque amet convallscscsis massa. '
+        #                'Elementum ultrices poin enim id  elemencscscsctum.',
+        #     'link': 'http://localhost:3000/system/profile/projects/'
+        # })
+        return alerts
+
     def __str__(self):
         return f'{self.get_full_name()} <{self.email}>'
 
@@ -96,3 +119,21 @@ class Question(DataOceanModel):
 
     def __str__(self):
         return self.text
+
+
+class Notification(DataOceanModel):
+    user = models.ForeignKey(
+        DataOceanUser, on_delete=models.CASCADE,
+        related_name='notifications',
+    )
+    message = models.CharField(max_length=500)
+    link = models.URLField(blank=True, default='')
+    is_read = models.BooleanField(blank=True, default=False)
+
+    def read(self):
+        self.is_read = True
+        self.save(update_fields=['is_read'])
+
+    class Meta:
+        verbose_name = _('Notification')
+        verbose_name_plural = _('Notifications')
