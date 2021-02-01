@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-01-22 13:22+0000\n"
+"POT-Creation-Date: 2021-02-01 07:48+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -28,19 +28,3 @@ msgstr "Українська"
 #: data_converter/settings.py:123
 msgid "English"
 msgstr "Англійська"
-
-#: data_ocean/templates/data_ocean/emails/_base.html:23
-msgid "Regards"
-msgstr "З повагою"
-
-#: data_ocean/templates/data_ocean/emails/_base.html:47
-msgid "go to website"
-msgstr "перейти на сайт"
-
-#: data_ocean/templates/data_ocean/emails/_base.html:51
-msgid "All rights reserved"
-msgstr "Всі права захищені"
-
-#: data_ocean/templates/data_ocean/emails/hi_there.html:3
-msgid "Hi"
-msgstr "Вітаємо"

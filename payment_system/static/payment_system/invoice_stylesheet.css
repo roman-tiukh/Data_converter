@@ -21,25 +21,35 @@ body {
 .tl {
     text-align: left !important;
 }
+.tc {
+    text-align: center !important;
+}
 .b-0{
     border-width: 0 !important;
 }
+.mt-10{
+    margin-top: 10px !important;
+}
+.mt-15{
+    margin-top: 15px !important;
+}
 
 .parties {
-    font-size: 18px;
+    font-size: 11px;
     width: 100%;
-    /*margin-bottom: 50px;*/
+    margin-bottom: 30px;
 }
 
 .parties th, .parties td {
-    padding-bottom: 40px;
+    padding-bottom: 10px;
     border: 0;
     vertical-align: top;
 }
 
 .parties th {
-    padding-right: 10px;
+    padding-right: 5px;
     font-weight: bold;
+    text-decoration: underline;
 }
 
 .parties td {
@@ -49,16 +59,16 @@ body {
 .title {
     text-align: center;
     font-weight: bold;
-    font-size: 18px;
+    font-size: 12px;
     color: #333333;
+    margin-bottom: 15px;
 }
 
 .items {
-    font-size: 16px;
+    font-size: 10px;
     width: 100%;
     border-collapse: collapse;
     table-layout: fixed;
-    margin-top: 30px;
     margin-bottom: 30px;
 }
 
@@ -66,25 +76,25 @@ body {
     border: 1px solid #848484;
 }
 .items th{
+    white-space: nowrap;
     text-align: center;
     font-weight: bold;
     color: #333;
-    padding: 14px;
+    padding: 5px;
     background-color: #F3F3F3;
 }
 .items td{
-    padding: 5px 15px;
-}
-
-.items td:last-child{
-    text-align: right;
+    padding: 5px 5px;
 }
 
 .amount-words {
-    font-size: 18px;
-    text-align: right;
-    font-weight: bold;
-    color: #333333;
+    font-size: 11px;
+}
+
+.expire {
+    font-size: 11px;
+    width: 42%;
+    float: right;
 }
 
 .paid {
@@ -98,3 +108,4 @@ body {
     font-weight: bold;
     color: #1C3FAA;
 }
+
