@@ -7,6 +7,7 @@ from rest_framework import permissions, viewsets
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from django.conf import settings
+from data_converter import settings_local
 from data_ocean.filters import RegisterFilter
 from data_ocean.models import Register
 from rest_framework.filters import SearchFilter
@@ -44,11 +45,15 @@ class DOOpenAPISchemaGenerator(OpenAPISchemaGenerator):
 
 SchemaView = get_schema_view(
     openapi.Info(
-        title="Snippets API",
+        title="DataOcean",
         default_version='v1',
-        description="Test description",
-        terms_of_service="https://www.google.com/policies/terms/",
-        contact=openapi.Contact(email="contact@snippets.local"),
+        description=(
+            f"<div><a href='{settings_local.FRONTEND_SITE_URL}/docs/TermsAndConditionsEn.html' target= '_blank'>Terms and conditions |<a/>"
+            f"<a href='{settings_local.FRONTEND_SITE_URL}/docs/TermsAndConditionsUk.html' target= '_blank'> Правила та умови<a/><div/>"
+            '<p style="font-style: normal; cursor: default; color: #000000">An easy access to the data, using the Rest API for software developers.<br>'
+            'Зручний доступ до даних за допомогою Rest API для розробників програмного забезпечення.<p/>'
+        ),
+        contact=openapi.Contact(email="info@dataocean.us"),
         license=openapi.License(name="BSD License"),
     ),
     generator_class=DOOpenAPISchemaGenerator,
@@ -77,4 +82,3 @@ class RegisterView(RegisterViewMixin, viewsets.ReadOnlyModelViewSet):
     filterset_class = RegisterFilter
     filter_backends = [DjangoFilterBackend, SearchFilter]
     search_fields = ['name', 'source_register_id', 'status', ]
-
