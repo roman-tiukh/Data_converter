@@ -773,6 +773,4 @@ class PepDownloader(Downloader):
 
         new_total_records = Pep.objects.count()
         self.update_field(settings.ALL_PEPS_DATASET_NAME, 'total_records', new_total_records)
-        self.update_field(settings.ALL_PEPS_DATASET_NAME, 'updated_at', timezone.now())
-
         logger.info(f'{self.reg_name}: Update finished successfully.')

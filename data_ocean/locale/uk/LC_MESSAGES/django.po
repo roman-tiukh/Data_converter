@@ -21,10 +21,30 @@ msgstr ""
 "100 > 14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || "
 "(n % 100 >=11 && n % 100 <=14 )) ? 2: 3);\n"
 
-#: data_converter/settings.py:122
-msgid "Ukrainian"
-msgstr "Українська"
+#: data_ocean/models.py:64
+msgid "Relevant"
+msgstr "Актуальний"
 
-#: data_converter/settings.py:123
-msgid "English"
-msgstr "Англійська"
+#: data_ocean/models.py:65
+msgid "Outdated"
+msgstr "Дані застарілі"
+
+#: data_ocean/models.py:66
+msgid "Not supported"
+msgstr "Не підтримується"
+
+#: data_ocean/templates/data_ocean/emails/_base.html:23
+msgid "Regards"
+msgstr "З повагою"
+
+#: data_ocean/templates/data_ocean/emails/_base.html:47
+msgid "go to website"
+msgstr "Перейти на сайт"
+
+#: data_ocean/templates/data_ocean/emails/_base.html:51
+msgid "All rights reserved"
+msgstr "Всі права захищені"
+
+#: data_ocean/templates/data_ocean/emails/hi_there.html:3
+msgid "Hi"
+msgstr "Вітаємо"
