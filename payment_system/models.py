@@ -360,6 +360,7 @@ class Invoice(DataOceanModel):
             #     elif not self.disable_grace_period_block and invoice_old.disable_grace_period_block:
             #         p2s.is_grace_period = True
             #         p2s.save()
+            super().save(*args, **kwargs)
         else:
             self.start_date = p2s.start_date
             self.end_date = p2s.start_date + timezone.timedelta(days=p2s.duration)
@@ -368,10 +369,9 @@ class Invoice(DataOceanModel):
             self.project_name = p2s.project.name
             self.price = p2s.subscription.price
             self.is_custom_subscription = p2s.subscription.is_custom
-
+            super().save(*args, **kwargs)
             emails.new_invoice(self, p2s.project)
 
-        super().save(*args, **kwargs)
 
     def get_pdf(self) -> io.BytesIO:
         user = self.project_subscription.project.owner
