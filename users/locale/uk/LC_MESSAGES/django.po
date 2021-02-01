@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-01-22 13:22+0000\n"
+"POT-Creation-Date: 2021-02-01 07:48+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -133,7 +133,7 @@ msgstr "У суперкористувача повинно бути встано
 msgid "email address"
 msgstr "адреса електронної пошти"
 
-#: users/models.py:50
+#: users/models.py:50 users/models.py:79
 msgid "language"
 msgstr "мова"
 
@@ -149,7 +149,7 @@ msgstr "ім'я"
 msgid "last name"
 msgstr "прізвище"
 
-#: users/models.py:78
+#: users/models.py:85
 msgid "expire at"
 msgstr "діє до"
 
@@ -212,18 +212,18 @@ msgstr "Ви замовили скидання пароля у системі Da
 msgid "Reset password"
 msgstr "Скинути пароль"
 
-#: users/views.py:52
+#: users/views.py:54
 msgid "User with this email is already exists"
 msgstr "Користувач з цією електронною поштою вже існує"
 
-#: users/views.py:91 users/views.py:107
+#: users/views.py:93 users/views.py:109
 msgid "Confirmation link is broken"
 msgstr "Посилання на підтвердження пошкоджено."
 
-#: users/views.py:95
+#: users/views.py:97
 msgid "Confirmation link is expired."
 msgstr "Дія посилання на підтвердження закінчилась."
 
-#: users/views.py:141 users/views.py:147
+#: users/views.py:144 users/views.py:150
 msgid "Email not sent. Try again later."
 msgstr "Лист на електронну пошту не надіслано. Спробуйте ще раз пізніше."

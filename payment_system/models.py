@@ -329,15 +329,21 @@ class Invoice(DataOceanModel):
 
     @property
     def tax(self):
-        if not self.price:
-            return 0
-        return round(self.price * 0.2, 2)
+        # if not self.price:
+        #     return 0
+        # return round(self.price * 0.2, 2)
+        return 0
 
     @property
     def price_with_tax(self):
-        if not self.price:
-            return 0
-        return round(self.price + self.tax, 2)
+        # if not self.price:
+        #     return 0
+        # return round(self.price + self.tax, 2)
+        return self.price
+
+    @property
+    def grace_period_end_date(self):
+        return self.start_date + timezone.timedelta(days=self.project_subscription.grace_period)
 
     def save(self, *args, **kwargs):
         p2s = self.project_subscription
@@ -370,7 +376,7 @@ class Invoice(DataOceanModel):
     def get_pdf(self) -> io.BytesIO:
         user = self.project_subscription.project.owner
 
-        with translation.override(user.language):
+        with translation.override('uk'):
             html_string = render_to_string('payment_system/invoice.html', {
                 'invoice': self,
                 'user': user,
