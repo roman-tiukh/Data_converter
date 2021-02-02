@@ -1,5 +1,6 @@
 import io
 import os
+import uuid
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -307,6 +308,8 @@ class Invoice(DataOceanModel):
         help_text='This operation is irreversible, you cannot '
                   'cancel the payment of the subscription for the project.'
     )
+    token = models.UUIDField(db_index=True, default=uuid.uuid4, blank=True)
+
     project_subscription = models.ForeignKey(
         'ProjectSubscription', on_delete=models.PROTECT,
         related_name='invoices',
@@ -330,7 +333,7 @@ class Invoice(DataOceanModel):
 
     @property
     def link(self):
-        return reverse('payment_system:invoice_pdf', args=[self.id])
+        return reverse('payment_system:invoice_pdf', args=[self.id, self.token])
 
     @property
     def is_paid(self):

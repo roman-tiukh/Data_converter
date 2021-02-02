@@ -235,9 +235,11 @@ class SubscriptionInvoicesListView(InvoicesViewMixin, generics.ListAPIView):
         return Response(serializer.data)
 
 
-class InvoicePDFView(InvoicesViewMixin, APIView):
-    def get(self, request, pk):
-        invoice: Invoice = get_object_or_404(self.get_queryset(), pk=pk)
+class InvoicePDFView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, pk, token):
+        invoice: Invoice = get_object_or_404(Invoice, pk=pk, token=token)
         file = invoice.get_pdf()
         return FileResponse(file, content_type="application/pdf")
 
