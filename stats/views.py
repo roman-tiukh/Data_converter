@@ -134,7 +134,7 @@ class PepsCountView(WarmedCacheGetAPIView):
     @staticmethod
     def get_data_for_response():
         return {
-            'pep_count': Pep.objects.filter(is_pep=True).count()
+            'peps_count': Pep.objects.filter(is_pep=True).count()
         }
 
 
