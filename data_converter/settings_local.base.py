@@ -22,7 +22,7 @@ DEBUG = True
 FRONTEND_SITE_URL = 'http://localhost:3000'
 BACKEND_SITE_URL = 'http://localhost:8000'
 # For production mode
-# FRONTEND_SITE_URL = 'https://dataocean.us'
+# FRONTEND_SITE_URL = 'https://dp.dataocean.us'
 # BACKEND_SITE_URL = 'https://ipa.dataocean.us'
 
 # Custom user registration
