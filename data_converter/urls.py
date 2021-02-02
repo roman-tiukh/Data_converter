@@ -103,7 +103,7 @@ urlpatterns = [
 
     path('api/users/', include('users.urls')),
 
-    path('api/payment/', include('payment_system.urls')),
+    path('api/payment/', include(('payment_system.urls', 'payment_system'), namespace='payment_system')),
 
     path('api/landing_mail/', LandingMailView.as_view(), name='landing_mail'),
 

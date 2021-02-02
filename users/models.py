@@ -66,7 +66,7 @@ class DataOceanUser(AbstractUser):
             deleted_at__isnull=True,
         )
 
-    def notify(self, message: str, link: str = None):
+    def notify(self, message: str, link: str = ''):
         self.notifications.create(
             message=message,
             link=link,
