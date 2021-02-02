@@ -193,15 +193,14 @@ class Converter:
 
         i = start_index
         chunk_start_index = i
+        records_len = 0
         for _, elem in elements:
-            records_len = len(records)
             if records_len == 0:
                 chunk_start_index = i
-
             # for text in elem.iter():
             #     print('\t%28s\t%s' % (text.tag, text.text))
             records.append(elem)
-
+            records_len = len(records)
             if records_len < self.CHUNK_SIZE:
                 i += 1
             else:
