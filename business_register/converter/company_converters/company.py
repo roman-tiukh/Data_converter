@@ -151,6 +151,8 @@ class CompanyConverter(BusinessConverter):
 
     def create_company_type(self, name, name_eng):
         company_type = CompanyType.objects.create(name=name, name_eng=name_eng)
+        self.all_ukr_company_type_dict[name] = company_type
+        self.all_eng_company_type_dict[name_eng] = company_type
         print(f'New company type: id={company_type.id}, name={company_type.name}, name_eng={company_type.name_eng}')
         send_new_company_type_message(company_type)
         return company_type
@@ -162,14 +164,12 @@ class CompanyConverter(BusinessConverter):
             if not company_type:
                 name_eng = self.COMPANY_TYPES_UK_EN.get(name)
                 company_type = self.create_company_type(name, name_eng)
-                self.all_ukr_company_type_dict[name] = company_type
         elif locale == 'en':
             name_eng = type_from_record.lower()
             company_type = self.all_eng_company_type_dict.get(name_eng)
             if not company_type:
                 name = self.translate_company_type_name_eng(name_eng)
                 company_type = self.create_company_type(name, name_eng)
-                self.all_eng_company_type_dict[name_eng] = company_type
         else:
             raise ValueError(f'This parameter is not valid - {locale}. Should be "uk" or "en"')
         return company_type
