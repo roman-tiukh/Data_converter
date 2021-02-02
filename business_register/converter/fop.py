@@ -20,7 +20,7 @@ class FopConverter(BusinessConverter):
 
     def __init__(self):
         self.API_ADDRESS_FOR_DATASET = Register.objects.get(source_register_id=
-                                                            "1c7f3815-3259-45e0-bdf1-64dca07ddc10").api_address
+                                                            "1c7f3815-3259-45e0-bdf1-64dca07ddc10").source_api_address
         self.LOCAL_FOLDER = settings.LOCAL_FOLDER
         self.LOCAL_FILE_NAME = settings.LOCAL_FILE_NAME_FOP
         self.CHUNK_SIZE = settings.CHUNK_SIZE_FOP
@@ -382,8 +382,6 @@ class FopDownloader(Downloader):
         self.vacuum_analyze(table_list=['business_register_fop', ])
         new_total_records = Fop.objects.count()
         self.update_field(settings.ALL_FOPS_DATASET_NAME, 'total_records', new_total_records)
-        self.update_field(settings.ALL_FOPS_DATASET_NAME, 'updated_at', timezone.now())
-
 
         self.remove_file()
 

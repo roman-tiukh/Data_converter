@@ -20,7 +20,8 @@ from django.views.generic import TemplateView
 from rest_auth.views import PasswordResetConfirmView
 from rest_framework import routers
 
-from business_register.views.company_views import (CompanyViewSet, HistoricalAssigneeView,
+from business_register.views.company_views import (CompanyViewSet, CompanyUkrViewSet, CompanyUkViewSet,
+                                                   HistoricalAssigneeView,
                                                    HistoricalBancruptcyReadjustmentView, HistoricalCompanyView,
                                                    HistoricalCompanyDetailView, HistoricalCompanyToKvedView,
                                                    HistoricalCompanyToPredecessorView,
@@ -49,6 +50,8 @@ router.register(r'street', RatuStreetView, basename='street')
 router.register(r'citydistrict', RatuCityDistrictView, basename='citydistrict')
 router.register(r'district', RatuDistrictView, basename='district')
 router.register(r'drvbuilding', DrvBuildingViewSet, basename='drvbuilding')
+router.register(r'company/ukr', CompanyUkrViewSet, basename='company_ukr')
+router.register(r'company/uk', CompanyUkViewSet, basename='company_uk')
 router.register(r'company', CompanyViewSet, basename='company')
 router.register(r'koatuu-first-level', KoatuuFirstLevelViewSet, basename='koatuu_first_level')
 router.register(r'koatuu-second-level', KoatuuSecondLevelViewSet, basename='koatuu_second_level')
@@ -100,7 +103,7 @@ urlpatterns = [
 
     path('api/users/', include('users.urls')),
 
-    path('api/payment/', include('payment_system.urls')),
+    path('api/payment/', include(('payment_system.urls', 'payment_system'), namespace='payment_system')),
 
     path('api/landing_mail/', LandingMailView.as_view(), name='landing_mail'),
 
