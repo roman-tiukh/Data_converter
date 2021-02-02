@@ -52,7 +52,7 @@ urlpatterns = [
 
     path('subscriptions/', SubscriptionsListView.as_view()),
 
-    path('invoice/<int:pk>/', InvoicePDFView.as_view()),
+    path('invoice/<int:pk>/', InvoicePDFView.as_view(), name='invoice_pdf'),
     path('invoices/', UserInvoicesListView.as_view()),
     path('subscription/<int:pk>/invoices/', SubscriptionInvoicesListView.as_view()),
 

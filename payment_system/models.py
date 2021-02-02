@@ -5,6 +5,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.template.loader import render_to_string
+from django.urls import reverse
 from django.utils import timezone, translation
 from django.utils.translation import gettext, gettext_lazy as _
 from weasyprint import HTML
@@ -27,8 +28,12 @@ class Project(DataOceanModel):
                                            related_name='projects')
 
     @property
+    def frontend_projects_link(self):
+        return f'{settings.FRONTEND_SITE_URL}/system/profile/projects/'
+
+    @property
     def frontend_link(self):
-        return f'{settings.FRONTEND_SITE_URL}/system/profile/projects/{self.id}/'
+        return f'{self.frontend_projects_link}{self.id}/'
 
     def save(self, *args, **kwargs):
         if not self.token:
@@ -324,6 +329,10 @@ class Invoice(DataOceanModel):
     price = models.IntegerField()
 
     @property
+    def link(self):
+        return reverse('payment_system:invoice_pdf', args=[self.id])
+
+    @property
     def is_paid(self):
         return bool(self.paid_at)
 
@@ -371,7 +380,6 @@ class Invoice(DataOceanModel):
             self.is_custom_subscription = p2s.subscription.is_custom
             super().save(*args, **kwargs)
             emails.new_invoice(self, p2s.project)
-
 
     def get_pdf(self) -> io.BytesIO:
         user = self.project_subscription.project.owner
@@ -434,7 +442,7 @@ class UserProject(DataOceanModel):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f'Project {self.project.name} of user {self.user.get_full_name()}'
+        return f'User {self.user.get_full_name()} in Project {self.project.name}'
 
     class Meta:
         unique_together = [['user', 'project']]
