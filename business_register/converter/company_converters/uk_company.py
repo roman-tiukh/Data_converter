@@ -54,7 +54,7 @@ class UkCompanyConverter(CompanyConverter):
                         status=status,
                         registration_date=registration_date,
                         code=code,
-                        source=Company.GREAT_BRITAIN_REGISTER
+                        source=source
                     )
                     company.save()
                 else:

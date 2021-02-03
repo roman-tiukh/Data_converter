@@ -679,13 +679,14 @@ class UkrCompanyConverter(CompanyConverter):
     def save_to_db(self, records):
         country = AddressConverter().save_or_get_country('Ukraine')
         for record in records:
+            # omitting records without company name or edrpou
+            if not record.xpath('NAME')[0].text or not record.xpath('EDRPOU')[0].text:
+                continue
             name = record.xpath('NAME')[0].text.lower()
             short_name = record.xpath('SHORT_NAME')[0].text
             if short_name:
                 short_name = short_name.lower()
             edrpou = record.xpath('EDRPOU')[0].text
-            if not edrpou:
-                continue
             code = name + edrpou
             address = record.xpath('ADDRESS')[0].text
             status = self.save_or_get_status(record.xpath('STAN')[0].text)
