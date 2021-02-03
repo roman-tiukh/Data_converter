@@ -679,13 +679,14 @@ class UkrCompanyConverter(CompanyConverter):
     def save_to_db(self, records):
         country = AddressConverter().save_or_get_country('Ukraine')
         for record in records:
+            # omitting records without company name or edrpou
+            if not record.xpath('NAME')[0].text or not record.xpath('EDRPOU')[0].text:
+                continue
             name = record.xpath('NAME')[0].text.lower()
             short_name = record.xpath('SHORT_NAME')[0].text
             if short_name:
                 short_name = short_name.lower()
             edrpou = record.xpath('EDRPOU')[0].text
-            if not edrpou:
-                continue
             code = name + edrpou
             address = record.xpath('ADDRESS')[0].text
             status = self.save_or_get_status(record.xpath('STAN')[0].text)
@@ -796,7 +797,6 @@ class UkrCompanyDownloader(Downloader):
         self.vacuum_analyze(table_list=['business_register_company', ])
         new_total_records = Company.objects.filter(country__name='ukraine').count()
         self.update_field(settings.ALL_COMPANIES_DATASET_NAME, 'total_records', new_total_records)
-        self.update_field(settings.COMPANY_DATASET_NAME, 'updated_at', timezone.now())
 
         self.remove_file()
 

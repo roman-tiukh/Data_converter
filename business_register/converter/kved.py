@@ -22,7 +22,7 @@ class KvedConverter(Converter):
     def __init__(self):
         self.API_ADDRESS_FOR_DATASET = Register.objects.get(
             source_register_id=settings.BUSINESS_KVED_SOURCE_REGISTER_ID
-        ).api_address
+        ).source_api_address
         super().__init__()
 
     def create_kved(self, section, division, group, code, name, is_valid=True):
