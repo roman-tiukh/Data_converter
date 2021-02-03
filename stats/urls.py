@@ -21,9 +21,13 @@ urlpatterns = [
          ReportBuilderView.as_view(),
          name='report_builder'),
     path('count-users/', UsersInProjectsView.as_view()),
+
+    # public
     path('count-peps/', PepsCountView.as_view()),
     path('count-pep-related-persons/', PepRelatedPersonsCountView.as_view()),
     path('count-pep-related-companies/', PepLinkedCompaniesCountView.as_view()),
     path('count-pep-relation-categories/', PepRelationCategoriesCountView.as_view()),
+
+
     path('test/', StatsTestView.as_view()),
 ]

@@ -4,6 +4,7 @@ from datetime import timedelta, datetime
 from django.db.models import Count, Q
 from django.utils import timezone
 from rest_framework import views
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from business_register.models.company_models import Company, CompanyToKved, CompanyType
@@ -131,6 +132,8 @@ class UsersInProjectsView(views.APIView):
 
 
 class PepsCountView(WarmedCacheGetAPIView):
+    permission_classes = [AllowAny]
+
     @staticmethod
     def get_data_for_response():
         return {
@@ -139,6 +142,8 @@ class PepsCountView(WarmedCacheGetAPIView):
 
 
 class PepRelatedPersonsCountView(WarmedCacheGetAPIView):
+    permission_classes = [AllowAny]
+
     @staticmethod
     def get_data_for_response():
         return {
@@ -147,6 +152,8 @@ class PepRelatedPersonsCountView(WarmedCacheGetAPIView):
 
 
 class PepLinkedCompaniesCountView(WarmedCacheGetAPIView):
+    permission_classes = [AllowAny]
+
     @staticmethod
     def get_data_for_response():
         return CompanyLinkWithPep.objects.aggregate(
@@ -155,6 +162,8 @@ class PepLinkedCompaniesCountView(WarmedCacheGetAPIView):
 
 
 class PepRelationCategoriesCountView(WarmedCacheGetAPIView):
+    permission_classes = [AllowAny]
+
     @staticmethod
     def get_data_for_response():
         return {
