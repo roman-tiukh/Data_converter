@@ -9,13 +9,13 @@ from django.conf import settings
 
 from data_converter.email_utils import send_template_mail
 from users.models import DataOceanUser
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext_lazy as _, gettext
 
 
 def member_activated(user: 'DataOceanUser', project: 'Project'):  # 5
     with translation.override(user.language):
         user.notify(
-            message=_("You have been restored an access to the project") + f' "{project.name}"',
+            message=gettext("You have been restored an access to the project") + f' "{project.name}"',
             link=project.frontend_link,
         )
         send_template_mail(
@@ -31,7 +31,7 @@ def member_activated(user: 'DataOceanUser', project: 'Project'):  # 5
 
 def member_removed(user: 'DataOceanUser', project: 'Project'):  # 4
     with translation.override(user.language):
-        user.notify(message=_('You have been removed from the project') + f' "{project.name}"')
+        user.notify(message=gettext('You have been removed from the project') + f' "{project.name}"')
         send_template_mail(
             to=[user.email],
             subject=_('You were expelled from the project'),
@@ -45,7 +45,7 @@ def member_removed(user: 'DataOceanUser', project: 'Project'):  # 4
 
 def membership_confirmed(user: 'DataOceanUser', member: DataOceanUser):  # 3
     with translation.override(user.language):
-        user.notify(message=f'{member.get_full_name()} ' + _('confirm your invitation'))
+        user.notify(message=f'{member.get_full_name()} ' + gettext('confirm your invitation'))
         send_template_mail(
             to=[user.email],
             subject=_('The user you added to the project will confirm your invitation'),
@@ -118,7 +118,7 @@ def new_subscription(project_subscription: 'ProjectSubscription'):  # 1
     owner = project_subscription.project.owner
     with translation.override(owner.language):
         owner.notify(
-            message=_('You have subscribed to the subscription') + f' "{project_subscription.subscription.name}"'
+            message=gettext('You have subscribed to the subscription') + f' "{project_subscription.subscription.name}"'
         )
         send_template_mail(
             to=[owner.email],
@@ -135,7 +135,7 @@ def payment_confirmed(project_subscription: 'ProjectSubscription'):  # 10
     owner = project_subscription.project.owner
     with translation.override(owner.language):
         owner.notify(
-            message=_('We confirm payment for the project') + f' "{project_subscription.project.name}"',
+            message=gettext('We confirm payment for the project') + f' "{project_subscription.project.name}"',
             link=f'{settings.BACKEND_SITE_URL}{project_subscription.latest_invoice.link}'
         )
         send_template_mail(
