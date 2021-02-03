@@ -300,7 +300,6 @@ class CurrentUserProjectTokenView(ProjectViewMixin, generics.GenericAPIView):
         return Response(serializer.data)
 
 
-
 # TODO: remove this
 # class TestEmailView(View):
 #     def get(self, request):
