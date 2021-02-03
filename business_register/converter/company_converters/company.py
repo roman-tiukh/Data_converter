@@ -151,6 +151,8 @@ class CompanyConverter(BusinessConverter):
 
     def create_company_type(self, name, name_eng):
         company_type = CompanyType.objects.create(name=name, name_eng=name_eng)
+        self.all_ukr_company_type_dict[name] = company_type
+        self.all_eng_company_type_dict[name_eng] = company_type
         print(f'New company type: id={company_type.id}, name={company_type.name}, name_eng={company_type.name_eng}')
         send_new_company_type_message(company_type)
         return company_type
