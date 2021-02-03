@@ -1,4 +1,7 @@
+from django.conf import settings
 from django.shortcuts import get_object_or_404
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -9,11 +12,11 @@ from business_register.filters import PepFilterSet
 from business_register.models.pep_models import Pep
 from business_register.permissions import PepSchemaToken
 from business_register.serializers.company_and_pep_serializers import PepListSerializer, PepDetailSerializer
-from data_ocean.views import CachedViewMixin, RegisterViewMixin
+from data_ocean.views import CachedViewSetMixin, RegisterViewMixin
 
 
 class PepViewSet(RegisterViewMixin,
-                 CachedViewMixin,
+                 CachedViewSetMixin,
                  viewsets.ReadOnlyModelViewSet):
     permission_classes = [RegisterViewMixin.permission_classes[0] | PepSchemaToken]
     queryset = Pep.objects.all()
@@ -31,6 +34,7 @@ class PepViewSet(RegisterViewMixin,
         return super().get_serializer_class()
 
     @action(methods=['get'], detail=True, url_path='source-id', serializer_class=PepDetailSerializer)
+    @method_decorator(cache_page(settings.CACHE_MIDDLEWARE_SECONDS))
     def retrieve_by_source_id(self, request, pk):
         pep = get_object_or_404(self.get_queryset(), source_id=pk)
         serializer = self.get_serializer(pep)
