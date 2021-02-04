@@ -205,6 +205,8 @@ REST_AUTH_SERIALIZERS = {
     'PASSWORD_RESET_SERIALIZER': 'users.serializers.CustomPasswordResetSerializer',
 }
 
+CACHE_MIDDLEWARE_SECONDS = 60 * 60 * 24  # 24 hours
+
 CORS_ALLOW_HEADERS = [
     'accept',
     'accept-encoding',

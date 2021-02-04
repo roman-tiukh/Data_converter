@@ -22,6 +22,7 @@ from users.serializers import (
     CustomRegisterSerializer,
     LandingMailSerializer,
     QuestionSerializer,
+    NotificationSerializer,
 )
 
 
@@ -174,3 +175,43 @@ class RefreshTokenView(views.APIView):
 
 class QuestionCreateView(generics.CreateAPIView):
     serializer_class = QuestionSerializer
+
+
+class NotificationViewMixin:
+    serializer_class = NotificationSerializer
+
+    def get_queryset(self):
+        return self.request.user.notifications.order_by('is_read', '-created_at')
+
+
+class NotificationListView(NotificationViewMixin, generics.GenericAPIView):
+    def get(self, request):
+        serializer = self.get_serializer(self.get_queryset(), many=True)
+        return Response({
+            'alerts': request.user.get_alerts(),
+            'messages': serializer.data,
+        })
+
+
+class NotificationReadView(NotificationViewMixin, generics.GenericAPIView):
+    def put(self, request, pk):
+        notification = self.get_object()
+        notification.read()
+        serializer = self.get_serializer(self.get_queryset(), many=True)
+        return Response(serializer.data)
+
+
+class NotificationReadAllView(NotificationViewMixin, generics.GenericAPIView):
+    def put(self, request):
+        for notification in self.get_queryset():
+            notification.read()
+        serializer = self.get_serializer(self.get_queryset(), many=True)
+        return Response(serializer.data)
+
+
+class NotificationDeleteView(NotificationViewMixin, generics.GenericAPIView):
+    def delete(self, request, pk):
+        notification = self.get_object()
+        notification.delete()
+        serializer = self.get_serializer(self.get_queryset(), many=True)
+        return Response(serializer.data)

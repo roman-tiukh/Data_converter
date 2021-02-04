@@ -1,10 +1,12 @@
 import io
 import os
+import uuid
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.template.loader import render_to_string
+from django.urls import reverse
 from django.utils import timezone, translation
 from django.utils.translation import gettext, gettext_lazy as _
 from weasyprint import HTML
@@ -27,8 +29,12 @@ class Project(DataOceanModel):
                                            related_name='projects')
 
     @property
+    def frontend_projects_link(self):
+        return f'{settings.FRONTEND_SITE_URL}/system/profile/projects/'
+
+    @property
     def frontend_link(self):
-        return f'{settings.FRONTEND_SITE_URL}/system/profile/projects/{self.id}/'
+        return f'{self.frontend_projects_link}{self.id}/'
 
     def save(self, *args, **kwargs):
         if not self.token:
@@ -302,6 +308,8 @@ class Invoice(DataOceanModel):
         help_text='This operation is irreversible, you cannot '
                   'cancel the payment of the subscription for the project.'
     )
+    token = models.UUIDField(db_index=True, default=uuid.uuid4, blank=True)
+
     project_subscription = models.ForeignKey(
         'ProjectSubscription', on_delete=models.PROTECT,
         related_name='invoices',
@@ -324,20 +332,30 @@ class Invoice(DataOceanModel):
     price = models.IntegerField()
 
     @property
+    def link(self):
+        return reverse('payment_system:invoice_pdf', args=[self.id, self.token])
+
+    @property
     def is_paid(self):
         return bool(self.paid_at)
 
     @property
     def tax(self):
-        if not self.price:
-            return 0
-        return round(self.price * 0.2, 2)
+        # if not self.price:
+        #     return 0
+        # return round(self.price * 0.2, 2)
+        return 0
 
     @property
     def price_with_tax(self):
-        if not self.price:
-            return 0
-        return round(self.price + self.tax, 2)
+        # if not self.price:
+        #     return 0
+        # return round(self.price + self.tax, 2)
+        return self.price
+
+    @property
+    def grace_period_end_date(self):
+        return self.start_date + timezone.timedelta(days=self.project_subscription.grace_period)
 
     def save(self, *args, **kwargs):
         p2s = self.project_subscription
@@ -354,6 +372,7 @@ class Invoice(DataOceanModel):
             #     elif not self.disable_grace_period_block and invoice_old.disable_grace_period_block:
             #         p2s.is_grace_period = True
             #         p2s.save()
+            super().save(*args, **kwargs)
         else:
             self.start_date = p2s.start_date
             self.end_date = p2s.start_date + timezone.timedelta(days=p2s.duration)
@@ -362,15 +381,13 @@ class Invoice(DataOceanModel):
             self.project_name = p2s.project.name
             self.price = p2s.subscription.price
             self.is_custom_subscription = p2s.subscription.is_custom
-
+            super().save(*args, **kwargs)
             emails.new_invoice(self, p2s.project)
-
-        super().save(*args, **kwargs)
 
     def get_pdf(self) -> io.BytesIO:
         user = self.project_subscription.project.owner
 
-        with translation.override(user.language):
+        with translation.override('uk'):
             html_string = render_to_string('payment_system/invoice.html', {
                 'invoice': self,
                 'user': user,
@@ -428,7 +445,7 @@ class UserProject(DataOceanModel):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f'Project {self.project.name} of user {self.user.get_full_name()}'
+        return f'User {self.user.get_full_name()} in Project {self.project.name}'
 
     class Meta:
         unique_together = [['user', 'project']]

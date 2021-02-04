@@ -148,7 +148,7 @@ class InvoiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Invoice
         read_only_fields = (
-            'id', 'paid_at', 'note', 'subscription_name',
+            'id', 'token', 'paid_at', 'note', 'subscription_name',
             'project_name', 'price', 'is_paid',
         )
         fields = read_only_fields

@@ -14,7 +14,7 @@ from business_register.serializers.company_and_pep_serializers import (
     HistoricalExchangeDataCompanySerializer, HistoricalFounderSerializer, HistoricalSignerSerializer,
     HistoricalTerminationStartedSerializer
 )
-from data_ocean.views import CachedViewMixin, RegisterViewMixin
+from data_ocean.views import CachedViewSetMixin, RegisterViewMixin
 
 HistoricalAssignee = apps.get_model('business_register', 'HistoricalAssignee')
 HistoricalBancruptcyReadjustment = apps.get_model('business_register', 'HistoricalBancruptcyReadjustment')
@@ -29,7 +29,7 @@ HistoricalTerminationStarted = apps.get_model('business_register', 'HistoricalTe
 
 
 class CompanyViewSet(RegisterViewMixin,
-                     CachedViewMixin,
+                     CachedViewSetMixin,
                      viewsets.ReadOnlyModelViewSet):
     permission_classes = [RegisterViewMixin.permission_classes[0] | PepSchemaToken]
     queryset = Company.objects.select_related(
@@ -48,16 +48,55 @@ class CompanyViewSet(RegisterViewMixin,
             return CompanyDetailSerializer
         return super().get_serializer_class()
 
-    def get_queryset(self):
-        if self.action == 'list':
-            return (self.queryset
-                    .filter(source=Company.UKRAINE_REGISTER)
-                    .order_by('id'))
-        return self.queryset
+
+class CompanyUkrViewSet(RegisterViewMixin,
+                        CachedViewSetMixin,
+                        viewsets.ReadOnlyModelViewSet):
+    permission_classes = [RegisterViewMixin.permission_classes[0] | PepSchemaToken]
+    queryset = Company.objects.filter(
+        source=Company.UKRAINE_REGISTER
+    ).select_related(
+        'parent', 'company_type', 'status', 'authority', 'bylaw', 'country',
+    ).prefetch_related(
+        'founders', 'predecessors', 'assignees', 'signers', 'kveds', 'termination_started',
+        'bancruptcy_readjustment', 'company_detail', 'exchange_data', 'relationships_with_peps',
+    )
+    serializer_class = CompanyListSerializer
+    filter_backends = (DjangoFilterBackend, SearchFilter)
+    filterset_class = CompanyFilterSet
+    search_fields = ('name', 'edrpou', 'address', 'status__name')
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return CompanyDetailSerializer
+        return super().get_serializer_class()
+
+
+class CompanyUkViewSet(RegisterViewMixin,
+                       CachedViewSetMixin,
+                       viewsets.ReadOnlyModelViewSet):
+    permission_classes = [RegisterViewMixin.permission_classes[0] | PepSchemaToken]
+    queryset = Company.objects.filter(
+        source=Company.GREAT_BRITAIN_REGISTER
+    ).select_related(
+        'parent', 'company_type', 'status', 'authority', 'bylaw', 'country',
+    ).prefetch_related(
+        'founders', 'predecessors', 'assignees', 'signers', 'kveds', 'termination_started',
+        'bancruptcy_readjustment', 'company_detail', 'exchange_data', 'relationships_with_peps',
+    )
+    serializer_class = CompanyListSerializer
+    filter_backends = (DjangoFilterBackend, SearchFilter)
+    filterset_class = CompanyFilterSet
+    search_fields = ('name', 'edrpou', 'address', 'status__name')
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return CompanyDetailSerializer
+        return super().get_serializer_class()
 
 
 class HistoricalCompanyRelatedViewSet(RegisterViewMixin,
-                                      CachedViewMixin,
+                                      CachedViewSetMixin,
                                       viewsets.ReadOnlyModelViewSet):
     lookup_field = 'company_id'
     filter_backends = [DjangoFilterBackend]

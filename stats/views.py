@@ -1,14 +1,16 @@
 import time
 from datetime import timedelta, datetime
 
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.utils import timezone
 from rest_framework import views
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from business_register.models.company_models import Company, CompanyToKved, CompanyType
 from business_register.models.fop_models import Fop
-from data_ocean.models import Dataset
+from business_register.models.pep_models import Pep, CompanyLinkWithPep, RelatedPersonsLink
+from data_ocean.models import Register
 from stats import logic
 from stats.serializers import TopKvedSerializer, CompanyTypeCountSerializer
 from .models import ApiUsageTracking
@@ -64,7 +66,7 @@ class ProfileStatsView(views.APIView):
         api_requests = ApiUsageTracking.objects.filter(
             user_id=request.user.id
         ).count()
-        endpoints = Dataset.objects.count()
+        endpoints = Register.objects.count()
         return Response({
             "api_requests": api_requests,
             "endpoints": endpoints,
@@ -116,7 +118,7 @@ class RegisteredFopsCountView(WarmedCacheGetAPIView):
             'company_count': Fop.objects.count()
         }
 
-    
+
 class UsersInProjectsView(views.APIView):
     def get(self, request):
         user = request.user
@@ -127,3 +129,48 @@ class UsersInProjectsView(views.APIView):
         return Response({
             'users_count': users_count
         }, status=200)
+
+
+class PepsCountView(WarmedCacheGetAPIView):
+    permission_classes = [AllowAny]
+
+    @staticmethod
+    def get_data_for_response():
+        return {
+            'peps_count': Pep.objects.filter(is_pep=True).count()
+        }
+
+
+class PepRelatedPersonsCountView(WarmedCacheGetAPIView):
+    permission_classes = [AllowAny]
+
+    @staticmethod
+    def get_data_for_response():
+        return {
+            'pep_related_persons_count': Pep.objects.filter(is_pep=False).count()
+        }
+
+
+class PepLinkedCompaniesCountView(WarmedCacheGetAPIView):
+    permission_classes = [AllowAny]
+
+    @staticmethod
+    def get_data_for_response():
+        return CompanyLinkWithPep.objects.aggregate(
+            pep_related_companies_count=Count('company', distinct=True)
+        )
+
+
+class PepRelationCategoriesCountView(WarmedCacheGetAPIView):
+    permission_classes = [AllowAny]
+
+    @staticmethod
+    def get_data_for_response():
+        return {
+            'business_pep_relations_count':
+                RelatedPersonsLink.objects.filter(category=RelatedPersonsLink.BUSINESS).count(),
+            'personal_pep_relations_count':
+                RelatedPersonsLink.objects.filter(category=RelatedPersonsLink.PERSONAL).count(),
+            'family_pep_relations_count':
+                RelatedPersonsLink.objects.filter(category=RelatedPersonsLink.FAMILY).count(),
+        }

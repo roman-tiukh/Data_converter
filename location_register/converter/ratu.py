@@ -19,7 +19,7 @@ class RatuConverter(Converter):
     def __init__(self):
         self.API_ADDRESS_FOR_DATASET = Register.objects.get(
             source_register_id=settings.LOCATION_RATU_SOURCE_REGISTER_ID
-        ).api_address
+        ).source_api_address
         self.LOCAL_FOLDER = settings.LOCAL_FOLDER
         self.LOCAL_FILE_NAME = settings.LOCAL_FILE_NAME_RATU
         self.CHUNK_SIZE = settings.CHUNK_SIZE_RATU

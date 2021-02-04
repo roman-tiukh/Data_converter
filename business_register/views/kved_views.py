@@ -5,11 +5,11 @@ from rest_framework.filters import SearchFilter
 from business_register.filters import KvedFilterSet
 from business_register.models.kved_models import Kved
 from business_register.serializers.kved_serializers import KvedDetailSerializer
-from data_ocean.views import RegisterViewMixin, CachedViewMixin
+from data_ocean.views import RegisterViewMixin, CachedViewSetMixin
 
 
 class KvedViewSet(RegisterViewMixin,
-                  CachedViewMixin,
+                  CachedViewSetMixin,
                   viewsets.ReadOnlyModelViewSet):
     queryset = Kved.objects.select_related('group', 'division', 'section').exclude(is_valid=False)
     serializer_class = KvedDetailSerializer
