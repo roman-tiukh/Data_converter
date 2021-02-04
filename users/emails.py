@@ -3,9 +3,6 @@ from payment_system.models import Project
 from users.models import DataOceanUser, CandidateUserModel
 from django.utils.translation import ugettext_lazy as _
 
-# TODO: add link, move to settings?
-TARIFFS_LINK = 'link'
-
 
 def send_confirm_email_message(user: CandidateUserModel, confirm_link: str):
     send_template_mail(
@@ -27,7 +24,6 @@ def send_registration_confirmed_message(user: DataOceanUser, default_project: Pr
         context={
             'user': user,
             'default_project': default_project,
-            'tariffs_link': TARIFFS_LINK
         }
     )
 
