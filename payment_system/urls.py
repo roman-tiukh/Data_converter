@@ -25,8 +25,8 @@ from payment_system.views import (
 )
 
 urlpatterns = [
-    # project urls
-    path('project/create/', ProjectCreateView.as_view()),
+    # TODO: temporary disabled
+    # path('project/create/', ProjectCreateView.as_view()),
 
     path('project/<int:pk>/update/', ProjectUpdateView.as_view()),
     path('project/<int:pk>/refresh-token/', ProjectRefreshTokenView.as_view()),
