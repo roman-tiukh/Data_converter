@@ -1,0 +1,85 @@
+from django.contrib import admin
+from location_register.models.koatuu_models import (KoatuuFirstLevel, KoatuuSecondLevel,
+                                                    KoatuuThirdLevel, KoatuuFourthLevel)
+from location_register.models.ratu_models import RatuStreet
+from location_register.models.drv_models import DrvBuilding
+
+
+@admin.register(KoatuuFirstLevel)
+class KoatuuFirstLevellAdmin(admin.ModelAdmin):
+    list_display = (
+        'name',
+        'code'
+    )
+
+    search_fields = ('name', 'code')
+    ordering = ('updated_at',)
+
+
+@admin.register(KoatuuSecondLevel)
+class KoatuuSecondLevelAdmin(admin.ModelAdmin):
+    list_display = (
+        'name',
+        'code',
+        'category'
+    )
+
+    search_fields = ('name', 'code')
+    ordering = ('updated_at',)
+    list_filter = ('category',)
+
+
+@admin.register(KoatuuThirdLevel)
+class KoatuuThirdLevelAdmin(admin.ModelAdmin):
+    list_display = (
+        'name',
+        'code',
+        'category'
+    )
+
+    search_fields = ('name', 'code')
+    ordering = ('updated_at',)
+    list_filter = ('category',)
+
+
+@admin.register(KoatuuFourthLevel)
+class KoatuuFourthLevelAdmin(admin.ModelAdmin):
+    list_display = (
+        'name',
+        'code',
+        'category'
+    )
+
+    search_fields = ('name', 'code')
+    ordering = ('updated_at',)
+    list_filter = ('category',)
+
+
+@admin.register(RatuStreet)
+class RatuStreetAdmin(admin.ModelAdmin):
+    list_display = (
+        'name',
+        'code',
+        'citydistrict',
+        'city',
+        'district',
+        'region'
+    )
+    search_fields = ('name', 'code')
+    ordering = ('updated_at',)
+    list_filter = ('region',)
+
+
+@admin.register(DrvBuilding)
+class DrvBuildingAdmin(admin.ModelAdmin):
+    list_display = (
+        'number',
+        'code',
+        'zip_code',
+        'street',
+        'council',
+        'region'
+    )
+    search_fields = ('number', 'code', 'street')
+    ordering = ('updated_at',)
+    list_filter = ('region', 'district', 'council', 'ato', 'street')
