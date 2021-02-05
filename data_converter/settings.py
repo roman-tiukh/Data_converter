@@ -245,6 +245,7 @@ DEFAULT_PROJECT_DESCRIPTION = 'This is auto created default project'
 
 # PROJECT_TOKEN_KEYWORD - its a token prefix, example:
 # Authorization: DataOcean <project_token>
+PROJECT_PLATFORM_TOKEN_KEYWORD = 'Platform'
 PROJECT_TOKEN_KEYWORD = 'DataOcean'
 
 # DATASET`S CONSTANTS ==================

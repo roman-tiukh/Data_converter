@@ -135,7 +135,7 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         model = Subscription
         read_only_fields = (
             'id', 'name', 'description', 'price',
-            'requests_limit', 'duration', 'grace_period',
+            'requests_limit', 'platform_requests_limit', 'duration', 'grace_period',
             'is_custom', 'is_default',
         )
         fields = read_only_fields
