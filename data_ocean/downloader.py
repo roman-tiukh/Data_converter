@@ -183,8 +183,7 @@ class Downloader(ABC):
         if self.unzip_after_download:
             self.unzip_source_file()
 
-    def update_field(self, register_name, field_name, new_field_value):
-        register = Register.objects.get(name=register_name)
+    def update_field(self, register_api_list, field_name, new_field_value):
+        register = Register.objects.get(api_list=register_api_list)
         setattr(register, field_name, new_field_value)
         register.save(update_fields=[field_name, 'updated_at'])
-

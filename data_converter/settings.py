@@ -263,9 +263,7 @@ DEFAULT_PROJECT_DESCRIPTION = 'This is auto created default project'
 PROJECT_TOKEN_KEYWORD = 'DataOcean'
 
 # DATASET`S CONSTANTS ==================
-ALL_PEPS_DATASET_NAME = 'all PEPs list'
-PEP_DATASET_NAME = 'PEP'
-ALL_FOPS_DATASET_NAME = 'all FOPs list'
-FOP_DATASET_NAME = 'FOP'
-ALL_COMPANIES_DATASET_NAME = 'all companies list'
-COMPANY_DATASET_NAME = 'company'
+PEP_REGISTER_LIST = '/api/pep/'
+FOP_REGISTER_LIST = '/api/fop/'
+UKR_COMPANY_REGISTER_LIST = '/api/company/ukr/'
+UK_COMPANY_REGISTER_LIST = '/api/company/uk/'

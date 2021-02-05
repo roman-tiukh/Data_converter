@@ -795,8 +795,8 @@ class UkrCompanyDownloader(Downloader):
 
         sleep(5)
         self.vacuum_analyze(table_list=['business_register_company', ])
-        new_total_records = Company.objects.filter(country__name='ukraine').count()
-        self.update_field(settings.ALL_COMPANIES_DATASET_NAME, 'total_records', new_total_records)
+        new_total_records = Company.objects.filter(source=Company.UKRAINE_REGISTER).count()
+        self.update_field(settings.UKR_COMPANY_REGISTER_LIST, 'total_records', new_total_records)
 
         self.remove_file()
 

@@ -128,4 +128,9 @@ class UkCompanyDownloader(Downloader):
 
         self.remove_file()
 
+        self.vacuum_analyze(table_list=['business_register_company', ])
+        new_total_records = Company.objects.filter(source=Company.GREAT_BRITAIN_REGISTER).count()
+        self.update_field(settings.UK_COMPANY_REGISTER_LIST, 'total_records', new_total_records)
+        logger.info(f'{self.reg_name}: Update total records finished successfully.')
+
         logger.info(f'{self.reg_name}: Update finished successfully.')
