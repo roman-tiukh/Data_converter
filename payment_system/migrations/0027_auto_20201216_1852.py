@@ -33,7 +33,7 @@ def default_projects(apps, schema):
             default_subscription, created = Subscription.objects.get_or_create(
                 is_default=True,
                 defaults={
-                    'requests_limit': 1000,
+                    'requests_limit': 200,
                     'name': settings.DEFAULT_SUBSCRIPTION_NAME,
                     'grace_period': 30,
                 },
