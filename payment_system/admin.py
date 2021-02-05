@@ -41,6 +41,7 @@ class SubscriptionAdmin(admin.ModelAdmin):
         'description',
         'price',
         'requests_limit',
+        'platform_requests_limit',
         'duration',
         'grace_period',
         'is_custom',
