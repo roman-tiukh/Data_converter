@@ -422,7 +422,7 @@ class PepListSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     class Meta:
         model = Pep
         fields = (
-            'id', 'fullname', 'fullname_eng', 'fullname_transcriptions_eng', 'last_job_title',
+            'id', 'fullname', 'fullname_eng', 'first_name', 'middle_name', 'last_name', 'fullname_transcriptions_eng', 'last_job_title',
             'last_job_title_eng', 'last_employer', 'last_employer_eng', 'is_pep', 'pep_type',
             'pep_type_eng', 'info', 'info_eng', 'sanctions', 'sanctions_eng',
             'criminal_record', 'criminal_record_eng', 'assets_info', 'assets_info_eng',
