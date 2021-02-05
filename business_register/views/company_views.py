@@ -14,7 +14,7 @@ from business_register.serializers.company_and_pep_serializers import (
     HistoricalExchangeDataCompanySerializer, HistoricalFounderSerializer, HistoricalSignerSerializer,
     HistoricalTerminationStartedSerializer
 )
-from data_ocean.views import CachedViewMixin, RegisterViewMixin
+from data_ocean.views import CachedViewSetMixin, RegisterViewMixin
 
 HistoricalAssignee = apps.get_model('business_register', 'HistoricalAssignee')
 HistoricalBancruptcyReadjustment = apps.get_model('business_register', 'HistoricalBancruptcyReadjustment')
@@ -29,7 +29,7 @@ HistoricalTerminationStarted = apps.get_model('business_register', 'HistoricalTe
 
 
 class CompanyViewSet(RegisterViewMixin,
-                     CachedViewMixin,
+                     CachedViewSetMixin,
                      viewsets.ReadOnlyModelViewSet):
     permission_classes = [RegisterViewMixin.permission_classes[0] | PepSchemaToken]
     queryset = Company.objects.select_related(
@@ -50,7 +50,7 @@ class CompanyViewSet(RegisterViewMixin,
 
 
 class CompanyUkrViewSet(RegisterViewMixin,
-                        CachedViewMixin,
+                        CachedViewSetMixin,
                         viewsets.ReadOnlyModelViewSet):
     permission_classes = [RegisterViewMixin.permission_classes[0] | PepSchemaToken]
     queryset = Company.objects.filter(
@@ -73,7 +73,7 @@ class CompanyUkrViewSet(RegisterViewMixin,
 
 
 class CompanyUkViewSet(RegisterViewMixin,
-                       CachedViewMixin,
+                       CachedViewSetMixin,
                        viewsets.ReadOnlyModelViewSet):
     permission_classes = [RegisterViewMixin.permission_classes[0] | PepSchemaToken]
     queryset = Company.objects.filter(
@@ -96,7 +96,7 @@ class CompanyUkViewSet(RegisterViewMixin,
 
 
 class HistoricalCompanyRelatedViewSet(RegisterViewMixin,
-                                      CachedViewMixin,
+                                      CachedViewSetMixin,
                                       viewsets.ReadOnlyModelViewSet):
     lookup_field = 'company_id'
     filter_backends = [DjangoFilterBackend]

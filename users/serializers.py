@@ -8,7 +8,7 @@ from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 
 from .forms import CustomPasswordResetForm
-from .models import DataOceanUser, Question
+from .models import DataOceanUser, Question, Notification
 
 
 class DataOceanUserSerializer(serializers.ModelSerializer):
@@ -97,3 +97,11 @@ class QuestionSerializer(serializers.ModelSerializer):
             text=validated_data['text'],
             user=user,
         )
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        read_only_fields = ['id', 'message', 'link', 'is_read', 'created_at']
+        fields = read_only_fields
+

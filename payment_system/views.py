@@ -205,12 +205,6 @@ class SubscriptionsListView(generics.ListAPIView):
     pagination_class = None
 
 
-# TODO: PDF View
-# class InvoiceRetrieveView(generics.RetrieveAPIView):
-#     queryset = Invoice.objects.all()
-#     serializer_class = InvoiceSerializer
-
-
 class InvoicesViewMixin:
     serializer_class = InvoiceSerializer
     pagination_class = None
@@ -235,9 +229,11 @@ class SubscriptionInvoicesListView(InvoicesViewMixin, generics.ListAPIView):
         return Response(serializer.data)
 
 
-class InvoicePDFView(InvoicesViewMixin, APIView):
-    def get(self, request, pk):
-        invoice: Invoice = get_object_or_404(self.get_queryset(), pk=pk)
+class InvoicePDFView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, pk, token):
+        invoice: Invoice = get_object_or_404(Invoice, pk=pk, token=token)
         file = invoice.get_pdf()
         return FileResponse(file, content_type="application/pdf")
 
@@ -296,19 +292,3 @@ class CurrentUserProjectTokenView(ProjectViewMixin, generics.GenericAPIView):
         self.check_object_permissions(request, project)
         serializer = self.get_serializer(project)
         return Response(serializer.data)
-
-
-
-# TODO: remove this
-# class TestEmailView(View):
-#     def get(self, request):
-#         with translation.override('uk'):
-#             project = Project.objects.all().first()
-#             return render(
-#                 request=request,
-#                 template_name='payment_system/emails/new_invitation.html',
-#                 context={
-#                     'owner': project.owner,
-#                     'project': project,
-#                 }
-#             )

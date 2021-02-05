@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-02-01 07:48+0000\n"
+"POT-Creation-Date: 2021-02-02 12:09+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -129,29 +129,37 @@ msgstr "У суперкористувача повинно бути встано
 msgid "Superuser must have is_superuser=True."
 msgstr "У суперкористувача повинно бути встановлено is_superuser=True."
 
-#: users/models.py:45 users/models.py:74
+#: users/models.py:45 users/models.py:97
 msgid "email address"
 msgstr "адреса електронної пошти"
 
-#: users/models.py:50 users/models.py:79
+#: users/models.py:50 users/models.py:102
 msgid "language"
 msgstr "мова"
 
-#: users/models.py:75
+#: users/models.py:98
 msgid "password"
 msgstr "пароль"
 
-#: users/models.py:76
+#: users/models.py:99
 msgid "first name"
 msgstr "ім'я"
 
-#: users/models.py:77
+#: users/models.py:100
 msgid "last name"
 msgstr "прізвище"
 
-#: users/models.py:85
+#: users/models.py:108
 msgid "expire at"
 msgstr "діє до"
+
+#: users/models.py:138
+msgid "Notification"
+msgstr "Сповіщення"
+
+#: users/models.py:139
+msgid "Notifications"
+msgstr "Сповіщення"
 
 #: users/serializers.py:45
 msgid "First Name"
@@ -212,18 +220,18 @@ msgstr "Ви замовили скидання пароля у системі Da
 msgid "Reset password"
 msgstr "Скинути пароль"
 
-#: users/views.py:54
+#: users/views.py:55
 msgid "User with this email is already exists"
 msgstr "Користувач з цією електронною поштою вже існує"
 
-#: users/views.py:93 users/views.py:109
+#: users/views.py:94 users/views.py:110
 msgid "Confirmation link is broken"
 msgstr "Посилання на підтвердження пошкоджено."
 
-#: users/views.py:97
+#: users/views.py:98
 msgid "Confirmation link is expired."
 msgstr "Дія посилання на підтвердження закінчилась."
 
-#: users/views.py:144 users/views.py:150
+#: users/views.py:145 users/views.py:151
 msgid "Email not sent. Try again later."
 msgstr "Лист на електронну пошту не надіслано. Спробуйте ще раз пізніше."

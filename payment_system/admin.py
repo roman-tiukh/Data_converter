@@ -80,15 +80,28 @@ class InvoiceAdmin(admin.ModelAdmin):
     get_expiring_date.short_description = 'Expiring date'
     get_expiring_date.admin_order_field = 'project_subscription__expiring_date'
 
+    def get_invoice_number(self, obj: Invoice):
+        return f'#{obj.id}'
+    get_invoice_number.short_description = 'Invoice #'
+    get_invoice_number.admin_order_field = 'id'
+
+    def get_invoice_date(self, obj: Invoice):
+        return obj.created_at.date()
+    get_invoice_date.short_description = 'Invoice date'
+    get_invoice_date.admin_order_field = 'created_at'
+
     list_display = (
+        'get_invoice_number',
+        'get_invoice_date',
         'get_owner',
-        'get_project',
+        # 'get_project',
+        'project_name',
         'get_subscription',
         # 'is_paid',
         'get_expiring_date',
         'paid_at',
         'grace_period_block',
-        'note',
+        # 'note',
     )
     list_filter = (
         'project_subscription__subscription',
@@ -97,12 +110,13 @@ class InvoiceAdmin(admin.ModelAdmin):
         'grace_period_block',
     )
     search_fields = (
+        'id',
         'project_subscription__project__owner__email',
         'project_subscription__project__owner__first_name',
         'project_subscription__project__owner__last_name',
         'project_subscription__project__name',
     )
-    exclude = ('deleted_at',)
+    exclude = ('deleted_at', 'token')
 
     def get_readonly_fields(self, request, obj=None):
         readonly_fields = {
