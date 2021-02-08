@@ -169,13 +169,12 @@ SWAGGER_SETTINGS = {
             "name": "Authorization: DataOcean <project_key>",
             "in": "header",
             "description": (
-                "You will find an access token in your profile, here is an example of a token:94c6d542af1c4c4942e51"
-                "df6с4d47fbd12fb3dea<br/>In order to access the API, you need to add a regular title called "
-                "'Authorization' meaning 'DataOcean 94c6d542af1c4c4942e51df6с4d47fbd12fb3dea' to your HTTP request by"
-                "substituting your token.<br/>Final title: Authorization: DataOcean 94c6d542af1c4c4942e51df6с4d47fbd12fb3dea"
+                "You will find an access token in your profile. In order to access the API, you need to add a regular<br/>"
+                "title called 'Authorization' meaning 'DataOcean <token>' to your HTTP request by substituting your token."
+                "<br/>Final title:<br/><b>Authorization: DataOcean 94c6d542af1c4c4942e51df6с4d47fbd12fb3dea<b/>"
             ),
         },
-    }
+    },
 }
 
 SITE_ID = 1
