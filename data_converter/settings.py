@@ -162,8 +162,23 @@ REST_FRAMEWORK = {
     'EXCEPTION_HANDLER': 'data_converter.drf_exc_handler.exception_handler',
 }
 
-SITE_ID = 1
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        "API key": {
+            "type": "apiKey",
+            "name": "Authorization: DataOcean <project_key>",
+            "in": "header",
+            "description": (
+                "You will find an access token in your profile, here is an example of a token:94c6d542af1c4c4942e51"
+                "df6с4d47fbd12fb3dea<br/>In order to access the API, you need to add a regular title called "
+                "'Authorization' meaning 'DataOcean 94c6d542af1c4c4942e51df6с4d47fbd12fb3dea' to your HTTP request by"
+                "substituting your token.<br/>Final title: Authorization: DataOcean 94c6d542af1c4c4942e51df6с4d47fbd12fb3dea"
+            ),
+        },
+    }
+}
 
+SITE_ID = 1
 
 # Settings for social authentication
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
@@ -245,12 +260,11 @@ DEFAULT_PROJECT_DESCRIPTION = 'This is auto created default project'
 
 # PROJECT_TOKEN_KEYWORD - its a token prefix, example:
 # Authorization: DataOcean <project_token>
+PROJECT_PLATFORM_TOKEN_KEYWORD = 'Platform'
 PROJECT_TOKEN_KEYWORD = 'DataOcean'
 
 # DATASET`S CONSTANTS ==================
-ALL_PEPS_DATASET_NAME = 'all PEPs list'
-PEP_DATASET_NAME = 'PEP'
-ALL_FOPS_DATASET_NAME = 'all FOPs list'
-FOP_DATASET_NAME = 'FOP'
-ALL_COMPANIES_DATASET_NAME = 'all companies list'
-COMPANY_DATASET_NAME = 'company'
+PEP_REGISTER_LIST = '/api/pep/'
+FOP_REGISTER_LIST = '/api/fop/'
+UKR_COMPANY_REGISTER_LIST = '/api/company/ukr/'
+UK_COMPANY_REGISTER_LIST = '/api/company/uk/'
