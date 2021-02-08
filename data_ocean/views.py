@@ -54,7 +54,6 @@ SchemaView = get_schema_view(
             'Зручний доступ до даних за допомогою Rest API для розробників програмного забезпечення.<p/>'
         ),
         contact=openapi.Contact(email="info@dataocean.us"),
-        license=openapi.License(name="BSD License"),
     ),
     generator_class=DOOpenAPISchemaGenerator,
     public=True,
