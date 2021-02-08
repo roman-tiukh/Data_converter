@@ -26,7 +26,7 @@ class Converter:
     URLS_DICT = {}  # control remote dataset files update
 
     def __init__(self):
-        self.all_countries_dict = self.put_all_objects_to_dict("name", "location_register", "Country")
+        self.all_countries_dict = self.put_objects_to_dict("name", "location_register", "Country")
 
     def save_or_get_country(self, name):
         name = name.lower()
@@ -35,7 +35,6 @@ class Converter:
             self.all_countries_dict[name] = new_country
             return new_country
         return self.all_countries_dict[name]
-
 
     def load_json(self, json_file):
         with open(json_file) as file:
@@ -176,9 +175,24 @@ class Converter:
             table.objects.all().delete()
             print('Old data have deleted.')
 
-    def put_all_objects_to_dict(self, key_field, app_name, model_name):
-        return {getattr(obj, key_field): obj for obj in apps.get_model(app_name,
-                                                                       model_name).objects.all()}
+    def put_objects_to_dict(self, key_field, app_name, model_name):
+        return {getattr(obj, key_field): obj for obj in apps.get_model(
+            app_name,
+            model_name
+        ).objects.filter(
+            deleted_at__isnull=True
+        )
+                }
+
+    def put_objects_to_dict_with_two_fields_key(self, first_field, second_field, app_name, model_name):
+        return {f'{getattr(obj, first_field)}_{getattr(obj, second_field)}':
+                    obj for obj in apps.get_model(
+            app_name,
+            model_name
+        ).objects.filter(
+            deleted_at__isnull=True
+        )
+                }
 
     def process(self, start_index=0):
         records = []
