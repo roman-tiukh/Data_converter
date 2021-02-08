@@ -31,9 +31,9 @@ class BusinessConverter(Converter):
         statuses, authorities and taxpayer_types from DB
         """
         self.all_kveds_dict = self.put_all_kveds_to_dict()
-        self.all_statuses_dict = self.put_all_objects_to_dict("name", "data_ocean", "Status")
-        self.all_authorities_dict = self.put_all_objects_to_dict("name", "data_ocean", "Authority")
-        self.all_taxpayer_types_dict = self.put_all_objects_to_dict("name", "data_ocean", "TaxpayerType")
+        self.all_statuses_dict = self.put_objects_to_dict("name", "data_ocean", "Status")
+        self.all_authorities_dict = self.put_objects_to_dict("name", "data_ocean", "Authority")
+        self.all_taxpayer_types_dict = self.put_objects_to_dict("name", "data_ocean", "TaxpayerType")
         super().__init__()
 
     def find_edrpou(self, string_to_check):

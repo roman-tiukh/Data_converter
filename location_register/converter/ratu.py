@@ -25,15 +25,15 @@ class RatuConverter(Converter):
         self.CHUNK_SIZE = settings.CHUNK_SIZE_RATU
         self.RECORD_TAG = 'RECORD'
         self.bulk_manager = BulkCreateManager()
-        self.all_regions_dict = self.put_all_objects_to_dict('name', 'location_register',
+        self.all_regions_dict = self.put_objects_to_dict('name', 'location_register',
                                                              'RatuRegion')
-        self.all_districts_dict = self.put_all_objects_to_dict('code', 'location_register',
+        self.all_districts_dict = self.put_objects_to_dict('code', 'location_register',
                                                                'RatuDistrict')
-        self.all_cities_dict = self.put_all_objects_to_dict('code', 'location_register',
+        self.all_cities_dict = self.put_objects_to_dict('code', 'location_register',
                                                             'RatuCity')
-        self.all_citydistricts_dict = self.put_all_objects_to_dict('code', 'location_register',
+        self.all_citydistricts_dict = self.put_objects_to_dict('code', 'location_register',
                                                                    'RatuCityDistrict')
-        self.all_streets_dict = self.put_all_objects_to_dict('code', 'location_register',
+        self.all_streets_dict = self.put_objects_to_dict('code', 'location_register',
                                                              'RatuStreet')
         super().__init__()
 
