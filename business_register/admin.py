@@ -3,10 +3,11 @@ from business_register.models.pep_models import Pep
 from business_register.models.company_models import Company
 from business_register.models.fop_models import Fop
 from business_register.models.kved_models import Kved
+from data_ocean.admin import RegisterModelAdmin
 
 
 @admin.register(Pep)
-class PepAdmin(admin.ModelAdmin):
+class PepAdmin(RegisterModelAdmin):
     list_display = (
         'fullname',
         'pep_type'
@@ -26,7 +27,7 @@ class PepAdmin(admin.ModelAdmin):
 
 
 @admin.register(Company)
-class CompanyAdmin(admin.ModelAdmin):
+class CompanyAdmin(RegisterModelAdmin):
     list_display = (
         'name',
         'edrpou',
@@ -47,7 +48,7 @@ class CompanyAdmin(admin.ModelAdmin):
 
 
 @admin.register(Fop)
-class FopAdmin(admin.ModelAdmin):
+class FopAdmin(RegisterModelAdmin):
     list_display = (
         'fullname',
         'status',
@@ -60,7 +61,7 @@ class FopAdmin(admin.ModelAdmin):
 
 
 @admin.register(Kved)
-class KvedAdmin(admin.ModelAdmin):
+class KvedAdmin(RegisterModelAdmin):
     list_display = (
         'code',
         'name'

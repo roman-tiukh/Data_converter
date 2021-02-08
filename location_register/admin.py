@@ -1,4 +1,6 @@
 from django.contrib import admin
+
+from data_ocean.admin import RegisterModelAdmin
 from location_register.models.koatuu_models import (KoatuuFirstLevel, KoatuuSecondLevel,
                                                     KoatuuThirdLevel, KoatuuFourthLevel)
 from location_register.models.ratu_models import RatuStreet
@@ -6,7 +8,7 @@ from location_register.models.drv_models import DrvBuilding
 
 
 @admin.register(KoatuuFirstLevel)
-class KoatuuFirstLevellAdmin(admin.ModelAdmin):
+class KoatuuFirstLevellAdmin(RegisterModelAdmin):
     list_display = (
         'name',
         'code'
@@ -17,7 +19,7 @@ class KoatuuFirstLevellAdmin(admin.ModelAdmin):
 
 
 @admin.register(KoatuuSecondLevel)
-class KoatuuSecondLevelAdmin(admin.ModelAdmin):
+class KoatuuSecondLevelAdmin(RegisterModelAdmin):
     list_display = (
         'name',
         'code',
@@ -30,7 +32,7 @@ class KoatuuSecondLevelAdmin(admin.ModelAdmin):
 
 
 @admin.register(KoatuuThirdLevel)
-class KoatuuThirdLevelAdmin(admin.ModelAdmin):
+class KoatuuThirdLevelAdmin(RegisterModelAdmin):
     list_display = (
         'name',
         'code',
@@ -43,7 +45,7 @@ class KoatuuThirdLevelAdmin(admin.ModelAdmin):
 
 
 @admin.register(KoatuuFourthLevel)
-class KoatuuFourthLevelAdmin(admin.ModelAdmin):
+class KoatuuFourthLevelAdmin(RegisterModelAdmin):
     list_display = (
         'name',
         'code',
@@ -56,7 +58,7 @@ class KoatuuFourthLevelAdmin(admin.ModelAdmin):
 
 
 @admin.register(RatuStreet)
-class RatuStreetAdmin(admin.ModelAdmin):
+class RatuStreetAdmin(RegisterModelAdmin):
     list_display = (
         'name',
         'code',
@@ -71,7 +73,7 @@ class RatuStreetAdmin(admin.ModelAdmin):
 
 
 @admin.register(DrvBuilding)
-class DrvBuildingAdmin(admin.ModelAdmin):
+class DrvBuildingAdmin(RegisterModelAdmin):
     list_display = (
         'number',
         'code',
