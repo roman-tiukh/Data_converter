@@ -109,3 +109,8 @@ body {
     color: #1C3FAA;
 }
 
+.footnote {
+    margin-top: 100px;
+    text-align: center;
+    font-size: 13px;
+}
