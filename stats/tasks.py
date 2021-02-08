@@ -12,6 +12,10 @@ warm_views = [
     stats_views.TopKvedsView,
     stats_views.RegisteredCompaniesCountView,
     stats_views.RegisteredFopsCountView,
+    stats_views.PepsCountView,
+    stats_views.PepRelatedPersonsCountView,
+    stats_views.PepLinkedCompaniesCountView,
+    stats_views.PepRelationCategoriesCountView,
 ]
 
 
