@@ -313,6 +313,7 @@ class PepConverterFromDB(Converter):
         self.user = settings.PEP_SOURCE_USER
         self.password = settings.PEP_SOURCE_PASSWORD
         self.all_peps_dict = self.put_all_objects_to_dict('code', 'business_register', 'Pep')
+        self.outdated_peps_dict = self.put_all_objects_to_dict('code', 'business_register', 'Pep')
         self.PEP_QUERY = ('SELECT id, last_name, first_name, patronymic, '
                           'last_name_en, first_name_en, patronymic_en, names, is_pep, '
                           'dob, city_of_birth_uk, city_of_birth_en, '
@@ -648,6 +649,7 @@ class PepConverterFromDB(Converter):
                 )
                 self.all_peps_dict[code] = pep
             else:
+                del self.outdated_peps_dict[code]
                 update_fields = []
                 if pep.first_name != first_name:
                     pep.first_name = first_name
@@ -727,6 +729,9 @@ class PepConverterFromDB(Converter):
                 if len(update_fields):
                     update_fields.append('updated_at')
                     pep.save(update_fields=update_fields)
+        if self.outdated_peps_dict:
+            for pep in self.outdated_peps_dict.values():
+                pep.soft_delete()
 
     def process(self):
         peps_data, peps_links_data, pep_companies_data = self.get_data_from_source_db()
@@ -771,6 +776,6 @@ class PepDownloader(Downloader):
 
         self.vacuum_analyze(table_list=['business_register_pep', ])
 
-        new_total_records = Pep.objects.count()
+        new_total_records = Pep.objects.filter(deleted_at__isnull=True).count()
         self.update_field(settings.PEP_REGISTER_LIST, 'total_records', new_total_records)
         logger.info(f'{self.reg_name}: Update total records finished successfully.')
