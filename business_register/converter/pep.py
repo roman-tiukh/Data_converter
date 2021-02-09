@@ -805,6 +805,6 @@ class PepDownloader(Downloader):
 
         self.vacuum_analyze(table_list=['business_register_pep', ])
 
-        new_total_records = Pep.objects.filter(deleted_at__isnull=True).count()
+        new_total_records = Pep.objects.all().count()
         self.update_field(settings.PEP_REGISTER_LIST, 'total_records', new_total_records)
         logger.info(f'{self.reg_name}: Update total records finished successfully.')

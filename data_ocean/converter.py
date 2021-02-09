@@ -179,9 +179,7 @@ class Converter:
         return {getattr(obj, key_field): obj for obj in apps.get_model(
             app_name,
             model_name
-        ).objects.filter(
-            deleted_at__isnull=True
-        )
+        ).objects.all()
                 }
 
     def put_objects_to_dict_with_two_fields_key(self, first_field, second_field, app_name, model_name):
@@ -189,9 +187,7 @@ class Converter:
                     obj for obj in apps.get_model(
             app_name,
             model_name
-        ).objects.filter(
-            deleted_at__isnull=True
-        )
+        ).objects.all()
                 }
 
     def process(self, start_index=0):
