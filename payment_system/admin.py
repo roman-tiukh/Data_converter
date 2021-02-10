@@ -9,7 +9,9 @@ from rangefilter.filter import DateRangeFilter
 
 class PaymentSystemModelAdmin(admin.ModelAdmin):
     def has_module_permission(self, request):
-        return request.user.is_superuser or request.user.can_admin_payment_system
+        return request.user.is_authenticated and (
+            request.user.is_superuser or request.user.can_admin_payment_system
+        )
 
     def has_view_permission(self, request, obj=None):
         return self.has_module_permission(request)
