@@ -265,15 +265,15 @@ class NewKoatuuConverter(Converter):
 
     def __init__(self):
         self.LOCAL_FILE_NAME = settings.LOCATION_KOATUU_LOCAL_FILE_NAME
-        self.all_first_level_places = self.put_all_objects_to_dict('code', 'location_register',
+        self.all_first_level_places = self.put_objects_to_dict('code', 'location_register',
                                                                    'KoatuuFirstLevel')
-        self.all_second_level_places = self.put_all_objects_to_dict('code', 'location_register',
+        self.all_second_level_places = self.put_objects_to_dict('code', 'location_register',
                                                                     'KoatuuSecondLevel')
-        self.all_third_level_places = self.put_all_objects_to_dict('code', 'location_register',
+        self.all_third_level_places = self.put_objects_to_dict('code', 'location_register',
                                                                    'KoatuuThirdLevel')
-        self.all_fourth_level_places = self.put_all_objects_to_dict('code', 'location_register',
+        self.all_fourth_level_places = self.put_objects_to_dict('code', 'location_register',
                                                                     'KoatuuFourthLevel')
-        self.all_categories = self.put_all_objects_to_dict('code', 'location_register',
+        self.all_categories = self.put_objects_to_dict('code', 'location_register',
                                                            'KoatuuCategory')
         # a dictionary for storing all abbreviations and full forms of KOATUU categories
         self.KOATUU_CATEGORY_DICT = {

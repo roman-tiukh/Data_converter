@@ -16,7 +16,7 @@ class CompanyFilterSet(filters.FilterSet):
             ('edrpou', 'edrpou'),
             ('name', 'name'),
             ('status__name', 'status'),
-            ('address__name', 'address'),
+            ('address', 'address'),
             ('authorized_capital', 'authorized_capital'),
         ),
     )

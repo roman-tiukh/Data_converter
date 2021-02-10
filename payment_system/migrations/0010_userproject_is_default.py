@@ -35,7 +35,7 @@ def default_projects(apps, schema):
             )
             def_sub, created = Subscription.objects.get_or_create(
                 name=settings.DEFAULT_SUBSCRIPTION_NAME,
-                defaults={'requests_limit': 1000},
+                defaults={'requests_limit': 200},
             )
             ProjectSubscription.objects.create(
                 project=new_project,

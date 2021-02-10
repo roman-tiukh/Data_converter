@@ -312,7 +312,28 @@ class PepConverterFromDB(Converter):
         self.database = settings.PEP_SOURCE_DATABASE
         self.user = settings.PEP_SOURCE_USER
         self.password = settings.PEP_SOURCE_PASSWORD
-        self.all_peps_dict = self.put_all_objects_to_dict('code', 'business_register', 'Pep')
+        self.peps_dict = self.put_objects_to_dict('code', 'business_register', 'Pep')
+        self.outdated_peps_dict = self.put_objects_to_dict('code', 'business_register', 'Pep')
+        self.peps_links_dict = self.put_objects_to_dict_with_two_fields_key(
+            'from_person_id',
+            'to_person_id',
+            'business_register',
+            'RelatedPersonsLink')
+        self.outdated_peps_links_dict = self.put_objects_to_dict_with_two_fields_key(
+            'from_person_id',
+            'to_person_id',
+            'business_register',
+            'RelatedPersonsLink')
+        self.peps_companies_dict = self.put_objects_to_dict_with_two_fields_key(
+            'company_id',
+            'pep_id',
+            'business_register',
+            'CompanyLinkWithPep')
+        self.outdated_peps_companies_dict = self.put_objects_to_dict_with_two_fields_key(
+            'company_id',
+            'pep_id',
+            'business_register',
+            'CompanyLinkWithPep')
         self.PEP_QUERY = ('SELECT id, last_name, first_name, patronymic, '
                           'last_name_en, first_name_en, patronymic_en, names, is_pep, '
                           'dob, city_of_birth_uk, city_of_birth_en, '
@@ -445,13 +466,13 @@ class PepConverterFromDB(Converter):
     def save_or_update_peps_links(self, peps_links_data):
         for link in peps_links_data:
             from_person_source_id = link[0]
-            from_person = self.all_peps_dict.get(str(from_person_source_id))
+            from_person = self.peps_dict.get(str(from_person_source_id))
             if not from_person:
                 logger.info(f'No such pep in our DB. '
                             f'Check records in the source DB with id {from_person_source_id}')
                 continue
             to_person_source_id = link[1]
-            to_person = self.all_peps_dict.get(str(to_person_source_id))
+            to_person = self.peps_dict.get(str(to_person_source_id))
             if not to_person:
                 logger.info(f'No such pep in our DB. '
                             f'Check records in the source DB with id {to_person_source_id}')
@@ -463,9 +484,7 @@ class PepConverterFromDB(Converter):
             confirmation_date = link[5]
             end_date = link[6]
 
-            stored_link = RelatedPersonsLink.objects.filter(
-                from_person_id=from_person.id, to_person_id=to_person.id
-            ).first()
+            stored_link = self.peps_links_dict.get(f'{from_person.id}_{to_person.id}')
             if not stored_link:
                 RelatedPersonsLink.objects.create(
                     from_person_id=from_person.id,
@@ -500,6 +519,12 @@ class PepConverterFromDB(Converter):
                 if update_fields:
                     update_fields.append('updated_at')
                     stored_link.save(update_fields=update_fields)
+                if self.outdated_peps_links_dict.get(f'{from_person.id}_{to_person.id}'):
+                    del self.outdated_peps_links_dict[f'{from_person.id}_{to_person.id}']
+
+        if self.outdated_peps_links_dict:
+            for link in self.outdated_peps_links_dict.values():
+                link.soft_delete()
 
     def create_company_link_with_pep(self, company, pep, company_short_name_eng, category,
                                      start_date, confirmation_date, end_date, is_state_company):
@@ -518,7 +543,7 @@ class PepConverterFromDB(Converter):
         address_converter = AddressConverter()
         for link in peps_companies_data:
             pep_source_id = link[0]
-            pep = self.all_peps_dict.get(str(pep_source_id))
+            pep = self.peps_dict.get(str(pep_source_id))
             if not pep:
                 logger.info(f'No such pep in our DB. '
                             f'Check records in the source DB with id {pep_source_id}')
@@ -552,8 +577,12 @@ class PepConverterFromDB(Converter):
                                                   start_date, confirmation_date, end_date,
                                                   is_state_company)
             else:
-                already_stored_link = CompanyLinkWithPep.objects.filter(pep=pep, company=company).first()
-                if already_stored_link:
+                already_stored_link = self.peps_companies_dict.get(f'{company.id}_{pep.id}')
+                if not already_stored_link:
+                    self.create_company_link_with_pep(company, pep, company_short_name_eng, category,
+                                                      start_date, confirmation_date, end_date,
+                                                      is_state_company)
+                else:
                     update_fields = []
                     if already_stored_link.company_short_name_eng != company_short_name_eng:
                         already_stored_link.company_short_name_eng = company_short_name_eng
@@ -576,10 +605,11 @@ class PepConverterFromDB(Converter):
                     if update_fields:
                         update_fields.append('updated_at')
                         already_stored_link.save(update_fields=update_fields)
-                else:
-                    self.create_company_link_with_pep(company, pep, company_short_name_eng, category,
-                                                      start_date, confirmation_date, end_date,
-                                                      is_state_company)
+                    if self.outdated_peps_companies_dict.get(f'{company.id}_{pep.id}'):
+                        del self.outdated_peps_companies_dict[f'{company.id}_{pep.id}']
+        if self.outdated_peps_companies_dict:
+            for link in self.outdated_peps_companies_dict.values():
+                link.soft_delete()
 
     def save_or_update_peps(self, peps_data):
         for pep_data in peps_data:
@@ -614,7 +644,7 @@ class PepConverterFromDB(Converter):
                                      if reason_of_termination_number else None)
             is_dead = (reason_of_termination_number == 1)
             termination_date = to_lower_string_if_exists(pep_data[26])
-            pep = self.all_peps_dict.get(code)
+            pep = self.peps_dict.get(code)
             if not pep:
                 pep = Pep.objects.create(
                     code=code,
@@ -646,7 +676,7 @@ class PepConverterFromDB(Converter):
                     reason_of_termination=reason_of_termination,
                     source_id=source_id
                 )
-                self.all_peps_dict[code] = pep
+                self.peps_dict[code] = pep
             else:
                 update_fields = []
                 if pep.first_name != first_name:
@@ -727,6 +757,10 @@ class PepConverterFromDB(Converter):
                 if len(update_fields):
                     update_fields.append('updated_at')
                     pep.save(update_fields=update_fields)
+                del self.outdated_peps_dict[code]
+        if self.outdated_peps_dict:
+            for pep in self.outdated_peps_dict.values():
+                pep.soft_delete()
 
     def process(self):
         peps_data, peps_links_data, pep_companies_data = self.get_data_from_source_db()
@@ -771,6 +805,6 @@ class PepDownloader(Downloader):
 
         self.vacuum_analyze(table_list=['business_register_pep', ])
 
-        new_total_records = Pep.objects.count()
-        self.update_field(settings.ALL_PEPS_DATASET_NAME, 'total_records', new_total_records)
-        logger.info(f'{self.reg_name}: Update finished successfully.')
+        new_total_records = Pep.objects.all().count()
+        self.update_field(settings.PEP_REGISTER_LIST, 'total_records', new_total_records)
+        logger.info(f'{self.reg_name}: Update total records finished successfully.')

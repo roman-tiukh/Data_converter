@@ -42,6 +42,9 @@ class DataOceanUserManager(BaseUserManager):
 
 class DataOceanUser(AbstractUser):
     username = None
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['last_name', 'first_name']
+
     email = models.EmailField(_('email address'), unique=True)
     organization = models.CharField(max_length=255, default='', blank=True)
     position = models.CharField(max_length=150, default='', blank=True)
@@ -53,8 +56,11 @@ class DataOceanUser(AbstractUser):
         default=settings.LANGUAGE_CODE,
         blank=True,
     )
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['last_name', 'first_name']
+
+    # Permissions
+    can_admin_registers = models.BooleanField(blank=True, default=False)
+    can_view_users = models.BooleanField(blank=True, default=False)
+    can_admin_payment_system = models.BooleanField(blank=True, default=False)
 
     objects = DataOceanUserManager()
 

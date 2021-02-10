@@ -31,8 +31,8 @@ class UkrCompanyConverter(CompanyConverter):
         self.RECORD_TAG = 'RECORD'
         self.bulk_manager = BulkCreateManager()
         self.branch_bulk_manager = BulkCreateManager()
-        self.all_bylaw_dict = self.put_all_objects_to_dict("name", "business_register", "Bylaw")
-        self.all_predecessors_dict = self.put_all_objects_to_dict("name", "business_register",
+        self.all_bylaw_dict = self.put_objects_to_dict("name", "business_register", "Bylaw")
+        self.all_predecessors_dict = self.put_objects_to_dict("name", "business_register",
                                                                   "Predecessor")
         self.all_companies_dict = {}
         self.branch_to_parent = {}
@@ -679,13 +679,14 @@ class UkrCompanyConverter(CompanyConverter):
     def save_to_db(self, records):
         country = AddressConverter().save_or_get_country('Ukraine')
         for record in records:
+            # omitting records without company name or edrpou
+            if not record.xpath('NAME')[0].text or not record.xpath('EDRPOU')[0].text:
+                continue
             name = record.xpath('NAME')[0].text.lower()
             short_name = record.xpath('SHORT_NAME')[0].text
             if short_name:
                 short_name = short_name.lower()
             edrpou = record.xpath('EDRPOU')[0].text
-            if not edrpou:
-                continue
             code = name + edrpou
             address = record.xpath('ADDRESS')[0].text
             status = self.save_or_get_status(record.xpath('STAN')[0].text)
@@ -794,8 +795,8 @@ class UkrCompanyDownloader(Downloader):
 
         sleep(5)
         self.vacuum_analyze(table_list=['business_register_company', ])
-        new_total_records = Company.objects.filter(country__name='ukraine').count()
-        self.update_field(settings.ALL_COMPANIES_DATASET_NAME, 'total_records', new_total_records)
+        new_total_records = Company.objects.filter(source=Company.UKRAINE_REGISTER).count()
+        self.update_field(settings.UKR_COMPANY_REGISTER_LIST, 'total_records', new_total_records)
 
         self.remove_file()
 

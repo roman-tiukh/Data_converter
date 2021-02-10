@@ -18,9 +18,19 @@ from payment_system.permissions import AccessFromProjectToken
 
 
 class CachedViewMixin:
-    @method_decorator(cache_page(60 * 60 * 24))
-    def dispatch(self, *args, **kwargs):
-        return super().dispatch(*args, **kwargs)
+    @method_decorator(cache_page(settings.CACHE_MIDDLEWARE_SECONDS))
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+
+class CachedViewSetMixin:
+    @method_decorator(cache_page(settings.CACHE_MIDDLEWARE_SECONDS))
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+    @method_decorator(cache_page(settings.CACHE_MIDDLEWARE_SECONDS))
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
 
 
 class RegisterViewMixin:
@@ -54,7 +64,6 @@ SchemaView = get_schema_view(
             'Зручний доступ до даних за допомогою Rest API для розробників програмного забезпечення.<p/>'
         ),
         contact=openapi.Contact(email="info@dataocean.us"),
-        license=openapi.License(name="BSD License"),
     ),
     generator_class=DOOpenAPISchemaGenerator,
     public=True,

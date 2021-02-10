@@ -7,6 +7,25 @@ from .models import Subscription, Invoice, ProjectSubscription, Project
 from rangefilter.filter import DateRangeFilter
 
 
+class PaymentSystemModelAdmin(admin.ModelAdmin):
+    def has_module_permission(self, request):
+        return request.user.is_authenticated and (
+            request.user.is_superuser or request.user.can_admin_payment_system
+        )
+
+    def has_view_permission(self, request, obj=None):
+        return self.has_module_permission(request)
+
+    def has_change_permission(self, request, obj=None):
+        return self.has_module_permission(request)
+
+    def has_add_permission(self, request):
+        return self.has_module_permission(request)
+
+    def has_delete_permission(self, request, obj=None):
+        return self.has_module_permission(request)
+
+
 def set_default_subscription(model_admin, request, queryset):
     if queryset.count() != 1:
         model_admin.message_user(request, 'Only one subscription can be default', messages.ERROR)
@@ -17,7 +36,7 @@ set_default_subscription.short_description = 'Set subscription as default'
 
 
 @admin.register(Subscription)
-class SubscriptionAdmin(admin.ModelAdmin):
+class SubscriptionAdmin(PaymentSystemModelAdmin):
     list_display = (
         'name',
         'price',
@@ -30,17 +49,18 @@ class SubscriptionAdmin(admin.ModelAdmin):
     list_filter = (
         'is_custom',
         'is_default',
-        'requests_limit'
+        'requests_limit',
     )
     search_fields = (
         'name',
-        'price'
+        'price',
     )
     fields = (
         'name',
         'description',
         'price',
         'requests_limit',
+        'platform_requests_limit',
         'duration',
         'grace_period',
         'is_custom',
@@ -59,7 +79,7 @@ class SubscriptionAdmin(admin.ModelAdmin):
 
 
 @admin.register(Invoice)
-class InvoiceAdmin(admin.ModelAdmin):
+class InvoiceAdmin(PaymentSystemModelAdmin):
     def get_owner(self, obj: Invoice):
         return obj.project_subscription.project.owner
     get_owner.short_description = 'Owner'
@@ -80,15 +100,28 @@ class InvoiceAdmin(admin.ModelAdmin):
     get_expiring_date.short_description = 'Expiring date'
     get_expiring_date.admin_order_field = 'project_subscription__expiring_date'
 
+    def get_invoice_number(self, obj: Invoice):
+        return f'#{obj.id}'
+    get_invoice_number.short_description = 'Invoice #'
+    get_invoice_number.admin_order_field = 'id'
+
+    def get_invoice_date(self, obj: Invoice):
+        return obj.created_at.date()
+    get_invoice_date.short_description = 'Invoice date'
+    get_invoice_date.admin_order_field = 'created_at'
+
     list_display = (
+        'get_invoice_number',
+        'get_invoice_date',
         'get_owner',
-        'get_project',
+        # 'get_project',
+        'project_name',
         'get_subscription',
         # 'is_paid',
         'get_expiring_date',
         'paid_at',
         'grace_period_block',
-        'note',
+        # 'note',
     )
     list_filter = (
         'project_subscription__subscription',
@@ -97,12 +130,13 @@ class InvoiceAdmin(admin.ModelAdmin):
         'grace_period_block',
     )
     search_fields = (
+        'id',
         'project_subscription__project__owner__email',
         'project_subscription__project__owner__first_name',
         'project_subscription__project__owner__last_name',
         'project_subscription__project__name',
     )
-    exclude = ('deleted_at',)
+    exclude = ('deleted_at', 'token')
 
     def get_readonly_fields(self, request, obj=None):
         readonly_fields = {
@@ -157,7 +191,7 @@ class ProjectForm(forms.ModelForm):
 
 
 @admin.register(Project)
-class ProjectAdmin(admin.ModelAdmin):
+class ProjectAdmin(PaymentSystemModelAdmin):
     def get_expiring_date(self, obj: Project):
         return obj.active_p2s.expiring_date
     get_expiring_date.short_description = 'Expiring date'

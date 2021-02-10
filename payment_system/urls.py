@@ -25,8 +25,8 @@ from payment_system.views import (
 )
 
 urlpatterns = [
-    # project urls
-    path('project/create/', ProjectCreateView.as_view()),
+    # TODO: temporary disabled
+    # path('project/create/', ProjectCreateView.as_view()),
 
     path('project/<int:pk>/update/', ProjectUpdateView.as_view()),
     path('project/<int:pk>/refresh-token/', ProjectRefreshTokenView.as_view()),
@@ -52,7 +52,7 @@ urlpatterns = [
 
     path('subscriptions/', SubscriptionsListView.as_view()),
 
-    path('invoice/<int:pk>/', InvoicePDFView.as_view(), name='invoice_pdf'),
+    path('invoice/<int:pk>/<uuid:token>/', InvoicePDFView.as_view(), name='invoice_pdf'),
     path('invoices/', UserInvoicesListView.as_view()),
     path('subscription/<int:pk>/invoices/', SubscriptionInvoicesListView.as_view()),
 

@@ -1,5 +1,6 @@
 import io
 import os
+import uuid
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -70,7 +71,8 @@ class Project(DataOceanModel):
         default_subscription, created = Subscription.objects.get_or_create(
             is_default=True,
             defaults={
-                'requests_limit': 1000,
+                'requests_limit': 20,
+                'platform_requests_limit': 200,
                 'name': settings.DEFAULT_SUBSCRIPTION_NAME,
                 'grace_period': 30,
             },
@@ -269,6 +271,7 @@ class Subscription(DataOceanModel):
     description = models.TextField(blank=True, default='')
     price = models.SmallIntegerField(default=0)
     requests_limit = models.IntegerField(help_text='Limit for API requests from the project')
+    platform_requests_limit = models.IntegerField(help_text='Limit for API requests from the project via platform')
     duration = models.SmallIntegerField(default=30, help_text='days')
     grace_period = models.SmallIntegerField(default=10, help_text='days')
     is_custom = models.BooleanField(
@@ -307,6 +310,8 @@ class Invoice(DataOceanModel):
         help_text='This operation is irreversible, you cannot '
                   'cancel the payment of the subscription for the project.'
     )
+    token = models.UUIDField(db_index=True, default=uuid.uuid4, blank=True)
+
     project_subscription = models.ForeignKey(
         'ProjectSubscription', on_delete=models.PROTECT,
         related_name='invoices',
@@ -330,7 +335,7 @@ class Invoice(DataOceanModel):
 
     @property
     def link(self):
-        return reverse('payment_system:invoice_pdf', args=[self.id])
+        return reverse('payment_system:invoice_pdf', args=[self.id, self.token])
 
     @property
     def is_paid(self):
@@ -472,6 +477,9 @@ class ProjectSubscription(DataOceanModel):
     requests_left = models.IntegerField()
     requests_used = models.IntegerField(blank=True, default=0)
 
+    platform_requests_left = models.IntegerField()
+    platform_requests_used = models.IntegerField(blank=True, default=0)
+
     duration = models.SmallIntegerField(help_text='days')
     grace_period = models.SmallIntegerField(help_text='days')
 
@@ -534,6 +542,8 @@ class ProjectSubscription(DataOceanModel):
         self.is_grace_period = True
         self.requests_left = self.subscription.requests_limit
         self.requests_used = 0
+        self.platform_requests_left = self.subscription.platform_requests_limit
+        self.platform_requests_used = 0
         self.duration = self.subscription.duration
         self.grace_period = self.subscription.grace_period
         self.start_date = self.expiring_date
@@ -602,6 +612,7 @@ class ProjectSubscription(DataOceanModel):
     def save(self, *args, **kwargs):
         if not getattr(self, 'id', None):
             self.requests_left = self.subscription.requests_limit
+            self.platform_requests_left = self.subscription.platform_requests_limit
         self.validate_unique()
         super().save(*args, **kwargs)
 
