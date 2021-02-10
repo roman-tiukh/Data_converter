@@ -16,15 +16,6 @@ class PepAdmin(RegisterModelAdmin):
     ordering = ('updated_at',)
     list_filter = ('is_pep', 'pep_type', 'is_dead')
 
-    def has_change_permission(self, request, obj=None):
-        return False
-
-    def has_add_permission(self, request):
-        return False
-
-    def has_delete_permission(self, request, obj=None):
-        return False
-
 
 @admin.register(Company)
 class CompanyAdmin(RegisterModelAdmin):
@@ -36,15 +27,6 @@ class CompanyAdmin(RegisterModelAdmin):
     search_fields = ('name', 'edrpou')
     ordering = ('updated_at',)
     list_filter = ('company_type', 'country', 'source', 'status')
-
-    def has_change_permission(self, request, obj=None):
-        return False
-
-    def has_add_permission(self, request):
-        return False
-
-    def has_delete_permission(self, request, obj=None):
-        return False
 
 
 @admin.register(Fop)
@@ -69,12 +51,3 @@ class KvedAdmin(RegisterModelAdmin):
     search_fields = ('name', 'code')
     ordering = ('updated_at',)
     list_filter = ('is_valid',)
-
-    def has_change_permission(self, request, obj=None):
-        return False
-
-    def has_add_permission(self, request):
-        return False
-
-    def has_delete_permission(self, request, obj=None):
-        return False
