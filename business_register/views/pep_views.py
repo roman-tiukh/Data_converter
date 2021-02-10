@@ -19,7 +19,7 @@ class PepViewSet(RegisterViewMixin,
                  CachedViewSetMixin,
                  viewsets.ReadOnlyModelViewSet):
     permission_classes = [RegisterViewMixin.permission_classes[0] | PepSchemaToken]
-    queryset = Pep.objects.filter(deleted_at__isnull=True)
+    queryset = Pep.objects.all()
     serializer_class = PepListSerializer
     filter_backends = (DjangoFilterBackend, SearchFilter)
     filterset_class = PepFilterSet
