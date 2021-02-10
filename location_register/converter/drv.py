@@ -31,9 +31,9 @@ class DrvConverter(BusinessConverter):
         declaring as class fields and initialising dictionaries for storing all objects from DB
 
         """
-        self.all_regions_dict = self.put_all_objects_to_dict('name', 'location_register', 'DrvRegion')
-        self.all_atos_dict = self.put_all_objects_to_dict('code', 'location_register', 'DrvAto')
-        self.all_zipcodes_dict = self.put_all_objects_to_dict('code', 'location_register', 'ZipCode')
+        self.all_regions_dict = self.put_objects_to_dict('name', 'location_register', 'DrvRegion')
+        self.all_atos_dict = self.put_objects_to_dict('code', 'location_register', 'DrvAto')
+        self.all_zipcodes_dict = self.put_objects_to_dict('code', 'location_register', 'ZipCode')
         super().__init__()
 
     def parse_regions_data(self):

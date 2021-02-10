@@ -31,8 +31,8 @@ class UkrCompanyConverter(CompanyConverter):
         self.RECORD_TAG = 'RECORD'
         self.bulk_manager = BulkCreateManager()
         self.branch_bulk_manager = BulkCreateManager()
-        self.all_bylaw_dict = self.put_all_objects_to_dict("name", "business_register", "Bylaw")
-        self.all_predecessors_dict = self.put_all_objects_to_dict("name", "business_register",
+        self.all_bylaw_dict = self.put_objects_to_dict("name", "business_register", "Bylaw")
+        self.all_predecessors_dict = self.put_objects_to_dict("name", "business_register",
                                                                   "Predecessor")
         self.all_companies_dict = {}
         self.branch_to_parent = {}
