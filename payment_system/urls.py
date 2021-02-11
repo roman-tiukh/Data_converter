@@ -22,6 +22,7 @@ from payment_system.views import (
     ProjectSubscriptionRetrieveView,
     InvoicePDFView,
     ProjectRemoveSubscriptionView,
+    CustomSubscriptionRequestCreateView,
 )
 
 urlpatterns = [
@@ -62,4 +63,7 @@ urlpatterns = [
          ProjectAddSubscriptionView.as_view()),
     path('project/<int:pk>/remove-future-subscription/',
          ProjectRemoveSubscriptionView.as_view()),
+
+    path('custom-subscription-request/create/',
+         CustomSubscriptionRequestCreateView.as_view()),
 ]

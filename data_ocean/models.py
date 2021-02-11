@@ -10,9 +10,11 @@ class DataOceanManager(models.Manager):
 
 
 class DataOceanModel(models.Model):
+    name = "No name field in model!"
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
-    deleted_at = models.DateTimeField(null=True, blank=True, default=None)
+    deleted_at = models.DateTimeField(null=True, blank=True, default=None, editable=False)
 
     objects = DataOceanManager()
     include_deleted_objects = models.Manager()
