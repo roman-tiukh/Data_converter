@@ -6,6 +6,7 @@ from payment_system.models import (
     Subscription,
     Invoice,
     Invitation,
+    CustomSubscriptionRequest,
 )
 
 
@@ -198,3 +199,13 @@ class ProjectSubscriptionSerializer(serializers.ModelSerializer):
             'is_grace_period', 'duration', 'grace_period',
         ]
         read_only_fields = fields
+
+
+class CustomSubscriptionRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomSubscriptionRequest
+        read_only_fields = ['is_processed', 'created_at']
+        fields = [
+            'id', 'first_name', 'last_name',
+            'email', 'phone', 'note',
+        ] + read_only_fields
