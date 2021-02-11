@@ -17,6 +17,7 @@ from payment_system.models import (
     Invoice,
     Invitation,
     ProjectSubscription,
+    CustomSubscriptionRequest,
 )
 from payment_system.serializers import (
     ProjectListSerializer,
@@ -27,6 +28,7 @@ from payment_system.serializers import (
     InvitationListSerializer,
     ProjectTokenSerializer,
     ProjectSubscriptionSerializer,
+    CustomSubscriptionRequestSerializer,
 )
 
 
@@ -292,3 +294,14 @@ class CurrentUserProjectTokenView(ProjectViewMixin, generics.GenericAPIView):
         self.check_object_permissions(request, project)
         serializer = self.get_serializer(project)
         return Response(serializer.data)
+
+
+class CustomSubscriptionRequestCreateView(generics.CreateAPIView):
+    permission_classes = [AllowAny]
+    queryset = CustomSubscriptionRequest.objects.all()
+    serializer_class = CustomSubscriptionRequestSerializer
+
+    def perform_create(self, serializer: CustomSubscriptionRequestSerializer):
+        if self.request.user.is_authenticated:
+            serializer.validated_data['user'] = self.request.user
+        super().perform_create(serializer)

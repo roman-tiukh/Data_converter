@@ -3,7 +3,7 @@ from django.contrib import messages
 from django import forms
 from django.utils import timezone
 
-from .models import Subscription, Invoice, ProjectSubscription, Project
+from .models import Subscription, Invoice, ProjectSubscription, Project, CustomSubscriptionRequest
 from rangefilter.filter import DateRangeFilter
 
 
@@ -234,6 +234,46 @@ class ProjectAdmin(PaymentSystemModelAdmin):
 
     def save_model(self, request, obj, form, change):
         return obj
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_add_permission(self, request):
+        return False
+
+
+@admin.register(CustomSubscriptionRequest)
+class CustomSubscriptionRequestAdmin(PaymentSystemModelAdmin):
+    list_display = (
+        'id',
+        'first_name',
+        'last_name',
+        'email',
+        'phone',
+        'created_at',
+        'is_processed',
+    )
+    list_display_links = ('first_name', 'last_name')
+    readonly_fields = (
+        'id',
+        'first_name',
+        'last_name',
+        'email',
+        'phone',
+        'note',
+        'user',
+    )
+    search_fields = (
+        'id',
+        'first_name',
+        'last_name',
+        'email',
+        'phone',
+    )
+    list_filter = (
+        'is_processed',
+        ('created_at', DateRangeFilter)
+    )
 
     def has_delete_permission(self, request, obj=None):
         return False

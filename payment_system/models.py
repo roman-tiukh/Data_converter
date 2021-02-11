@@ -637,3 +637,33 @@ class Invitation(DataOceanModel):
 
     class Meta:
         unique_together = [['email', 'project']]
+
+
+class CustomSubscriptionRequest(DataOceanModel):
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    email = models.EmailField()
+    phone = models.CharField(max_length=15, blank=True, default='')
+    note = models.TextField(blank=True, default='')
+
+    user = models.ForeignKey(
+        'users.DataOceanUser', on_delete=models.PROTECT,
+        blank=True, default=None, null=True,
+        related_name='custom_subscription_requests'
+    )
+
+    is_processed = models.BooleanField(blank=True, default=False)
+
+    @property
+    def full_name(self):
+        return f'{self.first_name} {self.last_name}'
+
+    def __str__(self):
+        return f'{self.full_name} <{self.email}>'
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        emails.new_custom_sub_request(self)
+
+    class Meta:
+        ordering = ['is_processed', '-created_at']

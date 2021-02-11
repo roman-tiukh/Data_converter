@@ -19,6 +19,7 @@ ignore-patterns=
 # Python code to execute, usually for sys.path manipulation such as
 # pygtk.require().
 #init-hook=
+init-hook="from pylint.config import find_pylintrc; import os, sys; sys.path.append(os.path.dirname(find_pylintrc()))"
 
 # Use multiple processes to speed up Pylint. Specifying 0 will auto-detect the
 # number of processors available to use.
@@ -141,7 +142,8 @@ disable=print-statement,
         comprehension-escape,
         missing-class-docstring,
         missing-module-docstring,
-        missing-function-docstring
+        missing-function-docstring,
+        signature-differs
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
