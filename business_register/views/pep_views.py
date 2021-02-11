@@ -3,6 +3,7 @@ from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
@@ -15,6 +16,9 @@ from business_register.serializers.company_and_pep_serializers import PepListSer
 from data_ocean.views import CachedViewSetMixin, RegisterViewMixin
 
 
+@method_decorator(name='retrieve', decorator=swagger_auto_schema(tags=['business register']))
+@method_decorator(name='list', decorator=swagger_auto_schema(tags=['business register']))
+@method_decorator(name='retrieve_by_source_id', decorator=swagger_auto_schema(tags=['business register']))
 class PepViewSet(RegisterViewMixin,
                  CachedViewSetMixin,
                  viewsets.ReadOnlyModelViewSet):
