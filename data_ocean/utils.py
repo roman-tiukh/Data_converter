@@ -64,8 +64,6 @@ def format_date_to_yymmdd(str_ddmmyy):
         if '/' in str_ddmmyy:
             str_ddmmyy = str_ddmmyy.replace("/", ".")
         return datetime.datetime.strptime(str_ddmmyy, "%d.%m.%Y").strftime("%Y-%m-%d")
-    else:
-        return
 
 
 # checking if exists, then converting to string
