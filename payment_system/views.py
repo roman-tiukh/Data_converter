@@ -324,5 +324,5 @@ class CurrentUserProjectTokenView(ProjectViewMixin, generics.GenericAPIView):
 #                 context={
 #                     'owner': project.owner,
 #                     'project': project,
-#
-
+#                 }
+#             )
