@@ -143,10 +143,7 @@ class ProjectDeleteUserView(ProjectViewMixin, generics.GenericAPIView):
 
     def delete(self, request, pk, user_id):
         project = self.get_object()
-
-        # validation inside remove_user() method ->
         project.delete_user(user_id=user_id)
-
         serializer = self.get_serializer(project)
         return Response(serializer.data)
 

@@ -152,10 +152,7 @@ class Project(DataOceanModel):
         u2p = self.user_projects.get(user_id=user_id)
         if u2p.role == UserProject.OWNER:
             raise ValidationError(_('You cannot delete an owner from his own project'))
-        if u2p.status == UserProject.DELETED:
-            raise ValidationError(_('User already deleted'))
-        u2p.status = UserProject.DELETED
-        u2p.save(update_fields=['status', 'updated_at'])
+        u2p.delete()
         emails.member_deleted(u2p.user, self)
 
     def disable(self):
@@ -427,11 +424,9 @@ class UserProject(DataOceanModel):
 
     ACTIVE = 'active'
     DEACTIVATED = 'deactivated'
-    DELETED = 'deleted'
     STATUSES = (
         (ACTIVE, 'Active'),
         (DEACTIVATED, "Deactivated"),
-        (DELETED, "Deleted"),
     )
 
     user = models.ForeignKey('users.DataOceanUser', on_delete=models.CASCADE,
