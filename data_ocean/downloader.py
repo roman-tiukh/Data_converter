@@ -1,5 +1,4 @@
 from abc import ABC
-import codecs
 from django.conf import settings
 from django.db import connections
 from django.utils import timezone
@@ -7,7 +6,6 @@ import logging
 import os
 import requests
 import subprocess
-import tempfile
 import zipfile
 
 # import psycopg2
