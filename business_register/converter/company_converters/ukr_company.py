@@ -758,6 +758,7 @@ class UkrCompanyDownloader(Downloader):
     unzip_required_file_sign = 'EDR_UO'
     unzip_after_download = True
     source_dataset_url = settings.BUSINESS_UKR_COMPANY_SOURCE_PACKAGE
+    LOCAL_FILE_NAME = settings.LOCAL_FILE_NAME_UO_FULL
 
     def get_source_file_url(self):
 
