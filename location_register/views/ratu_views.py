@@ -30,8 +30,8 @@ class RatuDistrictView(RegisterViewMixin,
     serializer_class = RatuDistrictSerializer
 
 
-#@method_decorator(name='retrieve', decorator=swagger_auto_schema(tags=['location register']))
-#@method_decorator(name='list', decorator=swagger_auto_schema(tags=['location register']))
+@method_decorator(name='retrieve', decorator=swagger_auto_schema(tags=['location register']))
+@method_decorator(name='list', decorator=swagger_auto_schema(tags=['location register']))
 class RatuCityView(RegisterViewMixin,
                    CachedViewSetMixin,
                    viewsets.ReadOnlyModelViewSet):
