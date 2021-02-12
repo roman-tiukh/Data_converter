@@ -11,6 +11,7 @@ from payment_system.views import (
     SubscriptionsListView,
     ProjectDeactivateUserView,
     ProjectActivateUserView,
+    ProjectDeleteUserView,
     ProjectInviteUserView,
     ProjectUserConfirmInviteView,
     InvitationListView,
@@ -22,6 +23,7 @@ from payment_system.views import (
     ProjectSubscriptionRetrieveView,
     InvoicePDFView,
     ProjectRemoveSubscriptionView,
+    CustomSubscriptionRequestCreateView,
 )
 
 urlpatterns = [
@@ -36,6 +38,7 @@ urlpatterns = [
 
     path('project/<int:pk>/deactivate-user/<int:user_id>/', ProjectDeactivateUserView.as_view()),
     path('project/<int:pk>/activate-user/<int:user_id>/', ProjectActivateUserView.as_view()),
+    path('project/<int:pk>/delete-user/<int:user_id>/', ProjectDeleteUserView.as_view()),
 
     path('project/<int:pk>/invite/', ProjectInviteUserView.as_view()),
     path('project/<int:pk>/cancel-invite/<int:invite_id>/', ProjectCancelInviteView.as_view()),
@@ -62,4 +65,7 @@ urlpatterns = [
          ProjectAddSubscriptionView.as_view()),
     path('project/<int:pk>/remove-future-subscription/',
          ProjectRemoveSubscriptionView.as_view()),
+
+    path('custom-subscription-request/create/',
+         CustomSubscriptionRequestCreateView.as_view()),
 ]

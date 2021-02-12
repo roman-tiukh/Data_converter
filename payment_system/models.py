@@ -71,7 +71,8 @@ class Project(DataOceanModel):
         default_subscription, created = Subscription.objects.get_or_create(
             is_default=True,
             defaults={
-                'requests_limit': 1000,
+                'requests_limit': 20,
+                'platform_requests_limit': 200,
                 'name': settings.DEFAULT_SUBSCRIPTION_NAME,
                 'grace_period': 30,
             },
@@ -147,6 +148,13 @@ class Project(DataOceanModel):
         u2p.status = UserProject.ACTIVE
         u2p.save(update_fields=['status', 'updated_at'])
         emails.member_activated(u2p.user, self)
+
+    def delete_user(self, user_id):
+        u2p = self.user_projects.get(user_id=user_id)
+        if u2p.role == UserProject.OWNER:
+            raise ValidationError(_('You cannot delete an owner from his own project'))
+        u2p.delete()
+        emails.member_deleted(u2p.user, self)
 
     def disable(self):
         for u2p in self.user_projects.all():
@@ -270,6 +278,7 @@ class Subscription(DataOceanModel):
     description = models.TextField(blank=True, default='')
     price = models.SmallIntegerField(default=0)
     requests_limit = models.IntegerField(help_text='Limit for API requests from the project')
+    platform_requests_limit = models.IntegerField(help_text='Limit for API requests from the project via platform')
     duration = models.SmallIntegerField(default=30, help_text='days')
     grace_period = models.SmallIntegerField(default=10, help_text='days')
     is_custom = models.BooleanField(
@@ -475,6 +484,9 @@ class ProjectSubscription(DataOceanModel):
     requests_left = models.IntegerField()
     requests_used = models.IntegerField(blank=True, default=0)
 
+    platform_requests_left = models.IntegerField()
+    platform_requests_used = models.IntegerField(blank=True, default=0)
+
     duration = models.SmallIntegerField(help_text='days')
     grace_period = models.SmallIntegerField(help_text='days')
 
@@ -537,6 +549,8 @@ class ProjectSubscription(DataOceanModel):
         self.is_grace_period = True
         self.requests_left = self.subscription.requests_limit
         self.requests_used = 0
+        self.platform_requests_left = self.subscription.platform_requests_limit
+        self.platform_requests_used = 0
         self.duration = self.subscription.duration
         self.grace_period = self.subscription.grace_period
         self.start_date = self.expiring_date
@@ -605,6 +619,7 @@ class ProjectSubscription(DataOceanModel):
     def save(self, *args, **kwargs):
         if not getattr(self, 'id', None):
             self.requests_left = self.subscription.requests_limit
+            self.platform_requests_left = self.subscription.platform_requests_limit
         self.validate_unique()
         super().save(*args, **kwargs)
 
@@ -629,3 +644,33 @@ class Invitation(DataOceanModel):
 
     class Meta:
         unique_together = [['email', 'project']]
+
+
+class CustomSubscriptionRequest(DataOceanModel):
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    email = models.EmailField()
+    phone = models.CharField(max_length=15, blank=True, default='')
+    note = models.TextField(blank=True, default='')
+
+    user = models.ForeignKey(
+        'users.DataOceanUser', on_delete=models.PROTECT,
+        blank=True, default=None, null=True,
+        related_name='custom_subscription_requests'
+    )
+
+    is_processed = models.BooleanField(blank=True, default=False)
+
+    @property
+    def full_name(self):
+        return f'{self.first_name} {self.last_name}'
+
+    def __str__(self):
+        return f'{self.full_name} <{self.email}>'
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        emails.new_custom_sub_request(self)
+
+    class Meta:
+        ordering = ['is_processed', '-created_at']

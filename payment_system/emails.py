@@ -3,13 +3,34 @@ from typing import TYPE_CHECKING
 from django.utils import translation
 
 if TYPE_CHECKING:
-    from payment_system.models import ProjectSubscription, Project, Subscription, UserProject, Invoice
+    from payment_system.models import (
+        ProjectSubscription,
+        Project,
+        Subscription,
+        UserProject,
+        Invoice,
+        CustomSubscriptionRequest,
+    )
 
 from django.conf import settings
 
 from data_converter.email_utils import send_template_mail
 from users.models import DataOceanUser
 from django.utils.translation import gettext_lazy as _, gettext
+
+
+def member_deleted(user: 'DataOceanUser', project: 'Project'):  # 6
+    with translation.override(user.language):
+        user.notify(message=gettext('You have been deleted from the project') + f' "{project.name}"')
+        send_template_mail(
+            to=[user.email],
+            subject=_('You were deleted from the project'),
+            template='payment_system/emails/member_deleted.html',
+            context={
+                'user': user,
+                'project': project,
+            },
+        )
 
 
 def member_activated(user: 'DataOceanUser', project: 'Project'):  # 5
@@ -225,3 +246,14 @@ def tomorrow_payment_day(project_subscription: 'ProjectSubscription'):  # 8
                 ),
             ],
         )
+
+
+def new_custom_sub_request(custom_subscription_request: 'CustomSubscriptionRequest'):
+    send_template_mail(
+        to=[settings.SUPPORT_EMAIL],
+        subject=f'Запит на тарифний план Custom від {custom_subscription_request.full_name}',
+        template='payment_system/emails/new_custom_sub_request.html',
+        context={
+            'csr': custom_subscription_request,
+        },
+    )

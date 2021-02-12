@@ -1,4 +1,6 @@
+from django.utils.decorators import method_decorator
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets
 from rest_framework.filters import SearchFilter
 
@@ -10,6 +12,8 @@ from location_register.serializers.ratu_serializers import RatuRegionSerializer,
     RatuStreetSerializer
 
 
+@method_decorator(name='retrieve', decorator=swagger_auto_schema(tags=['location register']))
+@method_decorator(name='list', decorator=swagger_auto_schema(tags=['location register']))
 class RatuRegionView(RegisterViewMixin,
                      CachedViewSetMixin,
                      viewsets.ReadOnlyModelViewSet):
@@ -17,6 +21,8 @@ class RatuRegionView(RegisterViewMixin,
     serializer_class = RatuRegionSerializer
 
 
+@method_decorator(name='retrieve', decorator=swagger_auto_schema(tags=['location register']))
+@method_decorator(name='list', decorator=swagger_auto_schema(tags=['location register']))
 class RatuDistrictView(RegisterViewMixin,
                        CachedViewSetMixin,
                        viewsets.ReadOnlyModelViewSet):
@@ -24,6 +30,8 @@ class RatuDistrictView(RegisterViewMixin,
     serializer_class = RatuDistrictSerializer
 
 
+@method_decorator(name='retrieve', decorator=swagger_auto_schema(tags=['location register']))
+@method_decorator(name='list', decorator=swagger_auto_schema(tags=['location register']))
 class RatuCityView(RegisterViewMixin,
                    CachedViewSetMixin,
                    viewsets.ReadOnlyModelViewSet):
@@ -31,6 +39,8 @@ class RatuCityView(RegisterViewMixin,
     serializer_class = RatuCitySerializer
 
 
+@method_decorator(name='retrieve', decorator=swagger_auto_schema(tags=['location register']))
+@method_decorator(name='list', decorator=swagger_auto_schema(tags=['location register']))
 class RatuCityDistrictView(RegisterViewMixin,
                            CachedViewSetMixin,
                            viewsets.ReadOnlyModelViewSet):
@@ -38,6 +48,8 @@ class RatuCityDistrictView(RegisterViewMixin,
     serializer_class = RatuCityDistrictSerializer
 
 
+@method_decorator(name='retrieve', decorator=swagger_auto_schema(tags=['location register']))
+@method_decorator(name='list', decorator=swagger_auto_schema(tags=['location register']))
 class RatuStreetView(RegisterViewMixin,
                      CachedViewSetMixin,
                      viewsets.ReadOnlyModelViewSet):

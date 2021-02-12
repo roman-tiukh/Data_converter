@@ -169,13 +169,12 @@ SWAGGER_SETTINGS = {
             "name": "Authorization: DataOcean <project_key>",
             "in": "header",
             "description": (
-                "You will find an access token in your profile, here is an example of a token:94c6d542af1c4c4942e51"
-                "df6с4d47fbd12fb3dea<br/>In order to access the API, you need to add a regular title called "
-                "'Authorization' meaning 'DataOcean 94c6d542af1c4c4942e51df6с4d47fbd12fb3dea' to your HTTP request by"
-                "substituting your token.<br/>Final title: Authorization: DataOcean 94c6d542af1c4c4942e51df6с4d47fbd12fb3dea"
+                "You will find an access token in your profile. In order to access the API, you need to add a regular title<br/>"
+                "called 'Authorization' meaning 'DataOcean &lt; token &gt;' to your HTTP request by substituting your token."
+                "<br/>Final title:<br/><b>Authorization: DataOcean 94c6d542af1c4c4942e51df6с4d47fbd12fb3dea<b/>"
             ),
         },
-    }
+    },
 }
 
 SITE_ID = 1
@@ -260,6 +259,7 @@ DEFAULT_PROJECT_DESCRIPTION = 'This is auto created default project'
 
 # PROJECT_TOKEN_KEYWORD - its a token prefix, example:
 # Authorization: DataOcean <project_token>
+PROJECT_PLATFORM_TOKEN_KEYWORD = 'Platform'
 PROJECT_TOKEN_KEYWORD = 'DataOcean'
 
 # DATASET`S CONSTANTS ==================

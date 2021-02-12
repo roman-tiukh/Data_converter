@@ -3,10 +3,11 @@ from business_register.models.pep_models import Pep
 from business_register.models.company_models import Company
 from business_register.models.fop_models import Fop
 from business_register.models.kved_models import Kved
+from data_ocean.admin import RegisterModelAdmin
 
 
 @admin.register(Pep)
-class PepAdmin(admin.ModelAdmin):
+class PepAdmin(RegisterModelAdmin):
     list_display = (
         'fullname',
         'pep_type'
@@ -15,18 +16,9 @@ class PepAdmin(admin.ModelAdmin):
     ordering = ('updated_at',)
     list_filter = ('is_pep', 'pep_type', 'is_dead')
 
-    def has_change_permission(self, request, obj=None):
-        return False
-
-    def has_add_permission(self, request):
-        return False
-
-    def has_delete_permission(self, request, obj=None):
-        return False
-
 
 @admin.register(Company)
-class CompanyAdmin(admin.ModelAdmin):
+class CompanyAdmin(RegisterModelAdmin):
     list_display = (
         'name',
         'edrpou',
@@ -36,18 +28,9 @@ class CompanyAdmin(admin.ModelAdmin):
     ordering = ('updated_at',)
     list_filter = ('company_type', 'country', 'source', 'status')
 
-    def has_change_permission(self, request, obj=None):
-        return False
-
-    def has_add_permission(self, request):
-        return False
-
-    def has_delete_permission(self, request, obj=None):
-        return False
-
 
 @admin.register(Fop)
-class FopAdmin(admin.ModelAdmin):
+class FopAdmin(RegisterModelAdmin):
     list_display = (
         'fullname',
         'status',
@@ -60,7 +43,7 @@ class FopAdmin(admin.ModelAdmin):
 
 
 @admin.register(Kved)
-class KvedAdmin(admin.ModelAdmin):
+class KvedAdmin(RegisterModelAdmin):
     list_display = (
         'code',
         'name'
@@ -68,12 +51,3 @@ class KvedAdmin(admin.ModelAdmin):
     search_fields = ('name', 'code')
     ordering = ('updated_at',)
     list_filter = ('is_valid',)
-
-    def has_change_permission(self, request, obj=None):
-        return False
-
-    def has_add_permission(self, request):
-        return False
-
-    def has_delete_permission(self, request, obj=None):
-        return False

@@ -3,8 +3,27 @@ from django.contrib import messages
 from django import forms
 from django.utils import timezone
 
-from .models import Subscription, Invoice, ProjectSubscription, Project
+from .models import Subscription, Invoice, ProjectSubscription, Project, CustomSubscriptionRequest
 from rangefilter.filter import DateRangeFilter
+
+
+class PaymentSystemModelAdmin(admin.ModelAdmin):
+    def has_module_permission(self, request):
+        return request.user.is_authenticated and (
+            request.user.is_superuser or request.user.can_admin_payment_system
+        )
+
+    def has_view_permission(self, request, obj=None):
+        return self.has_module_permission(request)
+
+    def has_change_permission(self, request, obj=None):
+        return self.has_module_permission(request)
+
+    def has_add_permission(self, request):
+        return self.has_module_permission(request)
+
+    def has_delete_permission(self, request, obj=None):
+        return self.has_module_permission(request)
 
 
 def set_default_subscription(model_admin, request, queryset):
@@ -17,7 +36,7 @@ set_default_subscription.short_description = 'Set subscription as default'
 
 
 @admin.register(Subscription)
-class SubscriptionAdmin(admin.ModelAdmin):
+class SubscriptionAdmin(PaymentSystemModelAdmin):
     list_display = (
         'name',
         'price',
@@ -30,17 +49,18 @@ class SubscriptionAdmin(admin.ModelAdmin):
     list_filter = (
         'is_custom',
         'is_default',
-        'requests_limit'
+        'requests_limit',
     )
     search_fields = (
         'name',
-        'price'
+        'price',
     )
     fields = (
         'name',
         'description',
         'price',
         'requests_limit',
+        'platform_requests_limit',
         'duration',
         'grace_period',
         'is_custom',
@@ -59,7 +79,7 @@ class SubscriptionAdmin(admin.ModelAdmin):
 
 
 @admin.register(Invoice)
-class InvoiceAdmin(admin.ModelAdmin):
+class InvoiceAdmin(PaymentSystemModelAdmin):
     def get_owner(self, obj: Invoice):
         return obj.project_subscription.project.owner
     get_owner.short_description = 'Owner'
@@ -171,7 +191,7 @@ class ProjectForm(forms.ModelForm):
 
 
 @admin.register(Project)
-class ProjectAdmin(admin.ModelAdmin):
+class ProjectAdmin(PaymentSystemModelAdmin):
     def get_expiring_date(self, obj: Project):
         return obj.active_p2s.expiring_date
     get_expiring_date.short_description = 'Expiring date'
@@ -214,6 +234,46 @@ class ProjectAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         return obj
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_add_permission(self, request):
+        return False
+
+
+@admin.register(CustomSubscriptionRequest)
+class CustomSubscriptionRequestAdmin(PaymentSystemModelAdmin):
+    list_display = (
+        'id',
+        'first_name',
+        'last_name',
+        'email',
+        'phone',
+        'created_at',
+        'is_processed',
+    )
+    list_display_links = ('first_name', 'last_name')
+    readonly_fields = (
+        'id',
+        'first_name',
+        'last_name',
+        'email',
+        'phone',
+        'note',
+        'user',
+    )
+    search_fields = (
+        'id',
+        'first_name',
+        'last_name',
+        'email',
+        'phone',
+    )
+    list_filter = (
+        'is_processed',
+        ('created_at', DateRangeFilter)
+    )
 
     def has_delete_permission(self, request, obj=None):
         return False

@@ -136,9 +136,9 @@ class CompanyConverter(BusinessConverter):
                 'united kingdom societas',
             'консорціум великобританії': 'united kingdom economic interest grouping',
         }
-        self.all_ukr_company_type_dict = self.put_all_objects_to_dict('name', "business_register",
+        self.all_ukr_company_type_dict = self.put_objects_to_dict('name', "business_register",
                                                                       "CompanyType")
-        self.all_eng_company_type_dict = self.put_all_objects_to_dict('name_eng',
+        self.all_eng_company_type_dict = self.put_objects_to_dict('name_eng',
                                                                       "business_register",
                                                                       "CompanyType")
         super().__init__()

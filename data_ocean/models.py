@@ -3,10 +3,21 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 
+class DataOceanManager(models.Manager):
+    # exclude soft-deleted objects from queryset
+    def get_queryset(self):
+        return super().get_queryset().exclude(deleted_at__isnull=False)
+
+
 class DataOceanModel(models.Model):
+    name = "No name field in model!"
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
-    deleted_at = models.DateTimeField(null=True, blank=True, default=None)
+    deleted_at = models.DateTimeField(null=True, blank=True, default=None, editable=False)
+
+    objects = DataOceanManager()
+    include_deleted_objects = models.Manager()
 
     @property
     def is_deleted(self):
