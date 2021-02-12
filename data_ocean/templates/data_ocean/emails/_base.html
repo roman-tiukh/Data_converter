@@ -14,7 +14,7 @@
   </head>
   <body>
     <div class="content" style="max-width: 500px;padding: 10px 50px;margin: 0 auto;">
-      <img src="https://dataocean.us/static/img/logo.png" alt="DataOcean" width=106>
+      <img src="{% get_backend_url %}{% static 'logo.png' %}" alt="DataOcean" width=106>
       <hr style="margin-top: 15px;">
 
       {% block content %}{% endblock %}
