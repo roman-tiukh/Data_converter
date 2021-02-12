@@ -9,8 +9,8 @@ from business_register.serializers.kved_serializers import KvedDetailSerializer
 from data_ocean.views import RegisterViewMixin, CachedViewSetMixin
 
 
-@method_decorator(name='retrieve', decorator=swagger_auto_schema(tags=['business register', 'kved']))
-@method_decorator(name='list', decorator=swagger_auto_schema(tags=['business register', 'kved']))
+@method_decorator(name='retrieve', decorator=swagger_auto_schema(tags=['kved']))
+@method_decorator(name='list', decorator=swagger_auto_schema(tags=['kved']))
 class KvedViewSet(RegisterViewMixin,
                   CachedViewSetMixin,
                   viewsets.ReadOnlyModelViewSet):

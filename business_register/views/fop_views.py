@@ -9,8 +9,8 @@ from data_ocean.views import CachedViewSetMixin, RegisterViewMixin
 from rest_framework.filters import SearchFilter
 
 
-@method_decorator(name='retrieve', decorator=swagger_auto_schema(tags=['business register', 'fop']))
-@method_decorator(name='list', decorator=swagger_auto_schema(tags=['business register', 'fop']))
+@method_decorator(name='retrieve', decorator=swagger_auto_schema(tags=['business register']))
+@method_decorator(name='list', decorator=swagger_auto_schema(tags=['business register']))
 class FopViewSet(RegisterViewMixin,
                  CachedViewSetMixin,
                  viewsets.ReadOnlyModelViewSet):
