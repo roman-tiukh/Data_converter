@@ -1,0 +1,13 @@
+{% extends "data_ocean/emails/_base.html" %}
+
+{% block content %}
+  <p style="font-family: Roboto;font-weight: normal;font-size: 16px;line-height: 24px;margin-bottom: 30px;">
+    <br>
+    <br>
+    <b>Ім'я:</b> {{ csr.full_name }} <br>
+    <b>Email:</b> {{ csr.email }} <br>
+    <b>Телефон:</b> {{ csr.phone }} <br>
+    <b>Примітка:</b> <br>
+    {{ csr.note }}
+  </p>
+{% endblock content %}

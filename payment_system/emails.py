@@ -3,7 +3,14 @@ from typing import TYPE_CHECKING
 from django.utils import translation
 
 if TYPE_CHECKING:
-    from payment_system.models import ProjectSubscription, Project, Subscription, UserProject, Invoice
+    from payment_system.models import (
+        ProjectSubscription,
+        Project,
+        Subscription,
+        UserProject,
+        Invoice,
+        CustomSubscriptionRequest,
+    )
 
 from django.conf import settings
 
@@ -225,3 +232,14 @@ def tomorrow_payment_day(project_subscription: 'ProjectSubscription'):  # 8
                 ),
             ],
         )
+
+
+def new_custom_sub_request(custom_subscription_request: 'CustomSubscriptionRequest'):
+    send_template_mail(
+        to=[settings.SUPPORT_EMAIL],
+        subject=f'Запит на тарифний план Custom від {custom_subscription_request.full_name}',
+        template='payment_system/emails/new_custom_sub_request.html',
+        context={
+            'csr': custom_subscription_request,
+        },
+    )
