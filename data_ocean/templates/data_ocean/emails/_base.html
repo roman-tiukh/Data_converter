@@ -1,6 +1,7 @@
 {% load i18n %}
 {% load static %}
 {% load full_static %}
+{% load settings %}
 
 <!DOCTYPE html>
 <html>
@@ -37,7 +38,7 @@
               style="width: 20px;margin-right: 8px;display:inline;" width="20" height="20"
               alt="Facebook"
           ></a>
-        <a href="mailto:info@dataocean.us">
+        <a href="mailto:{% get_support_email %}">
           <img
               src="{% get_backend_url %}{% static 'social/mail.png' %}"
               style="width: 20px;display: inline;" width="20" height="20"
