@@ -236,7 +236,7 @@ def tomorrow_payment_day(project_subscription: 'ProjectSubscription'):  # 8
 
 def new_custom_sub_request(custom_subscription_request: 'CustomSubscriptionRequest'):
     send_template_mail(
-        to=['info@dataocean.us'],
+        to=[settings.SUPPORT_EMAIL],
         subject=f'Запит на тарифний план Custom від {custom_subscription_request.full_name}',
         template='payment_system/emails/new_custom_sub_request.html',
         context={
