@@ -19,6 +19,20 @@ from users.models import DataOceanUser
 from django.utils.translation import gettext_lazy as _, gettext
 
 
+def member_deleted(user: 'DataOceanUser', project: 'Project'):  # 6
+    with translation.override(user.language):
+        user.notify(message=gettext('You have been deleted from the project') + f' "{project.name}"')
+        send_template_mail(
+            to=[user.email],
+            subject=_('You were deleted from the project'),
+            template='payment_system/emails/member_deleted.html',
+            context={
+                'user': user,
+                'project': project,
+            },
+        )
+
+
 def member_activated(user: 'DataOceanUser', project: 'Project'):  # 5
     with translation.override(user.language):
         user.notify(

@@ -149,6 +149,13 @@ class Project(DataOceanModel):
         u2p.save(update_fields=['status', 'updated_at'])
         emails.member_activated(u2p.user, self)
 
+    def delete_user(self, user_id):
+        u2p = self.user_projects.get(user_id=user_id)
+        if u2p.role == UserProject.OWNER:
+            raise ValidationError(_('You cannot delete an owner from his own project'))
+        u2p.delete()
+        emails.member_deleted(u2p.user, self)
+
     def disable(self):
         for u2p in self.user_projects.all():
             if u2p.is_default:
