@@ -16,9 +16,9 @@ from business_register.serializers.company_and_pep_serializers import PepListSer
 from data_ocean.views import CachedViewSetMixin, RegisterViewMixin
 
 
-@method_decorator(name='retrieve', decorator=swagger_auto_schema(tags=['business register']))
-@method_decorator(name='list', decorator=swagger_auto_schema(tags=['business register']))
-@method_decorator(name='retrieve_by_source_id', decorator=swagger_auto_schema(tags=['business register']))
+@method_decorator(name='retrieve', decorator=swagger_auto_schema(tags=['business register', 'pep']))
+@method_decorator(name='list', decorator=swagger_auto_schema(tags=['business register', 'pep']))
+@method_decorator(name='retrieve_by_source_id', decorator=swagger_auto_schema(tags=['business register', 'pep']))
 class PepViewSet(RegisterViewMixin,
                  CachedViewSetMixin,
                  viewsets.ReadOnlyModelViewSet):
