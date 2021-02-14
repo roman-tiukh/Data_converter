@@ -61,6 +61,7 @@ class ProjectListSerializer(serializers.ModelSerializer):
     status = serializers.SerializerMethodField(read_only=True)
     owner = serializers.CharField(source='owner.get_full_name', read_only=True)
     users_count = serializers.SerializerMethodField(read_only=True)
+    active_users_count = serializers.SerializerMethodField(read_only=True)
 
     active_subscription = SubscriptionToProjectSerializer(source='active_p2s', read_only=True)
 
@@ -76,12 +77,19 @@ class ProjectListSerializer(serializers.ModelSerializer):
     def get_users_count(self, obj):
         return obj.users.count()
 
+    def get_active_users_count(self, obj):
+        active = 0
+        for one in obj.users.all():
+            if obj.user_projects.get(user=one).status == 'active':
+                active += 1
+        return active
+
     class Meta:
         model = Project
         fields = [
             'id', 'name', 'description', 'is_active',
             'is_default', 'role', 'status', 'owner',
-            'users_count', 'active_subscription', 'token',
+            'users_count', 'active_users_count', 'active_subscription', 'token',
         ]
         read_only_fields = fields
 
