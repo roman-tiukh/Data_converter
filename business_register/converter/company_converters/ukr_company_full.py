@@ -723,8 +723,6 @@ class UkrCompanyFullConverter(CompanyConverter):
             company_type = record.xpath('OPF')[0].text
             if company_type:
                 company_type = self.save_or_get_company_type(company_type, 'uk')
-            else:
-                company_type.id = None
             status = self.save_or_get_status(record.xpath('STAN')[0].text)
             bylaw = self.save_or_get_bylaw(record.xpath('STATUTE')[0].text)
             authority = record.xpath('CURRENT_AUTHORITY')[0].text
@@ -782,8 +780,12 @@ class UkrCompanyFullConverter(CompanyConverter):
                 if company.short_name != short_name:
                     company.short_name = short_name
                     update_fields.append('short_name')
-                if company.company_type_id != company_type.id:
-                    company.company_type = company_type
+                if company_type:
+                    if company.company_type_id != company_type.id:
+                        company.company_type = company_type
+                        update_fields.append('company_type')
+                elif company.company_type_id:
+                    company.company_type = None
                     update_fields.append('company_type')
                 if company.authorized_capital != authorized_capital:
                     company.authorized_capital = authorized_capital
