@@ -11,6 +11,7 @@ from business_register.models.company_models import (
 from data_ocean.converter import BulkCreateManager
 from data_ocean.utils import (cut_first_word, format_date_to_yymmdd, get_first_word,
                               to_lower_string_if_exists)
+from location_register.converter.address import AddressConverter
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -39,6 +40,7 @@ class UkrCompanyFullConverter(CompanyConverter):
         self.company_to_predecessor_to_dict = {}
         self.assignee_to_dict = {}
         self.exchange_data_to_dict = {}
+        self.company_country = AddressConverter().save_or_get_country('Ukraine')
         super().__init__()
 
     def save_or_get_bylaw(self, bylaw_from_record):
@@ -517,7 +519,7 @@ class UkrCompanyFullConverter(CompanyConverter):
             already_stored = False
             if len(already_stored_exchange_data):
                 for stored_exchange_data in already_stored_exchange_data:
-                    if stored_exchange_data.authority == authority and stored_exchange_data.start_date == start_date:
+                    if stored_exchange_data.authority_id == authority.id and stored_exchange_data.start_date == start_date:
                         already_stored = True
                         update_fields = []
                         if stored_exchange_data.start_number != start_number:
@@ -567,7 +569,7 @@ class UkrCompanyFullConverter(CompanyConverter):
                 predecessor = self.save_or_get_predecessor(item)
                 if len(already_stored_company_to_predecessors):
                     for stored_predecessor in already_stored_company_to_predecessors:
-                        if stored_predecessor.predecessor == predecessor:
+                        if stored_predecessor.predecessor_id == predecessor.id:
                             already_stored = True
                             already_stored_company_to_predecessors.remove(stored_predecessor)
                             break
@@ -681,7 +683,7 @@ class UkrCompanyFullConverter(CompanyConverter):
             if record.xpath('NAME')[0].text:
                 name = record.xpath('NAME')[0].text.lower()
             else:
-                name = None
+                name = ''
             edrpou = record.xpath('EDRPOU')[0].text
             if not edrpou:
                 continue
@@ -721,11 +723,14 @@ class UkrCompanyFullConverter(CompanyConverter):
             company_type = record.xpath('OPF')[0].text
             if company_type:
                 company_type = self.save_or_get_company_type(company_type, 'uk')
+            else:
+                company_type.id = None
             status = self.save_or_get_status(record.xpath('STAN')[0].text)
             bylaw = self.save_or_get_bylaw(record.xpath('STATUTE')[0].text)
             authority = record.xpath('CURRENT_AUTHORITY')[0].text
             if authority:
                 authority = self.save_or_get_authority(authority)
+            source = Company.UKRAINE_REGISTER
 
             company = Company.objects.filter(code=code).first()
 
@@ -735,6 +740,7 @@ class UkrCompanyFullConverter(CompanyConverter):
                     short_name=short_name,
                     company_type=company_type,
                     edrpou=edrpou,
+                    country=self.company_country,
                     address=address,
                     authorized_capital=authorized_capital,
                     status=status,
@@ -743,6 +749,7 @@ class UkrCompanyFullConverter(CompanyConverter):
                     registration_info=registration_info,
                     contact_info=contact_info,
                     authority=authority,
+                    source=source,
                     code=code
                 )
                 self.bulk_manager.add(company)
@@ -775,7 +782,7 @@ class UkrCompanyFullConverter(CompanyConverter):
                 if company.short_name != short_name:
                     company.short_name = short_name
                     update_fields.append('short_name')
-                if company.company_type != company_type:
+                if company.company_type_id != company_type.id:
                     company.company_type = company_type
                     update_fields.append('company_type')
                 if company.authorized_capital != authorized_capital:
@@ -784,10 +791,10 @@ class UkrCompanyFullConverter(CompanyConverter):
                 if company.address != address:
                     company.address = address
                     update_fields.append('address')
-                if company.status != status:
+                if company.status_id != status.id:
                     company.status = status
                     update_fields.append('status')
-                if company.bylaw != bylaw:
+                if company.bylaw_id != bylaw.id:
                     company.bylaw = bylaw
                     update_fields.append('bylaw')
                 if to_lower_string_if_exists(company.registration_date) != registration_date:
@@ -799,9 +806,15 @@ class UkrCompanyFullConverter(CompanyConverter):
                 if company.contact_info != contact_info:
                     company.contact_info = contact_info
                     update_fields.append('contact_info')
-                if company.authority != authority:
+                if company.authority_id != authority.id:
                     company.authority = authority
                     update_fields.append('authority')
+                if company.country_id != self.company_country.id:
+                    company.country = self.company_country
+                    update_fields.append('country')
+                if company.source != source:
+                    company.source = source
+                    update_fields.append('source')
                 if update_fields:
                     update_fields.append('updated_at')
                     company.save(update_fields=update_fields)
