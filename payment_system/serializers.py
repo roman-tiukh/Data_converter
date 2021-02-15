@@ -74,11 +74,8 @@ class ProjectListSerializer(serializers.ModelSerializer):
         return obj.user_projects.get(user=self.context['request'].user).status
 
     def get_users_count(self, obj):
-        active = 0
-        for one in obj.users.all():
-            if obj.user_projects.get(user=one).status == 'active':
-                active += 1
-        return active
+        return obj.users.filter(user_projects__status=UserProject.ACTIVE).count()
+
 
     class Meta:
         model = Project
