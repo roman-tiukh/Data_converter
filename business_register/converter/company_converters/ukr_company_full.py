@@ -723,7 +723,9 @@ class UkrCompanyFullConverter(CompanyConverter):
                 company_type = self.save_or_get_company_type(company_type, 'uk')
             status = self.save_or_get_status(record.xpath('STAN')[0].text)
             bylaw = self.save_or_get_bylaw(record.xpath('STATUTE')[0].text)
-            authority = self.save_or_get_authority(record.xpath('CURRENT_AUTHORITY')[0].text)
+            authority = record.xpath('CURRENT_AUTHORITY')[0].text
+            if authority:
+                authority = self.save_or_get_authority(authority)
 
             company = Company.objects.filter(code=code).first()
 
