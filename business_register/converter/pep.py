@@ -619,24 +619,16 @@ class PepConverterFromDB(Converter):
             first_name = pep_data[2].lower()
             middle_name = pep_data[3].lower()
             fullname = f'{last_name} {first_name} {middle_name}'
-            fullname_eng = f'{pep_data[4]} {pep_data[5]} {pep_data[6]}'.lower()
             fullname_transcriptions_eng = pep_data[7].lower()
             is_pep = pep_data[8]
             date_of_birth = to_lower_string_if_exists(pep_data[9])
             place_of_birth = to_lower_string_if_exists(pep_data[10])
-            place_of_birth_eng = to_lower_string_if_exists(pep_data[11])
             sanctions = pep_data[12]
-            sanctions_eng = pep_data[13]
             criminal_record = pep_data[14]
-            criminal_record_eng = pep_data[15]
             assets_info = pep_data[16]
-            assets_info_eng = pep_data[17]
             criminal_proceedings = pep_data[18]
-            criminal_proceedings_eng = pep_data[19]
             wanted = pep_data[20]
-            wanted_eng = pep_data[21]
             info = pep_data[22]
-            info_eng = pep_data[23]
             pep_type_number = pep_data[24]
             pep_type = self.PEP_TYPES.get(pep_type_number) if pep_type_number else None
             reason_of_termination_number = to_lower_string_if_exists(pep_data[25])
@@ -652,23 +644,15 @@ class PepConverterFromDB(Converter):
                     middle_name=middle_name,
                     last_name=last_name,
                     fullname=fullname,
-                    fullname_eng=fullname_eng,
                     fullname_transcriptions_eng=fullname_transcriptions_eng,
                     info=info,
-                    info_eng=info_eng,
                     sanctions=sanctions,
-                    sanctions_eng=sanctions_eng,
                     criminal_record=criminal_record,
-                    criminal_record_eng=criminal_record_eng,
                     assets_info=assets_info,
-                    assets_info_eng=assets_info_eng,
                     criminal_proceedings=criminal_proceedings,
-                    criminal_proceedings_eng=criminal_proceedings_eng,
                     wanted=wanted,
-                    wanted_eng=wanted_eng,
                     date_of_birth=date_of_birth,
                     place_of_birth=place_of_birth,
-                    place_of_birth_eng=place_of_birth_eng,
                     is_pep=is_pep,
                     pep_type=pep_type,
                     is_dead=is_dead,
@@ -694,48 +678,27 @@ class PepConverterFromDB(Converter):
                 if pep.info != info:
                     pep.info = info
                     update_fields.append('info')
-                if pep.info_eng != info_eng:
-                    pep.info_eng = info_eng
-                    update_fields.append('info_eng')
                 if pep.sanctions != sanctions:
                     pep.sanctions = sanctions
                     update_fields.append('sanctions')
-                if pep.sanctions_eng != sanctions_eng:
-                    pep.sanctions_eng = sanctions_eng
-                    update_fields.append('sanctions_eng')
                 if pep.criminal_record != criminal_record:
                     pep.criminal_record = criminal_record
                     update_fields.append('criminal_record')
-                if pep.criminal_record_eng != criminal_record_eng:
-                    pep.criminal_record_eng = criminal_record_eng
-                    update_fields.append('criminal_record_eng')
                 if pep.assets_info != assets_info:
                     pep.assets_info = assets_info
                     update_fields.append('assets_info')
-                if pep.assets_info_eng != assets_info_eng:
-                    pep.assets_info_eng = assets_info_eng
-                    update_fields.append('assets_info_eng')
                 if pep.criminal_proceedings != criminal_proceedings:
                     pep.criminal_proceedings = criminal_proceedings
                     update_fields.append('criminal_proceedings')
-                if pep.criminal_proceedings_eng != criminal_proceedings_eng:
-                    pep.criminal_proceedings_eng = criminal_proceedings_eng
-                    update_fields.append('criminal_proceedings_eng')
                 if pep.wanted != wanted:
                     pep.wanted = wanted
                     update_fields.append('wanted')
-                if pep.wanted_eng != wanted_eng:
-                    pep.wanted_eng = wanted_eng
-                    update_fields.append('wanted_eng')
                 if pep.date_of_birth != date_of_birth:
                     pep.date_of_birth = date_of_birth
                     update_fields.append('date_of_birth')
                 if pep.place_of_birth != place_of_birth:
                     pep.place_of_birth = place_of_birth
                     update_fields.append('place_of_birth')
-                if pep.place_of_birth_eng != place_of_birth_eng:
-                    pep.place_of_birth_eng = place_of_birth_eng
-                    update_fields.append('place_of_birth_eng')
                 if pep.is_pep != is_pep:
                     pep.is_pep = is_pep
                     update_fields.append('is_pep')
