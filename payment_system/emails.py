@@ -10,6 +10,7 @@ if TYPE_CHECKING:
         UserProject,
         Invoice,
         CustomSubscriptionRequest,
+        Invitation,
     )
 
 from django.conf import settings
@@ -78,7 +79,9 @@ def membership_confirmed(user: 'DataOceanUser', member: DataOceanUser):  # 3
         )
 
 
-def new_invitation(invited_email: str, project: 'Project'):  # 2
+def new_invitation(invitation: 'Invitation'):  # 2
+    invited_email = invitation.email
+    project = invitation.project
     user = DataOceanUser.objects.filter(email=invited_email).first()
     if user:
         user.notify(

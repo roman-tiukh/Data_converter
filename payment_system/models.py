@@ -38,6 +38,9 @@ class Project(DataOceanModel):
     def frontend_link(self):
         return f'{self.frontend_projects_link}{self.id}/'
 
+    def __str__(self):
+        return f'{self.name} of {self.owner}'
+
     def save(self, *args, **kwargs):
         if not self.token:
             self.generate_new_token()
@@ -103,8 +106,7 @@ class Project(DataOceanModel):
         if not created:
             invitation.deleted_at = None
             invitation.save(update_fields=['deleted_at', 'updated_at'])
-
-        emails.new_invitation(email, self)
+            invitation.send()
 
     def _check_user_invitation(self, user):
         try:
@@ -656,6 +658,13 @@ class Invitation(DataOceanModel):
     # who_invited = models.ForeignKey('users.DataOceanUser', models.CASCADE,
     #                                 related_name='who_invitations')
 
+    def send(self):
+        if not self.is_deleted:
+            emails.new_invitation(self)
+
+    def __str__(self):
+        return f'Invite {self.email} on {self.project}'
+
     class Meta:
         unique_together = [['email', 'project']]
 
@@ -688,5 +697,3 @@ class CustomSubscriptionRequest(DataOceanModel):
 
     class Meta:
         ordering = ['is_processed', '-created_at']
-        verbose_name = _('invitation')
-        verbose_name_plural = _('invitations')
