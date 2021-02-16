@@ -214,9 +214,7 @@ class Converter:
 
             records.append(elem)
             records_len += 1
-            if records_len < self.CHUNK_SIZE:
-                i += 1
-            else:
+            if records_len >= self.CHUNK_SIZE:
                 # print(f'>>> Start save to db records {chunk_start_index}-{i}')
                 try:
                     self.save_to_db(records)
@@ -241,6 +239,7 @@ class Converter:
                         del ancestor.getparent()[0]
 
                 print('>>> Saved successfully')
+            i += 1
         if records_len:
             self.save_to_db(records)
 
