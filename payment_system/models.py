@@ -667,6 +667,8 @@ class Invitation(DataOceanModel):
 
     class Meta:
         unique_together = [['email', 'project']]
+        verbose_name = _('invitation')
+        verbose_name_plural = _('invitations')
 
 
 class CustomSubscriptionRequest(DataOceanModel):
@@ -697,3 +699,6 @@ class CustomSubscriptionRequest(DataOceanModel):
 
     class Meta:
         ordering = ['is_processed', '-created_at']
+        verbose_name = _('custom subscription request')
+        verbose_name_plural = _('custom subscription requests')
+
