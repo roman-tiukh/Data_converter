@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-02-16 09:27+0000\n"
+"POT-Creation-Date: 2021-02-16 14:06+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -30,7 +30,7 @@ msgstr "Вас видалили із проєкту"
 msgid "You were deleted from the project"
 msgstr "Вас видалили з проєкту"
 
-#: payment_system/emails.py:40 payment_system/management/commands/notify.py:16
+#: payment_system/emails.py:40
 #: payment_system/templates/payment_system/emails/member_activated.html:9
 msgid "You have been restored an access to the project"
 msgstr "Вам відновлено доступ до проєкту"
@@ -312,6 +312,22 @@ msgstr "У проєкті лише один {} тарифний план"
 msgid "email"
 msgstr "email"
 
+#: payment_system/models.py:670
+msgid "invitation"
+msgstr "запрошення"
+
+#: payment_system/models.py:671
+msgid "invitations"
+msgstr "запрошення"
+
+#: payment_system/models.py:702
+msgid "custom subscription request"
+msgstr "запит на тарифний план Сustom"
+
+#: payment_system/models.py:703
+msgid "custom subscription requests"
+msgstr "запити на тарифні плани Сustom"
+
 #: payment_system/templates/payment_system/emails/member_activated.html:10
 msgid "Have a good teamwork"
 msgstr "Вдалої спільної роботи"
@@ -394,12 +410,6 @@ msgstr "ОПЛАЧЕНО"
 #: payment_system/views.py:303
 msgid "No project matches the given query"
 msgstr "Жоден проєкт не відповідає даному запиту"
-
-#~ msgid "invitation"
-#~ msgstr "запрошення"
-
-#~ msgid "invitations"
-#~ msgstr "запрошення"
 
 #~ msgid "Seller:"
 #~ msgstr "Постачальник:"
