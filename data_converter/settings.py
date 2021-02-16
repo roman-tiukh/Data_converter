@@ -176,6 +176,9 @@ SWAGGER_SETTINGS = {
             ),
         },
     },
+    'DEFAULT_PAGINATOR_INSPECTORS': [
+        'data_converter.drf_pagination.DOResponsePaginationClass',
+    ],
 }
 
 SITE_ID = 1
