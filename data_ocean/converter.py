@@ -242,7 +242,7 @@ class Converter:
             i += 1
         if records_len:
             self.save_to_db(records)
-
+        self.delete_outdate_companies()
         del elements
         print('All the records have been rewritten.')
 

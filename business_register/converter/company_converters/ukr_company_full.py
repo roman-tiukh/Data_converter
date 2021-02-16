@@ -41,6 +41,9 @@ class UkrCompanyFullConverter(CompanyConverter):
         self.assignee_to_dict = {}
         self.exchange_data_to_dict = {}
         self.company_country = AddressConverter().save_or_get_country('Ukraine')
+        self.all_companies = []
+        for company in Company.objects.all():
+            self.all_companies.append(company.id)
         super().__init__()
 
     def save_or_get_bylaw(self, bylaw_from_record):
@@ -773,6 +776,7 @@ class UkrCompanyFullConverter(CompanyConverter):
                 if len(record.xpath('BENEFICIARIES')[0]):
                     self.add_beneficiaries(record.xpath('BENEFICIARIES')[0], code)
             else:
+                self.all_companies.remove(company.id)
                 update_fields = []
                 if company.name != name:
                     company.name = name
@@ -898,3 +902,7 @@ class UkrCompanyFullConverter(CompanyConverter):
         self.company_to_predecessor_to_dict = {}
         self.assignee_to_dict = {}
         self.exchange_data_to_dict = {}
+
+    def delete_outdate_companies(self):
+        for id in self.all_companies:
+            Company.objects.get(id=id).soft_delete()
