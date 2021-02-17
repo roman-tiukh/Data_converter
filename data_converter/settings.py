@@ -169,12 +169,17 @@ SWAGGER_SETTINGS = {
             "name": "Authorization: DataOcean <project_key>",
             "in": "header",
             "description": (
-                "You will find an access token in your profile. In order to access the API, you need to add a regular title<br/>"
-                "called 'Authorization' meaning 'DataOcean &lt; token &gt;' to your HTTP request by substituting your token."
-                "<br/>Final title:<br/><b>Authorization: DataOcean 94c6d542af1c4c4942e51df6с4d47fbd12fb3dea<b/>"
+                "You will find an access token in your profile. In order to access the API, you need to add a regular title"
+                f" called<br/>'Authorization' meaning 'DataOcean &lt; token &gt;' to your HTTPS to {BACKEND_SITE_URL}/api/"
+                " {name of register}<br/> request by substituting your token.<br/>Final title:<br/><b>Authorization: DataOcean "
+                "94c6d542af1c4c4942e51df6с4d47fbd12fb3dea</b><br/>"
             ),
         },
     },
+    'DEFAULT_PAGINATOR_INSPECTORS': [
+        'data_converter.drf_yasg_pagination.DODjangoRestResponsePagination',
+        'drf_yasg.inspectors.CoreAPICompatInspector',
+    ],
 }
 
 SITE_ID = 1

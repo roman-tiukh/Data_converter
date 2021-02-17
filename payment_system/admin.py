@@ -3,14 +3,15 @@ from django.contrib import messages
 from django import forms
 from django.utils import timezone
 
-from .models import Subscription, Invoice, ProjectSubscription, Project, CustomSubscriptionRequest
+from data_ocean.admin import input_filter
+from .models import Subscription, Invoice, ProjectSubscription, Project, CustomSubscriptionRequest, Invitation
 from rangefilter.filter import DateRangeFilter
 
 
 class PaymentSystemModelAdmin(admin.ModelAdmin):
     def has_module_permission(self, request):
         return request.user.is_authenticated and (
-            request.user.is_superuser or request.user.can_admin_payment_system
+                request.user.is_superuser or request.user.can_admin_payment_system
         )
 
     def has_view_permission(self, request, obj=None):
@@ -32,6 +33,8 @@ def set_default_subscription(model_admin, request, queryset):
         return
     Subscription.objects.update(is_default=False)
     queryset.update(is_default=True)
+
+
 set_default_subscription.short_description = 'Set subscription as default'
 
 
@@ -82,31 +85,37 @@ class SubscriptionAdmin(PaymentSystemModelAdmin):
 class InvoiceAdmin(PaymentSystemModelAdmin):
     def get_owner(self, obj: Invoice):
         return obj.project_subscription.project.owner
+
     get_owner.short_description = 'Owner'
     get_owner.admin_order_field = 'project_subscription__project__owner'
 
     def get_project(self, obj: Invoice):
         return obj.project_subscription.project
+
     get_project.short_description = 'Project'
     get_project.admin_order_field = 'project_subscription__project__name'
 
     def get_subscription(self, obj: Invoice):
         return obj.project_subscription.subscription
+
     get_subscription.short_description = 'Subscription'
     get_subscription.admin_order_field = 'project_subscription__subscription__name'
 
     def get_expiring_date(self, obj: Invoice):
         return obj.project_subscription.expiring_date
+
     get_expiring_date.short_description = 'Expiring date'
     get_expiring_date.admin_order_field = 'project_subscription__expiring_date'
 
     def get_invoice_number(self, obj: Invoice):
         return f'#{obj.id}'
+
     get_invoice_number.short_description = 'Invoice #'
     get_invoice_number.admin_order_field = 'id'
 
     def get_invoice_date(self, obj: Invoice):
         return obj.created_at.date()
+
     get_invoice_date.short_description = 'Invoice date'
     get_invoice_date.admin_order_field = 'created_at'
 
@@ -124,6 +133,13 @@ class InvoiceAdmin(PaymentSystemModelAdmin):
         # 'note',
     )
     list_filter = (
+        input_filter('id', 'invoice #', ['id'], 'exact'),
+        input_filter('project_name', 'project name', ['project_subscription__project__name']),
+        input_filter('project_owner', 'project owner (name, email)', [
+            'project_subscription__project__owner__email',
+            'project_subscription__project__owner__first_name',
+            'project_subscription__project__owner__last_name',
+        ]),
         'project_subscription__subscription',
         ('paid_at', DateRangeFilter),
         ('project_subscription__expiring_date', DateRangeFilter),
@@ -194,10 +210,12 @@ class ProjectForm(forms.ModelForm):
 class ProjectAdmin(PaymentSystemModelAdmin):
     def get_expiring_date(self, obj: Project):
         return obj.active_p2s.expiring_date
+
     get_expiring_date.short_description = 'Expiring date'
 
     def get_is_paid(self, obj: Project):
         return obj.active_p2s.is_paid
+
     get_is_paid.short_description = 'Is paid'
 
     list_display = (
@@ -212,7 +230,12 @@ class ProjectAdmin(PaymentSystemModelAdmin):
     list_display_links = ('name',)
     list_filter = (
         'disabled_at',
-        # ('disabled_at', DateRangeFilter),
+        input_filter('owner', 'owner (name, email)', [
+            'owner__email',
+            'owner__first_name',
+            'owner__last_name',
+        ]),
+        input_filter('name', 'name', ['name']),
     )
     search_fields = (
         'owner__email',
@@ -280,3 +303,49 @@ class CustomSubscriptionRequestAdmin(PaymentSystemModelAdmin):
 
     def has_add_permission(self, request):
         return False
+
+
+@admin.register(Invitation)
+class InvitationAdmin(PaymentSystemModelAdmin):
+    change_form_template = 'admin/change_invitation_form.html'
+
+    list_display = (
+        'id',
+        'email',
+        'project',
+        'deleted_at',
+    )
+    autocomplete_fields = ('project',)
+    list_filter = (
+        input_filter('email', 'Email', ['email']),
+        input_filter('project_name', 'project name', ['project__name']),
+        input_filter('project_owner', 'project owner (name or email)', [
+            'project__owner__first_name',
+            'project__owner__last_name',
+            'project__owner__email',
+        ]),
+    )
+    search_fields = ('email', 'project__name')
+
+    def response_change(self, request, obj: Invitation):
+        res = super().response_change(request, obj)
+        if 'save-send-email' in request.POST:
+            obj.send()
+            self.message_user(request, "Email was sent")
+        return res
+
+    def get_readonly_fields(self, request, obj=None):
+        readonly_fields = []
+        if obj:
+            readonly_fields += [
+                'project',
+                'created_at',
+                'deleted_at',
+            ]
+        return readonly_fields
+
+    def get_queryset(self, request):
+        return Invitation.include_deleted_objects.order_by('-deleted_at')
+
+    def delete_model(self, request, obj):
+        obj.soft_delete()

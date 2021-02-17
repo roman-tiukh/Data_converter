@@ -3,6 +3,7 @@ from django.contrib.auth.admin import UserAdmin, Group
 from django.contrib.auth.forms import UserCreationForm
 from rest_framework.authtoken.models import Token
 
+from payment_system.models import Project
 from users.models import DataOceanUser, Question
 
 
@@ -20,6 +21,46 @@ class DataOceanUserCreationForm(UserCreationForm):
 #     class Meta:
 #         model = DataOceanUser
 #         fields = ('last_name', 'first_name', 'email',)
+
+
+class ProjectsInline(admin.TabularInline):
+    def active_subscription(self, obj: Project):
+        return obj.active_subscription.name
+
+    def requests_left(self, obj: Project):
+        return obj.active_p2s.requests_left
+
+    def requests_used(self, obj: Project):
+        return obj.active_p2s.requests_used
+
+    def platform_requests_left(self, obj: Project):
+        return obj.active_p2s.platform_requests_left
+
+    def platform_requests_used(self, obj: Project):
+        return obj.active_p2s.platform_requests_used
+
+    def expiring_date(self, obj: Project):
+        return obj.active_p2s.expiring_date
+
+    def is_grace_period(self, obj: Project):
+        return obj.active_p2s.is_grace_period
+
+    can_delete = False
+    extra = 0
+    fields = (
+        'active_subscription',
+        'requests_left',
+        'requests_used',
+        'platform_requests_left',
+        'platform_requests_used',
+        'expiring_date',
+        'is_grace_period',
+    )
+    readonly_fields = fields
+    model = Project
+
+    def has_add_permission(self, request, obj):
+        return False
 
 
 @admin.register(DataOceanUser)
@@ -92,6 +133,12 @@ class DataOceanUserAdmin(UserAdmin):
         'position',
         'language',
     ]
+
+    def get_inlines(self, request, obj):
+        inlines = self.inlines.copy()
+        if request.user.can_admin_payment_system:
+            inlines.append(ProjectsInline)
+        return inlines
 
     def has_module_permission(self, request):
         return request.user.is_staff
