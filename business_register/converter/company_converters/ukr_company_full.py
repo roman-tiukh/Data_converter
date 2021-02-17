@@ -41,9 +41,10 @@ class UkrCompanyFullConverter(CompanyConverter):
         self.assignee_to_dict = {}
         self.exchange_data_to_dict = {}
         self.company_country = AddressConverter().save_or_get_country('Ukraine')
-        self.all_companies = []
+        self.source = Company.UKRAINE_REGISTER
+        self.outdated_companies = []
         for company in Company.objects.all():
-            self.all_companies.append(company.id)
+            self.outdated_companies.append(company.id)
         super().__init__()
 
     def save_or_get_bylaw(self, bylaw_from_record):
@@ -232,7 +233,7 @@ class UkrCompanyFullConverter(CompanyConverter):
         self.founder_to_dict[code].extend(founders)
 
     def update_founders(self, founders_from_record, company):
-        already_stored_founders = list(Founder.objects.filter(company=company))
+        already_stored_founders = list(Founder.include_deleted_objects.filter(company_id=company.id))
         for item in founders_from_record:
             info = item.text
             # checking if field contains data
@@ -264,6 +265,9 @@ class UkrCompanyFullConverter(CompanyConverter):
                             if equity and stored_founder.equity != equity:
                                 stored_founder.equity = equity
                                 update_fields.append('equity')
+                            if stored_founder.deleted_at:
+                                stored_founder.deleted_at = None
+                                update_fields.append('deleted_at')
                             if update_fields:
                                 update_fields.append('updated_at')
                                 stored_founder.save(update_fields=update_fields)
@@ -300,7 +304,7 @@ class UkrCompanyFullConverter(CompanyConverter):
     def update_company_detail(self, founding_document_number, executive_power, superior_management,
                               managing_paper, terminated_info, termination_cancel_info, vp_dates,
                               company):
-        company_detail = CompanyDetail.objects.filter(company=company).first()
+        company_detail = CompanyDetail.include_deleted_objects.filter(company_id=company.id).first()
         if company_detail:
             update_fields = []
             if company_detail.founding_document_number != founding_document_number:
@@ -324,6 +328,9 @@ class UkrCompanyFullConverter(CompanyConverter):
             if company_detail.vp_dates != vp_dates:
                 company_detail.vp_dates = vp_dates
                 update_fields.append('vp_dates')
+            if company_detail.deleted_at:
+                company_detail.deleted_at = None
+                update_fields.append('deleted_at')
             if len(update_fields):
                 update_fields.append('updated_at')
                 company_detail.save(update_fields=update_fields)
@@ -350,7 +357,7 @@ class UkrCompanyFullConverter(CompanyConverter):
         self.assignee_to_dict[code] = assignees
 
     def update_assignees(self, assignees_from_record, company):
-        already_stored_assignees = list(Assignee.objects.filter(company=company))
+        already_stored_assignees = list(Assignee.include_deleted_objects.filter(company_id=company.id))
         for item in assignees_from_record:
             name = item.xpath('NAME')[0].text
             if name:
@@ -361,6 +368,9 @@ class UkrCompanyFullConverter(CompanyConverter):
                 for stored_assignee in already_stored_assignees:
                     if stored_assignee.name == name and stored_assignee.edrpou == edrpou:
                         already_stored = True
+                        if stored_assignee.deleted_at:
+                            stored_assignee.deleted_at = None
+                            stored_assignee.save(update_fields=['deleted_at', 'updated_at'])
                         already_stored_assignees.remove(stored_assignee)
                         break
             if not already_stored:
@@ -388,7 +398,8 @@ class UkrCompanyFullConverter(CompanyConverter):
         self.bancruptcy_readjustment_to_dict[code] = bancruptcy_readjustment
 
     def update_bancruptcy_readjustment(self, record, company):
-        already_stored_bancruptcy_readjustment = BancruptcyReadjustment.objects.filter(company=company).first()
+        already_stored_bancruptcy_readjustment = \
+            BancruptcyReadjustment.include_deleted_objects.filter(company_id=company.id).first()
         if record.xpath('BANKRUPTCY_READJUSTMENT_INFO/OP_DATE'):
             op_date = format_date_to_yymmdd(record.xpath('BANKRUPTCY_READJUSTMENT_INFO/OP_DATE')[0].text) or None
             reason = record.xpath('BANKRUPTCY_READJUSTMENT_INFO/REASON')[0].text.lower()
@@ -422,6 +433,9 @@ class UkrCompanyFullConverter(CompanyConverter):
                 if already_stored_bancruptcy_readjustment.head_name != head_name:
                     already_stored_bancruptcy_readjustment.head_name = head_name
                     update_fields.append('head_name')
+                if already_stored_bancruptcy_readjustment.deleted_at:
+                    already_stored_bancruptcy_readjustment.deleted_at = None
+                    update_fields.append('deleted_at')
                 if len(update_fields):
                     update_fields.append('updated_at')
                     already_stored_bancruptcy_readjustment.save(update_fields=update_fields)
@@ -447,7 +461,7 @@ class UkrCompanyFullConverter(CompanyConverter):
         self.company_to_kved_to_dict[code] = company_to_kveds
 
     def update_company_to_kved(self, kveds_from_record, company):
-        already_stored_company_to_kved = list(CompanyToKved.objects.filter(company=company))
+        already_stored_company_to_kved = list(CompanyToKved.include_deleted_objects.filter(company_id=company.id))
         for item in kveds_from_record:
             if not item.xpath('NAME'):
                 continue
@@ -463,10 +477,17 @@ class UkrCompanyFullConverter(CompanyConverter):
                 for stored_company_to_kved in already_stored_company_to_kved:
                     if stored_company_to_kved.kved == kved_from_db:
                         already_stored = True
+                        update_fields = []
                         if item.xpath('PRIMARY'):
                             if stored_company_to_kved.primary_kved != (item.xpath('PRIMARY')[0].text == "так"):
                                 stored_company_to_kved.primary_kved = item.xpath('PRIMARY')[0].text == "так"
-                                stored_company_to_kved.save(update_fields=['primary_kved', 'updated_at'])
+                                update_fields.append('primary_kved')
+                        if stored_company_to_kved.deleted_at:
+                            stored_company_to_kved.deleted_at = None
+                            update_fields.append('deleted_at')
+                        if len(update_fields):
+                            update_fields.append('updated_at')
+                            stored_company_to_kved.save(update_fields=update_fields)
                         already_stored_company_to_kved.remove(stored_company_to_kved)
                         break
             if not already_stored:
@@ -504,7 +525,7 @@ class UkrCompanyFullConverter(CompanyConverter):
             self.exchange_data_to_dict[code] = exchange_datas
 
     def update_exchange_data(self, exchange_data_from_record, company):
-        already_stored_exchange_data = list(ExchangeDataCompany.objects.filter(company=company))
+        already_stored_exchange_data = list(ExchangeDataCompany.include_deleted_objects.filter(company_id=company.id))
         for item in exchange_data_from_record:
             if not item.xpath('NAME'):
                 continue
@@ -522,7 +543,8 @@ class UkrCompanyFullConverter(CompanyConverter):
             already_stored = False
             if len(already_stored_exchange_data):
                 for stored_exchange_data in already_stored_exchange_data:
-                    if stored_exchange_data.authority_id == authority.id and stored_exchange_data.start_date == start_date:
+                    if stored_exchange_data.authority_id == authority.id and \
+                            stored_exchange_data.start_date == start_date:
                         already_stored = True
                         update_fields = []
                         if stored_exchange_data.start_number != start_number:
@@ -537,6 +559,9 @@ class UkrCompanyFullConverter(CompanyConverter):
                         if stored_exchange_data.end_number != end_number:
                             stored_exchange_data.end_number = end_number
                             update_fields.append('end_number')
+                        if stored_exchange_data.deleted_at:
+                            stored_exchange_data.deleted_at = None
+                            update_fields.append('deleted_at')
                         if len(update_fields):
                             update_fields.append('updated_at')
                             stored_exchange_data.save(update_fields=update_fields)
@@ -565,7 +590,8 @@ class UkrCompanyFullConverter(CompanyConverter):
         self.company_to_predecessor_to_dict[code] = company_to_predecessors
 
     def update_company_to_predecessors(self, predecessors_from_record, company):
-        already_stored_company_to_predecessors = list(CompanyToPredecessor.objects.filter(company=company))
+        already_stored_company_to_predecessors = \
+            list(CompanyToPredecessor.include_deleted_objects.filter(company_id=company.id))
         for item in predecessors_from_record:
             if item.xpath('NAME')[0].text:
                 already_stored = False
@@ -574,6 +600,9 @@ class UkrCompanyFullConverter(CompanyConverter):
                     for stored_predecessor in already_stored_company_to_predecessors:
                         if stored_predecessor.predecessor_id == predecessor.id:
                             already_stored = True
+                            if stored_predecessor.deleted_at:
+                                stored_predecessor.deleted_at = None
+                                stored_predecessor.save(update_fields=['deleted_at', 'updated_at'])
                             already_stored_company_to_predecessors.remove(stored_predecessor)
                             break
                 if not already_stored:
@@ -595,13 +624,16 @@ class UkrCompanyFullConverter(CompanyConverter):
         self.signer_to_dict[code] = signers
 
     def update_signers(self, signers_from_record, company):
-        already_stored_signers = list(Signer.objects.filter(company=company))
+        already_stored_signers = list(Signer.include_deleted_objects.filter(company_id=company.id))
         for item in signers_from_record:
             already_stored = False
             if len(already_stored_signers):
                 for stored_signer in already_stored_signers:
                     if stored_signer.name == item.text[:389].lower():
                         already_stored = True
+                        if stored_signer.deleted_at:
+                            stored_signer.deleted_at = None
+                            stored_signer.save(update_fields=['deleted_at', 'updated_at'])
                         already_stored_signers.remove(stored_signer)
                         break
             if not already_stored:
@@ -632,7 +664,8 @@ class UkrCompanyFullConverter(CompanyConverter):
         self.termination_started_to_dict[code] = termination_started
 
     def update_termination_started(self, record, company):
-        already_stored_termination_started = TerminationStarted.objects.filter(company=company).first()
+        already_stored_termination_started = \
+            TerminationStarted.include_deleted_objects.filter(company_id=company.id).first()
         if record.xpath('TERMINATION_STARTED_INFO/OP_DATE'):
             op_date = format_date_to_yymmdd(record.xpath('TERMINATION_STARTED_INFO/OP_DATE')[0].text) or None
             reason = record.xpath('TERMINATION_STARTED_INFO/REASON')[0].text.lower()
@@ -675,6 +708,9 @@ class UkrCompanyFullConverter(CompanyConverter):
                 if already_stored_termination_started.creditor_reg_end_date != creditor_reg_end_date:
                     already_stored_termination_started.creditor_reg_end_date = creditor_reg_end_date
                     update_fields.append('creditor_reg_end_date')
+                if already_stored_termination_started.deleted_at:
+                    already_stored_termination_started.deleted_at = None
+                    update_fields.append('deleted_at')
                 if len(update_fields):
                     update_fields.append('updated_at')
                     already_stored_termination_started.save(update_fields=update_fields)
@@ -683,13 +719,13 @@ class UkrCompanyFullConverter(CompanyConverter):
 
     def save_to_db(self, records):
         for record in records:
-            if record.xpath('NAME')[0].text:
-                name = record.xpath('NAME')[0].text.lower()
-            else:
-                name = ''
             edrpou = record.xpath('EDRPOU')[0].text
             if not edrpou:
                 continue
+            if record.xpath('NAME')[0].text:
+                name = record.xpath('NAME')[0].text.lower()
+            else:
+                name = Company.objects.filter(edrpou=edrpou, source=Company.GREAT_BRITAIN_REGISTER).first().name or ''
             code = name + edrpou
             address = record.xpath('ADDRESS')[0].text
             founding_document_number = record.xpath('FOUNDING_DOCUMENT_NUM')[0].text
@@ -731,9 +767,8 @@ class UkrCompanyFullConverter(CompanyConverter):
             authority = record.xpath('CURRENT_AUTHORITY')[0].text
             if authority:
                 authority = self.save_or_get_authority(authority)
-            source = Company.UKRAINE_REGISTER
 
-            company = Company.objects.filter(code=code).first()
+            company = Company.include_deleted_objects.filter(code=code).first()
 
             if not company:
                 company = Company(
@@ -750,7 +785,7 @@ class UkrCompanyFullConverter(CompanyConverter):
                     registration_info=registration_info,
                     contact_info=contact_info,
                     authority=authority,
-                    source=source,
+                    source=self.source,
                     code=code
                 )
                 self.bulk_manager.add(company)
@@ -776,7 +811,7 @@ class UkrCompanyFullConverter(CompanyConverter):
                 if len(record.xpath('BENEFICIARIES')[0]):
                     self.add_beneficiaries(record.xpath('BENEFICIARIES')[0], code)
             else:
-                self.all_companies.remove(company.id)
+                self.outdated_companies.remove(company.id)
                 update_fields = []
                 if company.name != name:
                     company.name = name
@@ -818,9 +853,12 @@ class UkrCompanyFullConverter(CompanyConverter):
                 if company.country_id != self.company_country.id:
                     company.country = self.company_country
                     update_fields.append('country')
-                if company.source != source:
-                    company.source = source
+                if company.source != self.source:
+                    company.source = self.source
                     update_fields.append('source')
+                if company.deleted_at:
+                    company.deleted_at = None
+                    update_fields.append('deleted_at')
                 if update_fields:
                     update_fields.append('updated_at')
                     company.save(update_fields=update_fields)
@@ -903,6 +941,33 @@ class UkrCompanyFullConverter(CompanyConverter):
         self.assignee_to_dict = {}
         self.exchange_data_to_dict = {}
 
-    def delete_outdate_companies(self):
-        for id in self.all_companies:
-            Company.objects.get(id=id).soft_delete()
+    def delete_outdated_companies(self):
+        for id in self.outdated_companies:
+            Company.objects.filter(id=id).first().soft_delete()
+            CompanyDetail.objects.filter(company_id=id).first().soft_delete()
+            if CompanyToPredecessor.objects.filter(company_id=id).first():
+                CompanyToPredecessor.objects.filter(company_id=id).first().soft_delete()
+            if TerminationStarted.objects.filter(company_id=id).first():
+                TerminationStarted.objects.filter(company_id=id).first().soft_delete()
+            if BancruptcyReadjustment.objects.filter(company_id=id).first():
+                BancruptcyReadjustment.objects.filter(company_id=id).first().soft_delete()
+            outdated_founders = list(Founder.objects.filter(company_id=id))
+            if len(outdated_founders):
+                for founder in outdated_founders:
+                    founder.soft_delete()
+            outdated_signers = list(Signer.objects.filter(company_id=id))
+            if len(outdated_signers):
+                for signer in outdated_signers:
+                    signer.soft_delete()
+            outdated_assignees = list(Assignee.objects.filter(company_id=id))
+            if len(outdated_assignees):
+                for assignee in outdated_assignees:
+                    assignee.soft_delete()
+            outdated_exchange_data = list(ExchangeDataCompany.objects.filter(company_id=id))
+            if len(outdated_exchange_data):
+                for exchange_data in outdated_exchange_data:
+                    exchange_data.soft_delete()
+            outdated_company_to_kved = list(CompanyToKved.objects.filter(company_id=id))
+            if len(outdated_company_to_kved):
+                for company_to_kved in outdated_company_to_kved:
+                    company_to_kved.soft_delete()
