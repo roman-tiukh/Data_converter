@@ -46,25 +46,25 @@ class DataOceanModel(models.Model):
 
 
 class Status(DataOceanModel):
-    name = models.CharField('назва', max_length=100, unique=True)
+    name = models.CharField('name', max_length=100, unique=True)
 
     class Meta:
-        verbose_name = 'статус'
+        verbose_name = _('status')
 
 
 class Authority(DataOceanModel):
-    name = models.CharField('назва', max_length=500, unique=True)
-    code = models.CharField('код ЄДРПОУ', max_length=10, unique=True, null=True)
+    name = models.CharField('name', max_length=500, unique=True)
+    code = models.CharField('number', max_length=10, unique=True, null=True)
 
     class Meta:
-        verbose_name = 'орган реєстрації'
+        verbose_name = _('registration authority')
 
 
 class TaxpayerType(DataOceanModel):
-    name = models.CharField('назва', max_length=200, unique=True)
+    name = models.CharField('name', max_length=200, unique=True)
 
     class Meta:
-        verbose_name = 'тип платника податків'
+        verbose_name = _('taxpayer type')
 
 
 class Register(DataOceanModel):
@@ -76,21 +76,22 @@ class Register(DataOceanModel):
         (OUTDATED, _('Outdated')),
         (NOT_SUPPORTED, _('Not supported')),
     ]
-    name = models.CharField('назва', max_length=500, unique=True)
-    name_eng = models.CharField('назва англійською', max_length=500, unique=True, null=True)
-    source_name = models.CharField('назва джерела даних', max_length=300)
-    source_register_id = models.CharField('ID реєстру у джерелі даних', max_length=36, null=True)
-    source_url_address = models.URLField(max_length=500)
-    source_api_address = models.URLField(max_length=500, null=True)
-    api_list = models.CharField('ендпоінт списку', max_length=30, unique=True, null=True, blank=True)
-    api_detail = models.CharField("ендпоінт об'єкта", max_length=30, unique=True, null=True, blank=True)
-    total_records = models.PositiveIntegerField('кількість записів', default=1, blank=True)
-    status = models.CharField('статус', max_length=15, choices=STATUSES, default=RELEVANT,
+    name = models.CharField(_('name'), max_length=500, unique=True)
+    name_eng = models.CharField('name eng', max_length=500, unique=True, null=True)
+    source_name = models.CharField(_('source'), max_length=300)
+    source_register_id = models.CharField(_('source ID'), max_length=36, null=True)
+    source_url_address = models.URLField(_('source url'), max_length=500)
+    source_api_address = models.URLField(_('source API'), max_length=500, null=True)
+    api_list = models.CharField(_('API list'), max_length=30, unique=True, null=True, blank=True)
+    api_detail = models.CharField(_("API detail"), max_length=30, unique=True, null=True, blank=True)
+    total_records = models.PositiveIntegerField(_('total records'), default=1, blank=True)
+    status = models.CharField(_('status'), max_length=15, choices=STATUSES, default=RELEVANT,
                               blank=True)
 
     class Meta:
         ordering = ['id']
-        verbose_name = 'реєстр'
+        verbose_name = _('dataset')
+        verbose_name_plural = _('datasets')
 
 
 class RegistryUpdaterModel(models.Model):

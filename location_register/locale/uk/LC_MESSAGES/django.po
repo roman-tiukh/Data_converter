@@ -1,0 +1,170 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-02-15 12:39+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n % 10 == 1 && n % 100 != "
+"11 ? 0 : n % 1 == 0 && n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % "
+"100 > 14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || "
+"(n % 100 >=11 && n % 100 <=14 )) ? 2: 3);\n"
+
+#: location_register/models/address_models.py:11
+msgid "country"
+msgstr "країна"
+
+#: location_register/models/drv_models.py:15
+#: location_register/models/drv_models.py:80
+#: location_register/models/ratu_models.py:13
+#: location_register/models/ratu_models.py:57
+msgid "region"
+msgstr "область"
+
+#: location_register/models/drv_models.py:23
+#: location_register/models/drv_models.py:81
+#: location_register/models/ratu_models.py:23
+#: location_register/models/ratu_models.py:58
+msgid "district"
+msgstr "район"
+
+#: location_register/models/drv_models.py:31
+#: location_register/models/drv_models.py:82
+msgid "council"
+msgstr "рада"
+
+#: location_register/models/drv_models.py:46
+#: location_register/models/drv_models.py:84
+msgid "administrative-territorial unit"
+msgstr "адміністративно-територіальна одиниця"
+
+#: location_register/models/drv_models.py:60
+#: location_register/models/drv_models.py:85
+#: location_register/models/ratu_models.py:68
+msgid "street"
+msgstr "вулиця"
+
+#: location_register/models/drv_models.py:72
+#: location_register/models/drv_models.py:87
+msgid "ZIP code"
+msgstr "поштовий індекс"
+
+#: location_register/models/drv_models.py:88
+#: location_register/models/koatuu_models.py:17
+#: location_register/models/koatuu_models.py:31
+#: location_register/models/koatuu_models.py:47
+#: location_register/models/koatuu_models.py:71
+#: location_register/models/ratu_models.py:65
+msgid "code"
+msgstr "код"
+
+#: location_register/models/drv_models.py:95
+msgid "building"
+msgstr "будинок"
+
+#: location_register/models/drv_models.py:96
+msgid "buildings"
+msgstr "будинки"
+
+#: location_register/models/koatuu_models.py:12
+#: location_register/models/koatuu_models.py:29
+#: location_register/models/koatuu_models.py:45
+#: location_register/models/koatuu_models.py:69
+msgid "category"
+msgstr "категорія"
+
+#: location_register/models/koatuu_models.py:16
+#: location_register/models/koatuu_models.py:30
+#: location_register/models/koatuu_models.py:46
+#: location_register/models/koatuu_models.py:70
+#: location_register/models/ratu_models.py:9
+#: location_register/models/ratu_models.py:18
+#: location_register/models/ratu_models.py:32
+#: location_register/models/ratu_models.py:48
+#: location_register/models/ratu_models.py:64
+msgid "name"
+msgstr "назва"
+
+#: location_register/models/koatuu_models.py:20
+msgid "first level (region or city with special status)"
+msgstr ""
+"перший рівень підпорядкованості (область або місто зі спеціальним статусом)"
+
+#: location_register/models/koatuu_models.py:21
+msgid "first level (regions or cities with special status)"
+msgstr ""
+"перший рівень підпорядкованості (області і міста зі спеціальним статусом)"
+
+#: location_register/models/koatuu_models.py:27
+#: location_register/models/koatuu_models.py:40
+#: location_register/models/koatuu_models.py:62
+msgid "first level"
+msgstr "перший рівень підпорядкованості"
+
+#: location_register/models/koatuu_models.py:34
+msgid "second level (city, district of the region)"
+msgstr ""
+"другий рівень підпорядкованості (місто обласного значення або район області)"
+
+#: location_register/models/koatuu_models.py:35
+msgid "second level (cities, districts of the region)"
+msgstr ""
+"другий рівень підпорядкованості (міста обласного значення та райони областей)"
+
+#: location_register/models/koatuu_models.py:43
+#: location_register/models/koatuu_models.py:64
+msgid "second level"
+msgstr "другий рівень підпорядкованості"
+
+#: location_register/models/koatuu_models.py:50
+msgid ""
+"third level (district of the city of regional significance, city of district "
+"significance, urban-type settlement, village)"
+msgstr ""
+"третій рівень підпорядкованості (район міста обласного значення, місто "
+"районного значення, селище міського типу, село)"
+
+#: location_register/models/koatuu_models.py:54
+msgid ""
+"third level (districts of the cities of regional significance, cities of "
+"district significance, urban-type settlements, villages)"
+msgstr ""
+"третій рівень підпорядкованості (райони міст обласного значення, міста "
+"районного значення, селища міського типу та села)"
+
+#: location_register/models/koatuu_models.py:67
+msgid "third level"
+msgstr "третій рівень підпорядкованості"
+
+#: location_register/models/koatuu_models.py:74
+msgid "fourth level of subordination (village or settlement)"
+msgstr "четвертий рівень підпорядкованості (село або селище)"
+
+#: location_register/models/koatuu_models.py:75
+msgid "fourth level of subordination (villages and settlements)"
+msgstr "четвертий рівень підпорядкованості (селa та селища)"
+
+#: location_register/models/ratu_models.py:37
+#: location_register/models/ratu_models.py:61
+msgid "city"
+msgstr "населений пункт"
+
+#: location_register/models/ratu_models.py:53
+#: location_register/models/ratu_models.py:63
+msgid "district of the city"
+msgstr "район міста"
+
+#: location_register/models/ratu_models.py:69
+msgid "streets"
+msgstr "вулиці"

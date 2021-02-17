@@ -118,13 +118,17 @@ class CandidateUserModel(models.Model):
 
 
 class Question(DataOceanModel):
-    text = models.TextField('текст запитання', max_length=500)
+    text = models.TextField('text', max_length=500)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
                              related_name='questions')
-    answered = models.BooleanField('чи була надана відповідь', default=False)
+    answered = models.BooleanField('was answered', default=False)
 
     def __str__(self):
         return self.text
+
+    class Meta:
+        verbose_name = _('question')
+        verbose_name_plural = _('questions')
 
 
 class Notification(DataOceanModel):
@@ -141,5 +145,5 @@ class Notification(DataOceanModel):
         self.save(update_fields=['is_read'])
 
     class Meta:
-        verbose_name = _('Notification')
-        verbose_name_plural = _('Notifications')
+        verbose_name = _('notification')
+        verbose_name_plural = _('notifications')
