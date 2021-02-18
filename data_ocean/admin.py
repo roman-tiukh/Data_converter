@@ -43,7 +43,7 @@ class RegisterModelAdmin(admin.ModelAdmin):
 
     def has_module_permission(self, request):
         return request.user.is_authenticated and (
-            request.user.is_superuser or request.user.can_admin_registers
+            request.user.is_superuser or request.user.datasets_admin
         )
 
     def has_view_permission(self, request, obj=None):
