@@ -100,7 +100,7 @@ class Project(DataOceanModel):
         if self.invitations.filter(email=email, deleted_at__isnull=True).exists():
             raise ValidationError(_('User already invited'))
 
-        invitation, created = Invitation.objects.get_or_create(
+        invitation, created = Invitation.include_deleted_objects.get_or_create(
             email=email, project=self,
         )
         if not created:
