@@ -42,7 +42,10 @@ class UkrCompanyFullConverter(CompanyConverter):
         self.exchange_data_to_dict = {}
         self.company_country = AddressConverter().save_or_get_country('Ukraine')
         self.source = Company.UKRAINE_REGISTER
+        self.already_stored_companies = []
         self.uptodated_companies = []
+        for company in Company.objects.all():
+            self.already_stored_companies.append(company.id)
         super().__init__()
 
     def save_or_get_bylaw(self, bylaw_from_record):
@@ -876,7 +879,6 @@ class UkrCompanyFullConverter(CompanyConverter):
         if len(self.bulk_manager.queues['business_register.Company']):
             self.bulk_manager.commit(Company)
         for company in self.bulk_manager.queues['business_register.Company']:
-            self.uptodated_companies.append(company.id)
             code = company.code
             if code in self.founder_to_dict:
                 for founder in self.founder_to_dict[code]:
@@ -941,7 +943,7 @@ class UkrCompanyFullConverter(CompanyConverter):
         self.exchange_data_to_dict = {}
 
     def delete_outdated_companies(self):
-        outdated_companies = list(Company.objects.exclude(id=self.uptodated_companies))
+        outdated_companies = list(set(self.already_stored_companies) - set(self.uptodated_companies))
         for company in outdated_companies:
             company_id = company.id
             CompanyDetail.objects.filter(company_id=company_id).first().soft_delete()
