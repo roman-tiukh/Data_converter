@@ -8,6 +8,7 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from django.conf import settings
 from data_converter import settings_local
+from data_converter.settings_local import BACKEND_SITE_URL
 from data_ocean.filters import RegisterFilter
 from data_ocean.models import Register
 from rest_framework.filters import SearchFilter
@@ -65,6 +66,7 @@ SchemaView = get_schema_view(
         ),
         contact=openapi.Contact(email="info@dataocean.us"),
     ),
+    url=f'{BACKEND_SITE_URL}',
     generator_class=DOOpenAPISchemaGenerator,
     public=True,
     permission_classes=(permissions.AllowAny,),

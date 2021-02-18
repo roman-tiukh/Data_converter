@@ -123,22 +123,22 @@ class HistoricalCompanyRelatedViewSet(RegisterViewMixin,
         return Response(serializer.data)
 
 
-@method_decorator(name='retrieve', decorator=swagger_auto_schema(tags=['business register']))
-@method_decorator(name='list', decorator=swagger_auto_schema(tags=['business register']))
+@method_decorator(name='retrieve', decorator=swagger_auto_schema(tags=['business register'], auto_schema=None))
+@method_decorator(name='list', decorator=swagger_auto_schema(tags=['business register'], auto_schema=None))
 class HistoricalAssigneeView(HistoricalCompanyRelatedViewSet):
     queryset = HistoricalAssignee.objects.order_by('-history_date')
     serializer_class = HistoricalAssigneeSerializer
 
 
-@method_decorator(name='retrieve', decorator=swagger_auto_schema(tags=['business register']))
-@method_decorator(name='list', decorator=swagger_auto_schema(tags=['business register']))
+@method_decorator(name='retrieve', decorator=swagger_auto_schema(tags=['business register'], auto_schema=None))
+@method_decorator(name='list', decorator=swagger_auto_schema(tags=['business register'], auto_schema=None))
 class HistoricalBancruptcyReadjustmentView(HistoricalCompanyRelatedViewSet):
     queryset = HistoricalBancruptcyReadjustment.objects.order_by('-history_date')
     serializer_class = HistoricalBancruptcyReadjustmentSerializer
 
 
-@method_decorator(name='retrieve', decorator=swagger_auto_schema(tags=['business register']))
-@method_decorator(name='list', decorator=swagger_auto_schema(tags=['business register']))
+@method_decorator(name='retrieve', decorator=swagger_auto_schema(tags=['business register'], auto_schema=None))
+@method_decorator(name='list', decorator=swagger_auto_schema(tags=['business register'], auto_schema=None))
 class HistoricalCompanyView(HistoricalCompanyRelatedViewSet):
     queryset = HistoricalCompany.objects.order_by('-history_date')
     serializer_class = HistoricalCompanySerializer
@@ -156,50 +156,50 @@ class HistoricalCompanyView(HistoricalCompanyRelatedViewSet):
         return Response(serializer.data)
 
 
-@method_decorator(name='retrieve', decorator=swagger_auto_schema(tags=['business register']))
-@method_decorator(name='list', decorator=swagger_auto_schema(tags=['business register']))
+@method_decorator(name='retrieve', decorator=swagger_auto_schema(tags=['business register'], auto_schema=None))
+@method_decorator(name='list', decorator=swagger_auto_schema(tags=['business register'], auto_schema=None))
 class HistoricalCompanyDetailView(HistoricalCompanyRelatedViewSet):
     queryset = HistoricalCompanyDetail.objects.order_by('-history_date')
     serializer_class = HistoricalCompanyDetailSerializer
 
 
-@method_decorator(name='retrieve', decorator=swagger_auto_schema(tags=['business register']))
-@method_decorator(name='list', decorator=swagger_auto_schema(tags=['business register']))
+@method_decorator(name='retrieve', decorator=swagger_auto_schema(tags=['business register'], auto_schema=None))
+@method_decorator(name='list', decorator=swagger_auto_schema(tags=['business register'], auto_schema=None))
 class HistoricalCompanyToKvedView(HistoricalCompanyRelatedViewSet):
     queryset = HistoricalCompanyToKved.objects.order_by('-history_date')
     serializer_class = HistoricalCompanyToKvedSerializer
 
 
-@method_decorator(name='retrieve', decorator=swagger_auto_schema(tags=['business register']))
-@method_decorator(name='list', decorator=swagger_auto_schema(tags=['business register']))
+@method_decorator(name='retrieve', decorator=swagger_auto_schema(tags=['business register'], auto_schema=None))
+@method_decorator(name='list', decorator=swagger_auto_schema(tags=['business register'], auto_schema=None))
 class HistoricalCompanyToPredecessorView(HistoricalCompanyRelatedViewSet):
     queryset = HistoricalCompanyToPredecessor.objects.order_by('-history_date')
     serializer_class = HistoricalCompanyToPredecessorSerializer
 
 
-@method_decorator(name='retrieve', decorator=swagger_auto_schema(tags=['business register']))
-@method_decorator(name='list', decorator=swagger_auto_schema(tags=['business register']))
+@method_decorator(name='retrieve', decorator=swagger_auto_schema(tags=['business register'], auto_schema=None))
+@method_decorator(name='list', decorator=swagger_auto_schema(tags=['business register'], auto_schema=None))
 class HistoricalExchangeDataCompanyView(HistoricalCompanyRelatedViewSet):
     queryset = HistoricalExchangeDataCompany.objects.order_by('-history_date')
     serializer_class = HistoricalExchangeDataCompanySerializer
 
 
-@method_decorator(name='retrieve', decorator=swagger_auto_schema(tags=['business register']))
-@method_decorator(name='list', decorator=swagger_auto_schema(tags=['business register']))
+@method_decorator(name='retrieve', decorator=swagger_auto_schema(tags=['business register'], auto_schema=None))
+@method_decorator(name='list', decorator=swagger_auto_schema(tags=['business register'], auto_schema=None))
 class HistoricalFounderView(HistoricalCompanyRelatedViewSet):
     queryset = HistoricalFounder.objects.order_by('-history_date')
     serializer_class = HistoricalFounderSerializer
 
 
-@method_decorator(name='retrieve', decorator=swagger_auto_schema(tags=['business register']))
-@method_decorator(name='list', decorator=swagger_auto_schema(tags=['business register']))
+@method_decorator(name='retrieve', decorator=swagger_auto_schema(tags=['business register'], auto_schema=None))
+@method_decorator(name='list', decorator=swagger_auto_schema(tags=['business register'], auto_schema=None))
 class HistoricalSignerView(HistoricalCompanyRelatedViewSet):
     queryset = HistoricalSigner.objects.order_by('-history_date')
     serializer_class = HistoricalSignerSerializer
 
 
-@method_decorator(name='retrieve', decorator=swagger_auto_schema(tags=['business register']))
-@method_decorator(name='list', decorator=swagger_auto_schema(tags=['business register']))
+@method_decorator(name='retrieve', decorator=swagger_auto_schema(tags=['business register'], auto_schema=None))
+@method_decorator(name='list', decorator=swagger_auto_schema(tags=['business register'], auto_schema=None))
 class HistoricalTerminationStartedView(HistoricalCompanyRelatedViewSet):
     queryset = HistoricalTerminationStarted.objects.order_by('-history_date')
     serializer_class = HistoricalTerminationStartedSerializer
