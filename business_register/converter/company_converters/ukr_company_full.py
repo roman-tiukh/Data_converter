@@ -42,9 +42,7 @@ class UkrCompanyFullConverter(CompanyConverter):
         self.exchange_data_to_dict = {}
         self.company_country = AddressConverter().save_or_get_country('Ukraine')
         self.source = Company.UKRAINE_REGISTER
-        self.outdated_companies = []
-        for company in Company.objects.all():
-            self.outdated_companies.append(company.id)
+        self.uptodated_companies = []
         super().__init__()
 
     def save_or_get_bylaw(self, bylaw_from_record):
@@ -811,7 +809,7 @@ class UkrCompanyFullConverter(CompanyConverter):
                 if len(record.xpath('BENEFICIARIES')[0]):
                     self.add_beneficiaries(record.xpath('BENEFICIARIES')[0], code)
             else:
-                self.outdated_companies.remove(company.id)
+                self.uptodated_companies.append(company.id)
                 update_fields = []
                 if company.name != name:
                     company.name = name
@@ -878,6 +876,7 @@ class UkrCompanyFullConverter(CompanyConverter):
         if len(self.bulk_manager.queues['business_register.Company']):
             self.bulk_manager.commit(Company)
         for company in self.bulk_manager.queues['business_register.Company']:
+            self.uptodated_companies.append(company.id)
             code = company.code
             if code in self.founder_to_dict:
                 for founder in self.founder_to_dict[code]:
@@ -942,32 +941,34 @@ class UkrCompanyFullConverter(CompanyConverter):
         self.exchange_data_to_dict = {}
 
     def delete_outdated_companies(self):
-        for id in self.outdated_companies:
-            Company.objects.filter(id=id).first().soft_delete()
-            CompanyDetail.objects.filter(company_id=id).first().soft_delete()
-            if CompanyToPredecessor.objects.filter(company_id=id).first():
-                CompanyToPredecessor.objects.filter(company_id=id).first().soft_delete()
-            if TerminationStarted.objects.filter(company_id=id).first():
-                TerminationStarted.objects.filter(company_id=id).first().soft_delete()
-            if BancruptcyReadjustment.objects.filter(company_id=id).first():
-                BancruptcyReadjustment.objects.filter(company_id=id).first().soft_delete()
-            outdated_founders = list(Founder.objects.filter(company_id=id))
+        outdated_companies = list(Company.objects.exclude(id=self.uptodated_companies))
+        for company in outdated_companies:
+            company_id = company.id
+            CompanyDetail.objects.filter(company_id=company_id).first().soft_delete()
+            if CompanyToPredecessor.objects.filter(company_id=company_id).first():
+                CompanyToPredecessor.objects.filter(company_id=company_id).first().soft_delete()
+            if TerminationStarted.objects.filter(company_id=company_id).first():
+                TerminationStarted.objects.filter(company_id=company_id).first().soft_delete()
+            if BancruptcyReadjustment.objects.filter(company_id=company_id).first():
+                BancruptcyReadjustment.objects.filter(company_id=company_id).first().soft_delete()
+            outdated_founders = list(Founder.objects.filter(company_id=company_id))
             if len(outdated_founders):
                 for founder in outdated_founders:
                     founder.soft_delete()
-            outdated_signers = list(Signer.objects.filter(company_id=id))
+            outdated_signers = list(Signer.objects.filter(company_id=company_id))
             if len(outdated_signers):
                 for signer in outdated_signers:
                     signer.soft_delete()
-            outdated_assignees = list(Assignee.objects.filter(company_id=id))
+            outdated_assignees = list(Assignee.objects.filter(company_id=company_id))
             if len(outdated_assignees):
                 for assignee in outdated_assignees:
                     assignee.soft_delete()
-            outdated_exchange_data = list(ExchangeDataCompany.objects.filter(company_id=id))
+            outdated_exchange_data = list(ExchangeDataCompany.objects.filter(company_id=company_id))
             if len(outdated_exchange_data):
                 for exchange_data in outdated_exchange_data:
                     exchange_data.soft_delete()
-            outdated_company_to_kved = list(CompanyToKved.objects.filter(company_id=id))
+            outdated_company_to_kved = list(CompanyToKved.objects.filter(company_id=company_id))
             if len(outdated_company_to_kved):
                 for company_to_kved in outdated_company_to_kved:
                     company_to_kved.soft_delete()
+            company.soft_delete()
