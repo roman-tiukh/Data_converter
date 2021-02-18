@@ -140,6 +140,16 @@ class ProjectActivateUserView(ProjectViewMixin, generics.GenericAPIView):
         return Response(serializer.data)
 
 
+class ProjectDeleteUserView(ProjectViewMixin, generics.GenericAPIView):
+    serializer_class = ProjectSerializer
+
+    def delete(self, request, pk, user_id):
+        project = self.get_object()
+        project.delete_user(user_id=user_id)
+        serializer = self.get_serializer(project)
+        return Response(serializer.data)
+
+
 class ProjectInviteUserView(ProjectViewMixin, generics.GenericAPIView):
     serializer_class = ProjectInviteUserSerializer
 

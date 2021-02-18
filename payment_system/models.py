@@ -18,15 +18,17 @@ from payment_system import emails
 
 
 class Project(DataOceanModel):
-    name = models.CharField(max_length=50)
-    description = models.CharField(max_length=500, blank=True, default='')
+    name = models.CharField(_('name'), max_length=50)
+    description = models.CharField(_('name'), max_length=500, blank=True, default='')
     token = models.CharField(max_length=40, unique=True, db_index=True)
-    disabled_at = models.DateTimeField(null=True, blank=True, default=None)
-    owner = models.ForeignKey('users.DataOceanUser', models.CASCADE, related_name='owned_projects')
+    disabled_at = models.DateTimeField(_('disabled_at'), null=True, blank=True, default=None)
+    owner = models.ForeignKey('users.DataOceanUser', models.CASCADE,
+                              related_name='owned_projects', verbose_name=_('owner'))
     users = models.ManyToManyField('users.DataOceanUser', through='UserProject',
-                                   related_name='projects')
+                                   related_name='projects', verbose_name=_('user'))
     subscriptions = models.ManyToManyField('Subscription', through='ProjectSubscription',
-                                           related_name='projects')
+                                           related_name='projects',
+                                           verbose_name=_('subscriptions'))
 
     @property
     def frontend_projects_link(self):
@@ -35,6 +37,9 @@ class Project(DataOceanModel):
     @property
     def frontend_link(self):
         return f'{self.frontend_projects_link}{self.id}/'
+
+    def __str__(self):
+        return f'{self.name} of {self.owner}'
 
     def save(self, *args, **kwargs):
         if not self.token:
@@ -95,14 +100,13 @@ class Project(DataOceanModel):
         if self.invitations.filter(email=email, deleted_at__isnull=True).exists():
             raise ValidationError(_('User already invited'))
 
-        invitation, created = Invitation.objects.get_or_create(
+        invitation, created = Invitation.include_deleted_objects.get_or_create(
             email=email, project=self,
         )
         if not created:
             invitation.deleted_at = None
             invitation.save(update_fields=['deleted_at', 'updated_at'])
-
-        emails.new_invitation(email, self)
+            invitation.send()
 
     def _check_user_invitation(self, user):
         try:
@@ -148,6 +152,13 @@ class Project(DataOceanModel):
         u2p.status = UserProject.ACTIVE
         u2p.save(update_fields=['status', 'updated_at'])
         emails.member_activated(u2p.user, self)
+
+    def delete_user(self, user_id):
+        u2p = self.user_projects.get(user_id=user_id)
+        if u2p.role == UserProject.OWNER:
+            raise ValidationError(_('You cannot delete an owner from his own project'))
+        u2p.delete()
+        emails.member_deleted(u2p.user, self)
 
     def disable(self):
         for u2p in self.user_projects.all():
@@ -265,20 +276,25 @@ class Project(DataOceanModel):
     def active_p2s(self) -> 'ProjectSubscription':
         return self.project_subscriptions.get(status=ProjectSubscription.ACTIVE)
 
+    class Meta:
+        verbose_name = _('project')
+        verbose_name_plural = _('projects')
+
 
 class Subscription(DataOceanModel):
-    name = models.CharField(max_length=50, unique=True)
-    description = models.TextField(blank=True, default='')
-    price = models.SmallIntegerField(default=0)
-    requests_limit = models.IntegerField(help_text='Limit for API requests from the project')
-    platform_requests_limit = models.IntegerField(help_text='Limit for API requests from the project via platform')
-    duration = models.SmallIntegerField(default=30, help_text='days')
-    grace_period = models.SmallIntegerField(default=10, help_text='days')
-    is_custom = models.BooleanField(
-        blank=True, default=False,
-        help_text='Custom subscription not shown to users',
-    )
-    is_default = models.BooleanField(blank=True, default=False)
+    name = models.CharField(_('name'), max_length=50, unique=True)
+    description = models.TextField(_('description'), blank=True, default='')
+    price = models.SmallIntegerField(_('price'), default=0)
+    requests_limit = models.IntegerField(_('requests limit'), help_text='Limit for API requests from the project')
+    platform_requests_limit = models.IntegerField(_('platform_requests_limit'),
+                                                  help_text='Limit for API requests from the project via platform')
+    duration = models.SmallIntegerField(_('duration'), default=30, help_text='days')
+    grace_period = models.SmallIntegerField(_('grace_period'), default=10, help_text='days')
+    is_custom = models.BooleanField(_('is_custom'),
+                                    blank=True, default=False,
+                                    help_text='Custom subscription not shown to users',
+                                    )
+    is_default = models.BooleanField(_('is_default'), blank=True, default=False)
 
     @classmethod
     def get_default_subscription(cls):
@@ -302,10 +318,13 @@ class Subscription(DataOceanModel):
 
     class Meta:
         ordering = ['price']
+        verbose_name = _('subscription')
+        verbose_name_plural = _('subscriptions')
 
 
 class Invoice(DataOceanModel):
     paid_at = models.DateField(
+        _('subscription'),
         null=True, blank=True,
         help_text='This operation is irreversible, you cannot '
                   'cancel the payment of the subscription for the project.'
@@ -315,8 +334,10 @@ class Invoice(DataOceanModel):
     project_subscription = models.ForeignKey(
         'ProjectSubscription', on_delete=models.PROTECT,
         related_name='invoices',
+        verbose_name=_('project`s subscription'),
     )
     grace_period_block = models.BooleanField(
+        _('is grace period blocked'),
         blank=True, default=True,
         help_text='If set to False, then the user will be allowed '
                   'to use "grace period" again, the opportunity to pay will be lost'
@@ -324,14 +345,13 @@ class Invoice(DataOceanModel):
     note = models.TextField(blank=True, default='')
 
     # information about payment
-    start_date = models.DateField()
-    end_date = models.DateField()
-    requests_limit = models.IntegerField()
-    subscription_name = models.CharField(max_length=200)
-    project_name = models.CharField(max_length=100)
-    is_custom_subscription = models.BooleanField()
-
-    price = models.IntegerField()
+    start_date = models.DateField(_('start date'))
+    end_date = models.DateField(_('end date'))
+    requests_limit = models.IntegerField(_('requests limit'))
+    subscription_name = models.CharField(_("subscription`s name"), max_length=200)
+    project_name = models.CharField(_("project`s name"), max_length=100)
+    is_custom_subscription = models.BooleanField(_("is subscription custom"), )
+    price = models.IntegerField(_("price"))
 
     @property
     def link(self):
@@ -407,6 +427,8 @@ class Invoice(DataOceanModel):
 
     class Meta:
         ordering = ['-created_at']
+        verbose_name = _('invoice')
+        verbose_name_plural = _('invoices')
 
 
 class UserProject(DataOceanModel):
@@ -526,8 +548,8 @@ class ProjectSubscription(DataOceanModel):
         if date_now > self.start_date:
             used_grace_days = (date_now - self.start_date).days
 
-        if date_now >= self.expiring_date:
-            used_grace_days = self.grace_period
+        # if date_now >= self.expiring_date:
+        #     used_grace_days = self.grace_period
         days_left = self.duration - used_grace_days
         self.expiring_date = date_now + timezone.timedelta(days=days_left)
         self.is_grace_period = False
@@ -629,14 +651,24 @@ class ProjectSubscription(DataOceanModel):
 
 
 class Invitation(DataOceanModel):
-    email = models.EmailField()
-    project = models.ForeignKey('Project', models.CASCADE, related_name='invitations')
+    email = models.EmailField(_('email'))
+    project = models.ForeignKey('Project', models.CASCADE, related_name='invitations',
+                                verbose_name=_('project'))
 
     # who_invited = models.ForeignKey('users.DataOceanUser', models.CASCADE,
     #                                 related_name='who_invitations')
 
+    def send(self):
+        if not self.is_deleted:
+            emails.new_invitation(self)
+
+    def __str__(self):
+        return f'Invite {self.email} on {self.project}'
+
     class Meta:
         unique_together = [['email', 'project']]
+        verbose_name = _('invitation')
+        verbose_name_plural = _('invitations')
 
 
 class CustomSubscriptionRequest(DataOceanModel):
@@ -667,3 +699,6 @@ class CustomSubscriptionRequest(DataOceanModel):
 
     class Meta:
         ordering = ['is_processed', '-created_at']
+        verbose_name = _('custom subscription request')
+        verbose_name_plural = _('custom subscription requests')
+

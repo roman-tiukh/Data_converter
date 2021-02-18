@@ -203,17 +203,18 @@ class Converter:
 
         i = start_index
         chunk_start_index = i
-        records_len = 0
         for _, elem in elements:
+            records_len = len(records)
+
             if records_len == 0:
                 chunk_start_index = i
+
             # for text in elem.iter():
             #     print('\t%28s\t%s' % (text.tag, text.text))
+
             records.append(elem)
-            records_len = len(records)
-            if records_len < self.CHUNK_SIZE:
-                i += 1
-            else:
+            records_len += 1
+            if records_len >= self.CHUNK_SIZE:
                 # print(f'>>> Start save to db records {chunk_start_index}-{i}')
                 try:
                     self.save_to_db(records)
@@ -238,6 +239,7 @@ class Converter:
                         del ancestor.getparent()[0]
 
                 print('>>> Saved successfully')
+            i += 1
         if records_len:
             self.save_to_db(records)
 
