@@ -43,3 +43,8 @@ class PepViewSet(RegisterViewMixin,
         pep = get_object_or_404(self.get_queryset(), source_id=pk)
         serializer = self.get_serializer(pep)
         return Response(serializer.data)
+
+    @action(detail=False)
+    def export_to_xlsx(self,request, date):
+        pep
+        Export_to_xlsx().export()
