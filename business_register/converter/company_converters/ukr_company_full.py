@@ -43,7 +43,8 @@ class UkrCompanyFullConverter(CompanyConverter):
         self.exchange_data_to_dict = {}
         self.company_country = AddressConverter().save_or_get_country('Ukraine')
         self.source = Company.UKRAINE_REGISTER
-        self.already_stored_companies = list(Company.objects.values_list('id', flat=True))
+        self.already_stored_companies = list(Company.objects.exclude(from_antac_only=True,
+            source=Company.GREAT_BRITAIN_REGISTER).values_list('id', flat=True))
         self.uptodated_companies = []
         super().__init__()
 
