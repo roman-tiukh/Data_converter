@@ -2,6 +2,7 @@ import logging
 import re
 from django.conf import settings
 
+from data_ocean.models import Authority
 from business_register.converter.company_converters.company import CompanyConverter
 from business_register.models.company_models import (
     Assignee, BancruptcyReadjustment, Bylaw, Company, CompanyDetail, CompanyToKved,
@@ -42,10 +43,8 @@ class UkrCompanyFullConverter(CompanyConverter):
         self.exchange_data_to_dict = {}
         self.company_country = AddressConverter().save_or_get_country('Ukraine')
         self.source = Company.UKRAINE_REGISTER
-        self.already_stored_companies = []
+        self.already_stored_companies = list(Company.objects.values_list('id', flat=True))
         self.uptodated_companies = []
-        for company in Company.objects.all():
-            self.already_stored_companies.append(company.id)
         super().__init__()
 
     def save_or_get_bylaw(self, bylaw_from_record):
@@ -768,6 +767,8 @@ class UkrCompanyFullConverter(CompanyConverter):
             authority = record.xpath('CURRENT_AUTHORITY')[0].text
             if authority:
                 authority = self.save_or_get_authority(authority)
+            else:
+                authority = Authority()
 
             company = Company.include_deleted_objects.filter(code=code).first()
 
