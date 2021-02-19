@@ -1,9 +1,10 @@
 from django.db.models import Q
 from django_filters import rest_framework as filters
+
 from business_register.models.company_models import Company
 from business_register.models.fop_models import Fop
 from business_register.models.pep_models import Pep
-
+from data_ocean.filters import ValidatedBooleanWidget
 from .models.kved_models import Kved
 
 
@@ -68,14 +69,15 @@ class KvedFilterSet(filters.FilterSet):
 
     class Meta:
         model = Kved
-        fields = ()
+        fields = {}
 
 
 class PepFilterSet(filters.FilterSet):
     fullname = filters.CharFilter(lookup_expr='icontains')
     fullname_transcriptions_eng = filters.CharFilter(lookup_expr='icontains')
     updated_at = filters.DateFromToRangeFilter()
-
+    is_pep = filters.BooleanFilter(widget=ValidatedBooleanWidget)
+    is_dead = filters.BooleanFilter(widget=ValidatedBooleanWidget)
     name_search = filters.CharFilter(label='пошук по імені', method='filter_name_search')
 
     o = filters.OrderingFilter(
@@ -96,10 +98,7 @@ class PepFilterSet(filters.FilterSet):
 
     class Meta:
         model = Pep
-        fields = {
-            'is_pep': ['exact'],
-            'is_dead': ['exact'],
-        }
+        fields = {}
 
 
 class HistoricalCompanyRelatedFilterSet(filters.FilterSet):
