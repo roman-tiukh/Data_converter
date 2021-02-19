@@ -1,8 +1,13 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin, Group
 from django.contrib.auth.forms import UserCreationForm
+from django import forms
+from django.core.exceptions import ValidationError
+from django.utils import timezone
 from rest_framework.authtoken.models import Token
+from django.utils.translation import gettext_lazy as _
 
+from payment_system.models import Project
 from users.models import DataOceanUser, Question
 
 
@@ -20,6 +25,112 @@ class DataOceanUserCreationForm(UserCreationForm):
 #     class Meta:
 #         model = DataOceanUser
 #         fields = ('last_name', 'first_name', 'email',)
+
+class ProjectsInlineForm(forms.ModelForm):
+    p2s = None
+
+    requests_left = forms.IntegerField(
+        required=True,
+        label='Requests left',
+    )
+    platform_requests_left = forms.IntegerField(
+        required=True,
+        label='Platform requests left',
+    )
+    expiring_date = forms.DateField(
+        required=True,
+        label='Expiring date',
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if getattr(self.instance, 'id'):
+            self.p2s = self.instance.active_p2s
+            if not self.p2s.is_grace_period:
+                self.fields['expiring_date'].widget.attrs['readonly'] = True
+
+    def clean_expiring_date(self):
+        expiring_date = self.cleaned_data['expiring_date']
+        now = timezone.localdate()
+        if expiring_date > self.p2s.start_date + timezone.timedelta(days=self.p2s.duration):
+            raise ValidationError(_('It cannot be longer than the duration of the tariff plan'))
+        if expiring_date <= now:
+            raise ValidationError(_('Must be later than the current day'))
+        return expiring_date
+
+    def get_initial_for_field(self, field, field_name):
+        if field_name == 'requests_left':
+            return self.p2s.requests_left
+        elif field_name == 'platform_requests_left':
+            return self.p2s.platform_requests_left
+        elif field_name == 'expiring_date':
+            return self.p2s.expiring_date
+        else:
+            return super().get_initial_for_field(field, field_name)
+
+    def save(self, commit=True):
+        instance = super().save(commit)
+
+        self.p2s.requests_left = self.cleaned_data['requests_left']
+        self.p2s.platform_requests_left = self.cleaned_data['platform_requests_left']
+        update_fields = ['requests_left', 'platform_requests_left', 'updated_at']
+        if self.p2s.is_grace_period:
+            self.p2s.expiring_date = self.cleaned_data['expiring_date']
+            update_fields.append('expiring_date')
+
+        self.p2s.save(update_fields=update_fields)
+        return instance
+
+    class Meta:
+        model = Project
+        fields = ('requests_left', 'platform_requests_left')
+
+
+class ProjectsInline(admin.TabularInline):
+    form = ProjectsInlineForm
+
+    def active_subscription(self, obj: Project):
+        return obj.active_subscription.name
+
+    def requests_left(self, obj: Project):
+        return obj.active_p2s.requests_left
+
+    def requests_used(self, obj: Project):
+        return obj.active_p2s.requests_used
+
+    def platform_requests_left(self, obj: Project):
+        return obj.active_p2s.platform_requests_left
+
+    def platform_requests_used(self, obj: Project):
+        return obj.active_p2s.platform_requests_used
+
+    def expiring_date(self, obj: Project):
+        return obj.active_p2s.expiring_date
+
+    def is_grace_period(self, obj: Project):
+        return obj.active_p2s.is_grace_period
+
+    can_delete = False
+    extra = 0
+    fields = (
+        'active_subscription',
+        'requests_left',
+        'requests_used',
+        'platform_requests_left',
+        'platform_requests_used',
+        'expiring_date',
+        'is_grace_period',
+    )
+    readonly_fields = (
+        'active_subscription',
+        'requests_used',
+        'platform_requests_used',
+        'is_grace_period',
+    )
+    model = Project
+
+    def has_add_permission(self, request, obj):
+        return False
 
 
 @admin.register(DataOceanUser)
@@ -62,9 +173,9 @@ class DataOceanUserAdmin(UserAdmin):
             'is_staff',
             'is_active',
             'is_superuser',
-            'can_admin_registers',
-            'can_view_users',
-            'can_admin_payment_system',
+            'datasets_admin',
+            'users_viewer',
+            'payment_system_admin',
         )}),
         ('Other', {'fields': (
             'date_joined',
@@ -93,11 +204,17 @@ class DataOceanUserAdmin(UserAdmin):
         'language',
     ]
 
+    def get_inlines(self, request, obj):
+        inlines = self.inlines.copy()
+        if request.user.is_superuser or request.user.payment_system_admin:
+            inlines.append(ProjectsInline)
+        return inlines
+
     def has_module_permission(self, request):
         return request.user.is_staff
 
     def has_view_permission(self, request, obj=None):
-        return request.user.is_superuser or request.user.can_view_users
+        return request.user.is_superuser or request.user.users_viewer
 
     def has_change_permission(self, request, obj=None):
         return request.user.is_superuser
@@ -137,10 +254,10 @@ class QuestionAdmin(admin.ModelAdmin):
         return request.user.is_staff
 
     def has_change_permission(self, request, obj=None):
-        return request.user.is_superuser or request.user.can_view_users
+        return request.user.is_superuser or request.user.users_viewer
 
     def has_view_permission(self, request, obj=None):
-        return request.user.is_superuser or request.user.can_view_users
+        return request.user.is_superuser or request.user.users_viewer
 
     def has_add_permission(self, request):
         return False
