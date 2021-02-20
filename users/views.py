@@ -31,6 +31,20 @@ class UserListView(generics.ListAPIView):
     serializer_class = DataOceanUserSerializer
 
 
+def validate_str(word):
+    good_letters = "0123456789abcdefghijklmnopqrstuvwxyzабвгґдеєжзиіїйклмнопрстуфхцчшщьюя"
+    good_symbols = "-.'"
+    word = word.lower()
+    state = 'true'
+    for i in range(len(word)):
+        if word[i] not in (good_symbols + good_letters):
+            state = 'false'
+        elif (word[i] == word[i - 1]) and (i != 0):
+            if (word[i] in good_symbols) or ((word[i] == word[i - 2]) and (i != 1)):
+                state = 'false'
+    return state
+
+
 class CustomRegistrationView(views.APIView):
     permission_classes = (AllowAny,)
 
@@ -49,6 +63,12 @@ class CustomRegistrationView(views.APIView):
             last_name=serializer.validated_data.get('last_name'),
             language=user_language,
         )
+
+        if validate_str(user.first_name) == 'false':
+            return Response({'detail': _('You have prohibited symbols in your name')}, status=400)
+
+        if validate_str(user.last_name) == 'false':
+            return Response({'detail': _('You have prohibited symbols in your last name')}, status=400)
 
         # check if this email is among existing users
         if DataOceanUser.objects.filter(email=user.email).exists():
