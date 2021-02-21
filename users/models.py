@@ -58,9 +58,9 @@ class DataOceanUser(AbstractUser):
     )
 
     # Permissions
-    can_admin_registers = models.BooleanField(blank=True, default=False)
-    can_view_users = models.BooleanField(blank=True, default=False)
-    can_admin_payment_system = models.BooleanField(blank=True, default=False)
+    datasets_admin = models.BooleanField(blank=True, default=False)
+    users_viewer = models.BooleanField(blank=True, default=False)
+    payment_system_admin = models.BooleanField(blank=True, default=False)
 
     objects = DataOceanUserManager()
 

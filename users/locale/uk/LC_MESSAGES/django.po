@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-02-16 14:06+0200\n"
+"POT-Creation-Date: 2021-02-19 15:13+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -20,6 +20,14 @@ msgstr ""
 "11 ? 0 : n % 1 == 0 && n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % "
 "100 > 14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || "
 "(n % 100 >=11 && n % 100 <=14 )) ? 2: 3);\n"
+
+#: users/admin.py:56
+msgid "It cannot be longer than the duration of the tariff plan"
+msgstr "Не може бути більше ніж тривалість тарифного плану"
+
+#: users/admin.py:58
+msgid "Must be later than the current day"
+msgstr "Має бути більше ніж поточний день"
 
 #: users/emails.py:10
 msgid "Confirmation of registration in Data Ocean"

@@ -100,7 +100,7 @@ class Project(DataOceanModel):
         if self.invitations.filter(email=email, deleted_at__isnull=True).exists():
             raise ValidationError(_('User already invited'))
 
-        invitation, created = Invitation.objects.get_or_create(
+        invitation, created = Invitation.include_deleted_objects.get_or_create(
             email=email, project=self,
         )
         if not created:
@@ -548,8 +548,8 @@ class ProjectSubscription(DataOceanModel):
         if date_now > self.start_date:
             used_grace_days = (date_now - self.start_date).days
 
-        if date_now >= self.expiring_date:
-            used_grace_days = self.grace_period
+        # if date_now >= self.expiring_date:
+        #     used_grace_days = self.grace_period
         days_left = self.duration - used_grace_days
         self.expiring_date = date_now + timezone.timedelta(days=days_left)
         self.is_grace_period = False
