@@ -145,7 +145,7 @@ class RelatedPersonsLink(DataOceanModel):
     )
 
     def __str__(self):
-        return self.person.fullname
+        return f"connection of {self.from_person.fullname} with {self.to_person.fullname}"
 
     class Meta:
         verbose_name = _("connection with another PEP")
