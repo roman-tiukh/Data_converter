@@ -92,8 +92,6 @@ class PepFilterSet(filters.FilterSet):
             ('fullname', 'fullname'),
             ('is_pep', 'is_pep'),
             ('pep_type', 'pep_type'),
-            ('pep_type', 'pep_type'),
-            ('related_company', 'related_company'),
             ('last_job_title', 'last_job_title'),
             ('last_employer', 'last_employer'),
         ),
