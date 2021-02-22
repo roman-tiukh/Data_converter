@@ -246,7 +246,10 @@ class Converter:
         if records_len:
             self.save_to_db(records)
         if start_index == 0:
-            self.delete_outdated_companies()
+            try:
+                self.delete_outdated()
+            except:
+                print('This converter has not ability to remove outdated records')
         del elements
         print('All the records have been rewritten.')
 
