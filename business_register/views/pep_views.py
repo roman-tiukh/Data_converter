@@ -14,6 +14,7 @@ from business_register.permissions import PepSchemaToken
 from business_register.serializers.company_and_pep_serializers import PepListSerializer, PepDetailSerializer
 from data_converter.filter import DODjangoFilterBackend
 from data_ocean.views import CachedViewSetMixin, RegisterViewMixin
+from data_ocean.export import Export_to_xlsx
 
 
 @method_decorator(name='retrieve', decorator=swagger_auto_schema(tags=['pep']))
@@ -44,7 +45,16 @@ class PepViewSet(RegisterViewMixin,
         serializer = self.get_serializer(pep)
         return Response(serializer.data)
 
-    @action(detail=False)
-    def export_to_xlsx(self,request, date):
-        pep
-        Export_to_xlsx().export()
+    @action(detail=False, url_path='xlsx')
+    def export_to_xlsx(self, request):
+        queryset = self.filter_queryset(self.get_queryset())
+        export_dict = {
+            'Full Name': 'fullname',
+            'Status': 'status',
+            'Address': 'address',
+            'Registration Date': 'registration_date',
+            'Termination Date': 'termination_date',
+        }
+        worksheet_title = 'PEP'
+        if Export_to_xlsx().export(queryset, export_dict, worksheet_title):
+            return HttpResponse(export_file_path, content_type="text/plain")
