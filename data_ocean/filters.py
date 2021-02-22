@@ -11,7 +11,7 @@ class ValidatedBooleanWidget(BooleanWidget):
 
     def value_from_datadict(self, data, files, name):
         value = data.get(name, None)
-        if value is not None:
+        if value:
             if isinstance(value, str):
                 value = value.lower()
             if value not in ('true', 'false', '1', '0'):

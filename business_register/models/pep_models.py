@@ -41,13 +41,15 @@ class Pep(DataOceanModel):
     middle_name = models.CharField(_('middle name'), max_length=25)
     last_name = models.CharField(_('surname'), max_length=30)
     fullname = models.CharField(_("full name"), max_length=75, db_index=True)
-    fullname_transcriptions_eng = models.TextField(_('options for writing the full name'))
-    last_job_title = models.CharField(_('last position'), max_length=340, null=True)
-    last_employer = models.CharField(_('last office'), max_length=512, null=True)
+    fullname_transcriptions_eng = models.TextField(_('options for writing the full name'),
+                                                   db_index=True)
+    last_job_title = models.CharField(_('last position'), max_length=340, null=True, db_index=True)
+    last_employer = models.CharField(_('last office'), max_length=512, null=True, db_index=True)
     is_pep = models.BooleanField(_('is pep'), default=True)
     related_persons = models.ManyToManyField('self', verbose_name=_("associated persons"),
                                              through='RelatedPersonsLink')
-    pep_type = models.CharField(_('type'), choices=TYPES, max_length=60, null=True, blank=True)
+    pep_type = models.CharField(_('type'), choices=TYPES, max_length=60, null=True, blank=True,
+                                db_index=True)
     info = models.TextField(_('additional info'), null=True)
     sanctions = models.TextField(_('known sanctions against the person'), null=True)
     criminal_record = models.TextField(_('known sentences against the person'), null=True)
