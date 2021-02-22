@@ -946,8 +946,7 @@ class UkrCompanyFullConverter(CompanyConverter):
 
     def delete_outdated_companies(self):
         outdated_companies = list(set(self.already_stored_companies) - set(self.uptodated_companies))
-        for company in outdated_companies:
-            company_id = company.id
+        for company_id in outdated_companies:
             CompanyDetail.objects.filter(company_id=company_id).first().soft_delete()
             if CompanyToPredecessor.objects.filter(company_id=company_id).first():
                 CompanyToPredecessor.objects.filter(company_id=company_id).first().soft_delete()
