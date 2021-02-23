@@ -6,7 +6,7 @@ from openpyxl.utils.cell import get_column_letter
 from django.conf import settings
 
 
-class Export_to_xlsx():
+class ExportToXlsx():
 
     def export(self, queryset, export_dict, worksheet_title):
         workbook = Workbook()
