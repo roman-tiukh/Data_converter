@@ -245,8 +245,8 @@ class Converter:
             i += 1
         if records_len:
             self.save_to_db(records)
-        if start_index == 0:
-            self.delete_outdated_companies()
+        if start_index == 0 and hasattr(self, 'delete_outdated'):
+            self.delete_outdated()
         del elements
         print('All the records have been rewritten.')
 
