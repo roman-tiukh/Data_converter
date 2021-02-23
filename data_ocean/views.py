@@ -1,6 +1,7 @@
 from django.views.decorators.cache import cache_page
 from django.utils.decorators import method_decorator
 from drf_yasg.generators import OpenAPISchemaGenerator, EndpointEnumerator
+from drf_yasg.utils import swagger_auto_schema
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from rest_framework import permissions, viewsets
@@ -87,6 +88,8 @@ class Views(GenericAPIView):
         return Response(data)
 
 
+@method_decorator(name='retrieve', decorator=swagger_auto_schema(auto_schema=None))
+@method_decorator(name='list', decorator=swagger_auto_schema(auto_schema=None))
 class RegisterView(RegisterViewMixin, viewsets.ReadOnlyModelViewSet):
     queryset = Register.objects.all()
     serializer_class = RegisterSerializer
