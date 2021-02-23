@@ -1,4 +1,6 @@
+from datetime import datetime, timedelta
 from django.conf import settings
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
@@ -47,14 +49,22 @@ class PepViewSet(RegisterViewMixin,
 
     @action(detail=False, url_path='xlsx')
     def export_to_xlsx(self, request):
-        queryset = self.filter_queryset(self.get_queryset())
+        before_date = datetime.strptime(request.GET['updated_at_before'], '%Y-%m-%d')
+        after_date = datetime.strptime(request.GET['updated_at_after'], '%Y-%m-%d')
+        if (before_date and after_date) and timedelta(days=0) < before_date - after_date <= timedelta(days=31):
+            queryset = self.filter_queryset(self.get_queryset())
+        else:
+            return HttpResponse('Use "updated_at_after" & "updated_at_before" GET parameters. '
+                                'The time period for data exported in .xlsx cannot exceed 31 days.',
+                                content_type="text/plain")
         export_dict = {
-            'Full Name': 'fullname',
-            'Status': 'status',
-            'Address': 'address',
-            'Registration Date': 'registration_date',
-            'Termination Date': 'termination_date',
+            'Full Name': ['fullname', 40],
+            'Status': ['is_pep', 20],
+            'PEP Type': ['pep_type', 30],
+            'Last Job Title': ['last_job_title', 40],
+            'Last Employer': ['last_employer', 40]
         }
         worksheet_title = 'PEP'
-        if Export_to_xlsx().export(queryset, export_dict, worksheet_title):
+        export_file_path = Export_to_xlsx().export(queryset, export_dict, worksheet_title)
+        if export_file_path:
             return HttpResponse(export_file_path, content_type="text/plain")

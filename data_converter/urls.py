@@ -73,7 +73,6 @@ router.register(r'historical-signer', HistoricalSignerView, basename='historical
 router.register(r'historical-termination-started', HistoricalTerminationStartedView,
                 basename='historical_termination_started')
 router.register(r'pep', PepViewSet, basename='pep')
-# router.register(r'pep/xlsx', PepViewSet, basename='pep')
 
 urlpatterns = [
     path('api/stats/', include('stats.urls')),
