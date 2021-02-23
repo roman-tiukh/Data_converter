@@ -1,7 +1,9 @@
+import boto3
 from datetime import datetime
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, fonts, PatternFill
 from openpyxl.utils.cell import get_column_letter
+from tempfile import NamedTemporaryFile
 
 from django.conf import settings
 
@@ -32,8 +34,11 @@ class ExportToXlsx():
                     cell.value = sell_value
                 except:
                     cell.value = repr(sell_value)
-        export_file_path = settings.EXPORT_FOLDER + worksheet_title + '_{0}.xlsx'.format(
-            datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-        )
-        workbook.save(export_file_path)
-        return export_file_path
+        export_file_name = worksheet_title + '_{0}.xlsx'.format(datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
+        with NamedTemporaryFile() as temp_file:
+            workbook.save(temp_file.name)
+            temp_file.seek(0)
+            data = open(temp_file.name, 'rb')
+        s3 = boto3.resource('s3')
+        s3.Bucket('pep-xlsx').put_object(Key=export_file_name, Body=data, ACL='public-read')
+        return settings.PEP_EXPORT_FOLDER_URL + export_file_name

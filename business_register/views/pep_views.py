@@ -58,11 +58,16 @@ class PepViewSet(RegisterViewMixin,
                                 'The time period for data exported in .xlsx cannot exceed 31 days.',
                                 content_type="text/plain")
         export_dict = {
-            'Full Name': ['fullname', 40],
-            'Status': ['is_pep', 20],
-            'PEP Type': ['pep_type', 30],
-            'Last Job Title': ['last_job_title', 40],
-            'Last Employer': ['last_employer', 40]
+            'ID': ['pk', 7],
+            'Full Name': ['fullname', 30],
+            'Full Name (english transcription)': ['fullname_transcriptions_eng', 36],
+            'Status': ['is_pep', 10],
+            'PEP Type': ['pep_type', 10],
+            'Date of Birth': ['date_of_birth', 19],
+            'Created Date': ['created_at', 19],
+            'Updated Date': ['updated_at', 19],
+            'Last Job Title': ['last_job_title', 20],
+            'Last Employer': ['last_employer', 20]
         }
         worksheet_title = 'PEP'
         export_file_path = ExportToXlsx().export(queryset, export_dict, worksheet_title)
