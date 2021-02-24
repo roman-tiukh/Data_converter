@@ -1,5 +1,5 @@
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_yasg.inspectors import DjangoRestResponsePagination, CoreAPICompatInspector, NotHandled
+from drf_yasg.inspectors import DjangoRestResponsePagination, CoreAPICompatInspector
 from rest_framework.filters import SearchFilter
 
 
