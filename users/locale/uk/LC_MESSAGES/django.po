@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-02-19 15:13+0200\n"
+"POT-Creation-Date: 2021-02-24 15:59+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -181,17 +181,21 @@ msgstr "сповіщення"
 msgid "notifications"
 msgstr "сповіщення"
 
-#: users/serializers.py:45
+#: users/serializers.py:47
 msgid "First Name"
 msgstr "Ім'я"
 
-#: users/serializers.py:46
+#: users/serializers.py:48
 msgid "Last Name"
 msgstr "Прізвище"
 
-#: users/serializers.py:51
+#: users/serializers.py:53
 msgid "Your password can’t be too similar to"
 msgstr "Ваш пароль не може бути надто схожим на"
+
+#: users/serializers.py:62
+msgid "Wrong field"
+msgstr "Невірне поле"
 
 #: users/templates/users/emails/confirm_email.html:9
 msgid ""
