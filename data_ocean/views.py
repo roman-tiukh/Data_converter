@@ -106,23 +106,15 @@ class DOAutoSchemaClass(SwaggerAutoSchema):
     def get_operation(self, operation_keys):
         operation = super().get_operation(operation_keys)
         if operation_keys[1] == 'list':
-            operation.update({
-                'x-code-samples': [
-                    {
-                        "lang": "curl",
-                        "source": f"curl -X GET -H 'Authorization: DataOcean <token>'\n{settings_local.BACKEND_SITE_URL}"
-                                  f"/{operation_keys[0]}/"
-                    },
-                ]
-            })
+            source = f"curl -X GET -H 'Authorization: DataOcean <token>'\n{settings_local.BACKEND_SITE_URL}/{operation_keys[0]}/"
         else:
-            operation.update({
-                'x-code-samples': [
-                    {
-                        "lang": "curl",
-                        "source": f"curl -X GET -H 'Authorization: DataOcean <token>'\n{settings_local.BACKEND_SITE_URL}"
-                                  f"/{operation_keys[0]}/id=id_number"
-                    },
-                ]
-            })
+            source = f"curl -X GET -H 'Authorization: DataOcean <token>'\n{settings_local.BACKEND_SITE_URL}/{operation_keys[0]}/id=id_number"
+        operation.update({
+            'x-code-samples': [
+                {
+                    "lang": "curl",
+                    "source": source
+                },
+            ]
+        })
         return operation
