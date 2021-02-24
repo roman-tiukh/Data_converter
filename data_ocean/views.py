@@ -100,21 +100,20 @@ class RegisterView(RegisterViewMixin, viewsets.ReadOnlyModelViewSet):
 
 
 class DOAutoSchemaClass(SwaggerAutoSchema):
-    def __init__(self, view, path, method, components, request, overrides, operation_keys):
-        super().__init__(view, path, method, components, request, overrides, operation_keys)
-
-    def get_operation(self, operation_keys):
+    def get_operation(self, operation_keys=None):
         operation = super().get_operation(operation_keys)
+        source = None
         if operation_keys[1] == 'list':
-            source = f"curl -X GET -H 'Authorization: DataOcean <token>'\n{settings_local.BACKEND_SITE_URL}/{operation_keys[0]}/"
-        else:
-            source = f"curl -X GET -H 'Authorization: DataOcean <token>'\n{settings_local.BACKEND_SITE_URL}/{operation_keys[0]}/id=id_number"
-        operation.update({
-            'x-code-samples': [
-                {
-                    "lang": "curl",
-                    "source": source
-                },
-            ]
-        })
+            source = f"curl -X GET -H 'Authorization: DataOcean <token>' \\\n{settings_local.BACKEND_SITE_URL}/{operation_keys[0]}/"
+        elif operation_keys[1] == 'read':
+            source = f"curl -X GET -H 'Authorization: DataOcean <token>' \\\n{settings_local.BACKEND_SITE_URL}/{operation_keys[0]}/{{id}}/"
+        if source:
+            operation.update({
+                'x-code-samples': [
+                    {
+                        "lang": "curl",
+                        "source": source
+                    },
+                ]
+            })
         return operation
