@@ -12,21 +12,16 @@ class DODjangoRestResponsePagination(DjangoRestResponsePagination):
         return paginator.get_paginated_response_schema(response_schema)
 
 
-class DjangoFilterDescriptionInspector(CoreAPICompatInspector, SearchFilter):
+class DjangoFilterDescriptionInspector(CoreAPICompatInspector):
     def get_filter_parameters(self, filter_backend):
+        params = super().get_filter_parameters(filter_backend)
         if isinstance(filter_backend, DjangoFilterBackend):
-            result = super().get_filter_parameters(filter_backend)
-            for param in result:
+            for param in params:
                 if not param.get('description', ''):
                     param.description = f"Filter the returned list by {param.name}"
-            return result
         if isinstance(filter_backend, SearchFilter):
-            result = super().get_filter_parameters(filter_backend)
-            fields = super().get_search_fields(self.view, self.request)
-            fields = str(fields).replace('(', ' ')
-            fields = str(fields).replace(')', ' ')
-            for param in result:
-                param.description = f"Search by {fields}"
-                return result
+            fields = getattr(self.view, 'search_fields')
+            fields = ', '.join(fields)
+            params[0].description = f"Search by {fields}"
 
-        return NotHandled
+        return params
