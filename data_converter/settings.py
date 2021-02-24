@@ -182,7 +182,8 @@ SWAGGER_SETTINGS = {
     ],
     'DEFAULT_FILTER_INSPECTORS': [
         'data_converter.drf_yasg_inspectors.DjangoFilterDescriptionInspector',
-    ]
+    ],
+    'DEFAULT_AUTO_SCHEMA_CLASS': 'data_ocean.views.DOAutoSchemaClass',
 }
 
 SITE_ID = 1
