@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 
 import psycopg2
 import sshtunnel
@@ -529,6 +530,13 @@ class PepConverterFromDB(Converter):
             fullname_transcriptions_eng = pep_data[7].lower()
             is_pep = pep_data[8]
             date_of_birth = to_lower_string_if_exists(pep_data[9])
+            if date_of_birth:
+                try:
+                    date_of_birth = datetime.strptime(
+                        date_of_birth.strip(), '%d.%m.%Y',
+                    ).strftime('%Y-%m-%d')
+                except ValueError:
+                    pass
             place_of_birth = to_lower_string_if_exists(pep_data[10])
             sanctions = pep_data[12]
             criminal_record = pep_data[14]
