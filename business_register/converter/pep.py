@@ -519,6 +519,22 @@ class PepConverterFromDB(Converter):
             for link in self.outdated_peps_companies_dict.values():
                 link.soft_delete()
 
+    def parse_date_of_birth(self, date_of_birth):
+        if isinstance(date_of_birth, str):
+            date_of_birth = date_of_birth.strip()
+            if date_of_birth:
+                try:
+                    date_of_birth = datetime.strptime(
+                        date_of_birth.strip(), '%d.%m.%Y',
+                    ).strftime('%Y-%m-%d')
+                except ValueError:
+                    pass
+            else:
+                date_of_birth = None
+        else:
+            date_of_birth = None
+        return date_of_birth
+
     def save_or_update_peps(self, peps_data):
         for pep_data in peps_data:
             source_id = pep_data[0]
@@ -529,14 +545,7 @@ class PepConverterFromDB(Converter):
             fullname = f'{last_name} {first_name} {middle_name}'
             fullname_transcriptions_eng = pep_data[7].lower()
             is_pep = pep_data[8]
-            date_of_birth = to_lower_string_if_exists(pep_data[9])
-            if date_of_birth:
-                try:
-                    date_of_birth = datetime.strptime(
-                        date_of_birth.strip(), '%d.%m.%Y',
-                    ).strftime('%Y-%m-%d')
-                except ValueError:
-                    pass
+            date_of_birth = self.parse_date_of_birth(pep_data[9])
             place_of_birth = to_lower_string_if_exists(pep_data[10])
             sanctions = pep_data[12]
             criminal_record = pep_data[14]
