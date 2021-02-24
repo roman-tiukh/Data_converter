@@ -6,6 +6,7 @@ from payment_system.models import (
     Subscription,
     Invoice,
     Invitation,
+    CustomSubscriptionRequest,
 )
 
 
@@ -74,7 +75,8 @@ class ProjectListSerializer(serializers.ModelSerializer):
         return obj.user_projects.get(user=self.context['request'].user).status
 
     def get_users_count(self, obj):
-        return obj.users.count()
+        return obj.users.filter(user_projects__status=UserProject.ACTIVE).count()
+
 
     class Meta:
         model = Project
@@ -198,3 +200,13 @@ class ProjectSubscriptionSerializer(serializers.ModelSerializer):
             'is_grace_period', 'duration', 'grace_period',
         ]
         read_only_fields = fields
+
+
+class CustomSubscriptionRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomSubscriptionRequest
+        read_only_fields = ['is_processed', 'created_at']
+        fields = [
+            'id', 'first_name', 'last_name',
+            'email', 'phone', 'note',
+        ] + read_only_fields

@@ -1,10 +1,11 @@
 from django.db import models
+from django.utils.translation import ugettext_lazy as _
 
 from data_ocean.models import DataOceanModel
 
 
 class Country(DataOceanModel):
-    name = models.CharField('назва', max_length=60, unique=True)
+    name = models.CharField('name', max_length=60, unique=True)
 
     class Meta:
-        verbose_name = 'країна'
+        verbose_name = _('country')

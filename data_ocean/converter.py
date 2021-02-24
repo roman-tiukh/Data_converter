@@ -190,6 +190,9 @@ class Converter:
         ).objects.all()
                 }
 
+    def delete_outdated(self):
+        """ delete some outdated records """
+
     def process(self, start_index=0):
         records = []
         elements = etree.iterparse(
@@ -198,25 +201,29 @@ class Converter:
             recover=False,
         )
 
-        for _ in range(start_index):
-            next(elements)
+        # for _ in range(start_index):
+        #     next(elements)
 
-        i = start_index
+        # i = start_index
+        i = 0
         chunk_start_index = i
-        records_len = 0
         for _, elem in elements:
+            records_len = len(records)
+
             if records_len == 0:
                 chunk_start_index = i
+
             # for text in elem.iter():
             #     print('\t%28s\t%s' % (text.tag, text.text))
+
             records.append(elem)
-            records_len = len(records)
-            if records_len < self.CHUNK_SIZE:
-                i += 1
-            else:
+            records_len += 1
+            if records_len >= self.CHUNK_SIZE:
                 # print(f'>>> Start save to db records {chunk_start_index}-{i}')
                 try:
-                    self.save_to_db(records)
+                    if i >= start_index:
+                        self.save_to_db(records)
+                    print(i)
                 except Exception as e:
                     msg = f'!!! Save to db failed at index = {chunk_start_index}. Error: {str(e)}'
                     logger.error(msg)
@@ -238,9 +245,11 @@ class Converter:
                         del ancestor.getparent()[0]
 
                 print('>>> Saved successfully')
+            i += 1
         if records_len:
             self.save_to_db(records)
-
+        if start_index == 0:
+            self.delete_outdated()
         del elements
         print('All the records have been rewritten.')
 
