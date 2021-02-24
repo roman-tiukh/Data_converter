@@ -1,6 +1,7 @@
 from django.views.decorators.cache import cache_page
 from django.utils.decorators import method_decorator
 from drf_yasg.generators import OpenAPISchemaGenerator, EndpointEnumerator
+from drf_yasg.inspectors import SwaggerAutoSchema
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
@@ -96,3 +97,23 @@ class RegisterView(RegisterViewMixin, viewsets.ReadOnlyModelViewSet):
     filterset_class = RegisterFilter
     filter_backends = [DjangoFilterBackend, SearchFilter]
     search_fields = ['name', 'source_register_id', 'status', ]
+
+
+class DOAutoSchemaClass(SwaggerAutoSchema):
+    def get_operation(self, operation_keys=None):
+        operation = super().get_operation(operation_keys)
+        source = None
+        if operation_keys[1] == 'list':
+            source = f"curl -X GET -H 'Authorization: DataOcean <token>' \\\n{settings_local.BACKEND_SITE_URL}/{operation_keys[0]}/"
+        elif operation_keys[1] == 'read':
+            source = f"curl -X GET -H 'Authorization: DataOcean <token>' \\\n{settings_local.BACKEND_SITE_URL}/{operation_keys[0]}/{{id}}/"
+        if source:
+            operation.update({
+                'x-code-samples': [
+                    {
+                        "lang": "curl",
+                        "source": source
+                    },
+                ]
+            })
+        return operation

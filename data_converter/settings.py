@@ -177,9 +177,13 @@ SWAGGER_SETTINGS = {
         },
     },
     'DEFAULT_PAGINATOR_INSPECTORS': [
-        'data_converter.drf_yasg_pagination.DODjangoRestResponsePagination',
+        'data_converter.drf_yasg_inspectors.DODjangoRestResponsePagination',
         'drf_yasg.inspectors.CoreAPICompatInspector',
     ],
+    'DEFAULT_FILTER_INSPECTORS': [
+        'data_converter.drf_yasg_inspectors.DjangoFilterDescriptionInspector',
+    ],
+    'DEFAULT_AUTO_SCHEMA_CLASS': 'data_ocean.views.DOAutoSchemaClass',
 }
 
 SITE_ID = 1
