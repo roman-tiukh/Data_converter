@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.postgres',
     'django.contrib.sites',
     'django_celery_beat',
     'django_extensions',
@@ -177,9 +178,13 @@ SWAGGER_SETTINGS = {
         },
     },
     'DEFAULT_PAGINATOR_INSPECTORS': [
-        'data_converter.drf_yasg_pagination.DODjangoRestResponsePagination',
+        'data_converter.drf_yasg_inspectors.DODjangoRestResponsePagination',
         'drf_yasg.inspectors.CoreAPICompatInspector',
     ],
+    'DEFAULT_FILTER_INSPECTORS': [
+        'data_converter.drf_yasg_inspectors.DjangoFilterDescriptionInspector',
+    ],
+    'DEFAULT_AUTO_SCHEMA_CLASS': 'data_ocean.views.DOAutoSchemaClass',
 }
 
 SITE_ID = 1
