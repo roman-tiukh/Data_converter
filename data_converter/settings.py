@@ -170,9 +170,10 @@ SWAGGER_SETTINGS = {
             "in": "header",
             "description": (
                 "You will find an access token in your profile. In order to access the API, you need to add a regular title"
-                f" called<br/>'Authorization' meaning 'DataOcean &lt; token &gt;' to your HTTPS to {BACKEND_SITE_URL}/api/"
+                f" called<br/>'Authorization' meaning 'DataOcean {{token}}' to your HTTPS to {BACKEND_SITE_URL}/api/"
                 " {name of register}<br/> request by substituting your token.<br/>Final title:<br/><b>Authorization: DataOcean "
-                "94c6d542af1c4c4942e51df6с4d47fbd12fb3dea</b><br/>"
+                "94c6d542af1c4c4942e51df6с4d47fbd12fb3dea</b><br/> Example with curl:<br/><b>curl -X GET -H 'Authorization: "
+                f"DataOcean {{token}}' {BACKEND_SITE_URL}/api/ {{name of register}}</b>"
             ),
         },
     },
