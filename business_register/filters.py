@@ -75,7 +75,7 @@ class KvedFilterSet(filters.FilterSet):
 
 
 class PepFilterSet(filters.FilterSet):
-    fullname = filters.CharFilter(lookup_expr='icontains',
+    fullname = filters.CharFilter(lookup_expr='search',
                                   help_text='Filter by full name "first name middle name last name" in Ukrainian.')
     fullname_transcriptions_eng = filters.CharFilter(lookup_expr='icontains',
                                                      help_text='Filter by full name in English transcription.')
@@ -99,6 +99,11 @@ class PepFilterSet(filters.FilterSet):
                                          method='filter_related_company', help_text='Filter by related company.')
     last_job_title = filters.CharFilter(lookup_expr='icontains', help_text='Filter by title of the last job in Ukrainian.')
     last_employer = filters.CharFilter(lookup_expr='icontains', help_text='Filter by last employer in Ukrainian.')
+
+    date_of_birth = filters.CharFilter(lookup_expr='icontains',
+                                       help_text='Filter by date_of_birth, string contains type. '
+                                                 'Examples: date_of_birth=1964, date_of_birth=1964-02, '
+                                                 'date_of_birth=1964-02-06')
 
     o = filters.OrderingFilter(
         fields=(
