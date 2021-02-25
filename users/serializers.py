@@ -2,6 +2,7 @@ import re
 from difflib import SequenceMatcher
 
 from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator, _lazy_re_compile
 from django.utils.text import format_lazy
 from django.utils.translation import ugettext_lazy as _
 from rest_auth.registration.serializers import RegisterSerializer
@@ -55,12 +56,16 @@ class CustomRegisterSerializer(RegisterSerializer):
                 raise serializers.ValidationError(err_msg_result)
 
         for field in ['first_name', 'last_name']:
-            value = data[field].lower()
-            x = re.findall("[^a-z0-9-.'а-яії]", value)
-            x = x + re.findall(r'((\w)\2{2,})', value)
-            if x != []:
-                err_msg = _('Wrong field')
-                raise ValidationError(format_lazy('{err_msg} {f}.', err_msg=err_msg, f=field))
+            value = data[field].lower()#(r"(^[a-z0-9а-я 'іїёєґ.`-]*$)
+            err_msg = _("Only alphanumeric characters, digits, and '-. are allowed in ")
+            err_msg_rep = _("No more than two repeated symbols in a row in ")
+            validate_symbols = RegexValidator(regex=(r"^[a-z0-9а-я 'іїёєґ.`-]*$"),
+                                      message=format_lazy('{err_msg}{field}', err_msg=err_msg, field=field))
+            validate_triple = RegexValidator(regex=((r"(.)\1{2,}")),
+                                      message=format_lazy('{err_msg}{field}', err_msg=err_msg_rep, field=field),
+                                             inverse_match='true')
+            validate_symbols(value)
+            validate_triple(value)
         return data
 
 

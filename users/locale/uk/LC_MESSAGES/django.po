@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-02-24 15:59+0200\n"
+"POT-Creation-Date: 2021-02-25 13:48+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -181,21 +181,25 @@ msgstr "сповіщення"
 msgid "notifications"
 msgstr "сповіщення"
 
-#: users/serializers.py:47
+#: users/serializers.py:48
 msgid "First Name"
 msgstr "Ім'я"
 
-#: users/serializers.py:48
+#: users/serializers.py:49
 msgid "Last Name"
 msgstr "Прізвище"
 
-#: users/serializers.py:53
+#: users/serializers.py:54
 msgid "Your password can’t be too similar to"
 msgstr "Ваш пароль не може бути надто схожим на"
 
-#: users/serializers.py:62
-msgid "Wrong field"
-msgstr "Невірне поле"
+#: users/serializers.py:60
+msgid "Only alphanumeric characters, digits, and '-. are allowed in "
+msgstr "Дозволяються лише літери, цифри  та символи '-. в полі "
+
+#: users/serializers.py:61
+msgid "No more than two repeated symbols in a row in "
+msgstr "Не більше двох повторюваних символів поспіль у "
 
 #: users/templates/users/emails/confirm_email.html:9
 msgid ""
@@ -259,3 +263,6 @@ msgstr "Дія посилання на підтвердження закінчи
 #: users/views.py:145 users/views.py:151
 msgid "Email not sent. Try again later."
 msgstr "Лист на електронну пошту не надіслано. Спробуйте ще раз пізніше."
+
+#~ msgid "Wrong field"
+#~ msgstr "Невірне поле"
