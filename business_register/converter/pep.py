@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime, date
 
 import psycopg2
 import sshtunnel
@@ -518,6 +519,24 @@ class PepConverterFromDB(Converter):
             for link in self.outdated_peps_companies_dict.values():
                 link.soft_delete()
 
+    def parse_date_of_birth(self, date_of_birth):
+        if isinstance(date_of_birth, date) or isinstance(date_of_birth, datetime):
+            date_of_birth = date_of_birth.strftime('%Y-%m-%d')
+        elif isinstance(date_of_birth, str):
+            date_of_birth = date_of_birth.strip()
+            if date_of_birth:
+                try:
+                    date_of_birth = datetime.strptime(
+                        date_of_birth.strip(), '%d.%m.%Y',
+                    ).strftime('%Y-%m-%d')
+                except ValueError:
+                    pass
+            else:
+                date_of_birth = None
+        else:
+            date_of_birth = None
+        return date_of_birth
+
     def save_or_update_peps(self, peps_data):
         for pep_data in peps_data:
             source_id = pep_data[0]
@@ -528,7 +547,7 @@ class PepConverterFromDB(Converter):
             fullname = f'{last_name} {first_name} {middle_name}'
             fullname_transcriptions_eng = pep_data[7].lower()
             is_pep = pep_data[8]
-            date_of_birth = to_lower_string_if_exists(pep_data[9])
+            date_of_birth = self.parse_date_of_birth(pep_data[9])
             place_of_birth = to_lower_string_if_exists(pep_data[10])
             sanctions = pep_data[12]
             criminal_record = pep_data[14]
@@ -546,30 +565,33 @@ class PepConverterFromDB(Converter):
             pep = self.peps_dict.get(code)
             if not pep:
                 pep = Pep.objects.create(
+                    source_id=source_id,
                     code=code,
                     first_name=first_name,
                     middle_name=middle_name,
                     last_name=last_name,
                     fullname=fullname,
                     fullname_transcriptions_eng=fullname_transcriptions_eng,
-                    info=info,
+                    is_pep=is_pep,
+                    date_of_birth=date_of_birth,
+                    place_of_birth=place_of_birth,
                     sanctions=sanctions,
                     criminal_record=criminal_record,
                     assets_info=assets_info,
                     criminal_proceedings=criminal_proceedings,
                     wanted=wanted,
-                    date_of_birth=date_of_birth,
-                    place_of_birth=place_of_birth,
-                    is_pep=is_pep,
+                    info=info,
                     pep_type=pep_type,
+                    reason_of_termination=reason_of_termination,
                     is_dead=is_dead,
                     termination_date=termination_date,
-                    reason_of_termination=reason_of_termination,
-                    source_id=source_id
                 )
                 self.peps_dict[code] = pep
             else:
                 update_fields = []
+                if pep.source_id != source_id:
+                    pep.source_id = source_id
+                    update_fields.append('source_id')
                 if pep.first_name != first_name:
                     pep.first_name = first_name
                     update_fields.append('first_name')
@@ -579,12 +601,21 @@ class PepConverterFromDB(Converter):
                 if pep.last_name != last_name:
                     pep.last_name = last_name
                     update_fields.append('last_name')
+                if pep.fullname != fullname:
+                    pep.fullname = fullname
+                    update_fields.append('fullname')
                 if pep.fullname_transcriptions_eng != fullname_transcriptions_eng:
                     pep.fullname_transcriptions_eng = fullname_transcriptions_eng
                     update_fields.append('fullname_transcriptions_eng')
-                if pep.info != info:
-                    pep.info = info
-                    update_fields.append('info')
+                if pep.is_pep != is_pep:
+                    pep.is_pep = is_pep
+                    update_fields.append('is_pep')
+                if pep.date_of_birth != date_of_birth:
+                    pep.date_of_birth = date_of_birth
+                    update_fields.append('date_of_birth')
+                if pep.place_of_birth != place_of_birth:
+                    pep.place_of_birth = place_of_birth
+                    update_fields.append('place_of_birth')
                 if pep.sanctions != sanctions:
                     pep.sanctions = sanctions
                     update_fields.append('sanctions')
@@ -600,30 +631,21 @@ class PepConverterFromDB(Converter):
                 if pep.wanted != wanted:
                     pep.wanted = wanted
                     update_fields.append('wanted')
-                if pep.date_of_birth != date_of_birth:
-                    pep.date_of_birth = date_of_birth
-                    update_fields.append('date_of_birth')
-                if pep.place_of_birth != place_of_birth:
-                    pep.place_of_birth = place_of_birth
-                    update_fields.append('place_of_birth')
-                if pep.is_pep != is_pep:
-                    pep.is_pep = is_pep
-                    update_fields.append('is_pep')
+                if pep.info != info:
+                    pep.info = info
+                    update_fields.append('info')
                 if pep.pep_type != pep_type:
                     pep.pep_type = pep_type
                     update_fields.append('pep_type')
+                if pep.reason_of_termination != reason_of_termination:
+                    pep.reason_of_termination = reason_of_termination
+                    update_fields.append('reason_of_termination')
                 if pep.is_dead != is_dead:
                     pep.is_dead = is_dead
                     update_fields.append('is_dead')
                 if pep.termination_date != termination_date:
                     pep.termination_date = termination_date
                     update_fields.append('termination_date')
-                if pep.reason_of_termination != reason_of_termination:
-                    pep.reason_of_termination = reason_of_termination
-                    update_fields.append('reason_of_termination')
-                if pep.source_id != source_id:
-                    pep.source_id = source_id
-                    update_fields.append('source_id')
                 if len(update_fields):
                     update_fields.append('updated_at')
                     pep.save(update_fields=update_fields)

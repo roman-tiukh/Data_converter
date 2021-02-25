@@ -75,9 +75,9 @@ class KvedFilterSet(filters.FilterSet):
 
 
 class PepFilterSet(filters.FilterSet):
-    fullname = filters.CharFilter(lookup_expr='icontains',
+    fullname = filters.CharFilter(lookup_expr='search',
                                   help_text='Filter by full name "first name middle name last name" in Ukrainian.')
-    fullname_transcriptions_eng = filters.CharFilter(lookup_expr='icontains',
+    fullname_transcriptions_eng = filters.CharFilter(lookup_expr='search',
                                                      help_text='Filter by full name in English transcription.')
     name_search = filters.CharFilter(label=_('Options for writing full name'),
                                      method='filter_name_search',
@@ -100,6 +100,11 @@ class PepFilterSet(filters.FilterSet):
     last_job_title = filters.CharFilter(lookup_expr='icontains', help_text='Filter by title of the last job in Ukrainian.')
     last_employer = filters.CharFilter(lookup_expr='icontains', help_text='Filter by last employer in Ukrainian.')
 
+    date_of_birth = filters.CharFilter(lookup_expr='icontains',
+                                       help_text='Filter by date_of_birth, string contains type. '
+                                                 'Examples: date_of_birth=1964, date_of_birth=1964-02, '
+                                                 'date_of_birth=1964-02-06')
+
     o = filters.OrderingFilter(
         fields=(
             ('fullname', 'fullname'),
@@ -113,8 +118,8 @@ class PepFilterSet(filters.FilterSet):
 
     def filter_name_search(self, queryset, name, value):
         return queryset.filter(
-            Q(fullname__icontains=value) |
-            Q(fullname_transcriptions_eng__icontains=value)
+            Q(fullname__search=value) |
+            Q(fullname_transcriptions_eng__search=value)
         )
 
     def filter_related_company(self, queryset, value, company_number):
