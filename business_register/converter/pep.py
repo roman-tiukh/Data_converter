@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import datetime, date
 
 import psycopg2
 import sshtunnel
@@ -520,7 +520,9 @@ class PepConverterFromDB(Converter):
                 link.soft_delete()
 
     def parse_date_of_birth(self, date_of_birth):
-        if isinstance(date_of_birth, str):
+        if isinstance(date_of_birth, date) or isinstance(date_of_birth, datetime):
+            date_of_birth = date_of_birth.strftime('%Y-%m-%d')
+        elif isinstance(date_of_birth, str):
             date_of_birth = date_of_birth.strip()
             if date_of_birth:
                 try:
