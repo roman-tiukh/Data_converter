@@ -77,7 +77,7 @@ class KvedFilterSet(filters.FilterSet):
 class PepFilterSet(filters.FilterSet):
     fullname = filters.CharFilter(lookup_expr='search',
                                   help_text='Filter by full name "first name middle name last name" in Ukrainian.')
-    fullname_transcriptions_eng = filters.CharFilter(lookup_expr='icontains',
+    fullname_transcriptions_eng = filters.CharFilter(lookup_expr='search',
                                                      help_text='Filter by full name in English transcription.')
     name_search = filters.CharFilter(label=_('Options for writing full name'),
                                      method='filter_name_search',
@@ -118,8 +118,8 @@ class PepFilterSet(filters.FilterSet):
 
     def filter_name_search(self, queryset, name, value):
         return queryset.filter(
-            Q(fullname__icontains=value) |
-            Q(fullname_transcriptions_eng__icontains=value)
+            Q(fullname__search=value) |
+            Q(fullname_transcriptions_eng__search=value)
         )
 
     def filter_related_company(self, queryset, value, company_number):
