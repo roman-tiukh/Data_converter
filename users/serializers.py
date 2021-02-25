@@ -56,7 +56,7 @@ class CustomRegisterSerializer(RegisterSerializer):
                 raise serializers.ValidationError(err_msg_result)
 
         for field in ['first_name', 'last_name']:
-            value = data[field].lower()#(r"(^[a-z0-9а-я 'іїёєґ.`-]*$)
+            value = data[field].lower()
             err_msg = _("Only alphanumeric characters, digits, and '-. are allowed in ")
             err_msg_rep = _("No more than two repeated symbols in a row in ")
             validate_symbols = RegexValidator(regex=(r"^[a-z0-9а-я 'іїёєґ.`-]*$"),
