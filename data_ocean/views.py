@@ -119,3 +119,70 @@ class DOAutoSchemaClass(SwaggerAutoSchema):
                 ],
             })
         return operation
+
+    def get_responses(self):
+        responses = super().get_responses()
+        responses.update({
+            400: {
+                'description': "Bad Request",
+                'schema': {
+                    'type': openapi.TYPE_OBJECT,
+                    'properties': {
+                        'error': {
+                            'type': openapi.TYPE_STRING,
+                            'description': 'Response status code indicates that the server cannot or will not process'
+                                           ' the request due to something that is perceived to be a client error (e.g., '
+                                           'malformed request syntax, invalid request message framing, or deceptive'
+                                           ' request routing).',
+                        }
+                    },
+                    'examples': [{'detail': 'Bad Request'}],
+                },
+            },
+            403: {
+                'description': 'Forbidden',
+                'schema': {
+                    'type': openapi.TYPE_OBJECT,
+                    'properties': {
+                        'error': {
+                            'type': openapi.TYPE_STRING,
+                            'description': 'Client error status response code indicates that the server understood the'
+                                           ' request but refuses to authorize it. This status is similar to 401, but in'
+                                           ' this case, re-authenticating will make no difference. The access is'
+                                           ' permanently forbidden and tied to the application logic, such as'
+                                           ' insufficient rights to a resource.',
+                        },
+                    },
+                    'examples': [{"detail": 'Authentication credentials were not provided.'}],
+                },
+            },
+            404: {
+                'description': 'Not Found',
+                'schema': {
+                    'type': openapi.TYPE_OBJECT,
+                    'properties': {
+                        'error': {
+                            'type': openapi.TYPE_STRING,
+                            'description': 'The requested resource could not be found but may be available again in the'
+                                           ' future. Subsequent requests by the client are permissible.',
+                        }
+                    },
+                    'examples': [{"detail": 'Not found.'}],
+                },
+            },
+            500: {
+                'description': 'Internal Server Error',
+                'schema': {
+                    'type': openapi.TYPE_OBJECT,
+                    'properties': {
+                        'error': {
+                            'type': openapi.TYPE_STRING,
+                            'description': 'Server error response code indicates that the server encountered an '
+                                           'unexpected condition that prevented it from fulfilling the request.',
+                        },
+                    },
+                    'examples': [{"detail": 'Server Error (500)'}],
+                },
+            },
+        })
+        return responses
