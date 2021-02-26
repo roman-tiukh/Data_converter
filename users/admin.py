@@ -132,6 +132,12 @@ class ProjectsInline(admin.TabularInline):
     def has_add_permission(self, request, obj):
         return False
 
+    def has_module_permission(self, request):
+        return request.user.is_staff and request.user.payment_system_admin
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser or request.user.payment_system_admin
+
 
 @admin.register(DataOceanUser)
 class DataOceanUserAdmin(UserAdmin):
@@ -204,11 +210,23 @@ class DataOceanUserAdmin(UserAdmin):
         'language',
     ]
 
+    def get_readonly_fields(self, request, obj=None):
+        if not request.user.is_superuser:
+            return self.readonly_fields + [
+                'is_staff',
+                'is_active',
+                'is_superuser',
+                'datasets_admin',
+                'users_viewer',
+                'payment_system_admin',
+                'password',
+            ]
+        return self.readonly_fields
+
     def get_inlines(self, request, obj):
-        inlines = self.inlines.copy()
         if request.user.is_superuser or request.user.payment_system_admin:
-            inlines.append(ProjectsInline)
-        return inlines
+            return self.inlines + [ProjectsInline]
+        return self.inlines
 
     def has_module_permission(self, request):
         return request.user.is_staff
@@ -217,7 +235,7 @@ class DataOceanUserAdmin(UserAdmin):
         return request.user.is_superuser or request.user.users_viewer
 
     def has_change_permission(self, request, obj=None):
-        return request.user.is_superuser
+        return request.user.is_superuser or request.user.users_viewer
 
     def has_add_permission(self, request):
         return False
