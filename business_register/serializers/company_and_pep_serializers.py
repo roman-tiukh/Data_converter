@@ -420,8 +420,8 @@ class FromRelatedPersonListSerializer(serializers.ModelSerializer):
     category_display = serializers.CharField(source='get_category_display')
 
     id = serializers.IntegerField(source='to_person.id')
-    fullname = serializers.IntegerField(source='to_person.fullname')
-    pep_type = serializers.IntegerField(source='to_person.get_pep_type_display')
+    fullname = serializers.CharField(source='to_person.fullname')
+    pep_type = serializers.CharField(source='to_person.get_pep_type_display')
 
     class Meta:
         model = RelatedPersonsLink
@@ -438,8 +438,8 @@ class ToRelatedPersonListSerializer(serializers.ModelSerializer):
     category_display = serializers.CharField(source='get_category_display')
 
     id = serializers.IntegerField(source='from_person.id')
-    fullname = serializers.IntegerField(source='from_person.fullname')
-    pep_type = serializers.IntegerField(source='from_person.get_pep_type_display')
+    fullname = serializers.CharField(source='from_person.fullname')
+    pep_type = serializers.CharField(source='from_person.get_pep_type_display')
 
     class Meta:
         model = RelatedPersonsLink
