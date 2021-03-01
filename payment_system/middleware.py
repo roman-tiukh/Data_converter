@@ -9,7 +9,7 @@ def permission_denied(message: str):
     return JsonResponse({'detail': message}, status=403)
 
 
-class RequestsLimitMiddleware:
+class ProjectAuthenticationMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
 

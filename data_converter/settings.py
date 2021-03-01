@@ -62,7 +62,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'stats.middleware.ApiUsageMiddleware',
-    'payment_system.middleware.RequestsLimitMiddleware',
+    'payment_system.middleware.ProjectAuthenticationMiddleware',
 ]
 
 INTERNAL_IPS = [
