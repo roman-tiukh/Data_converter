@@ -40,7 +40,7 @@ class FopToKved(DataOceanModel):
     primary_kved = models.BooleanField('declared as primary', default=False)
 
     def __str__(self):
-        return f'{self.kved} (declared as primary)' if self.primary_kved else self.kved
+        return f'{self.kved} (declared as primary)' if self.primary_kved else str(self.kved)
 
     class Meta:
         verbose_name = 'NACE'
