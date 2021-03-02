@@ -116,7 +116,6 @@ class DOAutoSchemaClass(SwaggerAutoSchema):
                            f"api/{'/'.join(operation_keys[:-1])}/{{id}}/"
             example_python = "import requests\nfrom pprint import pprint\n\n" \
                              f"response = requests.get(\n\t'{settings_local.BACKEND_SITE_URL}/api/{'/'.join(operation_keys[:-1])}/{{id}}/',\n" \
-                             f"\tparams={{'page': 1, 'page_size': 20}},\n" \
                              f"\theaders={{'Authorization': 'DataOcean {{token}}'}},\n)\n\n" \
                              "pprint(response.json())"
         if example_curl:
