@@ -1,8 +1,7 @@
 import re
 from difflib import SequenceMatcher
 
-from django.core.exceptions import ValidationError
-from django.core.validators import RegexValidator, _lazy_re_compile
+from django.core.validators import RegexValidator
 from django.utils.text import format_lazy
 from django.utils.translation import ugettext_lazy as _
 from rest_auth.registration.serializers import RegisterSerializer
@@ -12,6 +11,7 @@ from rest_framework.authtoken.models import Token
 
 from .forms import CustomPasswordResetForm
 from .models import DataOceanUser, Question, Notification
+from .validators import validate_symbols, validate_triple
 
 
 class DataOceanUserSerializer(serializers.ModelSerializer):
@@ -25,8 +25,14 @@ class DataOceanUserSerializer(serializers.ModelSerializer):
 
 class CustomRegisterSerializer(RegisterSerializer):
     username = None
-    first_name = serializers.CharField(required=True, write_only=True)
-    last_name = serializers.CharField(required=True, write_only=True)
+    first_name = serializers.CharField(required=True, write_only=True, validators=[
+        validate_symbols,
+        validate_triple,
+    ])
+    last_name = serializers.CharField(required=True, write_only=True, validators=[
+        validate_symbols,
+        validate_triple,
+    ])
 
     def get_cleaned_data(self):
         return {
@@ -54,18 +60,6 @@ class CustomRegisterSerializer(RegisterSerializer):
                 err_msg = _('Your password can’t be too similar to')
                 err_msg_result = format_lazy('{err_msg} {v}.', err_msg=err_msg, v=v)
                 raise serializers.ValidationError(err_msg_result)
-
-        for field in ['first_name', 'last_name']:
-            value = data[field].lower()
-            err_msg = _("Only alphanumeric characters, digits, and '-. are allowed in ")
-            err_msg_rep = _("No more than two repeated symbols in a row in ")
-            validate_symbols = RegexValidator(regex=(r"^[a-z0-9а-я 'іїёєґ.`-]*$"),
-                                      message=format_lazy('{err_msg}{field}', err_msg=err_msg, field=field))
-            validate_triple = RegexValidator(regex=((r"(.)\1{2,}")),
-                                      message=format_lazy('{err_msg}{field}', err_msg=err_msg_rep, field=field),
-                                             inverse_match='true')
-            validate_symbols(value)
-            validate_triple(value)
         return data
 
 
