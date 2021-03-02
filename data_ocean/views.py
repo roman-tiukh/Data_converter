@@ -106,15 +106,29 @@ class DOAutoSchemaClass(SwaggerAutoSchema):
         if operation_keys[-1] == 'list':
             example_curl = f"curl -X GET -H 'Authorization: DataOcean {{token}}' \\\n{settings_local.BACKEND_SITE_URL}/" \
                            f"api/{'/'.join(operation_keys[:-1])}/"
+            example_python = "import requests\nfrom pprint import pprint\n\n" \
+                             f"response = requests.get(\n\t'{settings_local.BACKEND_SITE_URL}/api/{'/'.join(operation_keys[:-1])}/',\n" \
+                             f"\tparams={{'page': 1, 'page_size': 20}},\n" \
+                             f"\theaders={{'Authorization': 'DataOcean {{token}}'}},\n)\n\n" \
+                             "pprint(response.json())"
         elif operation_keys[-1] == 'read':
             example_curl = f"curl -X GET -H 'Authorization: DataOcean {{token}}' \\\n{settings_local.BACKEND_SITE_URL}/" \
                            f"api/{'/'.join(operation_keys[:-1])}/{{id}}/"
+            example_python = "import requests\nfrom pprint import pprint\n\n" \
+                             f"response = requests.get(\n\t'{settings_local.BACKEND_SITE_URL}/api/{'/'.join(operation_keys[:-1])}/{{id}}/',\n" \
+                             f"\tparams={{'page': 1, 'page_size': 20}},\n" \
+                             f"\theaders={{'Authorization': 'DataOcean {{token}}'}},\n)\n\n" \
+                             "pprint(response.json())"
         if example_curl:
             operation.update({
                 'x-code-samples': [
                     {
                         "lang": "curl",
                         "source": example_curl
+                    },
+                    {
+                        "lang": "python",
+                        "source": example_python
                     },
                 ],
             })
