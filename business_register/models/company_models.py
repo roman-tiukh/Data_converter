@@ -153,7 +153,7 @@ class CompanyToKved(DataOceanModel):  # constraint for only only one truth in pr
         verbose_name = _('NACE')
 
     def __str__(self):
-        return f"{self.kved} (declared as primary)" if self.primary_kved else self.kved
+        return f"{self.kved} (declared as primary)" if self.primary_kved else str(self.kved)
 
 
 class ExchangeDataCompany(DataOceanModel):
