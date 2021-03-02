@@ -187,3 +187,5 @@ class Downloader(ABC):
         register = Register.objects.get(api_list=register_api_list)
         setattr(register, field_name, new_field_value)
         register.save(update_fields=[field_name, 'updated_at'])
+
+

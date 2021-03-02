@@ -389,12 +389,14 @@ class PepConverterFromDB(Converter):
             if not from_person:
                 logger.info(f'No such pep in our DB. '
                             f'Check records in the source DB with id {from_person_source_id}')
+                self.log_obj.errors += 1
                 continue
             to_person_source_id = link[1]
             to_person = self.peps_dict.get(str(to_person_source_id))
             if not to_person:
                 logger.info(f'No such pep in our DB. '
                             f'Check records in the source DB with id {to_person_source_id}')
+                self.log_obj.errors += 1
                 continue
             from_person_relationship_type = link[2]
             to_person_relationship_type = link[3]
@@ -465,6 +467,7 @@ class PepConverterFromDB(Converter):
             if not pep:
                 logger.info(f'No such pep in our DB. '
                             f'Check records in the source DB with id {pep_source_id}')
+                self.log_obj.errors += 1
                 continue
             company_antac_id = link[1]
             start_date = to_lower_string_if_exists(link[2])
@@ -688,6 +691,7 @@ class PepDownloader(Downloader):
         self.log_obj.save()
 
         logger.info(f'{self.reg_name}: process() started ...')
+        self.log_obj.errors = 0
         PepConverterFromDB().process()
         logger.info(f'{self.reg_name}: process() finished successfully.')
 
@@ -699,4 +703,15 @@ class PepDownloader(Downloader):
 
         new_total_records = Pep.objects.all().count()
         self.update_field(settings.PEP_REGISTER_LIST, 'total_records', new_total_records)
+
+        self.log_obj.records_added = Pep.objects.filter(
+            created_at__range=[self.log_obj.update_start, self.log_obj.update_finish]
+        ).count()
+        self.log_obj.records_changed = Pep.objects.filter(
+            updated_at__range=[self.log_obj.update_start, self.log_obj.update_finish]
+        ).count()
+        self.log_obj.records_deleted = Pep.objects.filter(
+            deleted_at__range=[self.log_obj.update_start, self.log_obj.update_finish]
+        ).count()
+        self.log_obj.save()
         logger.info(f'{self.reg_name}: Update total records finished successfully.')

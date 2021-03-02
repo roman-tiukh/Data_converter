@@ -114,5 +114,10 @@ class RegistryUpdaterModel(models.Model):
     update_status = models.BooleanField(blank=True, default=False)
     update_message = models.CharField(max_length=255, null=True, blank=True)
 
+    records_added = models.IntegerField(blank=True, default=0)
+    records_changed = models.IntegerField(blank=True, default=0)
+    records_deleted = models.IntegerField(blank=True, default=0)
+    errors = models.IntegerField(blank=True, default=0)
+
     def __str__(self):
         return self.registry_name
