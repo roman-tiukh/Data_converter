@@ -11,7 +11,7 @@ from rest_framework.authtoken.models import Token
 
 from .forms import CustomPasswordResetForm
 from .models import DataOceanUser, Question, Notification
-from .validators import validate_symbols, validate_triple
+from .validators import name_symbols_validator, two_in_row_validator
 
 
 class DataOceanUserSerializer(serializers.ModelSerializer):
@@ -26,12 +26,12 @@ class DataOceanUserSerializer(serializers.ModelSerializer):
 class CustomRegisterSerializer(RegisterSerializer):
     username = None
     first_name = serializers.CharField(required=True, write_only=True, validators=[
-        validate_symbols,
-        validate_triple,
+        name_symbols_validator,
+        two_in_row_validator,
     ])
     last_name = serializers.CharField(required=True, write_only=True, validators=[
-        validate_symbols,
-        validate_triple,
+        name_symbols_validator,
+        two_in_row_validator,
     ])
 
     def get_cleaned_data(self):

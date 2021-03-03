@@ -145,10 +145,6 @@ msgstr "адреса електронної пошти"
 msgid "language"
 msgstr "мова"
 
-#: users/models.py:93
-msgid "You have not paid the invoice"
-msgstr "У Вас не сплачений рахунок"
-
 #: users/models.py:110
 msgid "password"
 msgstr "пароль"
