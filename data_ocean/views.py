@@ -202,22 +202,19 @@ class DOAutoSchemaClass(SwaggerAutoSchema):
 
     def add_manual_parameters(self, parameters):
         super().add_manual_parameters(parameters)
-        operation_keys = getattr(self, 'operation_keys')
-        manual_parameters = None
-        if operation_keys[-1] == 'list':
-            manual_parameters = [openapi.Parameter(
+        manual_parameters = [
+            openapi.Parameter(
                 name='format',
                 in_=openapi.IN_QUERY,
                 description='You can receive data in json and xml format. The default format = json. To get data in xml'
-                            ' format, specify format = xml in the query parameters.For example: \\\n'
-                            f'{settings_local.BACKEND_SITE_URL}/api/{"/".join(operation_keys[:-1])}/?format=xml',
-                type=openapi.TYPE_STRING)]
-        elif operation_keys[-1] == 'read':
-            manual_parameters = [openapi.Parameter(
-                name='format',
+                            ' format, specify ?format=xml in the query parameters.',
+                type=openapi.TYPE_STRING),
+            openapi.Parameter(
+                name='fields',
                 in_=openapi.IN_QUERY,
-                description='You can receive data in json and xml format. The default format = json. To get data in xml'
-                            ' format, specify format = xml in the query parameters. For example: \\\n'
-                            f'{settings_local.BACKEND_SITE_URL}/api/{"/".join(operation_keys[:-1])}/{{id}}?format=xml',
-                type=openapi.TYPE_STRING)]
+                description='A parameter that allows you to select the fields that will be returned as a result of request. '
+                            'For example, if you need to select the id and fullname fields: ?fields=id,fullname. In general:'
+                            ' ?fields=fieldname1,fieldname2,etc. The recording is made through a comma without a space.',
+                type=openapi.TYPE_STRING,
+            )]
         return parameters + manual_parameters
