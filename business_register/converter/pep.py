@@ -560,8 +560,8 @@ class PepConverterFromDB(Converter):
             info = pep_data[22]
             pep_type_number = pep_data[24]
             pep_type = self.PEP_TYPES.get(pep_type_number) if pep_type_number else None
-            reason_of_termination_number = to_lower_string_if_exists(pep_data[25])
-            reason_of_termination = (self.PEP_TYPES.get(reason_of_termination_number)
+            reason_of_termination_number = pep_data[25]
+            reason_of_termination = (self.REASONS_OF_TERMINATION.get(reason_of_termination_number)
                                      if reason_of_termination_number else None)
             is_dead = (reason_of_termination_number == 1)
             termination_date = to_lower_string_if_exists(pep_data[26])
