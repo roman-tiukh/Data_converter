@@ -199,3 +199,25 @@ class DOAutoSchemaClass(SwaggerAutoSchema):
             },
         })
         return responses
+
+    def add_manual_parameters(self, parameters):
+        super().add_manual_parameters(parameters)
+        operation_keys = getattr(self, 'operation_keys')
+        manual_parameters = None
+        if operation_keys[-1] == 'list':
+            manual_parameters = [openapi.Parameter(
+                name='format',
+                in_=openapi.IN_QUERY,
+                description='You can receive data in json and xml format. The default format = json. To get data in xml'
+                            ' format, specify format = xml in the query parameters.For example: \\\n'
+                            f'{settings_local.BACKEND_SITE_URL}/api/{"/".join(operation_keys[:-1])}/?format=xml',
+                type=openapi.TYPE_STRING)]
+        elif operation_keys[-1] == 'read':
+            manual_parameters = [openapi.Parameter(
+                name='format',
+                in_=openapi.IN_QUERY,
+                description='You can receive data in json and xml format. The default format = json. To get data in xml'
+                            ' format, specify format = xml in the query parameters. For example: \\\n'
+                            f'{settings_local.BACKEND_SITE_URL}/api/{"/".join(operation_keys[:-1])}/{{id}}?format=xml',
+                type=openapi.TYPE_STRING)]
+        return parameters + manual_parameters
