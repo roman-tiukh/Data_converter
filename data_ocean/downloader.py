@@ -5,12 +5,13 @@ import zipfile
 from abc import ABC
 
 import requests
+from django.apps import apps
 from django.conf import settings
 from django.db import connections
 from django.utils import timezone
 
-# import psycopg2
 from data_ocean.models import RegistryUpdaterModel, Register
+from business_register.models.company_models import Company
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -183,7 +184,38 @@ class Downloader(ABC):
         if self.unzip_after_download:
             self.unzip_source_file()
 
-    def update_field(self, register_api_list, field_name, new_field_value):
+    def update_register_field(self, register_api_list, field_name, new_field_value):
         register = Register.objects.get(api_list=register_api_list)
         setattr(register, field_name, new_field_value)
         register.save(update_fields=[field_name, 'updated_at'])
+
+    def measure_changes(self, app_name, model_name):
+        model = apps.get_model(app_name, model_name)
+        self.log_obj.records_added = model.objects.filter(
+            created_at__range=[self.log_obj.update_start, self.log_obj.update_finish]
+        ).count()
+        self.log_obj.records_changed = model.objects.filter(
+            updated_at__range=[self.log_obj.update_start, self.log_obj.update_finish]
+        ).count()
+        self.log_obj.records_deleted = model.objects.filter(
+            deleted_at__range=[self.log_obj.update_start, self.log_obj.update_finish]
+        ).count()
+        self.log_obj.save()
+
+    def measure_company_changes(self, source):
+        self.log_obj.records_added = Company.objects.filter(
+            source=source,
+            created_at__range=[self.log_obj.update_start, self.log_obj.update_finish]
+        ).count()
+        self.log_obj.records_changed = Company.objects.filter(
+            source=source,
+            updated_at__range=[self.log_obj.update_start, self.log_obj.update_finish]
+        ).count()
+        self.log_obj.records_deleted = Company.objects.filter(
+            source=source,
+            deleted_at__range=[self.log_obj.update_start, self.log_obj.update_finish]
+        ).count()
+        self.log_obj.save()
+
+
+

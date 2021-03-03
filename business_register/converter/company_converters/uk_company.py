@@ -1,5 +1,4 @@
 import logging
-import time
 from csv import DictReader
 
 import requests
@@ -11,7 +10,6 @@ from business_register.converter.company_converters.company import CompanyConver
 from business_register.models.company_models import Company
 from data_ocean.downloader import Downloader
 from data_ocean.utils import format_date_to_yymmdd, to_lower_string_if_exists
-from location_register.converter.address import AddressConverter
 
 # Standard instance of a logger with __name__
 logger = logging.getLogger(__name__)
@@ -130,7 +128,10 @@ class UkCompanyDownloader(Downloader):
 
         self.vacuum_analyze(table_list=['business_register_company', ])
         new_total_records = Company.objects.filter(source=Company.GREAT_BRITAIN_REGISTER).count()
-        self.update_field(settings.UK_COMPANY_REGISTER_LIST, 'total_records', new_total_records)
+        self.update_register_field(settings.UK_COMPANY_REGISTER_LIST, 'total_records', new_total_records)
         logger.info(f'{self.reg_name}: Update total records finished successfully.')
+
+        self.measure_company_changes(Company.GREAT_BRITAIN_REGISTER)
+        logger.info(f'{self.reg_name}: report created successfully.')
 
         logger.info(f'{self.reg_name}: Update finished successfully.')
