@@ -381,7 +381,7 @@ class FopDownloader(Downloader):
         sleep(5)
         self.vacuum_analyze(table_list=['business_register_fop', ])
         new_total_records = Fop.objects.count()
-        self.update_field(settings.FOP_REGISTER_LIST, 'total_records', new_total_records)
+        self.update_register_field(settings.FOP_REGISTER_LIST, 'total_records', new_total_records)
 
         self.remove_file()
 

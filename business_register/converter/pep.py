@@ -702,16 +702,10 @@ class PepDownloader(Downloader):
         self.vacuum_analyze(table_list=['business_register_pep', ])
 
         new_total_records = Pep.objects.all().count()
-        self.update_field(settings.PEP_REGISTER_LIST, 'total_records', new_total_records)
+        self.update_register_field(settings.PEP_REGISTER_LIST, 'total_records', new_total_records)
+        logger.info(f'{self.reg_name}: Update total records finished successfully.')
 
-        self.log_obj.records_added = Pep.objects.filter(
-            created_at__range=[self.log_obj.update_start, self.log_obj.update_finish]
-        ).count()
-        self.log_obj.records_changed = Pep.objects.filter(
-            updated_at__range=[self.log_obj.update_start, self.log_obj.update_finish]
-        ).count()
-        self.log_obj.records_deleted = Pep.objects.filter(
-            deleted_at__range=[self.log_obj.update_start, self.log_obj.update_finish]
-        ).count()
-        self.log_obj.save()
+        self.measure_changes('business_register', 'Pep')
+        logger.info(f'{self.reg_name}: report created successfully.')
+
         logger.info(f'{self.reg_name}: Update total records finished successfully.')
