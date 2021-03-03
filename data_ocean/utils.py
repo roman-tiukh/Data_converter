@@ -66,7 +66,7 @@ def format_date_to_yymmdd(str_ddmmyy):
         try:
             date = datetime.datetime.strptime(str_ddmmyy, "%d.%m.%Y").strftime("%4Y-%m-%d")
         except ValueError:
-            pass
+            return None
         return date
 
 
