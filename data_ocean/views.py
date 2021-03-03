@@ -215,3 +215,22 @@ class DOAutoSchemaClass(SwaggerAutoSchema):
             },
         })
         return responses
+
+    def add_manual_parameters(self, parameters):
+        return super().add_manual_parameters(parameters) + [
+            openapi.Parameter(
+                name='format',
+                in_=openapi.IN_QUERY,
+                description='You can receive data in json and xml format. The default format = json. To get data in xml'
+                            ' format, specify ?format=xml in the query parameters.',
+                type=openapi.TYPE_STRING
+            ),
+            openapi.Parameter(
+                name='fields',
+                in_=openapi.IN_QUERY,
+                description='A parameter that allows you to select the fields that will be returned as a result of request. '
+                            'For example, if you need to select the id and fullname fields: ?fields=id,fullname. In general:'
+                            ' ?fields=fieldname1,fieldname2,etc. The recording is made through a comma without a space.',
+                type=openapi.TYPE_STRING,
+            )
+        ]
