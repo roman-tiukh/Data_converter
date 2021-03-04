@@ -98,6 +98,10 @@ class Pep(DataOceanModel):
         return possibly_founded_companies
 
     class Meta:
+        indexes = [
+            models.Index(fields=['fullname', 'date_of_birth']),
+            models.Index(fields=['updated_at']),
+        ]
         verbose_name = _('politically exposed person')
         verbose_name_plural = _('politically exposed persons')
         ordering = ['id']

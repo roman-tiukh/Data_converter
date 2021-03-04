@@ -15,6 +15,7 @@ from data_ocean.models import DataOceanModel
 from data_ocean.utils import generate_key
 
 from payment_system import emails
+from users.validators import name_symbols_validator, two_in_row_validator
 
 
 class Project(DataOceanModel):
@@ -324,7 +325,7 @@ class Subscription(DataOceanModel):
 
 class Invoice(DataOceanModel):
     paid_at = models.DateField(
-        _('subscription'),
+        _('paid at'),
         null=True, blank=True,
         help_text='This operation is irreversible, you cannot '
                   'cancel the payment of the subscription for the project.'
@@ -406,8 +407,9 @@ class Invoice(DataOceanModel):
             super().save(*args, **kwargs)
             emails.new_invoice(self, p2s.project)
 
-    def get_pdf(self) -> io.BytesIO:
-        user = self.project_subscription.project.owner
+    def get_pdf(self, user=None) -> io.BytesIO:
+        if user is None:
+            user = self.project_subscription.project.owner
 
         with translation.override('uk'):
             html_string = render_to_string('payment_system/invoice.html', {
@@ -672,8 +674,14 @@ class Invitation(DataOceanModel):
 
 
 class CustomSubscriptionRequest(DataOceanModel):
-    first_name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100)
+    first_name = models.CharField(max_length=30, validators=[
+        name_symbols_validator,
+        two_in_row_validator,
+    ])
+    last_name = models.CharField(max_length=150, validators=[
+        name_symbols_validator,
+        two_in_row_validator,
+    ])
     email = models.EmailField()
     phone = models.CharField(max_length=15, blank=True, default='')
     note = models.TextField(blank=True, default='')

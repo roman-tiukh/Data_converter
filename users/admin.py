@@ -7,7 +7,7 @@ from django.utils import timezone
 from rest_framework.authtoken.models import Token
 from django.utils.translation import gettext_lazy as _
 
-from payment_system.models import Project
+from payment_system.models import Project, Subscription
 from users.models import DataOceanUser, Question
 
 
@@ -28,6 +28,13 @@ class DataOceanUserCreationForm(UserCreationForm):
 
 class ProjectsInlineForm(forms.ModelForm):
     p2s = None
+
+    subscription = forms.ModelChoiceField(
+        queryset=Subscription.objects.all(),
+        label='Subscription',
+        required=True,
+        help_text='Change the subscription will add it as future to project, if it possible.',
+    )
 
     requests_left = forms.IntegerField(
         required=True,
@@ -58,6 +65,13 @@ class ProjectsInlineForm(forms.ModelForm):
             raise ValidationError(_('Must be later than the current day'))
         return expiring_date
 
+    def clean(self):
+        cleaned_data = super().clean()
+        if 'subscription' in self.changed_data and self.is_valid():
+            # TODO: move saving to save method
+            self.instance.add_subscription(cleaned_data['subscription'])
+        return cleaned_data
+
     def get_initial_for_field(self, field, field_name):
         if field_name == 'requests_left':
             return self.p2s.requests_left
@@ -65,6 +79,8 @@ class ProjectsInlineForm(forms.ModelForm):
             return self.p2s.platform_requests_left
         elif field_name == 'expiring_date':
             return self.p2s.expiring_date
+        elif field_name == 'subscription':
+            return self.p2s.subscription
         else:
             return super().get_initial_for_field(field, field_name)
 
@@ -89,7 +105,7 @@ class ProjectsInlineForm(forms.ModelForm):
 class ProjectsInline(admin.TabularInline):
     form = ProjectsInlineForm
 
-    def active_subscription(self, obj: Project):
+    def subscription(self, obj: Project):
         return obj.active_subscription.name
 
     def requests_left(self, obj: Project):
@@ -113,7 +129,7 @@ class ProjectsInline(admin.TabularInline):
     can_delete = False
     extra = 0
     fields = (
-        'active_subscription',
+        'subscription',
         'requests_left',
         'requests_used',
         'platform_requests_left',
@@ -122,7 +138,7 @@ class ProjectsInline(admin.TabularInline):
         'is_grace_period',
     )
     readonly_fields = (
-        'active_subscription',
+        # 'subscription',
         'requests_used',
         'platform_requests_used',
         'is_grace_period',
@@ -131,6 +147,12 @@ class ProjectsInline(admin.TabularInline):
 
     def has_add_permission(self, request, obj):
         return False
+
+    def has_module_permission(self, request):
+        return request.user.is_staff and request.user.payment_system_admin
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser or request.user.payment_system_admin
 
 
 @admin.register(DataOceanUser)
@@ -204,11 +226,23 @@ class DataOceanUserAdmin(UserAdmin):
         'language',
     ]
 
+    def get_readonly_fields(self, request, obj=None):
+        if not request.user.is_superuser:
+            return self.readonly_fields + [
+                'is_staff',
+                'is_active',
+                'is_superuser',
+                'datasets_admin',
+                'users_viewer',
+                'payment_system_admin',
+                'password',
+            ]
+        return self.readonly_fields
+
     def get_inlines(self, request, obj):
-        inlines = self.inlines.copy()
         if request.user.is_superuser or request.user.payment_system_admin:
-            inlines.append(ProjectsInline)
-        return inlines
+            return self.inlines + [ProjectsInline]
+        return self.inlines
 
     def has_module_permission(self, request):
         return request.user.is_staff
@@ -217,7 +251,7 @@ class DataOceanUserAdmin(UserAdmin):
         return request.user.is_superuser or request.user.users_viewer
 
     def has_change_permission(self, request, obj=None):
-        return request.user.is_superuser
+        return request.user.is_superuser or request.user.users_viewer
 
     def has_add_permission(self, request):
         return False
