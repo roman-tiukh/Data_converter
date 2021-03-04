@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta
 from django.conf import settings
-from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
@@ -16,7 +15,6 @@ from business_register.permissions import PepSchemaToken
 from business_register.serializers.company_and_pep_serializers import PepListSerializer, PepDetailSerializer
 from data_converter.filter import DODjangoFilterBackend
 from data_ocean.views import CachedViewSetMixin, RegisterViewMixin
-from data_ocean.export import ExportToXlsx
 
 
 @method_decorator(name='retrieve', decorator=swagger_auto_schema(tags=['pep']))
@@ -49,14 +47,18 @@ class PepViewSet(RegisterViewMixin,
 
     @action(detail=False, url_path='xlsx')
     def export_to_xlsx(self, request):
-        before_date = datetime.strptime(request.GET['updated_at_before'], '%Y-%m-%d')
-        after_date = datetime.strptime(request.GET['updated_at_after'], '%Y-%m-%d')
-        if (before_date and after_date) and timedelta(days=0) < before_date - after_date <= timedelta(days=31):
-            queryset = self.filter_queryset(self.get_queryset())
+        filterset = DjangoFilterBackend().get_filterset(request, self.get_queryset(), self)
+        form = filterset.form
+        form.full_clean()
+        cleaned_data = form.cleaned_data
+        if 'updated_at' in cleaned_data and timedelta(days=0) < \
+                cleaned_data['updated_at'].stop - cleaned_data['updated_at'].start <= timedelta(days=30):
+            query = self.filter_queryset(self.get_queryset()).query.__str__()
         else:
-            return HttpResponse('Use "updated_at_after" & "updated_at_before" GET parameters. '
-                                'The time period for data exported in .xlsx cannot exceed 31 days.',
-                                content_type="text/plain")
+            cleaned_data['updated_at'] = slice(datetime.now() - timedelta(days=30), datetime.now(), None)
+            filterset = PepFilterSet(cleaned_data, self.get_queryset())
+            queryset = filterset.qs
+            query = SearchFilter().filter_queryset(request, queryset, self).query.__str__()
         export_dict = {
             'ID': ['pk', 7],
             'Full Name': ['fullname', 30],
@@ -69,7 +71,7 @@ class PepViewSet(RegisterViewMixin,
             'Last Job Title': ['last_job_title', 20],
             'Last Employer': ['last_employer', 20]
         }
-        worksheet_title = 'PEP'
-        export_file_path = ExportToXlsx().export(queryset, export_dict, worksheet_title)
-        if export_file_path:
-            return HttpResponse(export_file_path, content_type="text/plain")
+        from business_register.tasks import export_to_s3
+        export_to_s3.delay(query, export_dict, 'Pep')
+        data = {"detail": "Generation of .xlsx file has begin. Expect an email with downloading link."}
+        return Response(data, status=200)
