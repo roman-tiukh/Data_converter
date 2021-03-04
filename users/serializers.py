@@ -1,5 +1,7 @@
+import re
 from difflib import SequenceMatcher
 
+from django.core.validators import RegexValidator
 from django.utils.text import format_lazy
 from django.utils.translation import ugettext_lazy as _
 from rest_auth.registration.serializers import RegisterSerializer
@@ -9,6 +11,7 @@ from rest_framework.authtoken.models import Token
 
 from .forms import CustomPasswordResetForm
 from .models import DataOceanUser, Question, Notification
+from .validators import name_symbols_validator, two_in_row_validator
 
 
 class DataOceanUserSerializer(serializers.ModelSerializer):
@@ -22,8 +25,14 @@ class DataOceanUserSerializer(serializers.ModelSerializer):
 
 class CustomRegisterSerializer(RegisterSerializer):
     username = None
-    first_name = serializers.CharField(required=True, write_only=True)
-    last_name = serializers.CharField(required=True, write_only=True)
+    first_name = serializers.CharField(required=True, write_only=True, validators=[
+        name_symbols_validator,
+        two_in_row_validator,
+    ])
+    last_name = serializers.CharField(required=True, write_only=True, validators=[
+        name_symbols_validator,
+        two_in_row_validator,
+    ])
 
     def get_cleaned_data(self):
         return {
@@ -51,7 +60,6 @@ class CustomRegisterSerializer(RegisterSerializer):
                 err_msg = _('Your password can’t be too similar to')
                 err_msg_result = format_lazy('{err_msg} {v}.', err_msg=err_msg, v=v)
                 raise serializers.ValidationError(err_msg_result)
-
         return data
 
 

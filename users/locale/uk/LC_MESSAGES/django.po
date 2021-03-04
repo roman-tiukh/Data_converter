@@ -244,6 +244,14 @@ msgstr "Ви замовили скидання пароля у системі Da
 msgid "Reset password"
 msgstr "Скинути пароль"
 
+#: users/validators.py:7
+msgid "Only alphanumeric characters, digits, and '-. are allowed"
+msgstr "Дозволено лише літери, цифри та символи'-. "
+
+#: users/validators.py:14
+msgid "No more than 2 identical symbols in a row are allowed"
+msgstr "Допускається не більше 2 однакових символів поспіль"
+
 #: users/views.py:55
 msgid "User with this email is already exists"
 msgstr "Користувач з цією електронною поштою вже існує"

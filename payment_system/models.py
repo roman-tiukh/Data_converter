@@ -15,6 +15,7 @@ from data_ocean.models import DataOceanModel
 from data_ocean.utils import generate_key
 
 from payment_system import emails
+from users.validators import name_symbols_validator, two_in_row_validator
 
 
 class Project(DataOceanModel):
@@ -672,8 +673,14 @@ class Invitation(DataOceanModel):
 
 
 class CustomSubscriptionRequest(DataOceanModel):
-    first_name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100)
+    first_name = models.CharField(max_length=30, validators=[
+        name_symbols_validator,
+        two_in_row_validator,
+    ])
+    last_name = models.CharField(max_length=150, validators=[
+        name_symbols_validator,
+        two_in_row_validator,
+    ])
     email = models.EmailField()
     phone = models.CharField(max_length=15, blank=True, default='')
     note = models.TextField(blank=True, default='')
