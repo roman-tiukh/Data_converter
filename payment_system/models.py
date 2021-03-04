@@ -407,8 +407,9 @@ class Invoice(DataOceanModel):
             super().save(*args, **kwargs)
             emails.new_invoice(self, p2s.project)
 
-    def get_pdf(self) -> io.BytesIO:
-        user = self.project_subscription.project.owner
+    def get_pdf(self, user=None) -> io.BytesIO:
+        if user is None:
+            user = self.project_subscription.project.owner
 
         with translation.override('uk'):
             html_string = render_to_string('payment_system/invoice.html', {
