@@ -48,8 +48,8 @@ class FopFilterSet(filters.FilterSet):
     )
     #status search changed from id to name (Tiukh + Litsyhyn)
     status = filters.CharFilter(
-        field_name='status_name',
-        lookup_expr='exact',
+        field_name='status__name',
+        lookup_expr='icontains',
         help_text='Search by ФОП status. Request may contain status name. '
                   # Commented until figure out is it need or not (Litsyshyn)
                   # 'Description: 1. зареєстровано; 2. в стані припинення; 3. припинено; 4. EMP; 5. порушено справу про банкрутство;'
