@@ -103,12 +103,33 @@ class DOAutoSchemaClass(SwaggerAutoSchema):
     def get_operation(self, operation_keys=None):
         operation = super().get_operation(operation_keys)
         example_curl = None
+        example_python = None
+        example_php = None
         if operation_keys[-1] == 'list':
             example_curl = f"curl -X GET -H 'Authorization: DataOcean {{token}}' \\\n{settings_local.BACKEND_SITE_URL}/" \
                            f"api/{'/'.join(operation_keys[:-1])}/"
+            example_python = "import requests\nfrom pprint import pprint\n\n" \
+                             f"response = requests.get(\n\t'{settings_local.BACKEND_SITE_URL}/api/{'/'.join(operation_keys[:-1])}/',\n" \
+                             f"\tparams={{'page': 1, 'page_size': 20}},\n" \
+                             f"\theaders={{'Authorization': 'DataOcean {{token}}'}},\n)\n\n" \
+                             "pprint(response.json())"
+            example_php = "$opts = [\n\t'https' => [\n\t\t'method' => 'GET',\n\t\t'header' => 'Accept: application/json'," \
+                          "\n\t\t\t    'Authorization: DataOcean {token}', \n\t\t\t    'Content-type: application/json'," \
+                          f"\n\t\t\t    'Host: {str(settings_local.BACKEND_SITE_URL)[8:]}'\n\t]\n];\n$context = stream_" \
+                          f"context_create($opts);\n$response = file_get_contents('{settings_local.BACKEND_SITE_URL}/api/"\
+                          f"{'/'.join(operation_keys[:-1])}', false, $context);\nvar_dump($response);"
         elif operation_keys[-1] == 'read':
             example_curl = f"curl -X GET -H 'Authorization: DataOcean {{token}}' \\\n{settings_local.BACKEND_SITE_URL}/" \
                            f"api/{'/'.join(operation_keys[:-1])}/{{id}}/"
+            example_python = "import requests\nfrom pprint import pprint\n\n" \
+                             f"response = requests.get(\n\t'{settings_local.BACKEND_SITE_URL}/api/{'/'.join(operation_keys[:-1])}/{{id}}/',\n" \
+                             f"\theaders={{'Authorization': 'DataOcean {{token}}'}},\n)\n\n" \
+                             "pprint(response.json())"
+            example_php = "$opts = [\n\t'https' => [\n\t\t'method' => 'GET',\n\t\t'header' => 'Accept: application/json'," \
+                          "\n\t\t\t    'Authorization: DataOcean {token}', \n\t\t\t    'Content-type: application/json'," \
+                          f"\n\t\t\t    'Host: {str(settings_local.BACKEND_SITE_URL)[8:]}'\n\t]\n];\n$context = stream_" \
+                          f"context_create($opts);\n$response = file_get_contents('{settings_local.BACKEND_SITE_URL}/api/"\
+                          f"{'/'.join(operation_keys[:-1])}/{{id}}', false, $context);\nvar_dump($response);"
         if example_curl:
             operation.update({
                 'x-code-samples': [
@@ -116,6 +137,100 @@ class DOAutoSchemaClass(SwaggerAutoSchema):
                         "lang": "curl",
                         "source": example_curl
                     },
+                    {
+                        "lang": "python",
+                        "source": example_python
+                    },
+                    {
+                        "lang": "php",
+                        "source": example_php
+                    },
                 ],
             })
         return operation
+
+    def get_responses(self):
+        responses = super().get_responses()
+        responses.update({
+            400: {
+                'description': "Bad Request",
+                'schema': {
+                    'type': openapi.TYPE_OBJECT,
+                    'properties': {
+                        'error': {
+                            'type': openapi.TYPE_STRING,
+                            'description': 'Response status code indicates that the server cannot or will not process'
+                                           ' the request due to something that is perceived to be a client error (e.g., '
+                                           'malformed request syntax, invalid request message framing, or deceptive'
+                                           ' request routing).',
+                        }
+                    },
+                    'examples': [{'detail': 'Bad Request'}],
+                },
+            },
+            403: {
+                'description': 'Forbidden',
+                'schema': {
+                    'type': openapi.TYPE_OBJECT,
+                    'properties': {
+                        'error': {
+                            'type': openapi.TYPE_STRING,
+                            'description': 'Client error status response code indicates that the server understood the'
+                                           ' request but refuses to authorize it. This status is similar to 401, but in'
+                                           ' this case, re-authenticating will make no difference. The access is'
+                                           ' permanently forbidden and tied to the application logic, such as'
+                                           ' insufficient rights to a resource.',
+                        },
+                    },
+                    'examples': [{"detail": 'Authentication credentials were not provided.'}],
+                },
+            },
+            404: {
+                'description': 'Not Found',
+                'schema': {
+                    'type': openapi.TYPE_OBJECT,
+                    'properties': {
+                        'error': {
+                            'type': openapi.TYPE_STRING,
+                            'description': 'The requested resource could not be found but may be available again in the'
+                                           ' future. Subsequent requests by the client are permissible.',
+                        }
+                    },
+                    'examples': [{"detail": 'Not found.'}],
+                },
+            },
+            500: {
+                'description': 'Internal Server Error',
+                'schema': {
+                    'type': openapi.TYPE_OBJECT,
+                    'properties': {
+                        'error': {
+                            'type': openapi.TYPE_STRING,
+                            'description': 'Server error response code indicates that the server encountered an '
+                                           'unexpected condition that prevented it from fulfilling the request.',
+                        },
+                    },
+                    'examples': [{"detail": 'Server Error (500)'}],
+                },
+            },
+        })
+        return responses
+
+    def add_manual_parameters(self, parameters):
+        return super().add_manual_parameters(parameters) + [
+            openapi.Parameter(
+                name='format',
+                in_=openapi.IN_QUERY,
+                description='You can receive data in json and xml format. The default format = json. To get data in xml'
+                            ' format, specify ?format=xml in the query parameters.',
+                type=openapi.TYPE_STRING
+            ),
+            openapi.Parameter(
+                name='fields',
+                in_=openapi.IN_QUERY,
+                description='A parameter that allows you to select the fields that will be returned as a result of request. '
+                            'For example, if you need to select the id and fullname fields: ?fields=id,fullname. In general:'
+                            ' ?fields=fieldname1,fieldname2,etc. The recording is made through a comma without a space.',
+                type=openapi.TYPE_STRING,
+            )
+        ]

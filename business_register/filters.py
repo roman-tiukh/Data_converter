@@ -91,13 +91,17 @@ class PepFilterSet(filters.FilterSet):
                                              ' false - person is not politically exposed person.')
     is_dead = filters.BooleanFilter(widget=ValidatedBooleanWidget,
                                     help_text='Boolean type. Can be true or false. True - person is dead, false - person is alive.')
-    pep_type = filters.ChoiceFilter(choices=Pep.TYPES, help_text='Filter by type of pep. Can be national politically exposed '
-                                               'person, foreign politically exposed person,  politically exposed person,'
-                                               ' having political functions in international organization, associated '
-                                               'person or family member.')
+    pep_type = filters.ChoiceFilter(choices=Pep.TYPES,
+                                    help_text='Filter by type of pep. Can be national politically exposed  person '
+                                              '(pep_type=national PEP), foreign politically exposed person (pep_type='
+                                              'foreign PEP), having political functions in international organization '
+                                              '(pep_type=PEP with political functions in international organization), '
+                                              'associated person (pep_type=associated person with PEP), family member '
+                                              '(pep_type=member of PEP`s family).')
     related_company = filters.CharFilter(label=_("Associated company`s number (provide a number)"),
                                          method='filter_related_company', help_text='Filter by related company.')
-    last_job_title = filters.CharFilter(lookup_expr='icontains', help_text='Filter by title of the last job in Ukrainian.')
+    last_job_title = filters.CharFilter(lookup_expr='icontains',
+                                        help_text='Filter by title of the last job in Ukrainian.')
     last_employer = filters.CharFilter(lookup_expr='icontains', help_text='Filter by last employer in Ukrainian.')
 
     date_of_birth = filters.CharFilter(lookup_expr='icontains',

@@ -389,12 +389,14 @@ class PepConverterFromDB(Converter):
             if not from_person:
                 logger.info(f'No such pep in our DB. '
                             f'Check records in the source DB with id {from_person_source_id}')
+                self.report.errors += 1
                 continue
             to_person_source_id = link[1]
             to_person = self.peps_dict.get(str(to_person_source_id))
             if not to_person:
                 logger.info(f'No such pep in our DB. '
                             f'Check records in the source DB with id {to_person_source_id}')
+                self.report.errors += 1
                 continue
             from_person_relationship_type = link[2]
             to_person_relationship_type = link[3]
@@ -465,6 +467,7 @@ class PepConverterFromDB(Converter):
             if not pep:
                 logger.info(f'No such pep in our DB. '
                             f'Check records in the source DB with id {pep_source_id}')
+                self.report.errors += 1
                 continue
             company_antac_id = link[1]
             start_date = to_lower_string_if_exists(link[2])
@@ -557,8 +560,8 @@ class PepConverterFromDB(Converter):
             info = pep_data[22]
             pep_type_number = pep_data[24]
             pep_type = self.PEP_TYPES.get(pep_type_number) if pep_type_number else None
-            reason_of_termination_number = to_lower_string_if_exists(pep_data[25])
-            reason_of_termination = (self.PEP_TYPES.get(reason_of_termination_number)
+            reason_of_termination_number = pep_data[25]
+            reason_of_termination = (self.REASONS_OF_TERMINATION.get(reason_of_termination_number)
                                      if reason_of_termination_number else None)
             is_dead = (reason_of_termination_number == 1)
             termination_date = to_lower_string_if_exists(pep_data[26])
@@ -682,21 +685,27 @@ class PepDownloader(Downloader):
     def update(self):
         logger.info(f'{self.reg_name}: Update started...')
 
-        self.log_init()
+        self.report_init()
 
-        self.log_obj.update_start = timezone.now()
-        self.log_obj.save()
+        self.report.update_start = timezone.now()
+        self.report.save()
 
         logger.info(f'{self.reg_name}: process() started ...')
+        self.report.errors = 0
         PepConverterFromDB().process()
         logger.info(f'{self.reg_name}: process() finished successfully.')
 
-        self.log_obj.update_finish = timezone.now()
-        self.log_obj.update_status = True
-        self.log_obj.save()
+        self.report.update_finish = timezone.now()
+        self.report.update_status = True
+        self.report.save()
 
         self.vacuum_analyze(table_list=['business_register_pep', ])
 
         new_total_records = Pep.objects.all().count()
-        self.update_field(settings.PEP_REGISTER_LIST, 'total_records', new_total_records)
+        self.update_register_field(settings.PEP_REGISTER_LIST, 'total_records', new_total_records)
+        logger.info(f'{self.reg_name}: Update total records finished successfully.')
+
+        self.measure_changes('business_register', 'Pep')
+        logger.info(f'{self.reg_name}: Report created successfully.')
+
         logger.info(f'{self.reg_name}: Update total records finished successfully.')
