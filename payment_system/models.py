@@ -325,7 +325,7 @@ class Subscription(DataOceanModel):
 
 class Invoice(DataOceanModel):
     paid_at = models.DateField(
-        _('subscription'),
+        _('paid at'),
         null=True, blank=True,
         help_text='This operation is irreversible, you cannot '
                   'cancel the payment of the subscription for the project.'

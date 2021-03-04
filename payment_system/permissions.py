@@ -27,36 +27,39 @@ class ProjectPermission(permissions.BasePermission):
 
 class AccessFromProjectToken(permissions.BasePermission):
     def has_permission(self, request: Request, view):
-        auth_header = request.headers.get('authorization')
-        if not auth_header or type(auth_header) != str:
-            return False
-        auth_words = auth_header.split()
-        if len(auth_words) != 2:
-            return False
+        # auth_header = request.headers.get('authorization')
+        # if not auth_header or type(auth_header) != str:
+        #     return False
+        # auth_words = auth_header.split()
+        # if len(auth_words) != 2:
+        #     return False
+        #
+        # keyword = auth_words[0]
+        # token = auth_words[1]
+        #
+        # try:
+        #     project = Project.objects.get(token=token)
+        # except Project.DoesNotExist:
+        #     return False
+        #
+        # current_p2s = project.active_p2s
+        #
+        # if keyword == settings.PROJECT_TOKEN_KEYWORD:
+        #     if current_p2s.requests_left <= 0:
+        #         return False
+        # elif keyword == settings.PROJECT_PLATFORM_TOKEN_KEYWORD:
+        #     if current_p2s.platform_requests_left <= 0:
+        #         return False
+        # else:
+        #     return False
+        #
+        # if current_p2s.expiring_date <= timezone.localdate():
+        #     current_p2s.expire()
+        #
+        # request._request.token_keyword = keyword
+        # request._request.project = project
+        #
+        # return True
 
-        keyword = auth_words[0]
-        token = auth_words[1]
-
-        try:
-            project = Project.objects.get(token=token)
-        except Project.DoesNotExist:
-            return False
-
-        current_p2s = project.active_p2s
-
-        if keyword == settings.PROJECT_TOKEN_KEYWORD:
-            if current_p2s.requests_left <= 0:
-                return False
-        elif keyword == settings.PROJECT_PLATFORM_TOKEN_KEYWORD:
-            if current_p2s.platform_requests_left <= 0:
-                return False
-        else:
-            return False
-
-        if current_p2s.expiring_date <= timezone.localdate():
-            current_p2s.expire()
-
-        request._request.token_keyword = keyword
-        request._request.project = project
-
-        return True
+        project: Project = getattr(request, 'project', None)
+        return bool(project and isinstance(project, Project))

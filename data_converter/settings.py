@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.postgres',
     'django.contrib.sites',
     'django_celery_beat',
     'django_extensions',
@@ -61,7 +62,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'stats.middleware.ApiUsageMiddleware',
-    'payment_system.middleware.RequestsLimitMiddleware',
+    'payment_system.middleware.ProjectAuthenticationMiddleware',
 ]
 
 INTERNAL_IPS = [
@@ -170,16 +171,21 @@ SWAGGER_SETTINGS = {
             "in": "header",
             "description": (
                 "You will find an access token in your profile. In order to access the API, you need to add a regular title"
-                f" called<br/>'Authorization' meaning 'DataOcean &lt; token &gt;' to your HTTPS to {BACKEND_SITE_URL}/api/"
+                f" called<br/>'Authorization' meaning 'DataOcean {{token}}' to your HTTPS to {BACKEND_SITE_URL}/api/"
                 " {name of register}<br/> request by substituting your token.<br/>Final title:<br/><b>Authorization: DataOcean "
-                "94c6d542af1c4c4942e51df6с4d47fbd12fb3dea</b><br/>"
+                "94c6d542af1c4c4942e51df6с4d47fbd12fb3dea</b><br/> Example with curl:<br/><b>curl -X GET -H 'Authorization: "
+                f"DataOcean {{token}}' {BACKEND_SITE_URL}/api/ {{name of register}}</b>"
             ),
         },
     },
     'DEFAULT_PAGINATOR_INSPECTORS': [
-        'data_converter.drf_yasg_pagination.DODjangoRestResponsePagination',
+        'data_converter.drf_yasg_inspectors.DODjangoRestResponsePagination',
         'drf_yasg.inspectors.CoreAPICompatInspector',
     ],
+    'DEFAULT_FILTER_INSPECTORS': [
+        'data_converter.drf_yasg_inspectors.DjangoFilterDescriptionInspector',
+    ],
+    'DEFAULT_AUTO_SCHEMA_CLASS': 'data_ocean.views.DOAutoSchemaClass',
 }
 
 SITE_ID = 1
@@ -270,5 +276,7 @@ PROJECT_TOKEN_KEYWORD = 'DataOcean'
 # DATASET`S CONSTANTS ==================
 PEP_REGISTER_LIST = '/api/pep/'
 FOP_REGISTER_LIST = '/api/fop/'
+KVED_REGISTER_LIST = '/api/kved/'
 UKR_COMPANY_REGISTER_LIST = '/api/company/ukr/'
 UK_COMPANY_REGISTER_LIST = '/api/company/uk/'
+DRVBUILDING_REGISTER_LIST = '/api/drvbuilding/'

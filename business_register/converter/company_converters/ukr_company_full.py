@@ -944,11 +944,11 @@ class UkrCompanyFullConverter(CompanyConverter):
         self.assignee_to_dict = {}
         self.exchange_data_to_dict = {}
 
-    def delete_outdated_companies(self):
+    def delete_outdated(self):
         outdated_companies = list(set(self.already_stored_companies) - set(self.uptodated_companies))
-        for company in outdated_companies:
-            company_id = company.id
-            CompanyDetail.objects.filter(company_id=company_id).first().soft_delete()
+        for company_id in outdated_companies:
+            if CompanyDetail.objects.filter(company_id=company_id).first():
+                CompanyDetail.objects.filter(company_id=company_id).first().soft_delete()
             if CompanyToPredecessor.objects.filter(company_id=company_id).first():
                 CompanyToPredecessor.objects.filter(company_id=company_id).first().soft_delete()
             if TerminationStarted.objects.filter(company_id=company_id).first():
@@ -975,4 +975,4 @@ class UkrCompanyFullConverter(CompanyConverter):
             if len(outdated_company_to_kved):
                 for company_to_kved in outdated_company_to_kved:
                     company_to_kved.soft_delete()
-            company.soft_delete()
+            Company.objects.get(id=company_id).soft_delete()

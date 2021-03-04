@@ -5,13 +5,12 @@ import os
 import traceback
 import zipfile
 from collections import defaultdict
-from datetime import datetime
-from time import sleep
-from xml.etree.ElementTree import iterparse
+
 import requests
 import xmltodict
 from django.apps import apps
 from lxml import etree
+
 from location_register.models.address_models import Country
 
 logger = logging.getLogger(__name__)
@@ -190,6 +189,9 @@ class Converter:
         ).objects.all()
                 }
 
+    def delete_outdated(self):
+        """ delete some outdated records """
+
     def process(self, start_index=0):
         records = []
         elements = etree.iterparse(
@@ -246,7 +248,7 @@ class Converter:
         if records_len:
             self.save_to_db(records)
         if start_index == 0:
-            self.delete_outdated_companies()
+            self.delete_outdated()
         del elements
         print('All the records have been rewritten.')
 

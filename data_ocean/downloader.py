@@ -5,12 +5,13 @@ import zipfile
 from abc import ABC
 
 import requests
+from django.apps import apps
 from django.conf import settings
 from django.db import connections
 from django.utils import timezone
 
-# import psycopg2
-from data_ocean.models import RegistryUpdaterModel, Register
+from data_ocean.models import Report, Register
+from business_register.models.company_models import Company
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -32,7 +33,7 @@ class Downloader(ABC):
     zip_required_file_sign = ''
     unzip_required_file_sign = ''
     unzip_after_download = False
-    log_obj = None
+    report = None
     start_time = None
     source_dataset_url = ''
 
@@ -51,8 +52,8 @@ class Downloader(ABC):
     def is_zip_file(self):
         if not zipfile.is_zipfile(self.file_path):
             msg = f'Error! {self.file_path} is not a Zip file!'
-            self.log_obj.unzip_message = msg
-            self.log_obj.save()
+            self.report.unzip_message = msg
+            self.report.save()
             logger.exception(f'{self.reg_name}: {msg}')
             raise Exception('Unzip error!', msg)
         return True
@@ -62,8 +63,8 @@ class Downloader(ABC):
         test_error = subprocess.run(['unzip', '-t', self.file_path]).returncode
         if test_error:
             msg = f'Error! Test archive {self.file_path} failed!'
-            self.log_obj.unzip_message = msg
-            self.log_obj.save()
+            self.report.unzip_message = msg
+            self.report.save()
             logger.exception(f'{self.reg_name}: {msg}')
             raise Exception('Unzip error!', msg)
         logger.info(f'{self.reg_name}: Test archive finished successfully.')
@@ -82,21 +83,21 @@ class Downloader(ABC):
             self.remove_file()
             self.file_name = i
             self.file_path = self.local_path + self.file_name
-            self.log_obj.unzip_file_name = self.file_name
-            self.log_obj.unzip_status = True
-            self.log_obj.save()
+            self.report.unzip_file_name = self.file_name
+            self.report.unzip_status = True
+            self.report.save()
             return True
 
         msg = f'Error! Unzip failed for {self.file_path}! Return status: {unzip_status}!'
-        self.log_obj.unzip_message = msg
-        self.log_obj.save()
+        self.report.unzip_message = msg
+        self.report.save()
         logger.exception(f'{self.reg_name}: {msg}')
         raise Exception('Error!', msg)
 
     def no_req_sign(self):
         msg = f'Error! Unzip failed for {self.file_path}! File with required sign not found!'
-        self.log_obj.unzip_message = msg
-        self.log_obj.save()
+        self.report.unzip_message = msg
+        self.report.save()
         logger.exception(f'{self.reg_name}: {msg}')
         raise Exception('Error!', msg)
 
@@ -117,8 +118,8 @@ class Downloader(ABC):
         if os.path.isfile(self.file_path):
             os.remove(self.file_path)
 
-    def log_init(self):
-        self.log_obj = RegistryUpdaterModel.objects.create(registry_name=self.reg_name)
+    def report_init(self):
+        self.report = Report.objects.create(registry_name=self.reg_name)
 
     def get_source_file_url(self):
         assert self.url
@@ -165,25 +166,56 @@ class Downloader(ABC):
                 logger.info(
                     f"{self.reg_name}: {self.file_path} downloaded successfully at {timezone.now() - start_time}.")
 
-                self.log_obj.download_finish = timezone.now()
-                self.log_obj.download_status = True
-                self.log_obj.download_file_name = self.file_path
-                self.log_obj.download_file_length = self.file_size
-                self.log_obj.save()
+                self.report.download_finish = timezone.now()
+                self.report.download_status = True
+                self.report.download_file_name = self.file_path
+                self.report.download_file_length = self.file_size
+                self.report.save()
 
         except requests.exceptions.RequestException as e:
 
-            self.log_obj.download_finish = timezone.now()
-            self.log_obj.download_status = False
-            self.log_obj.download_message = f'{e}'[:255]
-            self.log_obj.save()
+            self.report.download_finish = timezone.now()
+            self.report.download_status = False
+            self.report.download_message = f'{e}'[:255]
+            self.report.save()
             logger.exception(f'{self.reg_name}: {e}')
             raise Exception('Error!', e)
 
         if self.unzip_after_download:
             self.unzip_source_file()
 
-    def update_field(self, register_api_list, field_name, new_field_value):
+    def update_register_field(self, register_api_list, field_name, new_field_value):
         register = Register.objects.get(api_list=register_api_list)
         setattr(register, field_name, new_field_value)
         register.save(update_fields=[field_name, 'updated_at'])
+
+    def measure_changes(self, app_name, model_name):
+        model = apps.get_model(app_name, model_name)
+        self.report.records_added = model.objects.filter(
+            created_at__range=[self.report.update_start, self.report.update_finish]
+        ).count()
+        self.report.records_changed = model.objects.filter(
+            updated_at__range=[self.report.update_start, self.report.update_finish]
+        ).count()
+        self.report.records_deleted = model.objects.filter(
+            deleted_at__range=[self.report.update_start, self.report.update_finish]
+        ).count()
+        self.report.save()
+
+    def measure_company_changes(self, source):
+        self.report.records_added = Company.objects.filter(
+            source=source,
+            created_at__range=[self.report.update_start, self.report.update_finish]
+        ).count()
+        self.report.records_changed = Company.objects.filter(
+            source=source,
+            updated_at__range=[self.report.update_start, self.report.update_finish]
+        ).count()
+        self.report.records_deleted = Company.objects.filter(
+            source=source,
+            deleted_at__range=[self.report.update_start, self.report.update_finish]
+        ).count()
+        self.report.save()
+
+
+

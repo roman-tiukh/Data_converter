@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-02-19 15:13+0200\n"
+"POT-Creation-Date: 2021-03-03 15:05+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -126,6 +126,18 @@ msgstr "Токен у проєкті був змінений"
 #: payment_system/emails.py:238
 msgid "You have not paid the invoice"
 msgstr "У Вас не сплачений рахунок"
+
+#: payment_system/middleware.py:43
+msgid "You have 0 requests left"
+msgstr "У вас залишилося 0 запитів"
+
+#: payment_system/middleware.py:46
+msgid "You have 0 views left"
+msgstr "У вас залишилося 0 переглядів"
+
+#: payment_system/middleware.py:48
+msgid "You do not have permission to perform this action."
+msgstr "У вас немає дозволу на виконання цієї дії."
 
 #: payment_system/models.py:21 payment_system/models.py:22
 #: payment_system/models.py:285
@@ -248,9 +260,13 @@ msgstr "є проектом за замовченням"
 msgid "Default subscription already exists"
 msgstr "Базовий тарифний план уже існує"
 
-#: payment_system/models.py:321 payment_system/models.py:327
+#: payment_system/models.py:321
 msgid "subscription"
 msgstr "тарифний план"
+
+#: payment_system/models.py:327
+msgid "paid at"
+msgstr "дата оплати"
 
 #: payment_system/models.py:337
 msgid "project`s subscription"

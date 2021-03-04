@@ -96,6 +96,13 @@ class DataOceanUser(AbstractUser):
         }
         """
         alerts = []
+        active_p2s = self.user_projects.get(is_default=True).project.active_p2s
+        if not active_p2s.subscription.is_default and active_p2s.latest_invoice \
+                and not active_p2s.latest_invoice.is_paid:
+            alerts.append({
+                'message': _('You have not paid the invoice'),
+                'link': f'{settings.FRONTEND_SITE_URL}/system/profile/my-payments/',
+            })
         # alerts.append({
         #     'message': 'Lorem ipsum dolor sit amet, consectetur adipiscing eliуushte '
         #                'tortor imperdiet vuleputate pellentesque amet convallscscsis massa. '

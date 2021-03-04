@@ -160,11 +160,11 @@ class RatuDownloader(Downloader):
 
         logger.info(f'{self.reg_name}: Update started...')
 
-        self.log_init()
+        self.report_init()
         self.download()
 
-        self.log_obj.update_start = timezone.now()
-        self.log_obj.save()
+        self.report.update_start = timezone.now()
+        self.report.save()
 
         logger.info(f'{self.reg_name}: process() with {self.file_path} started ...')
         ratu = RatuConverter()
@@ -172,9 +172,9 @@ class RatuDownloader(Downloader):
         ratu.process()
         logger.info(f'{self.reg_name}: process() with {self.file_path} finished successfully.')
 
-        self.log_obj.update_finish = timezone.now()
-        self.log_obj.update_status = True
-        self.log_obj.save()
+        self.report.update_finish = timezone.now()
+        self.report.update_status = True
+        self.report.save()
 
         self.remove_file()
 
