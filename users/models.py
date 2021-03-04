@@ -46,11 +46,11 @@ class DataOceanUser(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['last_name', 'first_name']
 
-    first_name = models.CharField(max_length=100, validators=[
+    first_name = models.CharField(max_length=30, validators=[
         name_symbols_validator,
         two_in_row_validator,
     ])
-    last_name = models.CharField(max_length=100, validators=[
+    last_name = models.CharField(max_length=150, validators=[
         name_symbols_validator,
         two_in_row_validator,
     ])
