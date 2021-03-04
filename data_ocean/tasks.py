@@ -7,8 +7,11 @@ def send_report():
     print('****************')
     print('*  Send report  *')
     print('****************')
+<<<<<<< HEAD
 
     from data_ocean.emails import send_reports_mail
     send_reports_mail()
 
     print('*** Task update_pep send_report. ***')
+=======
+>>>>>>> fix
