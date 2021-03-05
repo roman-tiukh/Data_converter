@@ -77,7 +77,7 @@ class KvedFilterSet(filters.FilterSet):
 class PepFilterSet(filters.FilterSet):
     fullname = filters.CharFilter(
         lookup_expr='search',
-        help_text='Filter by full name "first name middle name last name" in Ukrainian.',
+        help_text='Filter by full name "last name first name middle name" in Ukrainian.',
     )
     fullname_transcriptions_eng = filters.CharFilter(
         lookup_expr='search',
@@ -121,7 +121,7 @@ class PepFilterSet(filters.FilterSet):
     related_company = filters.CharFilter(
         label=_("Associated company`s number (provide a number)"),
         method='filter_related_company',
-        help_text='Filter by related company.',
+        help_text='Filter by related company (provide EDRPOU number).',
     )
     last_job_title = filters.CharFilter(
         lookup_expr='icontains',

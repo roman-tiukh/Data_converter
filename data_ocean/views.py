@@ -228,9 +228,10 @@ class DOAutoSchemaClass(SwaggerAutoSchema):
             openapi.Parameter(
                 name='fields',
                 in_=openapi.IN_QUERY,
-                description='A parameter that allows you to select the fields that will be returned as a result of request. '
-                            'For example, if you need to select the id and fullname fields: ?fields=id,fullname. In general:'
-                            ' ?fields=fieldname1,fieldname2,etc. The recording is made through a comma without a space.',
+                description='A parameter that allows you to select the fields that will be returned as a result of '
+                            'request. For example, if you need to select the id and fullname fields: ?fields=id,fullname. '
+                            '<br/> In general:<br/> ?fields=fieldname1,fieldname2, etc. The recording is made through '
+                            'a comma without a space.',
                 type=openapi.TYPE_STRING,
             )
         ]
