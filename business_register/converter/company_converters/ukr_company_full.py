@@ -43,8 +43,8 @@ class UkrCompanyFullConverter(CompanyConverter):
         self.exchange_data_to_dict = {}
         self.company_country = AddressConverter().save_or_get_country('Ukraine')
         self.source = Company.UKRAINE_REGISTER
-        self.already_stored_companies = list(Company.objects.exclude(from_antac_only=True,
-            source=Company.GREAT_BRITAIN_REGISTER).values_list('id', flat=True))
+        self.already_stored_companies =\
+            list(Company.objects.filter(source=Company.UKRAINE_REGISTER).values_list('id', flat=True))
         self.uptodated_companies = []
         super().__init__()
 
@@ -771,7 +771,7 @@ class UkrCompanyFullConverter(CompanyConverter):
             else:
                 authority = Authority()
 
-            company = Company.include_deleted_objects.filter(code=code).first()
+            company = Company.include_deleted_objects.filter(code=code, source=Company.UKRAINE_REGISTER).first()
 
             if not company:
                 company = Company(
@@ -856,9 +856,6 @@ class UkrCompanyFullConverter(CompanyConverter):
                 if company.country_id != self.company_country.id:
                     company.country = self.company_country
                     update_fields.append('country')
-                if company.source != self.source:
-                    company.source = self.source
-                    update_fields.append('source')
                 if company.deleted_at:
                     company.deleted_at = None
                     update_fields.append('deleted_at')
