@@ -14,9 +14,7 @@ class DataOceanModel(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True, help_text='When the object was created. In YYYY-MM-DD format.')
     updated_at = models.DateTimeField(
-        auto_now=True,
-        null=True,
-        blank=True,
+        auto_now=True, null=True, blank=True,
         help_text='When the object was update. In YYYY-MM-DD format.'
     )
     deleted_at = models.DateTimeField(null=True, blank=True, default=None, editable=False)
