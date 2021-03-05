@@ -384,6 +384,7 @@ class PepConverterFromDB(Converter):
 
     def save_or_update_peps_links(self, peps_links_data):
         for link in peps_links_data:
+            is_changed = False
             from_person_source_id = link[0]
             from_person = self.peps_dict.get(str(from_person_source_id))
             if not from_person:
@@ -417,6 +418,7 @@ class PepConverterFromDB(Converter):
                     confirmation_date=confirmation_date,
                     end_date=end_date
                 )
+                is_changed = True
             else:
                 update_fields = []
                 if stored_link.from_person_relationship_type != from_person_relationship_type:
@@ -440,12 +442,17 @@ class PepConverterFromDB(Converter):
                 if update_fields:
                     update_fields.append('updated_at')
                     stored_link.save(update_fields=update_fields)
+                    is_changed = True
                 if self.outdated_peps_links_dict.get(f'{from_person.id}_{to_person.id}'):
                     del self.outdated_peps_links_dict[f'{from_person.id}_{to_person.id}']
-
+            if is_changed:
+                from_person.save(update_fields=['updated_at', ])
+                to_person.save(update_fields=['updated_at', ])
         if self.outdated_peps_links_dict:
             for link in self.outdated_peps_links_dict.values():
                 link.soft_delete()
+                link.from_person.save(update_fields=['updated_at', ])
+                link.to_person.save(update_fields=['updated_at', ])
 
     def create_company_link_with_pep(self, company, pep, category, start_date, confirmation_date,
                                      end_date, is_state_company):
@@ -462,6 +469,7 @@ class PepConverterFromDB(Converter):
     def save_or_update_peps_companies(self, peps_companies_data):
         address_converter = AddressConverter()
         for link in peps_companies_data:
+            is_changed = False
             pep_source_id = link[0]
             pep = self.peps_dict.get(str(pep_source_id))
             if not pep:
@@ -490,12 +498,14 @@ class PepConverterFromDB(Converter):
                                                  code=company_name + edrpou, source=Company.ANTAC,
                                                  antac_id=company_antac_id, from_antac_only=True)
                 self.create_company_link_with_pep(company, pep, category, start_date,
-                                                  confirmation_date, end_date,is_state_company)
+                                                  confirmation_date, end_date, is_state_company)
+                is_changed = True
             else:
                 already_stored_link = self.peps_companies_dict.get(f'{company.id}_{pep.id}')
                 if not already_stored_link:
                     self.create_company_link_with_pep(company, pep, category, start_date,
                                                       confirmation_date, end_date, is_state_company)
+                    is_changed = True
                 else:
                     update_fields = []
                     if already_stored_link.category != category:
@@ -516,11 +526,15 @@ class PepConverterFromDB(Converter):
                     if update_fields:
                         update_fields.append('updated_at')
                         already_stored_link.save(update_fields=update_fields)
+                        is_changed = True
                     if self.outdated_peps_companies_dict.get(f'{company.id}_{pep.id}'):
                         del self.outdated_peps_companies_dict[f'{company.id}_{pep.id}']
+            if is_changed:
+                pep.save(update_fields=['updated_at', ])
         if self.outdated_peps_companies_dict:
             for link in self.outdated_peps_companies_dict.values():
                 link.soft_delete()
+                link.pep.save(update_fields=['updated_at', ])
 
     def parse_date_of_birth(self, date_of_birth):
         if isinstance(date_of_birth, date) or isinstance(date_of_birth, datetime):
