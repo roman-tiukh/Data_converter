@@ -726,7 +726,7 @@ class UkrCompanyFullConverter(CompanyConverter):
             if record.xpath('NAME')[0].text:
                 name = record.xpath('NAME')[0].text.lower()
             else:
-                name = Company.objects.filter(edrpou=edrpou, source=Company.GREAT_BRITAIN_REGISTER).first().name or ''
+                continue
             code = name + edrpou
             address = record.xpath('ADDRESS')[0].text
             founding_document_number = record.xpath('FOUNDING_DOCUMENT_NUM')[0].text
