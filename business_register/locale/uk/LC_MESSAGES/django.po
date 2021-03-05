@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-03-03 15:05+0200\n"
+"POT-Creation-Date: 2021-03-05 15:37+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,18 +21,38 @@ msgstr ""
 "100 > 14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || "
 "(n % 100 >=11 && n % 100 <=14 )) ? 2: 3);\n"
 
-#: business_register/filters.py:82
+#: business_register/filters.py:157
 msgid "Options for writing full name"
 msgstr "Варіанти написання прізвища англійською містять"
 
-#: business_register/filters.py:98
+#: business_register/filters.py:192
 msgid "Associated company`s number (provide a number)"
 msgstr "Пов'язана компанія має код ЄДРПОУ (введіть код)"
 
+#: business_register/models/company_models.py:11
+#: business_register/models/company_models.py:18
+#: business_register/models/company_models.py:39
+#: business_register/models/company_models.py:110
+#: business_register/models/company_models.py:136
+#: business_register/models/company_models.py:153
+#: business_register/models/company_models.py:167
+#: business_register/models/company_models.py:187
+#: business_register/models/company_models.py:228
+#: business_register/models/company_models.py:238
+#: business_register/models/company_models.py:248
+#: business_register/serializers/company_and_pep_serializers.py:307
+#: business_register/serializers/company_and_pep_serializers.py:319
+msgid "Company name"
+msgstr "Назва компанії"
+
 #: business_register/models/company_models.py:14
-#: business_register/models/company_models.py:52
+#: business_register/models/company_models.py:53
 msgid "charter"
 msgstr "статут"
+
+#: business_register/models/company_models.py:20
+msgid "Company name in Company House"
+msgstr "Назва компанії в Реєстрі компаній Великобританії (Company House)"
 
 #: business_register/models/company_models.py:23
 #: business_register/models/company_models.py:42
@@ -64,111 +84,337 @@ msgstr "назва"
 msgid "short name"
 msgstr "скорочена назва"
 
+#: business_register/models/company_models.py:40
+msgid "Short name"
+msgstr "Скорочена назва"
+
+#: business_register/models/company_models.py:42
+#: business_register/serializers/company_and_pep_serializers.py:90
+#: business_register/serializers/company_and_pep_serializers.py:113
+#: business_register/serializers/company_and_pep_serializers.py:189
+msgid "Type of company"
+msgstr "Тип компанії"
+
 #: business_register/models/company_models.py:43
 msgid "number"
 msgstr "код"
+
+#: business_register/models/company_models.py:43
+#: business_register/models/company_models.py:111
+#: business_register/models/company_models.py:195
+#: business_register/models/company_models.py:220
+msgid "EDRPOU"
+msgstr "ЄДРПОУ"
 
 #: business_register/models/company_models.py:44
 msgid "CEO"
 msgstr "директор"
 
 #: business_register/models/company_models.py:45
+msgid "CEO of company"
+msgstr "Директор компанії"
+
+#: business_register/models/company_models.py:46
 msgid "share capital"
 msgstr "статутний капітал"
 
-#: business_register/models/company_models.py:47
+#: business_register/models/company_models.py:46
+#: business_register/serializers/company_and_pep_serializers.py:110
+#: business_register/serializers/company_and_pep_serializers.py:186
+msgid "Authorized capital"
+msgstr "Статутний капітал"
+
+#: business_register/models/company_models.py:48
 msgid "country"
 msgstr "країна"
 
 #: business_register/models/company_models.py:48
+#: business_register/models/company_models.py:200
+#: business_register/serializers/company_and_pep_serializers.py:108
+#: business_register/serializers/company_and_pep_serializers.py:184
+msgid "Country of origin"
+msgstr "Країна походження"
+
+#: business_register/models/company_models.py:49
 #: business_register/models/fop_models.py:11
 msgid "address"
 msgstr "адреса"
 
-#: business_register/models/company_models.py:50
+#: business_register/models/company_models.py:49
+#: business_register/models/company_models.py:198
+msgid "Address"
+msgstr "Адреса"
+
+#: business_register/models/company_models.py:51
 #: business_register/models/fop_models.py:12
 msgid "status"
 msgstr "статус"
 
+#: business_register/models/company_models.py:51
+#: business_register/serializers/company_and_pep_serializers.py:91
+#: business_register/serializers/company_and_pep_serializers.py:114
+#: business_register/serializers/company_and_pep_serializers.py:190
+msgid "Status"
+msgstr "Статус"
+
 #: business_register/models/company_models.py:53
+#: business_register/serializers/company_and_pep_serializers.py:119
+#: business_register/serializers/company_and_pep_serializers.py:195
+msgid "By law"
+msgstr "За законом"
+
+#: business_register/models/company_models.py:54
 #: business_register/models/fop_models.py:13
 msgid "registration date"
 msgstr "дата реєстрації"
 
 #: business_register/models/company_models.py:54
-#: business_register/models/company_models.py:174
+msgid "Registration date"
+msgstr "Дата реєстрації"
+
+#: business_register/models/company_models.py:55
+#: business_register/models/company_models.py:182
 #: business_register/models/fop_models.py:14
 #: business_register/models/fop_models.py:62
 msgid "registration info"
 msgstr "дані про реєстрацію"
 
-#: business_register/models/company_models.py:55
+#: business_register/models/company_models.py:56
+msgid "Registration info"
+msgstr "Дані про реєстрацію"
+
+#: business_register/models/company_models.py:57
 #: business_register/models/fop_models.py:20
 msgid "contacts"
 msgstr "контакти"
 
 #: business_register/models/company_models.py:57
+msgid "Info about contacts"
+msgstr "Дані про контакти"
+
+#: business_register/models/company_models.py:59
 #: business_register/models/fop_models.py:23
 msgid "registration authority"
 msgstr "орган реєстрації"
 
 #: business_register/models/company_models.py:59
+#: business_register/serializers/company_and_pep_serializers.py:66
+#: business_register/serializers/company_and_pep_serializers.py:115
+#: business_register/serializers/company_and_pep_serializers.py:191
+msgid "Authority"
+msgstr "Повноваження"
+
+#: business_register/models/company_models.py:61
 msgid "parent company"
 msgstr "материнська компанія"
 
-#: business_register/models/company_models.py:60
+#: business_register/models/company_models.py:61
+#: business_register/serializers/company_and_pep_serializers.py:111
+#: business_register/serializers/company_and_pep_serializers.py:187
+msgid "Parent company"
+msgstr "Материнська компанія"
+
+#: business_register/models/company_models.py:62
 #: business_register/models/pep_models.py:81
 msgid "id from ANTACs DB"
 msgstr "id з бази даних ЦПК"
 
-#: business_register/models/company_models.py:63
+#: business_register/models/company_models.py:64
+msgid "ID from ANTACs DB"
+msgstr "ID з бази даних ЦПК"
+
+#: business_register/models/company_models.py:66
 msgid "source"
 msgstr "джерело даних"
 
-#: business_register/models/company_models.py:65
+#: business_register/models/company_models.py:67
+msgid "Source"
+msgstr "Джерело"
+
+#: business_register/models/company_models.py:68
 #: business_register/models/fop_models.py:24
 msgid "our code"
 msgstr "наш код"
 
-#: business_register/models/company_models.py:97
+#: business_register/models/company_models.py:68
+msgid "Our code"
+msgstr "Наш код"
+
+#: business_register/models/company_models.py:100
 msgid "company"
 msgstr "компанія/організація"
 
-#: business_register/models/company_models.py:98
+#: business_register/models/company_models.py:101
 msgid "companies"
 msgstr "компанії/організації"
 
-#: business_register/models/company_models.py:112
+#: business_register/models/company_models.py:109
+msgid "Company is the legal successor"
+msgstr "Компанія є правонаступником"
+
+#: business_register/models/company_models.py:115
 msgid "assignee"
 msgstr "правонаступник"
 
-#: business_register/models/company_models.py:128
+#: business_register/models/company_models.py:120
+#: business_register/serializers/company_and_pep_serializers.py:120
+#: business_register/serializers/company_and_pep_serializers.py:196
+msgid "Bankruptcy readjustment"
+msgstr "Санація"
+
+#: business_register/models/company_models.py:121
+#: business_register/models/company_models.py:249
+msgid "Date"
+msgstr "Дата"
+
+#: business_register/models/company_models.py:122
+msgid "Reason of bankruptcy"
+msgstr "Причина банкрутства"
+
+#: business_register/models/company_models.py:123
+msgid "Subject state"
+msgstr "Стан суб'єкту"
+
+#: business_register/models/company_models.py:124
+msgid "Head name"
+msgstr "Ім'я керівника"
+
+#: business_register/models/company_models.py:131
 msgid "bankruptcy readjustment"
 msgstr "санація"
 
+#: business_register/models/company_models.py:137
+msgid "Founding document number"
+msgstr "Номер установчого акту"
+
+#: business_register/models/company_models.py:138
+msgid "Executive power"
+msgstr "Виконавчі повноваження"
+
+#: business_register/models/company_models.py:139
+msgid "Superior management"
+msgstr "Вище керівництво"
+
+#: business_register/models/company_models.py:140
+msgid "Managing paper"
+msgstr "Управлінські документи"
+
+#: business_register/models/company_models.py:141
+msgid "Info about termination"
+msgstr "Інформація про ліквідацію"
+
 #: business_register/models/company_models.py:143
+msgid "Info about termination cancellation"
+msgstr "інформація про припинення ліквідації"
+
+#: business_register/models/company_models.py:144
+msgid "Dates"
+msgstr "Дата"
+
+#: business_register/models/company_models.py:148
 #: business_register/models/pep_models.py:58
 msgid "additional info"
 msgstr "додаткові дані"
 
-#: business_register/models/company_models.py:153
+#: business_register/models/company_models.py:154
+#: business_register/models/company_models.py:159
 #: business_register/models/kved_models.py:51
 msgid "NACE"
 msgstr "КВЕД"
 
-#: business_register/models/company_models.py:203
+#: business_register/models/company_models.py:155
+msgid "Primary NACE"
+msgstr "Основний КВЕД"
+
+#: business_register/models/company_models.py:169
+msgid "Registration authority"
+msgstr "Орган реєстрації"
+
+#: business_register/models/company_models.py:171
+#: business_register/serializers/company_and_pep_serializers.py:67
+msgid "Taxpayer type"
+msgstr "Тип платника податків"
+
+#: business_register/models/company_models.py:172
+msgid "Start date"
+msgstr "Дата початку"
+
+#: business_register/models/company_models.py:173
+msgid "Start number"
+msgstr "Початковий номер"
+
+#: business_register/models/company_models.py:174
+msgid "End date"
+msgstr "Кінцева дата"
+
+#: business_register/models/company_models.py:175
+msgid "End number"
+msgstr "Кінцевий номер"
+
+#: business_register/models/company_models.py:188
+msgid "Info"
+msgstr "Інформація"
+
+#: business_register/models/company_models.py:190
+msgid "Additional info"
+msgstr "Додаткові дані"
+
+#: business_register/models/company_models.py:192
+msgid "Beneficiary Info"
+msgstr "Інформація про бенефіціара"
+
+#: business_register/models/company_models.py:193
+#: business_register/models/company_models.py:219
+#: business_register/models/company_models.py:239
+msgid "Name"
+msgstr "Ім'я"
+
+#: business_register/models/company_models.py:196
+msgid "Equity"
+msgstr "Власний капітал"
+
+#: business_register/models/company_models.py:201
+msgid "Is beneficiary"
+msgstr "Є бенефіціаром"
+
+#: business_register/models/company_models.py:202
+#: business_register/serializers/company_and_pep_serializers.py:162
+msgid "Is founder"
+msgstr "Є засновником"
+
+#: business_register/models/company_models.py:215
 msgid "owner"
 msgstr "власник"
 
-#: business_register/models/company_models.py:211
+#: business_register/models/company_models.py:223
 msgid "predecessor"
 msgstr "попередник"
 
 #: business_register/models/company_models.py:229
+msgid "Predecessor"
+msgstr "Попередник"
+
+#: business_register/models/company_models.py:243
 msgid "signer"
 msgstr "має право підпису"
 
-#: business_register/models/company_models.py:246
+#: business_register/models/company_models.py:250
+msgid "Reason of termination"
+msgstr "Причина ліквідації"
+
+#: business_register/models/company_models.py:251
+msgid "State"
+msgstr "Статус"
+
+#: business_register/models/company_models.py:252
+msgid "Signer name"
+msgstr "Ім'я відповідальної особи"
+
+#: business_register/models/company_models.py:253
+msgid "Creditor registration end date"
+msgstr "Кінцева дата реєстрації"
+
+#: business_register/models/company_models.py:260
 msgid "termination"
 msgstr "ліквідація"
 
@@ -448,3 +694,73 @@ msgstr "зв'язок компанії з публічними діячами"
 #: business_register/models/pep_models.py:209
 msgid "company connections with Peps"
 msgstr "зв'язки компанії з публічними діячами"
+
+#: business_register/serializers/company_and_pep_serializers.py:109
+#: business_register/serializers/company_and_pep_serializers.py:185
+msgid "Founders"
+msgstr "Є засновниками"
+
+#: business_register/serializers/company_and_pep_serializers.py:112
+#: business_register/serializers/company_and_pep_serializers.py:188
+msgid "Predecessors"
+msgstr "Попередники"
+
+#: business_register/serializers/company_and_pep_serializers.py:116
+#: business_register/serializers/company_and_pep_serializers.py:192
+msgid "Assignees"
+msgstr "Правонаступники"
+
+#: business_register/serializers/company_and_pep_serializers.py:117
+#: business_register/serializers/company_and_pep_serializers.py:193
+msgid "Signers"
+msgstr "Мають право підпису"
+
+#: business_register/serializers/company_and_pep_serializers.py:118
+#: business_register/serializers/company_and_pep_serializers.py:194
+msgid "NACE's"
+msgstr "КВЕДи"
+
+#: business_register/serializers/company_and_pep_serializers.py:121
+#: business_register/serializers/company_and_pep_serializers.py:197
+msgid "Company detail"
+msgstr "Назва компанії"
+
+#: business_register/serializers/company_and_pep_serializers.py:122
+#: business_register/serializers/company_and_pep_serializers.py:198
+msgid "Data exchange"
+msgstr "Обмін даними"
+
+#: business_register/serializers/company_and_pep_serializers.py:123
+#: business_register/serializers/company_and_pep_serializers.py:199
+msgid "When termination started"
+msgstr "Дата початку ліквідації"
+
+#: business_register/serializers/company_and_pep_serializers.py:161
+msgid "Reletionships with PEP's"
+msgstr "Зв'язки з іншими публічними діячами"
+
+#: business_register/serializers/company_and_pep_serializers.py:273
+#: business_register/serializers/company_and_pep_serializers.py:332
+msgid "To person"
+msgstr "Пов'язана особа"
+
+#: business_register/serializers/company_and_pep_serializers.py:274
+#: business_register/serializers/company_and_pep_serializers.py:291
+#: business_register/serializers/company_and_pep_serializers.py:308
+#: business_register/serializers/company_and_pep_serializers.py:320
+msgid "Category"
+msgstr "Категорія"
+
+#: business_register/serializers/company_and_pep_serializers.py:290
+#: business_register/serializers/company_and_pep_serializers.py:331
+msgid "From person"
+msgstr "Від кого"
+
+#: business_register/serializers/company_and_pep_serializers.py:333
+#: business_register/serializers/company_and_pep_serializers.py:460
+msgid "Related companies"
+msgstr "Пов'язані компанії"
+
+#: business_register/serializers/company_and_pep_serializers.py:335
+msgid "Check companies"
+msgstr "Перевірка компаній"
