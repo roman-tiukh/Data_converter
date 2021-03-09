@@ -1,7 +1,7 @@
 from django.apps import apps
 from drf_dynamic_fields import DynamicFieldsMixin
+from drf_yasg.utils import swagger_serializer_method
 from rest_framework import serializers
-from django.utils.translation import ugettext_lazy as _
 
 from business_register.models.company_models import (
     BancruptcyReadjustment, CompanyDetail,
@@ -63,9 +63,8 @@ class CompanyDetailInfoSerializer(serializers.ModelSerializer):
 
 
 class ExchangeDataCompanySerializer(serializers.ModelSerializer):
-    authority = serializers.CharField(max_length=500,
-                                      help_text=_('Authorized state agency which register the company'))
-    taxpayer_type = serializers.CharField(max_length=200, help_text=_('Taxpayer type'))
+    authority = serializers.CharField(max_length=500)
+    taxpayer_type = serializers.CharField(max_length=200)
 
     class Meta:
         model = ExchangeDataCompany
@@ -88,8 +87,8 @@ class TerminationStartedSerializer(serializers.ModelSerializer):
 
 
 class CountFoundedCompaniesSerializer(serializers.ModelSerializer):
-    company_type = serializers.StringRelatedField(help_text=_('Type of company'))
-    status = serializers.StringRelatedField(help_text=_('Status'))
+    company_type = serializers.StringRelatedField()
+    status = serializers.StringRelatedField()
 
     class Meta:
         model = Company
@@ -106,22 +105,22 @@ class CompanyShortSerializer(serializers.ModelSerializer):
 
 
 class CompanyListSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
-    country = serializers.StringRelatedField(help_text=_('Country of origin'))
-    founders = FounderSerializer(many=True, help_text=_('Founders in array'))
-    authorized_capital = serializers.FloatField(help_text=_('Authorized capital'))
-    parent = serializers.StringRelatedField(help_text=_('Company that has a controlling interest in the company'))
-    predecessors = serializers.StringRelatedField(many=True, help_text=_('Predecessors names in Ukrainian in array'))
-    company_type = serializers.StringRelatedField(help_text=_('Type of the company'))
-    status = serializers.StringRelatedField(help_text=_('Company legal status'))
-    authority = serializers.StringRelatedField(help_text=_('Authorized state agency which register the company'))
-    assignees = serializers.StringRelatedField(many=True, help_text=_('Assignees names in Ukrainian in array'))
-    signers = serializers.StringRelatedField(many=True, help_text=_('Signers names in Ukrainian in array'))
-    kveds = serializers.StringRelatedField(many=True, help_text=_("Array of NACE's as string"))
-    bylaw = serializers.StringRelatedField(help_text=_('By law'))
-    bancruptcy_readjustment = BancruptcyReadjustmentSerializer(many=True, help_text=_('Bankruptcy readjustment'))
-    company_detail = CompanyDetailInfoSerializer(many=True, help_text=_('Company detail'))
-    exchange_data = ExchangeDataCompanySerializer(many=True, help_text=_('Data exchange'))
-    termination_started = TerminationStartedSerializer(many=True, help_text=_('When termination started as array'))
+    country = serializers.StringRelatedField()
+    founders = FounderSerializer(many=True)
+    authorized_capital = serializers.FloatField()
+    parent = serializers.StringRelatedField()
+    predecessors = serializers.StringRelatedField(many=True)
+    company_type = serializers.StringRelatedField()
+    status = serializers.StringRelatedField()
+    authority = serializers.StringRelatedField()
+    assignees = serializers.StringRelatedField(many=True)
+    signers = serializers.StringRelatedField(many=True)
+    kveds = serializers.StringRelatedField(many=True)
+    bylaw = serializers.StringRelatedField()
+    bancruptcy_readjustment = BancruptcyReadjustmentSerializer(many=True)
+    company_detail = CompanyDetailInfoSerializer(many=True)
+    exchange_data = ExchangeDataCompanySerializer(many=True)
+    termination_started = TerminationStartedSerializer(many=True)
 
     class Meta:
         model = Company
@@ -159,8 +158,8 @@ class CompanyLinkWithPepSerializer(serializers.ModelSerializer):
 
 
 class CompanyDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
-    relationships_with_peps = serializers.SerializerMethodField(help_text=_("Reletionships with PEP's"))
-    founder_of = serializers.SerializerMethodField(help_text=_('Is founder'))
+    relationships_with_peps = serializers.SerializerMethodField()
+    founder_of = serializers.SerializerMethodField()
 
     def get_relationships_with_peps(self, obj):
         return filter_with_parameter(
@@ -182,22 +181,22 @@ class CompanyDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
             serializer=CountFoundedCompaniesSerializer
         )
 
-    country = serializers.StringRelatedField(help_text=_('Country of origin'))
-    founders = FounderSerializer(many=True, help_text=_('Founders in array'))
-    authorized_capital = serializers.FloatField(help_text=_('Authorized capital'))
-    parent = serializers.StringRelatedField(help_text=_('Company that has a controlling interest in the company.'))
-    predecessors = serializers.StringRelatedField(many=True, help_text=_('Predecessors names in Ukrainian in array'))
-    company_type = serializers.StringRelatedField(help_text=_('Type of company'))
-    status = serializers.StringRelatedField(help_text=_('Company legal status'))
-    authority = serializers.StringRelatedField(help_text=_('Authorized state agency which register the company'))
-    assignees = serializers.StringRelatedField(many=True, help_text=_('Assignees names in Ukrainian in array'))
-    signers = serializers.StringRelatedField(many=True, help_text=_('Signers names in Ukrainian in array'))
-    kveds = serializers.StringRelatedField(many=True, help_text=_("Array of NACE's as string"))
-    bylaw = serializers.StringRelatedField(help_text=_('By law'))
-    bancruptcy_readjustment = BancruptcyReadjustmentSerializer(many=True, help_text=_('Bankruptcy readjustment'))
-    company_detail = CompanyDetailInfoSerializer(many=True, help_text=_('Company detail'))
-    exchange_data = ExchangeDataCompanySerializer(many=True, help_text=_('Data exchange'))
-    termination_started = TerminationStartedSerializer(many=True, help_text=_('When termination started as array'))
+    country = serializers.StringRelatedField()
+    founders = FounderSerializer(many=True)
+    authorized_capital = serializers.FloatField()
+    parent = serializers.StringRelatedField()
+    predecessors = serializers.StringRelatedField(many=True)
+    company_type = serializers.StringRelatedField()
+    status = serializers.StringRelatedField()
+    authority = serializers.StringRelatedField()
+    assignees = serializers.StringRelatedField(many=True)
+    signers = serializers.StringRelatedField(many=True)
+    kveds = serializers.StringRelatedField(many=True)
+    bylaw = serializers.StringRelatedField()
+    bancruptcy_readjustment = BancruptcyReadjustmentSerializer(many=True)
+    company_detail = CompanyDetailInfoSerializer(many=True)
+    exchange_data = ExchangeDataCompanySerializer(many=True)
+    termination_started = TerminationStartedSerializer(many=True)
 
     class Meta:
         model = Company
@@ -271,8 +270,8 @@ class HistoricalTerminationStartedSerializer(serializers.ModelSerializer):
 
 
 class FromRelatedPersonLinkSerializer(serializers.ModelSerializer):
-    to_person = PepShortSerializer(help_text=_('To person'))
-    category_display = serializers.CharField(source='get_category_display', help_text=_('Category'))
+    to_person = PepShortSerializer()
+    category_display = serializers.CharField(source='get_category_display')
 
     class Meta:
         model = RelatedPersonsLink
@@ -288,8 +287,8 @@ class FromRelatedPersonLinkSerializer(serializers.ModelSerializer):
 
 
 class ToRelatedPersonLinkSerializer(serializers.ModelSerializer):
-    from_person = PepShortSerializer(help_text=_('From person'))
-    category_display = serializers.CharField(source='get_category_display', help_text=_('Category'))
+    from_person = PepShortSerializer()
+    category_display = serializers.CharField(source='get_category_display')
 
     class Meta:
         model = RelatedPersonsLink
@@ -305,8 +304,8 @@ class ToRelatedPersonLinkSerializer(serializers.ModelSerializer):
 
 
 class PepLinkWithCompanySerializer(serializers.ModelSerializer):
-    company = CompanyShortSerializer(help_text=_('Company name'))
-    category_display = serializers.CharField(source='get_category_display', help_text=_('Category'))
+    company = CompanyShortSerializer()
+    category_display = serializers.CharField(source='get_category_display')
 
     class Meta:
         model = CompanyLinkWithPep
@@ -317,8 +316,8 @@ class PepLinkWithCompanySerializer(serializers.ModelSerializer):
 
 
 class PepDetailLinkWithCompanySerializer(serializers.ModelSerializer):
-    company = CountFoundedCompaniesSerializer(help_text=_('Company name'))
-    category_display = serializers.CharField(source='get_category_display', help_text=_('Category'))
+    company = CountFoundedCompaniesSerializer()
+    category_display = serializers.CharField(source='get_category_display')
 
     class Meta:
         model = CompanyLinkWithPep
@@ -329,19 +328,16 @@ class PepDetailLinkWithCompanySerializer(serializers.ModelSerializer):
 
 
 class PepDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
-    from_person_links = serializers.SerializerMethodField(help_text=_('Links from person as string'))
-    to_person_links = serializers.SerializerMethodField(help_text=_('Links to person as string'))
-    related_companies = serializers.SerializerMethodField(help_text=_('Related companies as array'))
+    from_person_links = serializers.SerializerMethodField()
+    to_person_links = serializers.SerializerMethodField()
+    related_companies = serializers.SerializerMethodField()
     # other companies founded by persons with the same fullname as pep
-    check_companies = serializers.SerializerMethodField(help_text=_('Check companies'))
-    pep_type = serializers.CharField(source='get_pep_type_display',
-                                     help_text='Type of politically exposed person. Can be national politically exposed '
-                                               'person, foreign politically exposed person,  politically exposed person,'
-                                               ' having political functions in international organization, associated '
-                                               'person or family member.')
+    check_companies = serializers.SerializerMethodField()
+    pep_type = serializers.CharField(source='get_pep_type_display')
     reason_of_termination = serializers.CharField(source='get_reason_of_termination_display',
                                                   help_text='Reason for terminating PEP status.')
 
+    @swagger_serializer_method(serializer_or_field=FromRelatedPersonLinkSerializer)
     def get_from_person_links(self, obj):
         return filter_with_parameter(
             obj=obj,
@@ -354,6 +350,7 @@ class PepDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
             model_related_name='from_person_links',
             serializer=FromRelatedPersonLinkSerializer)
 
+    @swagger_serializer_method(serializer_or_field=ToRelatedPersonLinkSerializer)
     def get_to_person_links(self, obj):
         return filter_with_parameter(
             obj=obj,
@@ -367,6 +364,7 @@ class PepDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
             serializer=ToRelatedPersonLinkSerializer
         )
 
+    @swagger_serializer_method(serializer_or_field=PepDetailLinkWithCompanySerializer)
     def get_related_companies(self, obj):
         parameter = self.context['request'].query_params.get('company_relations')
         if parameter == 'none':
@@ -397,6 +395,7 @@ class PepDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
             )
         return PepDetailLinkWithCompanySerializer(queryset, many=True).data
 
+    @swagger_serializer_method(serializer_or_field=CountFoundedCompaniesSerializer)
     def get_check_companies(self, obj):
         return filter_property(
             obj=obj,
@@ -458,7 +457,7 @@ class PepListSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     # related_persons = PepShortSerializer(many=True)
     to_person_links = ToRelatedPersonListSerializer(many=True)
     from_person_links = FromRelatedPersonListSerializer(many=True)
-    related_companies = PepLinkWithCompanySerializer(many=True, help_text=_('Related companies as array'))
+    related_companies = PepLinkWithCompanySerializer(many=True)
 
     pep_type = serializers.CharField(source='get_pep_type_display',
                                      help_text='Type of politically exposed person. Can be national politically exposed person, '
