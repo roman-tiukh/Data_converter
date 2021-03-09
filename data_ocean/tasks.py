@@ -3,7 +3,12 @@ from celery import shared_task
 
 
 @shared_task
-def test_task():
+def send_report():
     print('****************')
-    print('*  Test task!  *')
+    print('*  Send report  *')
     print('****************')
+
+    from data_ocean.emails import send_reports_mail
+    send_reports_mail()
+
+    print('*** Task update_pep send_report. ***')

@@ -98,7 +98,7 @@ class Register(DataOceanModel):
         verbose_name_plural = _('datasets')
 
 
-class Report(models.Model):
+class Report(DataOceanModel):
     registry_name = models.CharField(max_length=20, db_index=True)
     download_start = models.DateTimeField(auto_now_add=True)
     download_finish = models.DateTimeField(null=True, blank=True)
@@ -122,6 +122,11 @@ class Report(models.Model):
     records_changed = models.IntegerField(blank=True, default=0)
     records_deleted = models.IntegerField(blank=True, default=0)
     errors = models.IntegerField(blank=True, default=0)
+
+    @staticmethod
+    def collect_last_day_reports():
+        day_ago = timezone.now() - timezone.timedelta(hours=24)
+        return list(Report.objects.filter(created_at__gt=day_ago))
 
     def __str__(self):
         return self.registry_name
