@@ -103,6 +103,8 @@ class DOAutoSchemaClass(SwaggerAutoSchema):
     def get_operation(self, operation_keys=None):
         operation = super().get_operation(operation_keys)
         example_curl = None
+        example_python = None
+        example_php = None
         if operation_keys[-1] == 'list':
             example_curl = f"curl -X GET -H 'Authorization: DataOcean {{token}}' \\\n{settings_local.BACKEND_SITE_URL}/" \
                            f"api/{'/'.join(operation_keys[:-1])}/"
@@ -111,6 +113,11 @@ class DOAutoSchemaClass(SwaggerAutoSchema):
                              f"\tparams={{'page': 1, 'page_size': 20}},\n" \
                              f"\theaders={{'Authorization': 'DataOcean {{token}}'}},\n)\n\n" \
                              "pprint(response.json())"
+            example_php = "$opts = [\n\t'https' => [\n\t\t'method' => 'GET',\n\t\t'header' => 'Accept: application/json'," \
+                          "\n\t\t\t    'Authorization: DataOcean {token}', \n\t\t\t    'Content-type: application/json'," \
+                          f"\n\t\t\t    'Host: {str(settings_local.BACKEND_SITE_URL)[8:]}'\n\t]\n];\n$context = stream_" \
+                          f"context_create($opts);\n$response = file_get_contents('{settings_local.BACKEND_SITE_URL}/api/"\
+                          f"{'/'.join(operation_keys[:-1])}', false, $context);\nvar_dump($response);"
         elif operation_keys[-1] == 'read':
             example_curl = f"curl -X GET -H 'Authorization: DataOcean {{token}}' \\\n{settings_local.BACKEND_SITE_URL}/" \
                            f"api/{'/'.join(operation_keys[:-1])}/{{id}}/"
@@ -118,6 +125,11 @@ class DOAutoSchemaClass(SwaggerAutoSchema):
                              f"response = requests.get(\n\t'{settings_local.BACKEND_SITE_URL}/api/{'/'.join(operation_keys[:-1])}/{{id}}/',\n" \
                              f"\theaders={{'Authorization': 'DataOcean {{token}}'}},\n)\n\n" \
                              "pprint(response.json())"
+            example_php = "$opts = [\n\t'https' => [\n\t\t'method' => 'GET',\n\t\t'header' => 'Accept: application/json'," \
+                          "\n\t\t\t    'Authorization: DataOcean {token}', \n\t\t\t    'Content-type: application/json'," \
+                          f"\n\t\t\t    'Host: {str(settings_local.BACKEND_SITE_URL)[8:]}'\n\t]\n];\n$context = stream_" \
+                          f"context_create($opts);\n$response = file_get_contents('{settings_local.BACKEND_SITE_URL}/api/"\
+                          f"{'/'.join(operation_keys[:-1])}/{{id}}', false, $context);\nvar_dump($response);"
         if example_curl:
             operation.update({
                 'x-code-samples': [
@@ -128,6 +140,10 @@ class DOAutoSchemaClass(SwaggerAutoSchema):
                     {
                         "lang": "python",
                         "source": example_python
+                    },
+                    {
+                        "lang": "php",
+                        "source": example_php
                     },
                 ],
             })
@@ -199,3 +215,23 @@ class DOAutoSchemaClass(SwaggerAutoSchema):
             },
         })
         return responses
+
+    def add_manual_parameters(self, parameters):
+        return super().add_manual_parameters(parameters) + [
+            openapi.Parameter(
+                name='format',
+                in_=openapi.IN_QUERY,
+                description='You can receive data in json and xml format. The default format = json. To get data in xml'
+                            ' format, specify ?format=xml in the query parameters.',
+                type=openapi.TYPE_STRING
+            ),
+            openapi.Parameter(
+                name='fields',
+                in_=openapi.IN_QUERY,
+                description='A parameter that allows you to select the fields that will be returned as a result of '
+                            'request. For example, if you need to select the id and fullname fields: ?fields=id,fullname. '
+                            '<br/> In general:<br/> ?fields=fieldname1,fieldname2, etc. The recording is made through '
+                            'a comma without a space.',
+                type=openapi.TYPE_STRING,
+            )
+        ]

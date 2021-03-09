@@ -160,6 +160,7 @@ class FopConverter(BusinessConverter):
             fullname = record.xpath('NAME')[0].text
             if not fullname:
                 logger.warning(f'ФОП без прізвища: {record}')
+                self.report.errors += 1
                 continue
             if len(fullname) > 100:
                 logger.warning(f'ФОП із задовгим прізвищем: {record}')
@@ -299,6 +300,7 @@ class FopConverter(BusinessConverter):
             fullname = record.xpath('FIO')[0].text
             if not fullname:
                 logger.warning(f'ФОП без прізвища: {record}')
+                self.report.errors += 1
                 continue
             if len(fullname) > 100:
                 logger.warning(f'ФОП із задовгим прізвищем: {record}')
@@ -361,11 +363,11 @@ class FopDownloader(Downloader):
 
         logger.info(f'{self.reg_name}: Update started...')
 
-        self.log_init()
+        self.report_init()
         self.download()
 
-        self.log_obj.update_start = timezone.now()
-        self.log_obj.save()
+        self.report.update_start = timezone.now()
+        self.report.save()
 
         logger.info(f'{self.reg_name}: process() with {self.file_path} started ...')
         fop = FopConverter()
@@ -374,15 +376,20 @@ class FopDownloader(Downloader):
         fop.process()
         logger.info(f'{self.reg_name}: process() with {self.file_path} finished successfully.')
 
-        self.log_obj.update_finish = timezone.now()
-        self.log_obj.update_status = True
-        self.log_obj.save()
+        self.report.update_finish = timezone.now()
+        self.report.update_status = True
+        self.report.save()
 
         sleep(5)
         self.vacuum_analyze(table_list=['business_register_fop', ])
-        new_total_records = Fop.objects.count()
-        self.update_register_field(settings.FOP_REGISTER_LIST, 'total_records', new_total_records)
 
         self.remove_file()
+
+        new_total_records = Fop.objects.count()
+        self.update_register_field(settings.FOP_REGISTER_LIST, 'total_records', new_total_records)
+        logger.info(f'{self.reg_name}: Update total records finished successfully.')
+
+        self.measure_changes('business_register', 'Fop')
+        logger.info(f'{self.reg_name}: Report created successfully.')
 
         logger.info(f'{self.reg_name}: Update finished successfully.')

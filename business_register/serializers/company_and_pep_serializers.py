@@ -1,5 +1,6 @@
 from django.apps import apps
 from drf_dynamic_fields import DynamicFieldsMixin
+from drf_yasg.utils import swagger_serializer_method
 from rest_framework import serializers
 
 from business_register.models.company_models import (
@@ -332,14 +333,11 @@ class PepDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     related_companies = serializers.SerializerMethodField()
     # other companies founded by persons with the same fullname as pep
     check_companies = serializers.SerializerMethodField()
-    pep_type = serializers.CharField(source='get_pep_type_display',
-                                     help_text='Type of politically exposed person. Can be national politically exposed '
-                                               'person, foreign politically exposed person,  politically exposed person,'
-                                               ' having political functions in international organization, associated '
-                                               'person or family member.')
+    pep_type = serializers.CharField(source='get_pep_type_display')
     reason_of_termination = serializers.CharField(source='get_reason_of_termination_display',
                                                   help_text='Reason for terminating PEP status.')
 
+    @swagger_serializer_method(serializer_or_field=FromRelatedPersonLinkSerializer)
     def get_from_person_links(self, obj):
         return filter_with_parameter(
             obj=obj,
@@ -352,6 +350,7 @@ class PepDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
             model_related_name='from_person_links',
             serializer=FromRelatedPersonLinkSerializer)
 
+    @swagger_serializer_method(serializer_or_field=ToRelatedPersonLinkSerializer)
     def get_to_person_links(self, obj):
         return filter_with_parameter(
             obj=obj,
@@ -365,6 +364,7 @@ class PepDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
             serializer=ToRelatedPersonLinkSerializer
         )
 
+    @swagger_serializer_method(serializer_or_field=PepDetailLinkWithCompanySerializer)
     def get_related_companies(self, obj):
         parameter = self.context['request'].query_params.get('company_relations')
         if parameter == 'none':
@@ -395,6 +395,7 @@ class PepDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
             )
         return PepDetailLinkWithCompanySerializer(queryset, many=True).data
 
+    @swagger_serializer_method(serializer_or_field=CountFoundedCompaniesSerializer)
     def get_check_companies(self, obj):
         return filter_property(
             obj=obj,

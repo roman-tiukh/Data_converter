@@ -1,16 +1,14 @@
 # Drv means 'Державний реєстр виборців' - the source for the addresses data
 
+import logging
+
+from django.conf import settings
+from django.utils import timezone
 from zeep import Client, Settings
 from zeep.helpers import serialize_object
 
-import logging
-from django.utils import timezone
-from django.conf import settings
-
-from data_ocean.models import RegistryUpdaterModel
-from data_ocean.utils import change_to_full_name
-
 from business_register.converter.business_converter import BusinessConverter
+from data_ocean.downloader import Downloader
 from data_ocean.utils import clean_name, change_to_full_name
 from location_register.models.drv_models import (DrvAto, DrvBuilding,
                                                  DrvCouncil, DrvDistrict,
@@ -24,6 +22,7 @@ class DrvConverter(BusinessConverter):
     WSDL_URL = settings.LOCATION_DRV_WSDL_URL
     # WSDL_URL = 'https://www.drv.gov.ua/ords/svc/personal/API/Opendata'
     SETTINGS = Settings(strict=settings.LOCATION_DRV_STRICT, xml_huge_tree=settings.LOCATION_DRV_XML_HUGE_TREE)
+
     # SETTINGS = Settings(strict=False, xml_huge_tree=True)
 
     def __init__(self):
@@ -189,28 +188,42 @@ class DrvConverter(BusinessConverter):
     print("For storing run DrvConverter().process()")
 
 
-class DrvUpdater:
+class DrvUpdater(Downloader):
     reg_name = 'location_drv'
-    log_obj = None
-
-    def log_init(self):
-        self.log_obj = RegistryUpdaterModel.objects.create(registry_name=self.reg_name)
+    url = settings.LOCATION_DRV_WSDL_URL
+    file_name = 'there us no file - we use SOAP protocol'
 
     def update(self):
-
         logger.info(f'{self.reg_name}: Update started...')
 
-        self.log_init()
+        self.report_init()
 
-        self.log_obj.update_start = timezone.now()
-        self.log_obj.save()
+        self.report.update_start = timezone.now()
+        self.report.save()
 
         logger.info(f'{self.reg_name}: DrvConverter().process() started ...')
         DrvConverter().process()
         logger.info(f'{self.reg_name}: DrvConverter().process() finished successfully.')
 
-        self.log_obj.update_finish = timezone.now()
-        self.log_obj.update_status = True
-        self.log_obj.save()
+        self.report.update_finish = timezone.now()
+        self.report.update_status = True
+        self.report.save()
+
+        self.vacuum_analyze(table_list=[
+            'location_register_drvregion',
+            'location_register_drvdistrict',
+            'location_register_drvcouncil',
+            'location_register_drvato',
+            'location_register_drvstreet',
+            'location_register_drvbuilding',
+
+        ])
+
+        new_total_records = DrvBuilding.objects.all().count()
+        self.update_register_field(settings.DRVBUILDING_REGISTER_LIST, 'total_records', new_total_records)
+        logger.info(f'{self.reg_name}: Update total records finished successfully.')
+
+        self.measure_changes('location_register', 'DrvBuilding')
+        logger.info(f'{self.reg_name}: Report created successfully.')
 
         logger.info(f'{self.reg_name}: Update finished successfully.')

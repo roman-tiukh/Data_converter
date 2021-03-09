@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-03-02 06:37+0000\n"
+"POT-Creation-Date: 2021-03-03 15:05+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,11 +21,11 @@ msgstr ""
 "100 > 14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || "
 "(n % 100 >=11 && n % 100 <=14 )) ? 2: 3);\n"
 
-#: users/admin.py:56
+#: users/admin.py:63
 msgid "It cannot be longer than the duration of the tariff plan"
 msgstr "Не може бути більше ніж тривалість тарифного плану"
 
-#: users/admin.py:58
+#: users/admin.py:65
 msgid "Must be later than the current day"
 msgstr "Має бути більше ніж поточний день"
 
@@ -137,49 +137,49 @@ msgstr "У суперкористувача повинно бути встано
 msgid "Superuser must have is_superuser=True."
 msgstr "У суперкористувача повинно бути встановлено is_superuser=True."
 
-#: users/models.py:48 users/models.py:109
+#: users/models.py:48 users/models.py:110
 msgid "email address"
 msgstr "адреса електронної пошти"
 
-#: users/models.py:53 users/models.py:114
+#: users/models.py:53 users/models.py:115
 msgid "language"
 msgstr "мова"
 
-#: users/models.py:93
+#: users/models.py:94
 msgid "You have not paid the invoice"
 msgstr "У Вас не сплачений рахунок"
 
-#: users/models.py:110
+#: users/models.py:111
 msgid "password"
 msgstr "пароль"
 
-#: users/models.py:111
+#: users/models.py:112
 msgid "first name"
 msgstr "ім'я"
 
-#: users/models.py:112
+#: users/models.py:113
 msgid "last name"
 msgstr "прізвище"
 
-#: users/models.py:120
+#: users/models.py:121
 msgid "expire at"
 msgstr "діє до"
 
-#: users/models.py:136
+#: users/models.py:137
 msgid "question"
 msgstr "запитання"
 
-#: users/models.py:137
+#: users/models.py:138
 msgid "questions"
 msgstr "запитання"
 
-#: users/models.py:154
+#: users/models.py:155
 #, fuzzy
 #| msgid "Notification"
 msgid "notification"
 msgstr "сповіщення"
 
-#: users/models.py:155
+#: users/models.py:156
 #, fuzzy
 #| msgid "Notifications"
 msgid "notifications"
@@ -243,6 +243,14 @@ msgstr "Ви замовили скидання пароля у системі Da
 #: users/templates/users/emails/reset_password.html:13
 msgid "Reset password"
 msgstr "Скинути пароль"
+
+#: users/validators.py:7
+msgid "Only alphanumeric characters, digits, and '-. are allowed"
+msgstr "Дозволено лише літери, цифри та символи'-. "
+
+#: users/validators.py:14
+msgid "No more than 2 identical symbols in a row are allowed"
+msgstr "Допускається не більше 2 однакових символів поспіль"
 
 #: users/views.py:55
 msgid "User with this email is already exists"

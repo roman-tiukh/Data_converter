@@ -5,6 +5,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from rest_framework.authtoken.models import Token
 from data_ocean.models import DataOceanModel
+from users.validators import name_symbols_validator, two_in_row_validator
 
 
 class DataOceanUserManager(BaseUserManager):
@@ -45,6 +46,14 @@ class DataOceanUser(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['last_name', 'first_name']
 
+    first_name = models.CharField(max_length=30, validators=[
+        name_symbols_validator,
+        two_in_row_validator,
+    ])
+    last_name = models.CharField(max_length=150, validators=[
+        name_symbols_validator,
+        two_in_row_validator,
+    ])
     email = models.EmailField(_('email address'), unique=True)
     organization = models.CharField(max_length=255, default='', blank=True)
     position = models.CharField(max_length=150, default='', blank=True)
