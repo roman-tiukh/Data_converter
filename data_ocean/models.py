@@ -12,8 +12,12 @@ class DataOceanManager(models.Manager):
 class DataOceanModel(models.Model):
     name = "No name field in model!"
 
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True,
+                                      help_text='When the object was created. In YYYY-MM-DDTHH:mm:ss.SSSSSSZ format.')
+    updated_at = models.DateTimeField(
+        auto_now=True, null=True, blank=True,
+        help_text='When the object was update. In YYYY-MM-DDTHH:mm:ss.SSSSSSZ format.'
+    )
     deleted_at = models.DateTimeField(null=True, blank=True, default=None, editable=False)
 
     objects = DataOceanManager()
@@ -94,7 +98,7 @@ class Register(DataOceanModel):
         verbose_name_plural = _('datasets')
 
 
-class RegistryUpdaterModel(models.Model):
+class Report(models.Model):
     registry_name = models.CharField(max_length=20, db_index=True)
     download_start = models.DateTimeField(auto_now_add=True)
     download_finish = models.DateTimeField(null=True, blank=True)
@@ -114,5 +118,15 @@ class RegistryUpdaterModel(models.Model):
     update_status = models.BooleanField(blank=True, default=False)
     update_message = models.CharField(max_length=255, null=True, blank=True)
 
+    records_added = models.IntegerField(blank=True, default=0)
+    records_changed = models.IntegerField(blank=True, default=0)
+    records_deleted = models.IntegerField(blank=True, default=0)
+    errors = models.IntegerField(blank=True, default=0)
+
     def __str__(self):
         return self.registry_name
+
+    class Meta:
+        ordering = ['id']
+        verbose_name = _('data update report')
+        verbose_name_plural = _('data update reports')

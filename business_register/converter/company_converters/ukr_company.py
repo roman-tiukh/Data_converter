@@ -429,6 +429,7 @@ class UkrCompanyConverter(CompanyConverter):
                 company_type = self.save_or_get_company_type(company_type, 'uk')
             edrpou = record.xpath('EDRPOU')[0].text
             if not edrpou:
+                self.report.errors += 1
                 continue
             code = name + edrpou
             address = record.xpath('ADDRESS')[0].text
@@ -684,6 +685,7 @@ class UkrCompanyConverter(CompanyConverter):
         for record in records:
             # omitting records without company name or edrpou
             if not record.xpath('NAME')[0].text or not record.xpath('EDRPOU')[0].text:
+                self.report.errors += 1
                 continue
             name = record.xpath('NAME')[0].text.lower()
             short_name = record.xpath('SHORT_NAME')[0].text
@@ -780,11 +782,11 @@ class UkrCompanyDownloader(Downloader):
 
         logger.info(f'{self.reg_name}: Update started...')
 
-        self.log_init()
+        self.report_init()
         self.download()
 
-        self.log_obj.update_start = timezone.now()
-        self.log_obj.save()
+        self.report.update_start = timezone.now()
+        self.report.save()
 
         logger.info(f'{self.reg_name}: process() with {self.file_path} started ...')
         ukr_company = UkrCompanyConverter()
@@ -793,16 +795,21 @@ class UkrCompanyDownloader(Downloader):
         ukr_company.process()
         logger.info(f'{self.reg_name}: process() with {self.file_path} finished successfully.')
 
-        self.log_obj.update_finish = timezone.now()
-        self.log_obj.update_status = True
-        self.log_obj.save()
+        self.report.update_finish = timezone.now()
+        self.report.update_status = True
+        self.report.save()
 
         sleep(5)
         self.vacuum_analyze(table_list=['business_register_company', ])
-        new_total_records = Company.objects.filter(source=Company.UKRAINE_REGISTER).count()
-        self.update_field(settings.UKR_COMPANY_REGISTER_LIST, 'total_records', new_total_records)
 
         self.remove_file()
+
+        new_total_records = Company.objects.filter(source=Company.UKRAINE_REGISTER).count()
+        self.update_register_field(settings.UKR_COMPANY_REGISTER_LIST, 'total_records', new_total_records)
+        logger.info(f'{self.reg_name}: Update total records finished successfully.')
+
+        self.measure_company_changes(Company.UKRAINE_REGISTER)
+        logger.info(f'{self.reg_name}: Report created successfully.')
 
         logger.info(f'{self.reg_name}: Update finished successfully.')
 

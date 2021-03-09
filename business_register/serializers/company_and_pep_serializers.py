@@ -1,5 +1,6 @@
 from django.apps import apps
 from drf_dynamic_fields import DynamicFieldsMixin
+from drf_yasg.utils import swagger_serializer_method
 from rest_framework import serializers
 
 from business_register.models.company_models import (
@@ -332,14 +333,11 @@ class PepDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     related_companies = serializers.SerializerMethodField()
     # other companies founded by persons with the same fullname as pep
     check_companies = serializers.SerializerMethodField()
-    pep_type = serializers.CharField(source='get_pep_type_display',
-                                     help_text='Type of politically exposed person. Can be national politically exposed '
-                                               'person, foreign politically exposed person,  politically exposed person,'
-                                               ' having political functions in international organization, associated '
-                                               'person or family member.')
+    pep_type = serializers.CharField(source='get_pep_type_display')
     reason_of_termination = serializers.CharField(source='get_reason_of_termination_display',
                                                   help_text='Reason for terminating PEP status.')
 
+    @swagger_serializer_method(serializer_or_field=FromRelatedPersonLinkSerializer)
     def get_from_person_links(self, obj):
         return filter_with_parameter(
             obj=obj,
@@ -352,6 +350,7 @@ class PepDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
             model_related_name='from_person_links',
             serializer=FromRelatedPersonLinkSerializer)
 
+    @swagger_serializer_method(serializer_or_field=ToRelatedPersonLinkSerializer)
     def get_to_person_links(self, obj):
         return filter_with_parameter(
             obj=obj,
@@ -365,6 +364,7 @@ class PepDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
             serializer=ToRelatedPersonLinkSerializer
         )
 
+    @swagger_serializer_method(serializer_or_field=PepDetailLinkWithCompanySerializer)
     def get_related_companies(self, obj):
         parameter = self.context['request'].query_params.get('company_relations')
         if parameter == 'none':
@@ -395,6 +395,7 @@ class PepDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
             )
         return PepDetailLinkWithCompanySerializer(queryset, many=True).data
 
+    @swagger_serializer_method(serializer_or_field=CountFoundedCompaniesSerializer)
     def get_check_companies(self, obj):
         return filter_property(
             obj=obj,
@@ -416,12 +417,51 @@ class PepDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
         )
 
 
+class FromRelatedPersonListSerializer(serializers.ModelSerializer):
+    category_display = serializers.CharField(source='get_category_display')
+
+    id = serializers.IntegerField(source='to_person.id')
+    fullname = serializers.CharField(source='to_person.fullname')
+    pep_type = serializers.CharField(source='to_person.get_pep_type_display')
+
+    class Meta:
+        model = RelatedPersonsLink
+        fields = (
+            'id',
+            'fullname',
+            'pep_type',
+            'to_person_relationship_type',
+            'category_display',
+        )
+
+
+class ToRelatedPersonListSerializer(serializers.ModelSerializer):
+    category_display = serializers.CharField(source='get_category_display')
+
+    id = serializers.IntegerField(source='from_person.id')
+    fullname = serializers.CharField(source='from_person.fullname')
+    pep_type = serializers.CharField(source='from_person.get_pep_type_display')
+
+    class Meta:
+        model = RelatedPersonsLink
+        fields = (
+            'id',
+            'fullname',
+            'pep_type',
+            'from_person_relationship_type',
+            'category_display',
+        )
+
+
 class PepListSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
-    related_persons = PepShortSerializer(many=True)
+    # related_persons = PepShortSerializer(many=True)
+    to_person_links = ToRelatedPersonListSerializer(many=True)
+    from_person_links = FromRelatedPersonListSerializer(many=True)
     related_companies = PepLinkWithCompanySerializer(many=True)
+
     pep_type = serializers.CharField(source='get_pep_type_display',
                                      help_text='Type of politically exposed person. Can be national politically exposed person, '
-                                               'foreign politically exposed person,  politically exposed person, having '
+                                               'foreign politically exposed person, politically exposed person, having '
                                                'political functions in international organization, associated person or family member.')
     reason_of_termination = serializers.CharField(source='get_reason_of_termination_display',
                                                   help_text='Reason for terminating PEP status.')
@@ -430,9 +470,30 @@ class PepListSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
         model = Pep
         fields = (
             'id', 'fullname', 'fullname_transcriptions_eng', 'last_job_title', 'last_employer',
-            'is_pep', 'pep_type', 'info',
-            'sanctions', 'criminal_record', 'assets_info', 'criminal_proceedings', 'wanted',
-            'date_of_birth', 'place_of_birth', 'is_dead',
-            'termination_date', 'reason_of_termination',
-            'related_persons', 'related_companies', 'created_at', 'updated_at',
+            'is_pep', 'pep_type', 'info', 'sanctions', 'criminal_record', 'assets_info',
+            'criminal_proceedings', 'wanted', 'date_of_birth', 'place_of_birth', 'is_dead',
+            'termination_date', 'reason_of_termination', 'from_person_links', 'to_person_links',
+            'related_companies', 'created_at', 'updated_at',
         )
+
+
+# class PepListFreemiumSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
+#     pep_type = serializers.CharField(
+#     source='get_pep_type_display',
+#     help_text='Type of politically exposed person. Can be national politically exposed person, '
+#               'foreign politically exposed person, politically exposed person, having '
+#               'political functions in international organization, associated person or family member.'
+#     )
+#
+#     class Meta:
+#         model = Pep
+#         fields = (
+#             'id',
+#             'fullname',
+#             'fullname_transcriptions_eng'
+#             'is_pep',
+#             'pep_type',
+#             'date_of_birth',
+#             'created_at',
+#             'updated_at',
+#         )

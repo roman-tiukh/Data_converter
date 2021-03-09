@@ -5,13 +5,12 @@ import os
 import traceback
 import zipfile
 from collections import defaultdict
-from datetime import datetime
-from time import sleep
-from xml.etree.ElementTree import iterparse
+
 import requests
 import xmltodict
 from django.apps import apps
 from lxml import etree
+
 from location_register.models.address_models import Country
 
 logger = logging.getLogger(__name__)
