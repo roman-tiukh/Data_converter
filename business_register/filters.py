@@ -62,37 +62,37 @@ class FopFilterSet(filters.FilterSet):
                   # ' 22. скасовано. '
                   '<br> Examples: зареєстровано; порушено справу про банкрутство; liquidation'
     )
-    registration_date = filters.CharFilter(
+    registration_date = filters.DateFilter(
         lookup_expr='exact',
         help_text='Search by date of registration in format yyyy-mm-dd.'
                   'Searching request may contain only year, year and month(separated with dash) or full date.'
                   '<br> Examples:2020; 2014-08; 1991-08-24'
     )
-    registration_date__lt = filters.CharFilter(
+    registration_date__lt = filters.DateFilter(
         lookup_expr='lt',
         help_text='Find all ФОП registered before searching date. Request must be entered in format yyyy-mm-dd.'
                   'Searching request may contain only year, year and month(separated with dash) or full date.'
                   ' <br> Examples: 2010; 2007-01; 2021-03-02'
     )
-    registration_date__gt = filters.CharFilter(
+    registration_date__gt = filters.DateFilter(
         lookup_expr='gt',
         help_text='Find all ФОП registered after searching date. Request must be entered in format yyyy-mm-dd.'
                   'Searching request may contain only year, year and month(separated with dash) or full date.'
                   ' <br> Examples: 2010; 2007-01; 2021-03-02'
     )
-    termination_date = filters.CharFilter(
+    termination_date = filters.DateFilter(
         lookup_expr='exact',
         help_text='Search by date of termination in format yyyy-mm-dd.'
                   'Searching request may contain only year, year and month(separated with dash) or full date.'
                   '<br> Examples:2020; 2014-08; 1991-08-24'
     )
-    termination_date__lt = filters.CharFilter(
+    termination_date__lt = filters.DateFilter(
         lookup_expr='lt',
         help_text='Find all ФОП terminated before searching date. Request must be entered in format yyyy-mm-dd.'
                   'Searching request may contain only year, year and month(separated with dash) or full date.'
                   '<br> Examples:2020; 2014-08; 1991-08-24'
     )
-    termination_date__gt = filters.CharFilter(
+    termination_date__gt = filters.DateFilter(
         lookup_expr='gt',
         help_text='Find all ФОП terminated after searching date. Request must be entered in format yyyy-mm-dd.'
                   'Searching request may contain only year, year and month(separated with dash) or full date.'
