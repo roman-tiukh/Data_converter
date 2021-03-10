@@ -26,15 +26,23 @@ class RatuConverter(Converter):
         self.RECORD_TAG = 'RECORD'
         self.bulk_manager = BulkCreateManager()
         self.all_regions_dict = self.put_objects_to_dict('name', 'location_register',
-                                                             'RatuRegion')
+                                                         'RatuRegion')
         self.all_districts_dict = self.put_objects_to_dict('code', 'location_register',
-                                                               'RatuDistrict')
+                                                           'RatuDistrict')
         self.all_cities_dict = self.put_objects_to_dict('code', 'location_register',
-                                                            'RatuCity')
+                                                        'RatuCity')
         self.all_citydistricts_dict = self.put_objects_to_dict('code', 'location_register',
-                                                                   'RatuCityDistrict')
+                                                               'RatuCityDistrict')
         self.all_streets_dict = self.put_objects_to_dict('code', 'location_register',
-                                                             'RatuStreet')
+                                                         'RatuStreet')
+        self.outdated_districts_dict = self.put_objects_to_dict('code', 'location_register',
+                                                                'RatuDistrict')
+        self.outdated_cities_dict = self.put_objects_to_dict('code', 'location_register',
+                                                             'RatuCity')
+        self.outdated_citydistricts_dict = self.put_objects_to_dict('code', 'location_register',
+                                                                    'RatuCityDistrict')
+        self.outdated_streets_dict = self.put_objects_to_dict('code', 'location_register',
+                                                              'RatuStreet')
         super().__init__()
 
     def rename_file(self, file):
@@ -66,6 +74,9 @@ class RatuConverter(Converter):
             )
             self.all_districts_dict[district_code] = district
             return district
+        else:
+            if self.outdated_districts_dict.get(district_code):
+                del self.outdated_districts_dict[district_code]
         return self.all_districts_dict[district_code]
 
     def save_or_get_city(self, name, region, district):
@@ -81,6 +92,9 @@ class RatuConverter(Converter):
             )
             self.all_cities_dict[city_code] = city
             return city
+        else:
+            if self.outdated_cities_dict.get(city_code):
+                del self.outdated_cities_dict[city_code]
         return self.all_cities_dict[city_code]
 
     def save_or_get_citydistrict(self, name, region, district, city):
@@ -96,6 +110,9 @@ class RatuConverter(Converter):
             )
             self.all_citydistricts_dict[citydistrict_code] = citydistrict
             return citydistrict
+        else:
+            if self.outdated_citydistricts_dict.get(citydistrict_code):
+                del self.outdated_citydistricts_dict[citydistrict_code]
         return self.all_citydistricts_dict[citydistrict_code]
 
     def save_street(self, name, region, district, city, citydistrict):
@@ -113,6 +130,9 @@ class RatuConverter(Converter):
                 name=street_name,
                 code=street_code
             )
+        else:
+            if self.outdated_streets_dict.get(street_code):
+                del self.outdated_streets_dict[street_code]
 
     def save_to_db(self, records):
         for record in records:
@@ -127,6 +147,20 @@ class RatuConverter(Converter):
             if record.xpath('STREET_NAME')[0].text:
                 self.save_street(record.xpath('STREET_NAME')[0].text, region, district,
                                  city, citydistrict)
+
+    def delete_outdated(self):
+        if len(self.outdated_districts_dict):
+            for districts in self.outdated_districts_dict.values():
+                districts.soft_delete()
+        if len(self.outdated_cities_dict):
+            for cities in self.outdated_cities_dict.values():
+                cities.soft_delete()
+        if len(self.outdated_citydistricts_dict):
+            for citydistricts in self.outdated_citydistricts_dict.values():
+                citydistricts.soft_delete()
+        if len(self.outdated_streets_dict):
+            for streets in self.outdated_streets_dict.values():
+                streets.soft_delete()
 
     print(
         'RatuConverter already imported.',
