@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-03-03 15:05+0200\n"
+"POT-Creation-Date: 2021-03-10 14:07+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -27,15 +27,15 @@ msgstr "країна"
 
 #: location_register/models/drv_models.py:15
 #: location_register/models/drv_models.py:80
-#: location_register/models/ratu_models.py:13
-#: location_register/models/ratu_models.py:57
+#: location_register/models/ratu_models.py:15
+#: location_register/models/ratu_models.py:64
 msgid "region"
 msgstr "область"
 
 #: location_register/models/drv_models.py:23
 #: location_register/models/drv_models.py:81
-#: location_register/models/ratu_models.py:23
-#: location_register/models/ratu_models.py:58
+#: location_register/models/ratu_models.py:26
+#: location_register/models/ratu_models.py:65
 msgid "district"
 msgstr "район"
 
@@ -51,7 +51,7 @@ msgstr "адміністративно-територіальна одиниця
 
 #: location_register/models/drv_models.py:60
 #: location_register/models/drv_models.py:85
-#: location_register/models/ratu_models.py:68
+#: location_register/models/ratu_models.py:75
 msgid "street"
 msgstr "вулиця"
 
@@ -65,7 +65,7 @@ msgstr "поштовий індекс"
 #: location_register/models/koatuu_models.py:31
 #: location_register/models/koatuu_models.py:47
 #: location_register/models/koatuu_models.py:71
-#: location_register/models/ratu_models.py:65
+#: location_register/models/ratu_models.py:72
 msgid "code"
 msgstr "код"
 
@@ -89,10 +89,10 @@ msgstr "категорія"
 #: location_register/models/koatuu_models.py:46
 #: location_register/models/koatuu_models.py:70
 #: location_register/models/ratu_models.py:9
-#: location_register/models/ratu_models.py:18
-#: location_register/models/ratu_models.py:32
-#: location_register/models/ratu_models.py:48
-#: location_register/models/ratu_models.py:64
+#: location_register/models/ratu_models.py:19
+#: location_register/models/ratu_models.py:35
+#: location_register/models/ratu_models.py:53
+#: location_register/models/ratu_models.py:71
 msgid "name"
 msgstr "назва"
 
@@ -155,16 +155,16 @@ msgstr "четвертий рівень підпорядкованості (се
 msgid "fourth level of subordination (villages and settlements)"
 msgstr "четвертий рівень підпорядкованості (селa та селища)"
 
-#: location_register/models/ratu_models.py:37
-#: location_register/models/ratu_models.py:61
+#: location_register/models/ratu_models.py:42
+#: location_register/models/ratu_models.py:68
 msgid "city"
 msgstr "населений пункт"
 
-#: location_register/models/ratu_models.py:53
-#: location_register/models/ratu_models.py:63
+#: location_register/models/ratu_models.py:60
+#: location_register/models/ratu_models.py:70
 msgid "district of the city"
 msgstr "район міста"
 
-#: location_register/models/ratu_models.py:69
+#: location_register/models/ratu_models.py:76
 msgid "streets"
 msgstr "вулиці"
