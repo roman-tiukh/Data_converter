@@ -40,42 +40,85 @@ class Pep(DataOceanModel):
     first_name = models.CharField(_('first name'), max_length=20)
     middle_name = models.CharField(_('middle name'), max_length=25)
     last_name = models.CharField(_('surname'), max_length=30)
-    fullname = models.CharField(_("full name"), max_length=75, db_index=True,
-                                help_text='Full name "first name middle name last name" in Ukrainian.')
-    fullname_transcriptions_eng = models.TextField(_('options for writing the full name'),
-                                                   db_index=True, help_text='Full name in English transcription.')
-    last_job_title = models.CharField(_('last position'), max_length=340, null=True, db_index=True,
-                                      help_text='Title of the last job in Ukrainian.')
-    last_employer = models.CharField(_('last office'), max_length=512, null=True, db_index=True,
-                                     help_text='Last employer in Ukrainian.')
-    is_pep = models.BooleanField(_('is pep'), default=True,
-                                 help_text='Boolean type. Can be true or false. True - person is politically exposed'
-                                           ' person, false - person is not politically exposed person.')
+    fullname = models.CharField(
+        _("full name"),
+        max_length=75,
+        db_index=True,
+        help_text='Full name "last name first name middle name" in Ukrainian.'
+    )
+    fullname_transcriptions_eng = models.TextField(
+        _('options for writing the full name'),
+        db_index=True,
+        help_text='Full name in English transcription.'
+    )
+    last_job_title = models.CharField(
+        _('last position'),
+        max_length=340,
+        null=True,
+        db_index=True,
+        help_text='Title of the last job in Ukrainian.'
+    )
+    last_employer = models.CharField(
+        _('last office'),
+        max_length=512,
+        null=True, db_index=True,
+        help_text='Last employer in Ukrainian.'
+    )
+    is_pep = models.BooleanField(
+        _('is pep'),
+        default=True,
+        help_text='Boolean type. Can be true or false. True - person is politically exposed '
+                  'person, false - person is not politically exposed person.'
+    )
     related_persons = models.ManyToManyField('self', verbose_name=_("associated persons"),
                                              through='RelatedPersonsLink')
-    pep_type = models.CharField(_('type'), choices=TYPES, max_length=60, null=True, blank=True,
-                                db_index=True)
+    pep_type = models.CharField(
+        _('type'),
+        choices=TYPES,
+        max_length=60,
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text='Type of politically exposed person. Can be national politically exposed '
+                  'person, foreign politically exposed person,  politically exposed person,'
+                  ' having political functions in international organization, associated '
+                  'person or family member.')
     info = models.TextField(_('additional info'), null=True, help_text='Additional info about pep.')
-    sanctions = models.TextField(_('known sanctions against the person'), null=True,
-                                 help_text='Known sanctions against the person. If its is null, the person has'
-                                           ' no sanctions against him.')
-    criminal_record = models.TextField(_('known sentences against the person'), null=True,
-                                       help_text='Existing criminal proceeding. If its is null, the person has no'
-                                                 ' sentences against him.')
+    sanctions = models.TextField(
+        _('known sanctions against the person'),
+        null=True,
+        help_text='Known sanctions against the person. If its is null, the person has no sanctions against him.'
+    )
+    criminal_record = models.TextField(
+        _('known sentences against the person'),
+        null=True,
+        help_text='Existing criminal proceeding. If its is null, the person has no sentences against him.'
+    )
     assets_info = models.TextField(_('assets info'), null=True, help_text='Info about person`s assets.')
-    criminal_proceedings = models.TextField(_('known criminal proceedings against the person'), null=True,
-                                            help_text='Known criminal proceedings against the person.')
-    wanted = models.TextField(_('wanted'), null=True, help_text='Information on being wanted. If its null, '
-                                                                'the person is not on the wanted list.')
-    date_of_birth = models.CharField(_('date of birth'), max_length=10, null=True,
-                                     help_text='Person`s date of birth in YYYY-MM-DD format.')
-    place_of_birth = models.CharField(_('place of birth'), max_length=100, null=True,
-                                      help_text='The name of the settlement where the person was born.')
-    is_dead = models.BooleanField(_('is_dead'), default=False,
-                                  help_text='Boolean type. Can be true or false. True - person is dead,'
-                                            ' false - person is alive.')
-    termination_date = models.CharField(_('PEP status termination date '), max_length=10,
-                                        null=True, help_text='PEP status termination date.')
+    criminal_proceedings = models.TextField(_('known criminal proceedings against the person'), null=True)
+    wanted = models.TextField(
+        _('wanted'),
+        null=True,
+        help_text='Information on being wanted. If its null, the person is not on the wanted list.'
+    )
+    date_of_birth = models.CharField(
+        _('date of birth'),
+        max_length=10,
+        null=True,
+        help_text='Person`s date of birth in YYYY-MM-DD format.'
+    )
+    place_of_birth = models.CharField(
+        _('place of birth'),
+        max_length=100,
+        null=True,
+        help_text='The name of the settlement where the person was born.'
+    )
+    is_dead = models.BooleanField(
+        _('is_dead'),
+        default=False,
+        help_text='Boolean type. Can be true or false. True - person is dead, false - person is alive.'
+    )
+    termination_date = models.CharField(_('PEP status termination date '), max_length=10, null=True)
     reason_of_termination = models.CharField(_('reason of termination'),
                                              choices=REASONS, max_length=125, null=True, blank=True)
     source_id = models.PositiveIntegerField(_("id from ANTACs DB"), unique=True,
