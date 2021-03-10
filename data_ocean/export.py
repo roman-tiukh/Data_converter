@@ -13,9 +13,21 @@ from django.conf import settings
 
 class ExportToXlsx:
 
-    @staticmethod
-    def export(query, export_dict, model_name):
-        queryset = apps.get_model('business_register', model_name).objects.raw(query)
+    def export(self, sql, params, export_dict, model_name):
+        import psycopg2
+        connection = psycopg2.connect(
+            dbname=settings.DATABASES['default']['NAME'],
+            user=settings.DATABASES['default']['USER'],
+            password=settings.DATABASES['default']['PASSWORD'],
+            host=settings.DATABASES['default']['HOST']
+        )
+
+        cursor = connection.cursor()
+        cursor.execute(sql, params)
+        queryset = cursor.fetchall()
+        print(queryset)
+
+        # queryset = apps.get_model('business_register', model_name).objects.raw(query)
         workbook = Workbook()
         worksheet = workbook.active
         worksheet.title = model_name

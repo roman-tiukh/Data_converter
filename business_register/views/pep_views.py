@@ -1,4 +1,5 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+import pytz
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
@@ -47,18 +48,39 @@ class PepViewSet(RegisterViewMixin,
 
     @action(detail=False, url_path='xlsx')
     def export_to_xlsx(self, request):
-        filterset = DjangoFilterBackend().get_filterset(request, self.get_queryset(), self)
+        filterset = DODjangoFilterBackend().get_filterset(request, self.get_queryset(), self)
         form = filterset.form
         form.full_clean()
         cleaned_data = form.cleaned_data
+        print('55 views.py  ', cleaned_data)
         if 'updated_at' in cleaned_data and timedelta(days=0) < \
                 cleaned_data['updated_at'].stop - cleaned_data['updated_at'].start <= timedelta(days=30):
-            query = self.filter_queryset(self.get_queryset()).query.__str__()
+            query = self.filter_queryset(self.get_queryset()).query
+            print('59 views.py  ', query)
+            sql, params = query.sql_with_params()
+            import psycopg2
+            connection = psycopg2.connect(
+                dbname=settings.DATABASES['default']['NAME'],
+                user=settings.DATABASES['default']['USER'],
+                password=settings.DATABASES['default']['PASSWORD'],
+                host=settings.DATABASES['default']['HOST']
+            )
+
+            cursor = connection.cursor()
+            cursor.execute(sql, params)
+
         else:
-            cleaned_data['updated_at'] = slice(datetime.now() - timedelta(days=30), datetime.now(), None)
+            cleaned_data['updated_at'] = slice(datetime.now(pytz.timezone("UTC")).today() - timedelta(days=30), datetime.now(pytz.timezone("UTC")).today(), None)
+            cleaned_data['fullname'] = '7777777777777777'
+            print('64 views.py  ', cleaned_data)
             filterset = PepFilterSet(cleaned_data, self.get_queryset())
+            form = filterset.form
+            form.full_clean()
+            cleaned_data = form.cleaned_data
+            print('69 views.py  ', cleaned_data)
             queryset = filterset.qs
             query = SearchFilter().filter_queryset(request, queryset, self).query.__str__()
+            print('72 views.py  ', query)
         export_dict = {
             'ID': ['pk', 7],
             'Full Name': ['fullname', 30],
@@ -72,6 +94,6 @@ class PepViewSet(RegisterViewMixin,
             'Last Employer': ['last_employer', 20]
         }
         from business_register.tasks import export_to_s3
-        export_to_s3.delay(query, export_dict, 'Pep')
+        export_to_s3.delay(sql, params, export_dict, 'Pep')
         data = {"detail": "Generation of .xlsx file has begin. Expect an email with downloading link."}
         return Response(data, status=200)

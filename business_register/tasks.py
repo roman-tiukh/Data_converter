@@ -75,11 +75,11 @@ def update_uk_company():
 
 
 @shared_task
-def export_to_s3(query, export_dict, model_name):
+def export_to_s3(sql, params, export_dict, model_name):
     print('***************************')
     print(' Export ' + model_name + ' to S3')
     print('***************************')
 
     from data_ocean.export import ExportToXlsx
 
-    return ExportToXlsx().export(query, export_dict, model_name)
+    return ExportToXlsx().export(sql, params, export_dict, model_name)
