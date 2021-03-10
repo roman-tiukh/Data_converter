@@ -149,16 +149,16 @@ class RatuConverter(Converter):
                                  city, citydistrict)
 
     def delete_outdated(self):
-        if len(self.outdated_districts_dict):
+        if self.outdated_districts_dict:
             for districts in self.outdated_districts_dict.values():
                 districts.soft_delete()
-        if len(self.outdated_cities_dict):
+        if self.outdated_cities_dict:
             for cities in self.outdated_cities_dict.values():
                 cities.soft_delete()
-        if len(self.outdated_citydistricts_dict):
+        if self.outdated_citydistricts_dict:
             for citydistricts in self.outdated_citydistricts_dict.values():
                 citydistricts.soft_delete()
-        if len(self.outdated_streets_dict):
+        if self.outdated_streets_dict:
             for streets in self.outdated_streets_dict.values():
                 streets.soft_delete()
 
