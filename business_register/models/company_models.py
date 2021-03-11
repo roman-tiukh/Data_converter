@@ -164,11 +164,11 @@ class CompanyToKved(DataOceanModel):  # constraint for only only one truth in pr
     primary_kved = models.BooleanField('declared as primary', default=False, help_text=_('Primary NACE as string'))
     history = HistoricalRecords()
 
-class Meta:
-    verbose_name = _('NACE')
+    class Meta:
+        verbose_name = _('NACE')
 
-def __str__(self):
-    return f"{self.kved} (declared as primary)" if self.primary_kved else str(self.kved)
+    def __str__(self):
+        return f"{self.kved} (declared as primary)" if self.primary_kved else str(self.kved)
 
 
 class ExchangeDataCompany(DataOceanModel):
