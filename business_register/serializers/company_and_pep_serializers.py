@@ -133,11 +133,8 @@ class CompanyListSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
 
 
 class PepShortSerializer(serializers.ModelSerializer):
-    pep_type = serializers.CharField(source='get_pep_type_display',
-                                     help_text='Type of politically exposed person. Can be national politically exposed '
-                                               'person, foreign politically exposed person,  politically exposed person,'
-                                               ' having political functions in international organization, associated '
-                                               'person or family member.')
+    pep_type = serializers.CharField(source='get_pep_type_display', help_text=Pep._meta.get_field('pep_type').help_text)
+    id = serializers.IntegerField(help_text='DataOcean\'s internal unique identifier of the object (PEP).')
 
     class Meta:
         model = Pep
@@ -270,8 +267,9 @@ class HistoricalTerminationStartedSerializer(serializers.ModelSerializer):
 
 
 class FromRelatedPersonLinkSerializer(serializers.ModelSerializer):
-    to_person = PepShortSerializer()
-    category_display = serializers.CharField(source='get_category_display')
+    to_person = PepShortSerializer(help_text=RelatedPersonsLink._meta.get_field('to_person').help_text)
+    category_display = serializers.CharField(source='get_category_display',
+                                             help_text=RelatedPersonsLink._meta.get_field('category').help_text)
 
     class Meta:
         model = RelatedPersonsLink
@@ -287,8 +285,9 @@ class FromRelatedPersonLinkSerializer(serializers.ModelSerializer):
 
 
 class ToRelatedPersonLinkSerializer(serializers.ModelSerializer):
-    from_person = PepShortSerializer()
-    category_display = serializers.CharField(source='get_category_display')
+    from_person = PepShortSerializer(help_text=RelatedPersonsLink._meta.get_field('from_person').help_text)
+    category_display = serializers.CharField(source='get_category_display',
+                                             help_text=RelatedPersonsLink._meta.get_field('category').help_text)
 
     class Meta:
         model = RelatedPersonsLink
@@ -305,7 +304,8 @@ class ToRelatedPersonLinkSerializer(serializers.ModelSerializer):
 
 class PepLinkWithCompanySerializer(serializers.ModelSerializer):
     company = CompanyShortSerializer()
-    category_display = serializers.CharField(source='get_category_display')
+    category_display = serializers.CharField(source='get_category_display',
+                                             help_text=CompanyLinkWithPep._meta.get_field('category').help_text)
 
     class Meta:
         model = CompanyLinkWithPep
@@ -328,14 +328,22 @@ class PepDetailLinkWithCompanySerializer(serializers.ModelSerializer):
 
 
 class PepDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
-    from_person_links = serializers.SerializerMethodField()
-    to_person_links = serializers.SerializerMethodField()
-    related_companies = serializers.SerializerMethodField()
-    # other companies founded by persons with the same fullname as pep
-    check_companies = serializers.SerializerMethodField()
-    pep_type = serializers.CharField(source='get_pep_type_display')
+    from_person_links = serializers.SerializerMethodField(
+        help_text=RelatedPersonsLink._meta.get_field('from_person').help_text
+    )
+    to_person_links = serializers.SerializerMethodField(
+        help_text=RelatedPersonsLink._meta.get_field('to_person').help_text
+    )
+    related_companies = serializers.SerializerMethodField(
+        help_text='Companies related to personal. Connection established by Anti-Corruption Action Center.'
+    )
+    check_companies = serializers.SerializerMethodField(
+        help_text='Other companies founded by persons with the same fullname as pep.'
+    )
+    pep_type = serializers.CharField(source='get_pep_type_display', help_text=Pep._meta.get_field('pep_type').help_text)
     reason_of_termination = serializers.CharField(source='get_reason_of_termination_display',
-                                                  help_text='Reason for terminating PEP status.')
+                                                  help_text=Pep._meta.get_field('reason_of_termination').help_text)
+    id = serializers.IntegerField(help_text='DataOcean\'s internal unique identifier of the object (PEP).')
 
     @swagger_serializer_method(serializer_or_field=FromRelatedPersonLinkSerializer)
     def get_from_person_links(self, obj):
@@ -418,11 +426,14 @@ class PepDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
 
 
 class FromRelatedPersonListSerializer(serializers.ModelSerializer):
-    category_display = serializers.CharField(source='get_category_display')
+    category_display = serializers.CharField(source='get_category_display',
+                                             help_text=RelatedPersonsLink._meta.get_field('category').help_text)
 
-    id = serializers.IntegerField(source='to_person.id')
-    fullname = serializers.CharField(source='to_person.fullname')
-    pep_type = serializers.CharField(source='to_person.get_pep_type_display')
+    id = serializers.IntegerField(source='to_person.id',
+                                  help_text='DataOcean\'s internal unique identifier of the object (PEP).')
+    fullname = serializers.CharField(source='to_person.fullname', help_text=Pep._meta.get_field('fullname').help_text)
+    pep_type = serializers.CharField(source='to_person.get_pep_type_display',
+                                     help_text=Pep._meta.get_field('pep_type').help_text)
 
     class Meta:
         model = RelatedPersonsLink
@@ -436,11 +447,14 @@ class FromRelatedPersonListSerializer(serializers.ModelSerializer):
 
 
 class ToRelatedPersonListSerializer(serializers.ModelSerializer):
-    category_display = serializers.CharField(source='get_category_display')
+    category_display = serializers.CharField(source='get_category_display',
+                                             help_text=RelatedPersonsLink._meta.get_field('category').help_text)
 
-    id = serializers.IntegerField(source='from_person.id')
-    fullname = serializers.CharField(source='from_person.fullname')
-    pep_type = serializers.CharField(source='from_person.get_pep_type_display')
+    id = serializers.IntegerField(source='from_person.id',
+                                  help_text='DataOcean\'s internal unique identifier of the object (PEP).')
+    fullname = serializers.CharField(source='from_person.fullname', help_text=Pep._meta.get_field('fullname').help_text)
+    pep_type = serializers.CharField(source='from_person.get_pep_type_display',
+                                     help_text=Pep._meta.get_field('pep_type').help_text)
 
     class Meta:
         model = RelatedPersonsLink
@@ -455,16 +469,20 @@ class ToRelatedPersonListSerializer(serializers.ModelSerializer):
 
 class PepListSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     # related_persons = PepShortSerializer(many=True)
-    to_person_links = ToRelatedPersonListSerializer(many=True)
-    from_person_links = FromRelatedPersonListSerializer(many=True)
-    related_companies = PepLinkWithCompanySerializer(many=True)
+    to_person_links = ToRelatedPersonListSerializer(many=True,
+                                                    help_text=RelatedPersonsLink._meta.get_field('to_person').help_text)
+    from_person_links = FromRelatedPersonListSerializer(
+        many=True,
+        help_text=RelatedPersonsLink._meta.get_field('from_person').help_text
+    )
+    related_companies = PepLinkWithCompanySerializer(many=True,
+                                                     help_text='Companies related to personal. Connection established '
+                                                               'by Anti-Corruption Action Center.')
 
-    pep_type = serializers.CharField(source='get_pep_type_display',
-                                     help_text='Type of politically exposed person. Can be national politically exposed person, '
-                                               'foreign politically exposed person, politically exposed person, having '
-                                               'political functions in international organization, associated person or family member.')
+    pep_type = serializers.CharField(source='get_pep_type_display', help_text=Pep._meta.get_field('pep_type').help_text)
     reason_of_termination = serializers.CharField(source='get_reason_of_termination_display',
-                                                  help_text='Reason for terminating PEP status.')
+                                                  help_text=Pep._meta.get_field('reason_of_termination').help_text)
+    id = serializers.IntegerField(help_text='DataOcean\'s internal unique identifier of the object (PEP).')
 
     class Meta:
         model = Pep

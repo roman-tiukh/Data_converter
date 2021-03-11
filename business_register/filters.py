@@ -136,7 +136,7 @@ class KvedFilterSet(filters.FilterSet):
             ('division__name', 'division'),
             ('section__name', 'section'),
         ),
-        help_text='Sort by fields: code, name, group__name, division__name, section__name.'
+        help_text='Sort by fields: code, name, group, division, section.'
     )
 
     class Meta:
@@ -159,8 +159,7 @@ class PepFilterSet(filters.FilterSet):
         help_text='Search by name in fields fullname and fullname_transcriptions_eng.',
     )
     updated_at = filters.DateFromToRangeFilter(
-        help_text='You can use the "updated_at" key to select objects with a specified modification date. '
-                  'Also, you can use key "updated_at_before" to select objects before the specified date and '
+        help_text='You can use key "updated_at_before" to select objects before the specified date and '
                   '"updated_at_after" key to select objects after the specified date. '
                   'Date must be in YYYY-MM-DD format.',
     )

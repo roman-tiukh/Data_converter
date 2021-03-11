@@ -95,7 +95,12 @@ class Pep(DataOceanModel):
         help_text='Existing criminal proceeding. If its is null, the person has no sentences against him.'
     )
     assets_info = models.TextField(_('assets info'), null=True, help_text='Info about person`s assets.')
-    criminal_proceedings = models.TextField(_('known criminal proceedings against the person'), null=True)
+    criminal_proceedings = models.TextField(
+        _('known criminal proceedings against the person'),
+        null=True,
+        help_text='Known criminal proceedings against the person. If its is null, the person has no criminal '
+                  'proceedings against him.'
+    )
     wanted = models.TextField(
         _('wanted'),
         null=True,
@@ -118,9 +123,17 @@ class Pep(DataOceanModel):
         default=False,
         help_text='Boolean type. Can be true or false. True - person is dead, false - person is alive.'
     )
-    termination_date = models.CharField(_('PEP status termination date '), max_length=10, null=True)
-    reason_of_termination = models.CharField(_('reason of termination'),
-                                             choices=REASONS, max_length=125, null=True, blank=True)
+    termination_date = models.CharField(_('PEP status termination date '), max_length=10, null=True,
+                                        help_text='PEP status termination date in YYYY-MM-DD format.')
+    reason_of_termination = models.CharField(
+        _('reason of termination'),
+        choices=REASONS,
+        max_length=125,
+        null=True,
+        blank=True,
+        help_text='PEP status reason of termination. Can be "Is dead", "Resigned or term ended", "Associated PEP is'
+                  ' dead", "Legislation was changed", "Company is no more state" or null.'
+        )
     source_id = models.PositiveIntegerField(_("id from ANTACs DB"), unique=True,
                                             null=True, blank=True)
     history = HistoricalRecords(excluded_fields=['url', 'code'])
@@ -167,43 +180,51 @@ class RelatedPersonsLink(DataOceanModel):
         Pep, on_delete=models.CASCADE,
         verbose_name=_('associated person'),
         related_name='from_person_links',
+        help_text='From which person the connection is established.'
     )
     to_person = models.ForeignKey(
         Pep, on_delete=models.CASCADE,
         verbose_name=_("another associated person"),
-        related_name='to_person_links'
+        related_name='to_person_links',
+        help_text='With what person the connection is established.'
     )
     from_person_relationship_type = models.CharField(
         _("connection`s type"),
         max_length=90,
         null=True,
+        help_text='The type of relationship with a related person.'
     )
     to_person_relationship_type = models.CharField(
         _("another person`s connection`s type"),
         max_length=90,
         null=True,
+        help_text='The type of relationship with a related person.'
     )
     category = models.CharField(
         _("connection`s category"),
         choices=CATEGORIES,
         max_length=20,
         null=True,
-        blank=True
+        blank=True,
+        help_text='The category of the relationship with the related person. Can be: family, business, personal.'
     )
     start_date = models.CharField(
         _("connection`s start date"),
         max_length=12,
-        null=True
+        null=True,
+        help_text='Date of the beginning of the relationship.'
     )
     confirmation_date = models.CharField(
         _("connection`s confirmation date"),
         max_length=12,
-        null=True
+        null=True,
+        help_text='Date of confirmation of connection in the "Anti-Corruption Action Center" database.'
     )
     end_date = models.CharField(
         _("connection`s end date"),
         max_length=12,
-        null=True
+        null=True,
+        help_text='The date the relationship ends.'
     )
 
     def __str__(self):
@@ -236,16 +257,19 @@ class CompanyLinkWithPep(DataOceanModel):
                             related_name='related_companies',
                             verbose_name=_("associated with company PEP"))
     category = models.CharField(_("connection`s category"), max_length=15, choices=CATEGORIES, null=True, default=None,
-                                blank=True)
-    relationship_type = models.CharField(_("connection`s type"), max_length=550,
-                                         null=True)
-    start_date = models.CharField(_("connection`s start date"), max_length=12,
-                                  null=True)
-    confirmation_date = models.CharField(_("connection`s confirmation date"),
-                                         max_length=12, null=True)
-    end_date = models.CharField(_("connection`s end date"), max_length=12,
-                                null=True)
-    is_state_company = models.BooleanField(null=True)
+                                blank=True, help_text='Type of connection between the person and this company '
+                                                      'Can be: bank_customer, owner, manager, by_position, other.')
+    relationship_type = models.CharField(_("connection`s type"), max_length=550, null=True,
+                                         help_text='Type of connection between the person and this company')
+    start_date = models.CharField(_("connection`s start date"), max_length=12, null=True,
+                                  help_text='Date of the beginning of the person\'s connection with the company.')
+    confirmation_date = models.CharField(_("connection`s confirmation date"), max_length=12, null=True,
+                                         help_text='Date of confirmation of connection in the "Anti-Corruption Action '
+                                                   'Center" database.')
+    end_date = models.CharField(_("connection`s end date"), max_length=12, null=True,
+                                help_text='Date of termination of connection between the person and  this company')
+    is_state_company = models.BooleanField(null=True, help_text='Boolean type. If its true - the company is state-owned,'
+                                                                'if its false - the company is private.')
 
     class Meta:
         verbose_name = _("company connection with Pep")
