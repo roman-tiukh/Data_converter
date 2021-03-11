@@ -89,7 +89,6 @@ class Project(DataOceanModel):
             subscription=default_subscription,
             status=ProjectSubscription.ACTIVE,
             start_date=timezone.localdate(),
-            grace_period=default_subscription.grace_period,
         )
 
     def invite_user(self, email: str):
@@ -220,7 +219,6 @@ class Project(DataOceanModel):
                 subscription=subscription,
                 status=ProjectSubscription.ACTIVE,
                 start_date=timezone.localdate(),
-                grace_period=subscription.grace_period,
                 is_grace_period=True,
             )
             Invoice.objects.create(project_subscription=new_p2s)
@@ -233,7 +231,6 @@ class Project(DataOceanModel):
                 subscription=subscription,
                 status=ProjectSubscription.FUTURE,
                 start_date=current_p2s.expiring_date,
-                grace_period=subscription.grace_period,
                 is_grace_period=True,
             )
         emails.new_subscription(new_p2s)
@@ -581,6 +578,7 @@ class ProjectSubscription(DataOceanModel):
         self.requests_used = 0
         self.platform_requests_left = self.subscription.platform_requests_limit
         self.platform_requests_used = 0
+        self.periodicity = self.subscription.periodicity
         self.grace_period = self.subscription.grace_period
         self.start_date = self.expiring_date
         self.update_expiring_date()
@@ -647,6 +645,8 @@ class ProjectSubscription(DataOceanModel):
             self.requests_left = self.subscription.requests_limit
             self.platform_requests_left = self.subscription.platform_requests_limit
             self.start_day = self.start_date.day
+            self.periodicity = self.subscription.periodicity
+            self.grace_period = self.subscription.grace_period
             self.update_expiring_date()
         self.validate_unique()
         super().save(*args, **kwargs)
