@@ -69,12 +69,14 @@ class FopFilterSet(filters.FilterSet):
                   '<br> Example: 1991-08-24'
     )
     registration_date__lt = filters.DateFilter(
+        field_name='registration_date',
         lookup_expr='lt',
         help_text='Find all ФОП registered before searching date. Request must be entered in format yyyy-mm-dd.'
                   'Searching request may contain only year, year and month(separated with dash) or full date.'
                   ' <br> Example: 2021-03-02'
     )
     registration_date__gt = filters.DateFilter(
+        field_name='registration_date',
         lookup_expr='gt',
         help_text='Find all ФОП registered after searching date. Request must be entered in format yyyy-mm-dd.'
                   'Searching request may contain only year, year and month(separated with dash) or full date.'
@@ -87,12 +89,14 @@ class FopFilterSet(filters.FilterSet):
                   '<br> Example: 1991-08-24'
     )
     termination_date__lt = filters.DateFilter(
+        field_name='termination_date',
         lookup_expr='lt',
         help_text='Find all ФОП terminated before searching date. Request must be entered in format yyyy-mm-dd.'
                   'Searching request may contain only year, year and month(separated with dash) or full date.'
                   '<br> Example: 1991-08-24'
     )
     termination_date__gt = filters.DateFilter(
+        field_name='termination_date',
         lookup_expr='gt',
         help_text='Find all ФОП terminated after searching date. Request must be entered in format yyyy-mm-dd.'
                   'Searching request may contain only year, year and month(separated with dash) or full date.'
