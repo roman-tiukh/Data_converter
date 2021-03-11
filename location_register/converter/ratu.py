@@ -121,7 +121,7 @@ class RatuConverter(Converter):
         if not city:
             city = self.save_or_get_city(region.name, region, district)
         district_name = 'EMPTY' if not district else district.name
-        street_code = region.name + district_name + city.name + street_name
+        street_code = region.name + district_name + city.name + citydistrict.name + street_name
         if street_code not in self.all_streets_dict:
             street = RatuStreet.objects.create(
                 region=region,
@@ -151,17 +151,17 @@ class RatuConverter(Converter):
 
     def delete_outdated(self):
         if self.outdated_districts_dict:
-            for districts in self.outdated_districts_dict.values():
-                districts.soft_delete()
+            for district in self.outdated_districts_dict.values():
+                district.soft_delete()
         if self.outdated_cities_dict:
-            for cities in self.outdated_cities_dict.values():
-                cities.soft_delete()
+            for city in self.outdated_cities_dict.values():
+                city.soft_delete()
         if self.outdated_citydistricts_dict:
-            for citydistricts in self.outdated_citydistricts_dict.values():
-                citydistricts.soft_delete()
+            for city_district in self.outdated_citydistricts_dict.values():
+                city_district.soft_delete()
         if self.outdated_streets_dict:
-            for streets in self.outdated_streets_dict.values():
-                streets.soft_delete()
+            for street in self.outdated_streets_dict.values():
+                street.soft_delete()
 
     print(
         'RatuConverter already imported.',
