@@ -5,7 +5,7 @@ from rest_framework import serializers
 
 from business_register.models.company_models import (
     BancruptcyReadjustment, CompanyDetail,
-    ExchangeDataCompany, TerminationStarted, Company, Founder
+    ExchangeDataCompany, TerminationStarted, Company, Founder, CompanyToKved, Signer, Assignee, CompanyToPredecessor
 )
 from business_register.models.pep_models import CompanyLinkWithPep, Pep, RelatedPersonsLink
 
@@ -63,7 +63,7 @@ class CompanyDetailInfoSerializer(serializers.ModelSerializer):
 
 
 class ExchangeDataCompanySerializer(serializers.ModelSerializer):
-    authority = serializers.CharField(max_length=500)
+    authority = serializers.CharField(max_length=500, help_text=Company._meta.get_field('authority').help_text)
     taxpayer_type = serializers.CharField(max_length=200)
 
     class Meta:
@@ -87,8 +87,8 @@ class TerminationStartedSerializer(serializers.ModelSerializer):
 
 
 class CountFoundedCompaniesSerializer(serializers.ModelSerializer):
-    company_type = serializers.StringRelatedField()
-    status = serializers.StringRelatedField()
+    company_type = serializers.StringRelatedField(help_text=Company._meta.get_field('company_type').help_text)
+    status = serializers.StringRelatedField(help_text=Company._meta.get_field('status').help_text)
 
     class Meta:
         model = Company
@@ -105,22 +105,31 @@ class CompanyShortSerializer(serializers.ModelSerializer):
 
 
 class CompanyListSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
-    country = serializers.StringRelatedField()
-    founders = FounderSerializer(many=True)
-    authorized_capital = serializers.FloatField()
-    parent = serializers.StringRelatedField()
-    predecessors = serializers.StringRelatedField(many=True)
-    company_type = serializers.StringRelatedField()
-    status = serializers.StringRelatedField()
-    authority = serializers.StringRelatedField()
-    assignees = serializers.StringRelatedField(many=True)
-    signers = serializers.StringRelatedField(many=True)
-    kveds = serializers.StringRelatedField(many=True)
-    bylaw = serializers.StringRelatedField()
-    bancruptcy_readjustment = BancruptcyReadjustmentSerializer(many=True)
-    company_detail = CompanyDetailInfoSerializer(many=True)
-    exchange_data = ExchangeDataCompanySerializer(many=True)
-    termination_started = TerminationStartedSerializer(many=True)
+    country = serializers.StringRelatedField(
+        help_text=Company._meta.get_field('country').help_text
+    )
+    founders = FounderSerializer(many=True, help_text=Founder._meta.get_field('company').help_text)
+    authorized_capital = serializers.FloatField(
+        help_text=Company._meta.get_field('authorized_capital').help_text
+    )
+    parent = serializers.StringRelatedField(help_text=Company._meta.get_field('parent').help_text)
+    predecessors = serializers.StringRelatedField(many=True,
+                                                  help_text=CompanyToPredecessor._meta.get_field('company').help_text)
+    company_type = serializers.StringRelatedField(help_text=Company._meta.get_field('company_type').help_text)
+    status = serializers.StringRelatedField(help_text=Company._meta.get_field('status').help_text)
+    authority = serializers.StringRelatedField(help_text=Company._meta.get_field('authority').help_text)
+    assignees = serializers.StringRelatedField(many=True, help_text=Assignee._meta.get_field('company').help_text)
+    signers = serializers.StringRelatedField(many=True, help_text=Signer._meta.get_field('company').help_text)
+    kveds = serializers.StringRelatedField(many=True, help_text=CompanyToKved._meta.get_field('company').help_text)
+    bylaw = serializers.StringRelatedField(help_text=Company._meta.get_field('bylaw').help_text)
+    bancruptcy_readjustment = BancruptcyReadjustmentSerializer(
+        many=True, help_text=BancruptcyReadjustment._meta.get_field('company').help_text)
+    company_detail = CompanyDetailInfoSerializer(many=True,
+                                                 help_text=CompanyDetail._meta.get_field('company').help_text)
+    exchange_data = ExchangeDataCompanySerializer(many=True,
+                                                  help_text=ExchangeDataCompany._meta.get_field('company').help_text)
+    termination_started = TerminationStartedSerializer(many=True,
+                                                       help_text=TerminationStarted._meta.get_field('company').help_text)
 
     class Meta:
         model = Company
@@ -171,6 +180,7 @@ class CompanyDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
             ],
             model_related_name='relationships_with_peps',
             serializer=CompanyLinkWithPepSerializer,
+
         )
 
     def get_founder_of(self, obj):
@@ -181,22 +191,32 @@ class CompanyDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
             serializer=CountFoundedCompaniesSerializer
         )
 
-    country = serializers.StringRelatedField()
-    founders = FounderSerializer(many=True)
-    authorized_capital = serializers.FloatField()
-    parent = serializers.StringRelatedField()
-    predecessors = serializers.StringRelatedField(many=True)
-    company_type = serializers.StringRelatedField()
-    status = serializers.StringRelatedField()
-    authority = serializers.StringRelatedField()
-    assignees = serializers.StringRelatedField(many=True)
-    signers = serializers.StringRelatedField(many=True)
-    kveds = serializers.StringRelatedField(many=True)
-    bylaw = serializers.StringRelatedField()
-    bancruptcy_readjustment = BancruptcyReadjustmentSerializer(many=True)
-    company_detail = CompanyDetailInfoSerializer(many=True)
-    exchange_data = ExchangeDataCompanySerializer(many=True)
-    termination_started = TerminationStartedSerializer(many=True)
+    country = serializers.StringRelatedField(
+        help_text=Company._meta.get_field('country').help_text
+    )
+    founders = FounderSerializer(many=True, help_text=Founder._meta.get_field('company').help_text)
+    authorized_capital = serializers.FloatField(
+        help_text=Company._meta.get_field('authorized_capital').help_text
+    )
+    parent = serializers.StringRelatedField(help_text=Company._meta.get_field('parent').help_text)
+    predecessors = serializers.StringRelatedField(many=True,
+                                                  help_text=CompanyToPredecessor._meta.get_field('company').help_text)
+    company_type = serializers.StringRelatedField(help_text=Company._meta.get_field('company_type').help_text)
+    status = serializers.StringRelatedField(help_text=Company._meta.get_field('status').help_text)
+    authority = serializers.StringRelatedField(help_text=Company._meta.get_field('authority').help_text)
+    assignees = serializers.StringRelatedField(many=True, help_text=Assignee._meta.get_field('company').help_text)
+    signers = serializers.StringRelatedField(many=True, help_text=Signer._meta.get_field('company').help_text)
+    kveds = serializers.StringRelatedField(many=True, help_text=CompanyToKved._meta.get_field('company').help_text)
+    bylaw = serializers.StringRelatedField(help_text=Company._meta.get_field('bylaw').help_text)
+    bancruptcy_readjustment = BancruptcyReadjustmentSerializer(
+        many=True, help_text=BancruptcyReadjustment._meta.get_field('company').help_text)
+    company_detail = CompanyDetailInfoSerializer(many=True,
+                                                 help_text=CompanyDetail._meta.get_field('company').help_text)
+    exchange_data = ExchangeDataCompanySerializer(many=True,
+                                                  help_text=ExchangeDataCompany._meta.get_field('company').help_text)
+    termination_started = TerminationStartedSerializer(many=True,
+                                                       help_text=TerminationStarted._meta.get_field(
+                                                           'company').help_text)
 
     class Meta:
         model = Company
