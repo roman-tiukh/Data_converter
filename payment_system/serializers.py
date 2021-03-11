@@ -36,7 +36,7 @@ class SubscriptionToProjectSerializer(serializers.ModelSerializer):
         model = ProjectSubscription
         fields = [
             'id', 'subscription_id', 'name', 'status', 'expiring_date',
-            'price', 'requests_limit', 'duration', 'grace_period',
+            'price', 'requests_limit', 'periodicity', 'grace_period',
             'requests_left', 'requests_used', 'is_paid',
             'payment_date', 'payment_overdue_days', 'is_default',
         ]
@@ -137,7 +137,7 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         model = Subscription
         read_only_fields = (
             'id', 'name', 'description', 'price',
-            'requests_limit', 'platform_requests_limit', 'duration', 'grace_period',
+            'requests_limit', 'platform_requests_limit', 'periodicity', 'grace_period',
             'is_custom', 'is_default',
         )
         fields = read_only_fields
@@ -197,7 +197,7 @@ class ProjectSubscriptionSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'project', 'subscription', 'status',
             'start_date', 'expiring_date', 'requests_left',
-            'is_grace_period', 'duration', 'grace_period',
+            'is_grace_period', 'periodicity', 'grace_period',
         ]
         read_only_fields = fields
 
