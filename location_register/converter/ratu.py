@@ -99,7 +99,7 @@ class RatuConverter(Converter):
 
     def save_or_get_citydistrict(self, name, region, district, city):
         citydistrict_name = clean_name(name)
-        citydistrict_code = city.name + citydistrict_name
+        citydistrict_code = region.name + city.name + citydistrict_name
         if citydistrict_code not in self.all_citydistricts_dict:
             citydistrict = RatuCityDistrict.objects.create(
                 region=region,
@@ -120,7 +120,8 @@ class RatuConverter(Converter):
         # Saving streets that are located in Kyiv and Sevastopol that are regions
         if not city:
             city = self.save_or_get_city(region.name, region, district)
-        street_code = city.name + street_name
+        district_name = 'EMPTY' if not district else district.name
+        street_code = region.name + district_name + city.name + street_name
         if street_code not in self.all_streets_dict:
             street = RatuStreet.objects.create(
                 region=region,
@@ -149,16 +150,16 @@ class RatuConverter(Converter):
                                  city, citydistrict)
 
     def delete_outdated(self):
-        if len(self.outdated_districts_dict):
+        if self.outdated_districts_dict:
             for districts in self.outdated_districts_dict.values():
                 districts.soft_delete()
-        if len(self.outdated_cities_dict):
+        if self.outdated_cities_dict:
             for cities in self.outdated_cities_dict.values():
                 cities.soft_delete()
-        if len(self.outdated_citydistricts_dict):
+        if self.outdated_citydistricts_dict:
             for citydistricts in self.outdated_citydistricts_dict.values():
                 citydistricts.soft_delete()
-        if len(self.outdated_streets_dict):
+        if self.outdated_streets_dict:
             for streets in self.outdated_streets_dict.values():
                 streets.soft_delete()
 
