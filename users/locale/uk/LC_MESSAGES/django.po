@@ -264,6 +264,10 @@ msgstr "Посилання на підтвердження пошкоджено.
 msgid "Confirmation link is expired."
 msgstr "Дія посилання на підтвердження закінчилась."
 
-#: users/views.py:145 users/views.py:151
+#: users/views.py:114
+msgid "The link is invalid, the email address was confirmed earlier"
+msgstr "Посилання недійсне, електронна адреса була підтверджена раніше"
+
+#: users/views.py:150 users/views.py:156
 msgid "Email not sent. Try again later."
 msgstr "Лист на електронну пошту не надіслано. Спробуйте ще раз пізніше."

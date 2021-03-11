@@ -109,6 +109,11 @@ class CustomRegistrationConfirmView(views.APIView):
         if confirm_code != confirm_code_check:
             return Response({'detail': _('Confirmation link is broken')}, status=400)
 
+        if DataOceanUser.objects.filter(email=user.email).exists():
+            return Response({
+                'detail': _('The link is invalid, the email address was confirmed earlier'),
+            }, status=400)
+
         # create a real user
         real_user = DataOceanUser.objects.create(
             email=user.email,
