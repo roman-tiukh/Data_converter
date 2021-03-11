@@ -53,15 +53,14 @@ class ProjectsInlineForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if getattr(self.instance, 'id'):
             self.p2s = self.instance.active_p2s
-            if not self.p2s.is_grace_period:
+            if not self.p2s.is_grace_period or self.p2s.subscription.is_default:
                 self.fields['expiring_date'].widget.attrs['readonly'] = True
 
     def clean_expiring_date(self):
         expiring_date = self.cleaned_data['expiring_date']
-        now = timezone.localdate()
-        if expiring_date > self.p2s.start_date + timezone.timedelta(days=self.p2s.duration):
+        if expiring_date > self.p2s.generate_expiring_date():
             raise ValidationError(_('It cannot be longer than the duration of the tariff plan'))
-        if expiring_date <= now:
+        if expiring_date <= timezone.localdate():
             raise ValidationError(_('Must be later than the current day'))
         return expiring_date
 
@@ -90,7 +89,7 @@ class ProjectsInlineForm(forms.ModelForm):
         self.p2s.requests_left = self.cleaned_data['requests_left']
         self.p2s.platform_requests_left = self.cleaned_data['platform_requests_left']
         update_fields = ['requests_left', 'platform_requests_left', 'updated_at']
-        if self.p2s.is_grace_period:
+        if self.p2s.is_grace_period and not self.p2s.subscription.is_default:
             self.p2s.expiring_date = self.cleaned_data['expiring_date']
             update_fields.append('expiring_date')
 
