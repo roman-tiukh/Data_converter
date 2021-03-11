@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-03-11 06:57+0000\n"
+"POT-Creation-Date: 2021-03-11 14:20+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -29,17 +29,17 @@ msgstr "Варіанти написання прізвища англійськ�
 msgid "Associated company`s number (provide a number)"
 msgstr "Пов'язана компанія має код ЄДРПОУ (введіть код)"
 
-#: business_register/models/company_models.py:14
-#: business_register/models/company_models.py:52
+#: business_register/models/company_models.py:15
+#: business_register/models/company_models.py:58
 msgid "charter"
 msgstr "статут"
 
-#: business_register/models/company_models.py:23
-#: business_register/models/company_models.py:42
+#: business_register/models/company_models.py:25
+#: business_register/models/company_models.py:45
 msgid "company type"
 msgstr "тип компанії"
 
-#: business_register/models/company_models.py:33
+#: business_register/models/company_models.py:35
 msgid ""
 "The United State Register of Legal Entities, Individual Entrepreneurs and "
 "Public Organizations of Ukraine"
@@ -47,128 +47,128 @@ msgstr ""
 "Єдиний державний реєстр юридичних осіб, фізичних осіб – підприємців та "
 "громадських формувань України"
 
-#: business_register/models/company_models.py:34
+#: business_register/models/company_models.py:36
 msgid "Company House (UK companies` register)"
 msgstr "Реєстр компаній Великобританії (Company House)"
 
-#: business_register/models/company_models.py:35
+#: business_register/models/company_models.py:37
 msgid "ANTAC"
 msgstr "ЦПК"
 
-#: business_register/models/company_models.py:39
+#: business_register/models/company_models.py:41
 #: business_register/models/kved_models.py:47
 msgid "name"
 msgstr "назва"
 
-#: business_register/models/company_models.py:40
+#: business_register/models/company_models.py:42
 msgid "short name"
 msgstr "скорочена назва"
 
-#: business_register/models/company_models.py:43
+#: business_register/models/company_models.py:46
 msgid "number"
 msgstr "код"
 
-#: business_register/models/company_models.py:44
+#: business_register/models/company_models.py:48
 msgid "CEO"
 msgstr "директор"
 
-#: business_register/models/company_models.py:45
+#: business_register/models/company_models.py:50
 msgid "share capital"
 msgstr "статутний капітал"
 
-#: business_register/models/company_models.py:47
+#: business_register/models/company_models.py:52
 msgid "country"
 msgstr "країна"
 
-#: business_register/models/company_models.py:48
+#: business_register/models/company_models.py:53
 #: business_register/models/fop_models.py:11
 msgid "address"
 msgstr "адреса"
 
-#: business_register/models/company_models.py:50
+#: business_register/models/company_models.py:56
 #: business_register/models/fop_models.py:12
 msgid "status"
 msgstr "статус"
 
-#: business_register/models/company_models.py:53
+#: business_register/models/company_models.py:59
 #: business_register/models/fop_models.py:13
 msgid "registration date"
 msgstr "дата реєстрації"
 
-#: business_register/models/company_models.py:54
-#: business_register/models/company_models.py:174
+#: business_register/models/company_models.py:61
+#: business_register/models/company_models.py:192
 #: business_register/models/fop_models.py:14
 #: business_register/models/fop_models.py:62
 msgid "registration info"
 msgstr "дані про реєстрацію"
 
-#: business_register/models/company_models.py:55
+#: business_register/models/company_models.py:63
 #: business_register/models/fop_models.py:20
 msgid "contacts"
 msgstr "контакти"
 
-#: business_register/models/company_models.py:57
+#: business_register/models/company_models.py:65
 #: business_register/models/fop_models.py:23
 msgid "registration authority"
 msgstr "орган реєстрації"
 
-#: business_register/models/company_models.py:59
+#: business_register/models/company_models.py:68
 msgid "parent company"
 msgstr "материнська компанія"
 
-#: business_register/models/company_models.py:60
+#: business_register/models/company_models.py:70
 #: business_register/models/pep_models.py:124
 msgid "id from ANTACs DB"
 msgstr "id з бази даних ЦПК"
 
-#: business_register/models/company_models.py:63
+#: business_register/models/company_models.py:74
 msgid "source"
 msgstr "джерело даних"
 
-#: business_register/models/company_models.py:65
+#: business_register/models/company_models.py:76
 #: business_register/models/fop_models.py:24
 msgid "our code"
 msgstr "наш код"
 
-#: business_register/models/company_models.py:97
+#: business_register/models/company_models.py:108
 msgid "company"
 msgstr "компанія/організація"
 
-#: business_register/models/company_models.py:98
+#: business_register/models/company_models.py:109
 msgid "companies"
 msgstr "компанії/організації"
 
-#: business_register/models/company_models.py:112
+#: business_register/models/company_models.py:123
 msgid "assignee"
 msgstr "правонаступник"
 
-#: business_register/models/company_models.py:128
+#: business_register/models/company_models.py:139
 msgid "bankruptcy readjustment"
 msgstr "санація"
 
-#: business_register/models/company_models.py:143
+#: business_register/models/company_models.py:157
 #: business_register/models/pep_models.py:86
 msgid "additional info"
 msgstr "додаткові дані"
 
-#: business_register/models/company_models.py:153
+#: business_register/models/company_models.py:168
 #: business_register/models/kved_models.py:51
 msgid "NACE"
 msgstr "КВЕД"
 
-#: business_register/models/company_models.py:203
+#: business_register/models/company_models.py:226
 msgid "owner"
 msgstr "власник"
 
-#: business_register/models/company_models.py:211
+#: business_register/models/company_models.py:234
 msgid "predecessor"
 msgstr "попередник"
 
-#: business_register/models/company_models.py:229
+#: business_register/models/company_models.py:254
 msgid "signer"
 msgstr "має право підпису"
 
-#: business_register/models/company_models.py:246
+#: business_register/models/company_models.py:272
 msgid "termination"
 msgstr "ліквідація"
 
