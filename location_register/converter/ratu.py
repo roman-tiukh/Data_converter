@@ -121,7 +121,8 @@ class RatuConverter(Converter):
         if not city:
             city = self.save_or_get_city(region.name, region, district)
         district_name = 'EMPTY' if not district else district.name
-        street_code = region.name + district_name + city.name + citydistrict.name + street_name
+        citydistrict_name = 'EMPTY' if not citydistrict else citydistrict.name
+        street_code = region.name + district_name + city.name + citydistrict_name + street_name
         if street_code not in self.all_streets_dict:
             street = RatuStreet.objects.create(
                 region=region,
