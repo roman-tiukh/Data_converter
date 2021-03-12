@@ -252,7 +252,8 @@ class CompanyLinkWithPep(DataOceanModel):
 
     company = models.ForeignKey(Company, on_delete=models.CASCADE,
                                 related_name='relationships_with_peps',
-                                verbose_name=_("associated with PEP company"))
+                                verbose_name=_("associated with PEP company"),
+                                help_text='The company associated with this person.')
     pep = models.ForeignKey(Pep, on_delete=models.CASCADE,
                             related_name='related_companies',
                             verbose_name=_("associated with company PEP"))

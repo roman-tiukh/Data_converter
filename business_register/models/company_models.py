@@ -70,7 +70,8 @@ class Company(DataOceanModel):  # constraint for not null in both name & short_n
     antac_id = models.PositiveIntegerField(_("id from ANTACs DB"), unique=True,
                                            db_index=True, null=True, default=None, blank=True,
                                            help_text='ID from ANTACs DB')
-    from_antac_only = models.BooleanField(null=True)
+    from_antac_only = models.BooleanField(null=True, help_text='If this field has "true" - '
+                                                               'Data provided by the Anti-Corruption Action Center.')
     source = models.CharField(_('source'), max_length=5, choices=SOURCES, null=True,
                               blank=True, default=None, db_index=True, help_text='Source')
     code = models.CharField(_('our code'), max_length=510, db_index=True, help_text='Our code')

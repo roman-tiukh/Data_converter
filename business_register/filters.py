@@ -20,7 +20,7 @@ class CompanyFilterSet(filters.FilterSet):
             ('status__name', 'status'),
             ('address', 'address'),
             ('authorized_capital', 'authorized_capital'),
-        ),
+        ), help_text='Sort by fields: edrpou, name, status, address, authorized_capital.'
     )
 
     class Meta:
