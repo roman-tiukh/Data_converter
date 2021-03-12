@@ -58,29 +58,21 @@ class PepViewSet(RegisterViewMixin,
             query = self.filter_queryset(self.get_queryset()).query
             print('59 views.py  ', query)
             sql, params = query.sql_with_params()
-            import psycopg2
-            connection = psycopg2.connect(
-                dbname=settings.DATABASES['default']['NAME'],
-                user=settings.DATABASES['default']['USER'],
-                password=settings.DATABASES['default']['PASSWORD'],
-                host=settings.DATABASES['default']['HOST']
-            )
-
-            cursor = connection.cursor()
-            cursor.execute(sql, params)
 
         else:
-            cleaned_data['updated_at'] = slice(datetime.now(pytz.timezone("UTC")).today() - timedelta(days=30), datetime.now(pytz.timezone("UTC")).today(), None)
-            cleaned_data['fullname'] = '7777777777777777'
-            print('64 views.py  ', cleaned_data)
+            cleaned_data['updated_at_after'] = '2021-02-10'
+            cleaned_data['updated_at_before'] = '2021-03-10'
+            cleaned_data['updated_at'] = slice(datetime.now(pytz.timezone("UTC")) - timedelta(days=30), datetime.now(pytz.timezone("UTC")), None)
+            print('75 views.py  ', cleaned_data)
             filterset = PepFilterSet(cleaned_data, self.get_queryset())
             form = filterset.form
             form.full_clean()
             cleaned_data = form.cleaned_data
-            print('69 views.py  ', cleaned_data)
+            print('80 views.py  ', cleaned_data)
             queryset = filterset.qs
-            query = SearchFilter().filter_queryset(request, queryset, self).query.__str__()
-            print('72 views.py  ', query)
+            query = SearchFilter().filter_queryset(request, queryset, self).query
+            sql, params = query.sql_with_params()
+            print('83 views.py  ', query)
         export_dict = {
             'ID': ['pk', 7],
             'Full Name': ['fullname', 30],
