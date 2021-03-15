@@ -10,6 +10,7 @@ from django.apps import apps
 from django.conf import settings
 
 from business_register import filters
+from business_register.emails import send_export_url_file_path_message
 from users.models import DataOceanUser
 
 
@@ -55,8 +56,10 @@ class ExportToXlsx:
             config=config
         )
         s3.Bucket('pep-xlsx').put_object(Key=export_file_name, Body=data, ACL='public-read')
+        export_url = settings.PEP_EXPORT_FOLDER_URL + export_file_name
         DataOceanUser(id=user_id).notify(
-            'Generation of .xlsx file has ended. You may download the file by link',
-            settings.PEP_EXPORT_FOLDER_URL + export_file_name
+            'Generation of .xlsx file has ended. You may download the file by link:',
+            export_url
         )
-        return settings.PEP_EXPORT_FOLDER_URL + export_file_name
+        send_export_url_file_path_message(user_id, export_url)
+        return export_url

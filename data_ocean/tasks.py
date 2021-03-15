@@ -8,7 +8,6 @@ def send_report():
     print('*  Send report  *')
     print('****************')
 
-
     from data_ocean.emails import send_reports_mail
     send_reports_mail()
 
