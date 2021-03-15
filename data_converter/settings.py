@@ -62,7 +62,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'stats.middleware.ApiUsageMiddleware',
-    'payment_system.middleware.RequestsLimitMiddleware',
+    'payment_system.middleware.ProjectAuthenticationMiddleware',
 ]
 
 INTERNAL_IPS = [
@@ -276,5 +276,7 @@ PROJECT_TOKEN_KEYWORD = 'DataOcean'
 # DATASET`S CONSTANTS ==================
 PEP_REGISTER_LIST = '/api/pep/'
 FOP_REGISTER_LIST = '/api/fop/'
+KVED_REGISTER_LIST = '/api/kved/'
 UKR_COMPANY_REGISTER_LIST = '/api/company/ukr/'
 UK_COMPANY_REGISTER_LIST = '/api/company/uk/'
+DRVBUILDING_REGISTER_LIST = '/api/drvbuilding/'

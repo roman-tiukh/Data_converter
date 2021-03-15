@@ -7,7 +7,7 @@ from django.utils import timezone
 from rest_framework.authtoken.models import Token
 from django.utils.translation import gettext_lazy as _
 
-from payment_system.models import Project
+from payment_system.models import Project, Subscription
 from users.models import DataOceanUser, Question
 
 
@@ -29,6 +29,13 @@ class DataOceanUserCreationForm(UserCreationForm):
 class ProjectsInlineForm(forms.ModelForm):
     p2s = None
 
+    subscription = forms.ModelChoiceField(
+        queryset=Subscription.objects.all(),
+        label='Subscription',
+        required=True,
+        help_text='Change the subscription will add it as future to project, if it possible.',
+    )
+
     requests_left = forms.IntegerField(
         required=True,
         label='Requests left',
@@ -46,17 +53,23 @@ class ProjectsInlineForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if getattr(self.instance, 'id'):
             self.p2s = self.instance.active_p2s
-            if not self.p2s.is_grace_period:
+            if not self.p2s.is_grace_period or self.p2s.subscription.is_default:
                 self.fields['expiring_date'].widget.attrs['readonly'] = True
 
     def clean_expiring_date(self):
         expiring_date = self.cleaned_data['expiring_date']
-        now = timezone.localdate()
-        if expiring_date > self.p2s.start_date + timezone.timedelta(days=self.p2s.duration):
+        if expiring_date > self.p2s.generate_expiring_date():
             raise ValidationError(_('It cannot be longer than the duration of the tariff plan'))
-        if expiring_date <= now:
+        if expiring_date <= timezone.localdate():
             raise ValidationError(_('Must be later than the current day'))
         return expiring_date
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if 'subscription' in self.changed_data and self.is_valid():
+            # TODO: move saving to save method
+            self.instance.add_subscription(cleaned_data['subscription'])
+        return cleaned_data
 
     def get_initial_for_field(self, field, field_name):
         if field_name == 'requests_left':
@@ -65,6 +78,8 @@ class ProjectsInlineForm(forms.ModelForm):
             return self.p2s.platform_requests_left
         elif field_name == 'expiring_date':
             return self.p2s.expiring_date
+        elif field_name == 'subscription':
+            return self.p2s.subscription
         else:
             return super().get_initial_for_field(field, field_name)
 
@@ -74,7 +89,7 @@ class ProjectsInlineForm(forms.ModelForm):
         self.p2s.requests_left = self.cleaned_data['requests_left']
         self.p2s.platform_requests_left = self.cleaned_data['platform_requests_left']
         update_fields = ['requests_left', 'platform_requests_left', 'updated_at']
-        if self.p2s.is_grace_period:
+        if self.p2s.is_grace_period and not self.p2s.subscription.is_default:
             self.p2s.expiring_date = self.cleaned_data['expiring_date']
             update_fields.append('expiring_date')
 
@@ -89,7 +104,7 @@ class ProjectsInlineForm(forms.ModelForm):
 class ProjectsInline(admin.TabularInline):
     form = ProjectsInlineForm
 
-    def active_subscription(self, obj: Project):
+    def subscription(self, obj: Project):
         return obj.active_subscription.name
 
     def requests_left(self, obj: Project):
@@ -113,7 +128,7 @@ class ProjectsInline(admin.TabularInline):
     can_delete = False
     extra = 0
     fields = (
-        'active_subscription',
+        'subscription',
         'requests_left',
         'requests_used',
         'platform_requests_left',
@@ -122,7 +137,7 @@ class ProjectsInline(admin.TabularInline):
         'is_grace_period',
     )
     readonly_fields = (
-        'active_subscription',
+        # 'subscription',
         'requests_used',
         'platform_requests_used',
         'is_grace_period',
