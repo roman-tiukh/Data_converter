@@ -5,29 +5,21 @@ from io import BytesIO
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, fonts, PatternFill
 from openpyxl.utils.cell import get_column_letter
-from tempfile import NamedTemporaryFile
 
 from django.apps import apps
 from django.conf import settings
 
+from business_register import filters
+
 
 class ExportToXlsx:
 
-    def export(self, sql, params, export_dict, model_name):
-        import psycopg2
-        connection = psycopg2.connect(
-            dbname=settings.DATABASES['default']['NAME'],
-            user=settings.DATABASES['default']['USER'],
-            password=settings.DATABASES['default']['PASSWORD'],
-            host=settings.DATABASES['default']['HOST']
-        )
+    @staticmethod
+    def export(params, export_dict, model_name):
+        queryset = apps.get_model('business_register', model_name).objects.all()
+        export_filterset_class = getattr(filters, model_name + 'ExportFilterSet')
+        queryset = export_filterset_class(params,  queryset).qs
 
-        cursor = connection.cursor()
-        cursor.execute(sql, params)
-        queryset = cursor.fetchall()
-        print(queryset)
-
-        # queryset = apps.get_model('business_register', model_name).objects.raw(query)
         workbook = Workbook()
         worksheet = workbook.active
         worksheet.title = model_name

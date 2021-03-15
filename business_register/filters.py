@@ -2,6 +2,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.db.models import Q
 from django_filters import rest_framework as filters
 
+from business_register.forms import PepExportForm
 from business_register.models.company_models import Company
 from business_register.models.fop_models import Fop
 from business_register.models.pep_models import Pep, CompanyLinkWithPep
@@ -231,6 +232,16 @@ class PepFilterSet(filters.FilterSet):
     class Meta:
         model = Pep
         fields = {}
+
+
+class PepExportFilterSet(filters.FilterSet):
+    updated_at = filters.DateFromToRangeFilter()
+    is_pep = filters.BooleanFilter()
+
+    class Meta:
+        model = Pep
+        fields = {}
+        form = PepExportForm
 
 
 class HistoricalCompanyRelatedFilterSet(filters.FilterSet):

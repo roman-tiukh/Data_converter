@@ -10,7 +10,7 @@ from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
 
-from business_register.filters import PepFilterSet
+from business_register.filters import PepFilterSet, PepExportFilterSet
 from business_register.models.pep_models import Pep
 from business_register.permissions import PepSchemaToken
 from business_register.serializers.company_and_pep_serializers import PepListSerializer, PepDetailSerializer
@@ -21,6 +21,7 @@ from data_ocean.views import CachedViewSetMixin, RegisterViewMixin
 @method_decorator(name='retrieve', decorator=swagger_auto_schema(tags=['pep']))
 @method_decorator(name='list', decorator=swagger_auto_schema(tags=['pep']))
 @method_decorator(name='retrieve_by_source_id', decorator=swagger_auto_schema(auto_schema=None))
+@method_decorator(name='export_to_xlsx', decorator=swagger_auto_schema(auto_schema=None))
 class PepViewSet(RegisterViewMixin,
                  CachedViewSetMixin,
                  viewsets.ReadOnlyModelViewSet):
@@ -48,31 +49,6 @@ class PepViewSet(RegisterViewMixin,
 
     @action(detail=False, url_path='xlsx')
     def export_to_xlsx(self, request):
-        filterset = DODjangoFilterBackend().get_filterset(request, self.get_queryset(), self)
-        form = filterset.form
-        form.full_clean()
-        cleaned_data = form.cleaned_data
-        print('55 views.py  ', cleaned_data)
-        if 'updated_at' in cleaned_data and timedelta(days=0) < \
-                cleaned_data['updated_at'].stop - cleaned_data['updated_at'].start <= timedelta(days=30):
-            query = self.filter_queryset(self.get_queryset()).query
-            print('59 views.py  ', query)
-            sql, params = query.sql_with_params()
-
-        else:
-            cleaned_data['updated_at_after'] = '2021-02-10'
-            cleaned_data['updated_at_before'] = '2021-03-10'
-            cleaned_data['updated_at'] = slice(datetime.now(pytz.timezone("UTC")) - timedelta(days=30), datetime.now(pytz.timezone("UTC")), None)
-            print('75 views.py  ', cleaned_data)
-            filterset = PepFilterSet(cleaned_data, self.get_queryset())
-            form = filterset.form
-            form.full_clean()
-            cleaned_data = form.cleaned_data
-            print('80 views.py  ', cleaned_data)
-            queryset = filterset.qs
-            query = SearchFilter().filter_queryset(request, queryset, self).query
-            sql, params = query.sql_with_params()
-            print('83 views.py  ', query)
         export_dict = {
             'ID': ['pk', 7],
             'Full Name': ['fullname', 30],
@@ -86,6 +62,8 @@ class PepViewSet(RegisterViewMixin,
             'Last Employer': ['last_employer', 20]
         }
         from business_register.tasks import export_to_s3
-        export_to_s3.delay(sql, params, export_dict, 'Pep')
-        data = {"detail": "Generation of .xlsx file has begin. Expect an email with downloading link."}
-        return Response(data, status=200)
+        export_to_s3.delay(request.GET, export_dict, 'Pep')
+        return Response(
+            {"detail": "Generation of .xlsx file has begin. Expect an email with downloading link."},
+            status=200
+        )
