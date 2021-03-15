@@ -22,10 +22,6 @@ class DjangoFilterDescriptionInspector(CoreAPICompatInspector):
         if isinstance(filter_backend, SearchFilter):
             fields = getattr(self.view, 'search_fields')
             fields = ', '.join(fields)
-            search_description = getattr(self.view, 'search_description', None)
-            if search_description:
-                params[0].description = search_description
-            else:
-                params[0].description = f'Search by {fields}.'
+            params[0].description = f'Search by {fields.split("__")[0]}.'
 
         return params

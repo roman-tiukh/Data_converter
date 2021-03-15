@@ -46,7 +46,6 @@ class CompanyViewSet(RegisterViewMixin,
     filter_backends = (DjangoFilterBackend, SearchFilter)
     filterset_class = CompanyFilterSet
     search_fields = ('name', 'edrpou', 'address', 'status__name')
-    search_description = 'Search by name, edrpou, address, status.'
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
@@ -97,7 +96,6 @@ class CompanyUkViewSet(RegisterViewMixin,
     filter_backends = (DjangoFilterBackend, SearchFilter)
     filterset_class = CompanyFilterSet
     search_fields = ('name', 'edrpou', 'address', 'status__name')
-    search_description = 'Search by name, edrpou, address, status.'
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
