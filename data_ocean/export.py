@@ -10,12 +10,13 @@ from django.apps import apps
 from django.conf import settings
 
 from business_register import filters
+from users.models import DataOceanUser
 
 
 class ExportToXlsx:
 
     @staticmethod
-    def export(params, export_dict, model_name):
+    def export(params, export_dict, model_name, user_id):
         queryset = apps.get_model('business_register', model_name).objects.all()
         export_filterset_class = getattr(filters, model_name + 'ExportFilterSet')
         queryset = export_filterset_class(params,  queryset).qs
@@ -54,5 +55,8 @@ class ExportToXlsx:
             config=config
         )
         s3.Bucket('pep-xlsx').put_object(Key=export_file_name, Body=data, ACL='public-read')
-        user.notify()
+        DataOceanUser(id=user_id).notify(
+            'Generation of .xlsx file has ended. You may download the file by link',
+            settings.PEP_EXPORT_FOLDER_URL + export_file_name
+        )
         return settings.PEP_EXPORT_FOLDER_URL + export_file_name

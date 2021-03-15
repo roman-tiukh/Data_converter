@@ -49,6 +49,7 @@ class PepViewSet(RegisterViewMixin,
 
     @action(detail=False, url_path='xlsx')
     def export_to_xlsx(self, request):
+        print('request.user = ', request.user, ' id = ', request.user.id)
         export_dict = {
             'ID': ['pk', 7],
             'Full Name': ['fullname', 30],
@@ -62,7 +63,7 @@ class PepViewSet(RegisterViewMixin,
             'Last Employer': ['last_employer', 20]
         }
         from business_register.tasks import export_to_s3
-        export_to_s3.delay(request.GET, export_dict, 'Pep')
+        export_to_s3.delay(request.GET, export_dict, 'Pep', request.user.id)
         return Response(
             {"detail": "Generation of .xlsx file has begin. Expect an email with downloading link."},
             status=200
