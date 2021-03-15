@@ -49,7 +49,7 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 SUPPORT_EMAIL = ''
 REPORT_EMAILS = ['', ]
-
+DEVELOPER_EMAILS = ['', ]
 
 ALLOWED_HOSTS = [
     'ipa.dataocean.us',

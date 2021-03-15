@@ -487,9 +487,12 @@ class PepConverterFromDB(Converter):
             company_name = link[9]
             country_name = link[10]
             country = address_converter.save_or_get_country(country_name) if country_name else None
-            company = Company.objects.filter(antac_id=company_antac_id).first()
+            company = Company.include_deleted_objects.filter(antac_id=company_antac_id).first()
             if not company and edrpou:
-                company = Company.objects.filter(edrpou=edrpou, source=Company.UKRAINE_REGISTER).first()
+                company = Company.include_deleted_objects.filter(
+                    edrpou=edrpou,
+                    source=Company.UKRAINE_REGISTER
+                ).first()
                 if company:
                     company.antac_id = company_antac_id
                     company.save(update_fields=['antac_id', 'updated_at'])
