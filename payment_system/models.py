@@ -1,6 +1,7 @@
 import io
 import os
 import uuid
+from calendar import monthrange
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -20,7 +21,7 @@ from users.validators import name_symbols_validator, two_in_row_validator
 
 class Project(DataOceanModel):
     name = models.CharField(_('name'), max_length=50)
-    description = models.CharField(_('name'), max_length=500, blank=True, default='')
+    description = models.CharField(max_length=500, blank=True, default='')
     token = models.CharField(max_length=40, unique=True, db_index=True)
     disabled_at = models.DateTimeField(_('disabled_at'), null=True, blank=True, default=None)
     owner = models.ForeignKey('users.DataOceanUser', models.CASCADE,
@@ -83,15 +84,11 @@ class Project(DataOceanModel):
                 'grace_period': 30,
             },
         )
-        date_now = timezone.localdate()
         return ProjectSubscription.objects.create(
             project=self,
             subscription=default_subscription,
             status=ProjectSubscription.ACTIVE,
-            start_date=date_now,
-            duration=default_subscription.duration,
-            grace_period=default_subscription.grace_period,
-            expiring_date=date_now + timezone.timedelta(days=default_subscription.duration),
+            start_date=timezone.localdate(),
         )
 
     def invite_user(self, email: str):
@@ -217,15 +214,11 @@ class Project(DataOceanModel):
         if current_p2s.subscription.is_default:
             current_p2s.status = ProjectSubscription.PAST
             current_p2s.save()
-            date_now = timezone.localdate()
             new_p2s = ProjectSubscription.objects.create(
                 project=self,
                 subscription=subscription,
                 status=ProjectSubscription.ACTIVE,
-                start_date=date_now,
-                duration=subscription.duration,
-                grace_period=subscription.grace_period,
-                expiring_date=date_now + timezone.timedelta(days=subscription.grace_period),
+                start_date=timezone.localdate(),
                 is_grace_period=True,
             )
             Invoice.objects.create(project_subscription=new_p2s)
@@ -233,20 +226,11 @@ class Project(DataOceanModel):
             if current_p2s.is_grace_period:
                 raise ValidationError(_('Project have subscription on a grace period, can\'t add new subscription'))
 
-            if subscription.is_default:
-                duration = subscription.duration
-            else:
-                duration = subscription.grace_period
-
             new_p2s = ProjectSubscription.objects.create(
                 project=self,
                 subscription=subscription,
                 status=ProjectSubscription.FUTURE,
                 start_date=current_p2s.expiring_date,
-                duration=subscription.duration,
-                grace_period=subscription.grace_period,
-                expiring_date=(current_p2s.expiring_date +
-                               timezone.timedelta(days=duration)),
                 is_grace_period=True,
             )
         emails.new_subscription(new_p2s)
@@ -283,19 +267,28 @@ class Project(DataOceanModel):
 
 
 class Subscription(DataOceanModel):
+    MONTH_PERIOD = 'month'
+    YEAR_PERIOD = 'year'
+    PERIODS = (
+        (MONTH_PERIOD, 'Month'),
+        (YEAR_PERIOD, 'Year'),
+    )
+
     name = models.CharField(_('name'), max_length=50, unique=True)
     description = models.TextField(_('description'), blank=True, default='')
     price = models.SmallIntegerField(_('price'), default=0)
     requests_limit = models.IntegerField(_('requests limit'), help_text='Limit for API requests from the project')
-    platform_requests_limit = models.IntegerField(_('platform_requests_limit'),
-                                                  help_text='Limit for API requests from the project via platform')
-    duration = models.SmallIntegerField(_('duration'), default=30, help_text='days')
+    platform_requests_limit = models.IntegerField(
+        _('platform requests limit'),
+        help_text='Limit for API requests from the project via platform',
+    )
+    periodicity = models.CharField(max_length=5, choices=PERIODS, default=MONTH_PERIOD, help_text='days')
     grace_period = models.SmallIntegerField(_('grace_period'), default=10, help_text='days')
-    is_custom = models.BooleanField(_('is_custom'),
-                                    blank=True, default=False,
-                                    help_text='Custom subscription not shown to users',
-                                    )
-    is_default = models.BooleanField(_('is_default'), blank=True, default=False)
+    is_custom = models.BooleanField(
+        _('is custom'), blank=True, default=False,
+        help_text='Custom subscription not shown to users',
+    )
+    is_default = models.BooleanField(_('is default'), blank=True, default=False)
 
     @classmethod
     def get_default_subscription(cls):
@@ -398,7 +391,7 @@ class Invoice(DataOceanModel):
             super().save(*args, **kwargs)
         else:
             self.start_date = p2s.start_date
-            self.end_date = p2s.start_date + timezone.timedelta(days=p2s.duration)
+            self.end_date = p2s.generate_expiring_date()
             self.requests_limit = p2s.subscription.requests_limit
             self.subscription_name = p2s.subscription.name
             self.project_name = p2s.project.name
@@ -494,6 +487,7 @@ class ProjectSubscription(DataOceanModel):
 
     status = models.CharField(choices=STATUSES, max_length=10, db_index=True)
 
+    start_day = models.SmallIntegerField()
     start_date = models.DateField()
     expiring_date = models.DateField()
     is_grace_period = models.BooleanField(blank=True, default=True)
@@ -504,8 +498,37 @@ class ProjectSubscription(DataOceanModel):
     platform_requests_left = models.IntegerField()
     platform_requests_used = models.IntegerField(blank=True, default=0)
 
-    duration = models.SmallIntegerField(help_text='days')
+    periodicity = models.CharField(max_length=5, choices=Subscription.PERIODS)
     grace_period = models.SmallIntegerField(help_text='days')
+
+    def generate_expiring_date(self):
+        year = self.start_date.year
+        month = self.start_date.month
+        if self.periodicity == Subscription.MONTH_PERIOD:
+            if month == 12:
+                year += 1
+                month = 1
+            else:
+                month += 1
+        elif self.periodicity == Subscription.YEAR_PERIOD:
+            year += 1
+        else:
+            raise ValueError(f'periodicity = "{self.periodicity}" not supported!')
+
+        last_day_of_month = monthrange(year, month)[1]
+        if self.start_day > last_day_of_month:
+            day = last_day_of_month
+        else:
+            day = self.start_day
+        return self.start_date.replace(year, month, day)
+
+    def update_expiring_date(self):
+        if self.subscription.is_default:
+            self.expiring_date = self.generate_expiring_date()
+        elif self.is_grace_period:
+            self.expiring_date = self.start_date + timezone.timedelta(days=self.grace_period)
+        else:
+            self.expiring_date = self.generate_expiring_date()
 
     def validate_unique(self, exclude=None):
         super().validate_unique(exclude)
@@ -545,21 +568,8 @@ class ProjectSubscription(DataOceanModel):
 
     def paid_up(self):
         assert self.is_grace_period
-        date_now = timezone.localdate()
-        used_grace_days = 0
-        if date_now > self.start_date:
-            used_grace_days = (date_now - self.start_date).days
-
-        # if date_now >= self.expiring_date:
-        #     used_grace_days = self.grace_period
-        days_left = self.duration - used_grace_days
-        self.expiring_date = date_now + timezone.timedelta(days=days_left)
         self.is_grace_period = False
-        self.save()
-
-    def disable(self):
-        self.status = ProjectSubscription.PAST
-        self.expiring_date = None
+        self.update_expiring_date()
         self.save()
 
     def reset(self):
@@ -568,14 +578,10 @@ class ProjectSubscription(DataOceanModel):
         self.requests_used = 0
         self.platform_requests_left = self.subscription.platform_requests_limit
         self.platform_requests_used = 0
-        self.duration = self.subscription.duration
+        self.periodicity = self.subscription.periodicity
         self.grace_period = self.subscription.grace_period
         self.start_date = self.expiring_date
-
-        if self.subscription.is_default:
-            self.expiring_date += timezone.timedelta(days=self.duration)
-        else:
-            self.expiring_date += timezone.timedelta(days=self.grace_period)
+        self.update_expiring_date()
 
     def expire(self):
         try:
@@ -635,8 +641,13 @@ class ProjectSubscription(DataOceanModel):
 
     def save(self, *args, **kwargs):
         if not getattr(self, 'id', None):
+            # if create
             self.requests_left = self.subscription.requests_limit
             self.platform_requests_left = self.subscription.platform_requests_limit
+            self.start_day = self.start_date.day
+            self.periodicity = self.subscription.periodicity
+            self.grace_period = self.subscription.grace_period
+            self.update_expiring_date()
         self.validate_unique()
         super().save(*args, **kwargs)
 

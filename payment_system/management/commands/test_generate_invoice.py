@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-from payment_system.models import ProjectSubscription, Invoice
+from payment_system.models import ProjectSubscription, Invoice, Subscription
 from users.models import DataOceanUser
 
 
@@ -11,7 +11,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         ps = ProjectSubscription(
             grace_period=30,
-            duration=360,
+            periodicity=Subscription.MONTH_PERIOD,
         )
         user = DataOceanUser(
             first_name='Test',
