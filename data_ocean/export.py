@@ -54,4 +54,5 @@ class ExportToXlsx:
             config=config
         )
         s3.Bucket('pep-xlsx').put_object(Key=export_file_name, Body=data, ACL='public-read')
+        user.notify()
         return settings.PEP_EXPORT_FOLDER_URL + export_file_name
