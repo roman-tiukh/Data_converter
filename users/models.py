@@ -5,6 +5,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from rest_framework.authtoken.models import Token
 from data_ocean.models import DataOceanModel
+from users.validators import name_symbols_validator, two_in_row_validator
 
 
 class DataOceanUserManager(BaseUserManager):
@@ -45,6 +46,14 @@ class DataOceanUser(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['last_name', 'first_name']
 
+    first_name = models.CharField(max_length=30, validators=[
+        name_symbols_validator,
+        two_in_row_validator,
+    ])
+    last_name = models.CharField(max_length=150, validators=[
+        name_symbols_validator,
+        two_in_row_validator,
+    ])
     email = models.EmailField(_('email address'), unique=True)
     organization = models.CharField(max_length=255, default='', blank=True)
     position = models.CharField(max_length=150, default='', blank=True)
@@ -87,6 +96,13 @@ class DataOceanUser(AbstractUser):
         }
         """
         alerts = []
+        active_p2s = self.user_projects.get(is_default=True).project.active_p2s
+        if not active_p2s.subscription.is_default and active_p2s.latest_invoice \
+                and not active_p2s.latest_invoice.is_paid:
+            alerts.append({
+                'message': _('You have not paid the invoice'),
+                'link': f'{settings.FRONTEND_SITE_URL}/system/profile/my-payments/',
+            })
         # alerts.append({
         #     'message': 'Lorem ipsum dolor sit amet, consectetur adipiscing eliуushte '
         #                'tortor imperdiet vuleputate pellentesque amet convallscscsis massa. '

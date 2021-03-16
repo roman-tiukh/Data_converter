@@ -129,20 +129,28 @@ class KvedDownloader(Downloader):
 
         logger.info(f'{self.reg_name}: Update started...')
 
-        self.log_init()
+        self.report_init()
         self.download()
 
-        self.log_obj.update_start = timezone.now()
-        self.log_obj.save()
+        self.report.update_start = timezone.now()
+        self.report.save()
 
         logger.info(f'{self.reg_name}: save_to_db({self.file_path}) started ...')
         KvedConverter().save_to_db(self.file_path)
         logger.info(f'{self.reg_name}: save_to_db({self.file_path}) finished successfully.')
 
-        self.log_obj.update_finish = timezone.now()
-        self.log_obj.update_status = True
-        self.log_obj.save()
+        self.report.update_finish = timezone.now()
+        self.report.update_status = True
+        self.report.save()
 
         self.remove_file()
+
+        new_total_records = Kved.objects.count()
+        self.update_register_field(settings.KVED_REGISTER_LIST, 'total_records', new_total_records)
+        logger.info(f'{self.reg_name}: Update total records finished successfully.')
+
+        self.measure_changes('business_register', 'Kved')
+        logger.info(f'{self.reg_name}: Report created successfully.')
+
 
         logger.info(f'{self.reg_name}: Update finished successfully.')

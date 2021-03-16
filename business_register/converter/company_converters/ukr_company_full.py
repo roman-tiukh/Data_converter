@@ -43,8 +43,8 @@ class UkrCompanyFullConverter(CompanyConverter):
         self.exchange_data_to_dict = {}
         self.company_country = AddressConverter().save_or_get_country('Ukraine')
         self.source = Company.UKRAINE_REGISTER
-        self.already_stored_companies = list(Company.objects.exclude(from_antac_only=True,
-            source=Company.GREAT_BRITAIN_REGISTER).values_list('id', flat=True))
+        self.already_stored_companies =\
+            list(Company.objects.filter(source=Company.UKRAINE_REGISTER).values_list('id', flat=True))
         self.uptodated_companies = []
         super().__init__()
 
@@ -726,7 +726,7 @@ class UkrCompanyFullConverter(CompanyConverter):
             if record.xpath('NAME')[0].text:
                 name = record.xpath('NAME')[0].text.lower()
             else:
-                name = Company.objects.filter(edrpou=edrpou, source=Company.GREAT_BRITAIN_REGISTER).first().name or ''
+                continue
             code = name + edrpou
             address = record.xpath('ADDRESS')[0].text
             founding_document_number = record.xpath('FOUNDING_DOCUMENT_NUM')[0].text
@@ -769,9 +769,9 @@ class UkrCompanyFullConverter(CompanyConverter):
             if authority:
                 authority = self.save_or_get_authority(authority)
             else:
-                authority = Authority()
+                authority = None
 
-            company = Company.include_deleted_objects.filter(code=code).first()
+            company = Company.include_deleted_objects.filter(code=code, source=Company.UKRAINE_REGISTER).first()
 
             if not company:
                 company = Company(
@@ -850,15 +850,17 @@ class UkrCompanyFullConverter(CompanyConverter):
                 if company.contact_info != contact_info:
                     company.contact_info = contact_info
                     update_fields.append('contact_info')
-                if company.authority_id != authority.id:
-                    company.authority = authority
-                    update_fields.append('authority')
+                if authority:
+                    if company.authority_id != authority.id:
+                        company.authority = authority
+                        update_fields.append('authority')
+                else:
+                    if company.authority_id:
+                        company.authority = None
+                        update_fields.append('authority')
                 if company.country_id != self.company_country.id:
                     company.country = self.company_country
                     update_fields.append('country')
-                if company.source != self.source:
-                    company.source = self.source
-                    update_fields.append('source')
                 if company.deleted_at:
                     company.deleted_at = None
                     update_fields.append('deleted_at')

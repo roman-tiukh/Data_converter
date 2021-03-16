@@ -384,17 +384,20 @@ class PepConverterFromDB(Converter):
 
     def save_or_update_peps_links(self, peps_links_data):
         for link in peps_links_data:
+            is_changed = False
             from_person_source_id = link[0]
             from_person = self.peps_dict.get(str(from_person_source_id))
             if not from_person:
                 logger.info(f'No such pep in our DB. '
                             f'Check records in the source DB with id {from_person_source_id}')
+                self.report.errors += 1
                 continue
             to_person_source_id = link[1]
             to_person = self.peps_dict.get(str(to_person_source_id))
             if not to_person:
                 logger.info(f'No such pep in our DB. '
                             f'Check records in the source DB with id {to_person_source_id}')
+                self.report.errors += 1
                 continue
             from_person_relationship_type = link[2]
             to_person_relationship_type = link[3]
@@ -415,6 +418,7 @@ class PepConverterFromDB(Converter):
                     confirmation_date=confirmation_date,
                     end_date=end_date
                 )
+                is_changed = True
             else:
                 update_fields = []
                 if stored_link.from_person_relationship_type != from_person_relationship_type:
@@ -438,12 +442,17 @@ class PepConverterFromDB(Converter):
                 if update_fields:
                     update_fields.append('updated_at')
                     stored_link.save(update_fields=update_fields)
+                    is_changed = True
                 if self.outdated_peps_links_dict.get(f'{from_person.id}_{to_person.id}'):
                     del self.outdated_peps_links_dict[f'{from_person.id}_{to_person.id}']
-
+            if is_changed:
+                from_person.save(update_fields=['updated_at', ])
+                to_person.save(update_fields=['updated_at', ])
         if self.outdated_peps_links_dict:
             for link in self.outdated_peps_links_dict.values():
                 link.soft_delete()
+                link.from_person.save(update_fields=['updated_at', ])
+                link.to_person.save(update_fields=['updated_at', ])
 
     def create_company_link_with_pep(self, company, pep, category, start_date, confirmation_date,
                                      end_date, is_state_company):
@@ -460,11 +469,13 @@ class PepConverterFromDB(Converter):
     def save_or_update_peps_companies(self, peps_companies_data):
         address_converter = AddressConverter()
         for link in peps_companies_data:
+            is_changed = False
             pep_source_id = link[0]
             pep = self.peps_dict.get(str(pep_source_id))
             if not pep:
                 logger.info(f'No such pep in our DB. '
                             f'Check records in the source DB with id {pep_source_id}')
+                self.report.errors += 1
                 continue
             company_antac_id = link[1]
             start_date = to_lower_string_if_exists(link[2])
@@ -476,9 +487,12 @@ class PepConverterFromDB(Converter):
             company_name = link[9]
             country_name = link[10]
             country = address_converter.save_or_get_country(country_name) if country_name else None
-            company = Company.objects.filter(antac_id=company_antac_id).first()
+            company = Company.include_deleted_objects.filter(antac_id=company_antac_id).first()
             if not company and edrpou:
-                company = Company.objects.filter(edrpou=edrpou, source=Company.UKRAINE_REGISTER).first()
+                company = Company.include_deleted_objects.filter(
+                    edrpou=edrpou,
+                    source=Company.UKRAINE_REGISTER
+                ).first()
                 if company:
                     company.antac_id = company_antac_id
                     company.save(update_fields=['antac_id', 'updated_at'])
@@ -487,12 +501,14 @@ class PepConverterFromDB(Converter):
                                                  code=company_name + edrpou, source=Company.ANTAC,
                                                  antac_id=company_antac_id, from_antac_only=True)
                 self.create_company_link_with_pep(company, pep, category, start_date,
-                                                  confirmation_date, end_date,is_state_company)
+                                                  confirmation_date, end_date, is_state_company)
+                is_changed = True
             else:
                 already_stored_link = self.peps_companies_dict.get(f'{company.id}_{pep.id}')
                 if not already_stored_link:
                     self.create_company_link_with_pep(company, pep, category, start_date,
                                                       confirmation_date, end_date, is_state_company)
+                    is_changed = True
                 else:
                     update_fields = []
                     if already_stored_link.category != category:
@@ -513,11 +529,15 @@ class PepConverterFromDB(Converter):
                     if update_fields:
                         update_fields.append('updated_at')
                         already_stored_link.save(update_fields=update_fields)
+                        is_changed = True
                     if self.outdated_peps_companies_dict.get(f'{company.id}_{pep.id}'):
                         del self.outdated_peps_companies_dict[f'{company.id}_{pep.id}']
+            if is_changed:
+                pep.save(update_fields=['updated_at', ])
         if self.outdated_peps_companies_dict:
             for link in self.outdated_peps_companies_dict.values():
                 link.soft_delete()
+                link.pep.save(update_fields=['updated_at', ])
 
     def parse_date_of_birth(self, date_of_birth):
         if isinstance(date_of_birth, date) or isinstance(date_of_birth, datetime):
@@ -557,8 +577,8 @@ class PepConverterFromDB(Converter):
             info = pep_data[22]
             pep_type_number = pep_data[24]
             pep_type = self.PEP_TYPES.get(pep_type_number) if pep_type_number else None
-            reason_of_termination_number = to_lower_string_if_exists(pep_data[25])
-            reason_of_termination = (self.PEP_TYPES.get(reason_of_termination_number)
+            reason_of_termination_number = pep_data[25]
+            reason_of_termination = (self.REASONS_OF_TERMINATION.get(reason_of_termination_number)
                                      if reason_of_termination_number else None)
             is_dead = (reason_of_termination_number == 1)
             termination_date = to_lower_string_if_exists(pep_data[26])
@@ -682,21 +702,27 @@ class PepDownloader(Downloader):
     def update(self):
         logger.info(f'{self.reg_name}: Update started...')
 
-        self.log_init()
+        self.report_init()
 
-        self.log_obj.update_start = timezone.now()
-        self.log_obj.save()
+        self.report.update_start = timezone.now()
+        self.report.save()
 
         logger.info(f'{self.reg_name}: process() started ...')
+        self.report.errors = 0
         PepConverterFromDB().process()
         logger.info(f'{self.reg_name}: process() finished successfully.')
 
-        self.log_obj.update_finish = timezone.now()
-        self.log_obj.update_status = True
-        self.log_obj.save()
+        self.report.update_finish = timezone.now()
+        self.report.update_status = True
+        self.report.save()
 
         self.vacuum_analyze(table_list=['business_register_pep', ])
 
         new_total_records = Pep.objects.all().count()
-        self.update_field(settings.PEP_REGISTER_LIST, 'total_records', new_total_records)
+        self.update_register_field(settings.PEP_REGISTER_LIST, 'total_records', new_total_records)
+        logger.info(f'{self.reg_name}: Update total records finished successfully.')
+
+        self.measure_changes('business_register', 'Pep')
+        logger.info(f'{self.reg_name}: Report created successfully.')
+
         logger.info(f'{self.reg_name}: Update total records finished successfully.')

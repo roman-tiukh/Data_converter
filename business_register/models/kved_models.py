@@ -40,11 +40,15 @@ class KvedGroup(DataOceanModel):
 
 
 class Kved(DataOceanModel):
-    section = models.ForeignKey(KvedSection, on_delete=models.CASCADE, verbose_name=_('section'))
-    division = models.ForeignKey(KvedDivision, on_delete=models.CASCADE, verbose_name=_('division'))
-    group = models.ForeignKey(KvedGroup, on_delete=models.CASCADE, verbose_name=_('group'))
-    code = models.CharField(_('code'), max_length=10, db_index=True)
-    name = models.CharField(_('name'), max_length=500)
+    section = models.ForeignKey(KvedSection, on_delete=models.CASCADE, verbose_name=_('section'),
+                                help_text='Section title in the classification of economic activities.')
+    division = models.ForeignKey(KvedDivision, on_delete=models.CASCADE, verbose_name=_('division'),
+                                 help_text='Division title in the classification of economic activities.')
+    group = models.ForeignKey(KvedGroup, on_delete=models.CASCADE, verbose_name=_('group'),
+                              help_text='Group title in the classification of economic activities.')
+    code = models.CharField(_('code'), max_length=10, db_index=True,
+                            help_text='Code in the classification of economic activities.')
+    name = models.CharField(_('name'), max_length=500, help_text='Name of the type of economic activity.')
     is_valid = models.BooleanField(_('is valid'), default=True)
 
     class Meta:

@@ -1,0 +1,31 @@
+{% block content %}
+    <p style="font-family: Roboto;font-weight: normal;font-size: 16px;line-height: 24px;margin-bottom: 30px;">
+
+        <tr>
+            Всього спроб оновлення реєстрів: {{ reports|length }}
+        </tr>
+        <tr>
+            <th>Назва реєстру</th>
+            <th>Оновлено успішно</th>
+            <th>Тривало з</th>
+            <th>До</th>
+            <th>Додано записів</th>
+            <th>Змінено</th>
+            <th>Видалено</th>
+            <th>Не розпізнано</th>
+        </tr>
+        {% for report in reports %}
+            <tr>
+                <td>{{ report.registry_name }}</td>
+                <td>{{ report.update_status }}</td>
+                <td>{{ report.created_at|time:"H:i" }} </td>
+                <td>{{ report.updated_at|time:"H:i" }} </td>
+                <td>{{ report.records_added }} </td>
+                <td>{{ report.records_changed }} </td>
+                <td>{{ report.records_deleted }} </td>
+                <td>{{ report.errors }} </td>
+            </tr>
+
+        {% endfor %}
+    </p>
+{% endblock content %}

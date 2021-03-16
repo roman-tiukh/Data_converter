@@ -3,13 +3,15 @@ from location_register.models.ratu_models import RatuRegion, RatuDistrict, RatuC
 
 
 class RatuRegionSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(help_text='DataOcean\'s internal unique identifier of the object (RATU)')
     class Meta:
         model = RatuRegion
         fields = ('id', 'name', 'koatuu')
 
 
 class RatuDistrictSerializer(serializers.ModelSerializer):
-    region = serializers.StringRelatedField()
+    id = serializers.IntegerField(help_text='DataOcean\'s internal unique identifier of the object (RATU)')
+    region = serializers.StringRelatedField(help_text='The region to which the district belongs')
 
     class Meta:
         model = RatuDistrict
@@ -17,8 +19,9 @@ class RatuDistrictSerializer(serializers.ModelSerializer):
 
 
 class RatuCitySerializer(serializers.ModelSerializer):
-    region = serializers.StringRelatedField()
-    district = serializers.StringRelatedField()
+    id = serializers.IntegerField(help_text='DataOcean\'s internal unique identifier of the object (RATU)')
+    region = serializers.StringRelatedField(help_text='The region to which the city belongs')
+    district = serializers.StringRelatedField(help_text='The district to which the city belongs')
 
     class Meta:
         model = RatuCity
@@ -26,9 +29,10 @@ class RatuCitySerializer(serializers.ModelSerializer):
 
 
 class RatuCityDistrictSerializer(serializers.ModelSerializer):
-    region = serializers.StringRelatedField()
-    district = serializers.StringRelatedField()
-    city = serializers.StringRelatedField()
+    id = serializers.IntegerField(help_text='DataOcean\'s internal unique identifier of the object (RATU)')
+    region = serializers.StringRelatedField(help_text='The region to which the city belongs')
+    district = serializers.StringRelatedField(help_text='The district of the region to which the city belongs')
+    city = serializers.StringRelatedField(help_text='Name of the city in which the district is located')
 
     class Meta:
         model = RatuCityDistrict
@@ -36,10 +40,11 @@ class RatuCityDistrictSerializer(serializers.ModelSerializer):
 
 
 class RatuStreetSerializer(serializers.ModelSerializer):
-    region = serializers.StringRelatedField()
-    district = serializers.StringRelatedField()
-    city = serializers.StringRelatedField()
-    citydistrict = serializers.StringRelatedField()
+    id = serializers.IntegerField(help_text='DataOcean\'s internal unique identifier of the object (RATU)')
+    region = serializers.StringRelatedField(help_text='The region to which the city belongs')
+    district = serializers.StringRelatedField(help_text='The district of the region to which the city belongs')
+    city = serializers.StringRelatedField(help_text='Name of the city where the street is located')
+    citydistrict = serializers.StringRelatedField(help_text='Name of the district of the city where the street is located')
 
     class Meta:
         model = RatuStreet

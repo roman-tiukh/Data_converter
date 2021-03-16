@@ -4,7 +4,7 @@ import base64
 import sendgrid
 from django.conf import settings
 from django.core.mail.backends.base import BaseEmailBackend
-from python_http_client.exceptions import HTTPError
+from python_http_client.exceptions import HTTPError, ForbiddenError
 from sendgrid.helpers.mail import Mail, HtmlContent, Attachment
 
 
@@ -50,6 +50,9 @@ class EmailBackend(BaseEmailBackend):
                         raise SendGridBadStatusError(error_message)
             except HTTPError as error:
                 if self.fail_silently:
-                    logger.exception(f'Email {email_message.subject} was not sent to {email_message.to} - {error}')
+                    if type(error) == ForbiddenError:
+                        logger.exception(f'Email {email_message.subject} was not sent to {email_message.to} - {error.to_dict}')
+                    else:
+                        logger.exception(f'Email {email_message.subject} was not sent to {email_message.to} - {error}')
                 else:
                     raise
