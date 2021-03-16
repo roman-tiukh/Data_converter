@@ -7,7 +7,7 @@ from django.utils import timezone
 from rest_framework.authtoken.models import Token
 from django.utils.translation import gettext_lazy as _
 
-from payment_system.models import Project, Subscription
+from payment_system.models import Project, Subscription, ProjectSubscription
 from users.models import DataOceanUser, Question
 
 
@@ -69,6 +69,7 @@ class ProjectsInlineForm(forms.ModelForm):
         if 'subscription' in self.changed_data and self.is_valid():
             # TODO: move saving to save method
             self.instance.add_subscription(cleaned_data['subscription'])
+            self.p2s = ProjectSubscription.objects.get(pk=self.p2s.pk)
         return cleaned_data
 
     def get_initial_for_field(self, field, field_name):
