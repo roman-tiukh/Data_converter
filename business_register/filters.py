@@ -51,15 +51,6 @@ class FopFilterSet(filters.FilterSet):
         field_name='status__name',
         lookup_expr='icontains',
         help_text='Search by ФОП status. Request may contain status name. '
-                  # Commented until figure out is it need or not (Litsyshyn)
-                  # 'Description: 1. зареєстровано; 2. в стані припинення; 3. припинено; 4. EMP; 5. порушено справу про банкрутство;'
-                  # ' 6. порушено справу про банкрутство (санація); 7. зареєстровано, свідоцтво про державну реєстрацію недійсне;'
-                  # ' 8. active; 9. active - proposal to strike off; 10. liquidation; 11. administration order; '
-                  # ' 12. voluntary arrangement; 13. in administration/administrative receiver; 14. in administration;'
-                  # ' 15. live but receiver manager on at least one charge; 16. in administration/receiver manager;'
-                  # ' 17. receivership; 18. receiver manager / administrative receiver; 19. administrative receiver;'
-                  # ' 20. voluntary arrangement / administrative receiver; 21. voluntary arrangement / receiver manager;'
-                  # ' 22. скасовано. '
                   '<br> Examples: зареєстровано; порушено справу про банкрутство; liquidation'
     )
     registration_date = filters.CharFilter(
@@ -71,13 +62,13 @@ class FopFilterSet(filters.FilterSet):
     registration_date__lt = filters.CharFilter(
         lookup_expr='lt',
         help_text='Find all ФОП registered before searching date. Request must be entered in format yyyy-mm-dd.'
-                  'Searching request may contain only year, year and month(separated with dash) or full date.'
+                  'Searching request may contain only full date.'
                   ' <br> Examples: 2010; 2007-01; 2021-03-02'
     )
     registration_date__gt = filters.CharFilter(
         lookup_expr='gt',
         help_text='Find all ФОП registered after searching date. Request must be entered in format yyyy-mm-dd.'
-                  'Searching request may contain only year, year and month(separated with dash) or full date.'
+                  'Searching request may contain only full date.'
                   ' <br> Examples: 2010; 2007-01; 2021-03-02'
     )
     termination_date = filters.CharFilter(
@@ -89,13 +80,13 @@ class FopFilterSet(filters.FilterSet):
     termination_date__lt = filters.CharFilter(
         lookup_expr='lt',
         help_text='Find all ФОП terminated before searching date. Request must be entered in format yyyy-mm-dd.'
-                  'Searching request may contain only year, year and month(separated with dash) or full date.'
+                  'Searching request may contain only full date.'
                   '<br> Examples:2020; 2014-08; 1991-08-24'
     )
     termination_date__gt = filters.CharFilter(
         lookup_expr='gt',
         help_text='Find all ФОП terminated after searching date. Request must be entered in format yyyy-mm-dd.'
-                  'Searching request may contain only year, year and month(separated with dash) or full date.'
+                  'Searching request may contain only full date.'
                   '<br> Examples:2020; 2014-08; 1991-08-24'
     )
     #authority search changer from id to name (Tiukh + Litsyshyn)
