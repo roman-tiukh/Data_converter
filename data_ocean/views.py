@@ -67,6 +67,11 @@ SchemaView = get_schema_view(
             'Зручний доступ до даних за допомогою Rest API для розробників програмного забезпечення.<p/>'
         ),
         contact=openapi.Contact(email="info@dataocean.us"),
+        x_logo={
+            'url': f'{settings_local.LANDING_SITE_URL}/img/logo.svg',
+            'backgroundColor': '#FFFFFF"',
+            'href': f'{settings_local.FRONTEND_SITE_URL}'
+        }
     ),
     url=f'{BACKEND_SITE_URL}',
     generator_class=DOOpenAPISchemaGenerator,
