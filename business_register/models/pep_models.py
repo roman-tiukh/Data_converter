@@ -37,9 +37,9 @@ class Pep(DataOceanModel):
     )
 
     code = models.CharField(max_length=15, unique=True, db_index=True)
-    first_name = models.CharField(_('first name'), max_length=20)
-    middle_name = models.CharField(_('middle name'), max_length=25)
-    last_name = models.CharField(_('surname'), max_length=30)
+    first_name = models.CharField(_('first name'), max_length=20, help_text='First name of PEP in Ukrainian')
+    middle_name = models.CharField(_('middle name'), max_length=25, help_text='Middle name of PEP in Ukrainian')
+    last_name = models.CharField(_('surname'), max_length=30, help_text='Last name of PEP in Ukrainian')
     fullname = models.CharField(
         _("full name"),
         max_length=75,
