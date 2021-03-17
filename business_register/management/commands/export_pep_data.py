@@ -14,59 +14,12 @@ from business_register.serializers.company_and_pep_serializers import (
     PepDetailSerializer, PepListSerializer, PepShortSerializer
 )
 
-class CommandBeta(BaseCommand):
-    help = 'Saves ALL PEPs data to file in "export/" directory'
-
-    def add_arguments(self, parser):
-        parser.add_argument('-f', '--format', type=str, default='json', nargs='?', choices=['xml', 'json'])
-
-    def print(self, message, success=False):
-        if success:
-            self.stdout.write(self.style.SUCCESS(f'> {message}'))
-        else:
-            self.stdout.write(f'> {message}')
-
-    def handle(self, *args, **options):
-        export_format = options['format']
-        self.print('Get all PEPs from DB')
-        peps = Pep.objects.all()
-
-        self.print('Start serialize')
-        serializer = PepDetailSerializer(
-            peps, many=True,
-            context={'request': Request(HttpRequest())}
-        )
-
-        self.print(f'Dump data to {export_format} format')
-        if export_format == 'json':
-            data = json.dumps(serializer.data, ensure_ascii=False)
-        elif export_format == 'xml':
-            data = XMLRenderer().render(serializer.data)
-            # TODO: prettify?
-            # xmldom = etree.fromstring(data.encode('utf-8'), parser=etree.XMLParser(encoding='utf-8'))
-            # data = etree.tostring(
-            #     xmldom, pretty_print=True,
-            #     doctype='<?xml version="1.0" encoding="utf-8"?>'
-            # )
-            # data = data.decode('utf-8')
-        else:
-            raise ValueError(f'Format not allowed = "{export_format}"')
-
-        file_name = f'dataocean_pep_{date.today()}.{export_format}'
-        self.print(f'Write to file - "export/{file_name}"')
-        file_dir = os.path.join(settings.BASE_DIR, 'export')
-        os.makedirs(file_dir, exist_ok=True)
-        with open(os.path.join(file_dir, file_name), 'w') as file:
-            file.write(data)
-
-        self.print('Success!', success=True)
-
 
 class Command(BaseCommand):
     help = 'Saves ALL PEPs data to file in "export/" directory'
 
     def add_arguments(self, parser):
-        parser.add_argument('-f', '--format', type=str, default='json', nargs='?', choices=['xml', 'json'])
+        parser.add_argument('-f', '--format', type=str, default='xml', nargs='?', choices=['xml', 'json'])
 
     def print(self, message, success=False):
         if success:
@@ -76,7 +29,12 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         export_format = options['format']
-        self.print('Start parsing')
+        if export_format == 'json':
+            raise NotImplementedError()
+
+        request = Request(HttpRequest())
+        request._request.GET.setdefault('show_check_companies', 'none')
+        # request._request.GET.setdefault('company_relations', 'none')
         i = 1
         renderer = XMLRenderer()
         stream = StringIO()
@@ -84,17 +42,29 @@ class Command(BaseCommand):
         xml.startDocument()
         xml.startElement(XMLRenderer.root_tag_name, {})
 
-        for pep in Pep.objects.iterator():
-            serializer = PepDetailSerializer(pep, context={'request': Request(HttpRequest())})
-            self.stdout.write(f'{i}', ending='\r')
+        count = Pep.objects.count()
+        peps = Pep.objects.prefetch_related(
+            'from_person_links', 'to_person_links',
+            'to_person_links__from_person', 'from_person_links__to_person',
+            # 'related_companies__company__company_type',
+            # 'related_companies__company__status',
+            # 'related_companies__company__founders',
+        )
+
+        self.print(f'Start generate data in {export_format} format')
+        for pep in peps.iterator():
+            serializer = PepDetailSerializer(pep, context={'request': request})
 
             if export_format == 'json':
                 data = json.dumps(serializer.data, ensure_ascii=False)
             elif export_format == 'xml':
+                xml.startElement(XMLRenderer.item_tag_name, {})
                 renderer._to_xml(xml, serializer.data)
+                xml.endElement(XMLRenderer.item_tag_name)
             else:
                 raise ValueError(f'Format not allowed = "{export_format}"')
 
+            self.stdout.write(f'Processed {i} of {count}', ending='\r')
             i += 1
 
         xml.endElement(XMLRenderer.root_tag_name)
