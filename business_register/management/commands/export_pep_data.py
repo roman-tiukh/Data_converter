@@ -10,8 +10,9 @@ from django.utils.xmlutils import SimplerXMLGenerator
 from rest_framework.request import Request
 from rest_framework_xml.renderers import XMLRenderer
 from business_register.models.pep_models import Pep
-from business_register.serializers.company_and_pep_serializers import PepDetailSerializer
-
+from business_register.serializers.company_and_pep_serializers import (
+    PepDetailSerializer, PepListSerializer, PepShortSerializer
+)
 
 class CommandBeta(BaseCommand):
     help = 'Saves ALL PEPs data to file in "export/" directory'
@@ -93,6 +94,8 @@ class Command(BaseCommand):
                 renderer._to_xml(xml, serializer.data)
             else:
                 raise ValueError(f'Format not allowed = "{export_format}"')
+
+            i += 1
 
         xml.endElement(XMLRenderer.root_tag_name)
         xml.endDocument()
