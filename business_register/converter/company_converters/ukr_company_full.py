@@ -1,6 +1,12 @@
+import codecs
 import logging
+import os
 import re
+import tempfile
+from time import sleep
+import requests
 from django.conf import settings
+from django.utils import timezone
 
 from data_ocean.models import Authority
 from business_register.converter.company_converters.company import CompanyConverter
@@ -10,6 +16,7 @@ from business_register.models.company_models import (
     Signer, TerminationStarted
 )
 from data_ocean.converter import BulkCreateManager
+from data_ocean.downloader import Downloader
 from data_ocean.utils import (cut_first_word, format_date_to_yymmdd, get_first_word,
                               to_lower_string_if_exists)
 from location_register.converter.address import AddressConverter
@@ -978,3 +985,82 @@ class UkrCompanyFullConverter(CompanyConverter):
                 for company_to_kved in outdated_company_to_kved:
                     company_to_kved.soft_delete()
             Company.objects.get(id=company_id).soft_delete()
+
+
+class UkrCompanyFullDownloader(Downloader):
+    chunk_size = 16 * 1024 * 1024
+    reg_name = 'business_ukr_company'
+    zip_required_file_sign = 'ufop_full'
+    unzip_required_file_sign = 'EDR_UO_FULL'
+    unzip_after_download = True
+    source_dataset_url = settings.BUSINESS_UKR_COMPANY_SOURCE_PACKAGE
+    LOCAL_FILE_NAME = settings.LOCAL_FILE_NAME_UO_FULL
+
+    def get_source_file_url(self):
+
+        r = requests.get(self.source_dataset_url)
+        if r.status_code != 200:
+            print(f'Request error to {self.source_dataset_url}')
+            return
+
+        for i in r.json()['result']['resources']:
+            # 17-ufop_25-11-2020.zip
+            # 17-ufop_full_07-08-2020.zip  <---
+            if self.zip_required_file_sign in i['url']:
+                return i['url']
+
+    def get_source_file_name(self):
+        return self.url.split('/')[-1]
+
+    def remove_unreadable_characters(self):
+        file = self.local_path + self.LOCAL_FILE_NAME
+        logger.info(f'{self.reg_name}: remove_unreadable_characters for {file} started ...')
+        tmp = tempfile.mkstemp()
+        with codecs.open(file, 'r', 'Windows-1251') as fd1, codecs.open(tmp[1], 'w', 'UTF-8') as fd2:
+            for line in fd1:
+                line = line.replace('&quot;', '"')\
+                    .replace('windows-1251', 'UTF-8')\
+                    .replace('&#3;', '')\
+                    .replace('&#30;', '')
+                fd2.write(line)
+        os.rename(tmp[1], file)
+        logger.info(f'{self.reg_name}: remove_unreadable_characters finished.')
+
+    def update(self):
+
+        logger.info(f'{self.reg_name}: Update started...')
+
+        self.report_init()
+        self.download()
+
+        self.LOCAL_FILE_NAME = self.file_name
+        self.remove_unreadable_characters()
+
+        self.report.update_start = timezone.now()
+        self.report.save()
+
+        logger.info(f'{self.reg_name}: process() with {self.file_path} started ...')
+        ukr_company_full = UkrCompanyFullConverter()
+        ukr_company_full.LOCAL_FILE_NAME = self.file_name
+
+        sleep(5)
+        ukr_company_full.process()
+        logger.info(f'{self.reg_name}: process() with {self.file_path} finished successfully.')
+
+        self.report.update_finish = timezone.now()
+        self.report.update_status = True
+        self.report.save()
+
+        sleep(5)
+        self.vacuum_analyze(table_list=['business_register_company', ])
+
+        self.remove_file()
+
+        new_total_records = Company.objects.filter(source=Company.UKRAINE_REGISTER).count()
+        self.update_register_field(settings.UKR_COMPANY_REGISTER_LIST, 'total_records', new_total_records)
+        logger.info(f'{self.reg_name}: Update total records finished successfully.')
+
+        self.measure_company_changes(Company.UKRAINE_REGISTER)
+        logger.info(f'{self.reg_name}: Report created successfully.')
+
+        logger.info(f'{self.reg_name}: Update finished successfully.')
