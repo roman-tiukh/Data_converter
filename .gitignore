@@ -26,3 +26,4 @@ source_data
 download
 *.zip
 db.sqlite3
+/export/
