@@ -1,12 +1,15 @@
 from django.conf import settings
+
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
+
 
 from business_register.filters import PepFilterSet, PepExportFilterSet
 from business_register.models.pep_models import Pep
@@ -47,7 +50,9 @@ class PepViewSet(RegisterViewMixin,
 
     @action(detail=False, url_path='xlsx', filterset_class=PepExportFilterSet)
     def export_to_xlsx(self, request):
-        self.filter_queryset(self.get_queryset())
+        filterset = PepExportFilterSet(request.GET, self.get_queryset())
+        if not filterset.is_valid():
+            raise ValidationError(filterset.errors)
         export_dict = {
             'ID': ['pk', 7],
             'Full Name': ['fullname', 30],
