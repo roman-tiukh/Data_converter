@@ -28,14 +28,26 @@ def update_fop():
 
 @shared_task
 def update_ukr_company():
-    print('****************************')
-    print('*    Update UKR Company    *')
-    print('****************************')
+    print('**********************************')
+    print('*   Update UKR Company (SHORT)   *')
+    print('**********************************')
 
     from business_register.converter.company_converters.ukr_company import UkrCompanyDownloader
     UkrCompanyDownloader().update()
 
     print('*** Task update_ukr_company is done. ***')
+
+
+@shared_task
+def update_ukr_company_full():
+    print('*********************************')
+    print('*   Update UKR Company (FULL)   *')
+    print('*********************************')
+
+    from business_register.converter.company_converters.ukr_company_full import UkrCompanyFullDownloader
+    UkrCompanyFullDownloader().update()
+
+    print('*** Task update_ukr_company_full is done. ***')
 
 
 @shared_task
@@ -47,7 +59,7 @@ def update_uk_company():
     from business_register.converter.company_converters.uk_company import UkCompanyDownloader
     UkCompanyDownloader().update()
 
-    print('*** Task update_ukr_company is done. ***')
+    print('*** Task update_uk_company is done. ***')
 
 
 # @shared_task
