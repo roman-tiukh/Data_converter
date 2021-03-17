@@ -12,3 +12,14 @@ def send_report():
     send_reports_mail()
 
     print('*** Task update_pep send_report. ***')
+
+
+@shared_task
+def export_to_s3(params, export_dict, model_name, model_app, filterset_name, filterset_module, user_id):
+    print('***************************')
+    print(' Export ' + model_name + ' to S3')
+    print('***************************')
+
+    from data_ocean.export import ExportToXlsx
+
+    ExportToXlsx.export(params, export_dict, model_name, model_app, filterset_name, filterset_module, user_id)

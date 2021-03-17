@@ -9,17 +9,17 @@ from openpyxl.utils.cell import get_column_letter
 from django.apps import apps
 from django.conf import settings
 
-from business_register import filters
-from business_register.emails import send_export_url_file_path_message
+from data_ocean.emails import send_export_url_file_path_message
 from users.models import DataOceanUser
 
 
 class ExportToXlsx:
 
     @staticmethod
-    def export(params, export_dict, model_name, user_id):
-        queryset = apps.get_model('business_register', model_name).objects.all()
-        export_filterset_class = getattr(filters, model_name + 'ExportFilterSet')
+    def export(params, export_dict, model_name, model_app, filterset_name, filterset_module, user_id):
+        queryset = apps.get_model(model_app, model_name).objects.all()
+        filterset_module = __import__(filterset_module, globals(), locals(), [filterset_name], 0)
+        export_filterset_class = getattr(filterset_module, filterset_name)
         queryset = export_filterset_class(params,  queryset).qs
 
         workbook = Workbook()
@@ -62,4 +62,3 @@ class ExportToXlsx:
             export_url
         )
         send_export_url_file_path_message(user_id, export_url)
-        return export_url

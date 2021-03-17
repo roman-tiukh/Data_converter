@@ -47,9 +47,9 @@ class PepViewSet(RegisterViewMixin,
         serializer = self.get_serializer(pep)
         return Response(serializer.data)
 
-    @action(detail=False, url_path='xlsx')
+    @action(detail=False, url_path='xlsx', filterset_class=PepExportFilterSet)
     def export_to_xlsx(self, request):
-        print('request.user = ', request.user, ' id = ', request.user.id)
+        self.filter_queryset(self.get_queryset())
         export_dict = {
             'ID': ['pk', 7],
             'Full Name': ['fullname', 30],
@@ -62,8 +62,9 @@ class PepViewSet(RegisterViewMixin,
             'Last Job Title': ['last_job_title', 20],
             'Last Employer': ['last_employer', 20]
         }
-        from business_register.tasks import export_to_s3
-        export_to_s3.delay(request.GET, export_dict, 'Pep', request.user.id)
+        from data_ocean.tasks import export_to_s3
+        export_to_s3.delay(request.GET, export_dict, 'Pep', 'business_register', 'PepExportFilterSet',
+                           'business_register.filters', request.user.id)
         return Response(
             {"detail": "Generation of .xlsx file has begin. Expect an email with downloading link."},
             status=200

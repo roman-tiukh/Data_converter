@@ -72,14 +72,3 @@ def update_uk_company():
 #     KvedDownloader().update()
 #
 #     print('*** Task update_kved is done. ***')
-
-
-@shared_task
-def export_to_s3(params, export_dict, model_name, user_id):
-    print('***************************')
-    print(' Export ' + model_name + ' to S3')
-    print('***************************')
-
-    from data_ocean.export import ExportToXlsx
-
-    return ExportToXlsx.export(params, export_dict, model_name, user_id)
