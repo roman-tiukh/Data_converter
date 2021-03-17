@@ -17,7 +17,8 @@ class DrvRegion(DataOceanModel):
 
 class DrvDistrict(DataOceanModel):
     region = models.ForeignKey(DrvRegion, on_delete=models.CASCADE, verbose_name='region')
-    name = models.CharField('name', max_length=100)
+    name = models.CharField('name', max_length=50)
+    code = models.CharField('code', max_length=80, unique=True, null=True)
 
     class Meta:
         verbose_name = _('district')
@@ -26,6 +27,7 @@ class DrvDistrict(DataOceanModel):
 class DrvCouncil(DataOceanModel):
     region = models.ForeignKey(DrvRegion, on_delete=models.CASCADE, verbose_name='region')
     name = models.CharField('name', max_length=100)
+    code = models.CharField('code', max_length=130, unique=True, null=True)
 
     class Meta:
         verbose_name = _('council')
