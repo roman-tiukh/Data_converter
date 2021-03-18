@@ -243,14 +243,12 @@ class PepConverterFromDB(Converter):
             'to_person_id',
             'business_register',
             'RelatedPersonsLink')
-        self.peps_companies_dict = self.put_objects_to_dict_with_two_fields_key(
-            'company_id',
-            'pep_id',
+        self.peps_companies_dict = self.put_objects_to_dict(
+            'source_id',
             'business_register',
             'CompanyLinkWithPep')
-        self.outdated_peps_companies_dict = self.put_objects_to_dict_with_two_fields_key(
-            'company_id',
-            'pep_id',
+        self.outdated_peps_companies_dict = self.put_objects_to_dict(
+            'source_id',
             'business_register',
             'CompanyLinkWithPep')
 
@@ -527,7 +525,7 @@ class PepConverterFromDB(Converter):
                                                   source_id)
                 is_changed = True
             else:
-                already_stored_link = self.peps_companies_dict.get(f'{company.id}_{pep.id}')
+                already_stored_link = self.peps_companies_dict.get(source_id)
                 if not already_stored_link:
                     self.create_company_link_with_pep(company, pep, category, start_date,
                                                       confirmation_date, end_date, is_state_company,
@@ -557,8 +555,8 @@ class PepConverterFromDB(Converter):
                         update_fields.append('updated_at')
                         already_stored_link.save(update_fields=update_fields)
                         is_changed = True
-                    if self.outdated_peps_companies_dict.get(f'{company.id}_{pep.id}'):
-                        del self.outdated_peps_companies_dict[f'{company.id}_{pep.id}']
+                    if self.outdated_peps_companies_dict.get(source_id):
+                        del self.outdated_peps_companies_dict[source_id]
             if is_changed:
                 pep.save(update_fields=['updated_at', ])
         if self.outdated_peps_companies_dict:
