@@ -13,6 +13,52 @@ from business_register.models.pep_models import Pep
 from business_register.serializers.company_and_pep_serializers import (
     PepDetailSerializer, PepListSerializer, PepShortSerializer
 )
+from abc import ABC, abstractmethod
+
+
+class BaseGenerator:
+    def __init__(self):
+        self.started = False
+        self.finished = False
+
+    @abstractmethod
+    def start(self):
+        pass
+
+    @abstractmethod
+    def add_list_item(self, data: dict):
+        pass
+
+    @abstractmethod
+    def finish(self):
+        pass
+
+    @abstractmethod
+    def get_data(self):
+        pass
+
+
+class XMLGenerator(BaseGenerator):
+    def __init__(self):
+        self.renderer = XMLRenderer()
+        self.stream = StringIO()
+        self.xml = SimplerXMLGenerator(self.stream, XMLRenderer.charset)
+
+    def start(self):
+        self.xml.startDocument()
+        self.xml.startElement(XMLRenderer.root_tag_name, {})
+
+    def add_list_item(self, data: dict):
+        self.xml.startElement(XMLRenderer.item_tag_name, {})
+        self.renderer._to_xml(self.xml, data)
+        self.xml.endElement(XMLRenderer.item_tag_name)
+
+    def finish(self):
+        self.xml.endElement(XMLRenderer.root_tag_name)
+        self.xml.endDocument()
+
+    def get_data(self):
+        return self.stream.getvalue()
 
 
 class Command(BaseCommand):
