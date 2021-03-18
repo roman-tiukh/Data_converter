@@ -9,8 +9,6 @@ from rest_framework import permissions, viewsets
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from django.conf import settings
-from data_converter import settings_local
-from data_converter.settings_local import BACKEND_SITE_URL
 from data_ocean.filters import RegisterFilter
 from data_ocean.models import Register
 from rest_framework.filters import SearchFilter
@@ -61,14 +59,19 @@ SchemaView = get_schema_view(
         title="DataOcean",
         default_version='v1',
         description=(
-            f"<div><a href='{settings_local.FRONTEND_SITE_URL}/docs/TermsAndConditionsEn.html' target= '_blank'>Terms and conditions |<a/>"
-            f"<a href='{settings_local.FRONTEND_SITE_URL}/docs/TermsAndConditionsUk.html' target= '_blank'> Правила та умови<a/><div/>"
+            f"<div><a href='{settings.FRONTEND_SITE_URL}/docs/TermsAndConditionsEn.html' target= '_blank'>Terms and conditions |<a/>"
+            f"<a href='{settings.FRONTEND_SITE_URL}/docs/TermsAndConditionsUk.html' target= '_blank'> Правила та умови<a/><div/>"
             '<p style="font-style: normal; cursor: default; color: #000000">An easy access to the data, using the Rest API for software developers.<br>'
             'Зручний доступ до даних за допомогою Rest API для розробників програмного забезпечення.<p/>'
         ),
         contact=openapi.Contact(email="info@dataocean.us"),
+        x_logo={
+            'url': f'{settings.STATIC_URL}logo.png',
+            'backgroundColor': '#FFFFFF"',
+            'href': f'{settings.FRONTEND_SITE_URL}'
+        }
     ),
-    url=f'{BACKEND_SITE_URL}',
+    url=f'{settings.BACKEND_SITE_URL}',
     generator_class=DOOpenAPISchemaGenerator,
     public=True,
     permission_classes=(permissions.AllowAny,),
@@ -106,29 +109,29 @@ class DOAutoSchemaClass(SwaggerAutoSchema):
         example_python = None
         example_php = None
         if operation_keys[-1] == 'list':
-            example_curl = f"curl -X GET -H 'Authorization: DataOcean {{token}}' \\\n{settings_local.BACKEND_SITE_URL}/" \
+            example_curl = f"curl -X GET -H 'Authorization: DataOcean {{token}}' \\\n{settings.BACKEND_SITE_URL}/" \
                            f"api/{'/'.join(operation_keys[:-1])}/"
             example_python = "import requests\nfrom pprint import pprint\n\n" \
-                             f"response = requests.get(\n\t'{settings_local.BACKEND_SITE_URL}/api/{'/'.join(operation_keys[:-1])}/',\n" \
+                             f"response = requests.get(\n\t'{settings.BACKEND_SITE_URL}/api/{'/'.join(operation_keys[:-1])}/',\n" \
                              f"\tparams={{'page': 1, 'page_size': 20}},\n" \
                              f"\theaders={{'Authorization': 'DataOcean {{token}}'}},\n)\n\n" \
                              "pprint(response.json())"
             example_php = "$opts = [\n\t'https' => [\n\t\t'method' => 'GET',\n\t\t'header' => 'Accept: application/json'," \
                           "\n\t\t\t    'Authorization: DataOcean {token}', \n\t\t\t    'Content-type: application/json'," \
-                          f"\n\t\t\t    'Host: {str(settings_local.BACKEND_SITE_URL)[8:]}'\n\t]\n];\n$context = stream_" \
-                          f"context_create($opts);\n$response = file_get_contents('{settings_local.BACKEND_SITE_URL}/api/"\
+                          f"\n\t\t\t    'Host: {str(settings.BACKEND_SITE_URL)[8:]}'\n\t]\n];\n$context = stream_" \
+                          f"context_create($opts);\n$response = file_get_contents('{settings.BACKEND_SITE_URL}/api/"\
                           f"{'/'.join(operation_keys[:-1])}', false, $context);\nvar_dump($response);"
         elif operation_keys[-1] == 'read':
-            example_curl = f"curl -X GET -H 'Authorization: DataOcean {{token}}' \\\n{settings_local.BACKEND_SITE_URL}/" \
+            example_curl = f"curl -X GET -H 'Authorization: DataOcean {{token}}' \\\n{settings.BACKEND_SITE_URL}/" \
                            f"api/{'/'.join(operation_keys[:-1])}/{{id}}/"
             example_python = "import requests\nfrom pprint import pprint\n\n" \
-                             f"response = requests.get(\n\t'{settings_local.BACKEND_SITE_URL}/api/{'/'.join(operation_keys[:-1])}/{{id}}/',\n" \
+                             f"response = requests.get(\n\t'{settings.BACKEND_SITE_URL}/api/{'/'.join(operation_keys[:-1])}/{{id}}/',\n" \
                              f"\theaders={{'Authorization': 'DataOcean {{token}}'}},\n)\n\n" \
                              "pprint(response.json())"
             example_php = "$opts = [\n\t'https' => [\n\t\t'method' => 'GET',\n\t\t'header' => 'Accept: application/json'," \
                           "\n\t\t\t    'Authorization: DataOcean {token}', \n\t\t\t    'Content-type: application/json'," \
-                          f"\n\t\t\t    'Host: {str(settings_local.BACKEND_SITE_URL)[8:]}'\n\t]\n];\n$context = stream_" \
-                          f"context_create($opts);\n$response = file_get_contents('{settings_local.BACKEND_SITE_URL}/api/"\
+                          f"\n\t\t\t    'Host: {str(settings.BACKEND_SITE_URL)[8:]}'\n\t]\n];\n$context = stream_" \
+                          f"context_create($opts);\n$response = file_get_contents('{settings.BACKEND_SITE_URL}/api/"\
                           f"{'/'.join(operation_keys[:-1])}/{{id}}', false, $context);\nvar_dump($response);"
         if example_curl:
             operation.update({

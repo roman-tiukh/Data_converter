@@ -33,9 +33,7 @@ def filter_with_parameter(obj, parameter, used_categories, model_related_name, s
             category__in=categories
         )
     else:
-        queryset = getattr(obj, model_related_name).filter(
-            category__in=used_categories
-        )
+        queryset = getattr(obj, model_related_name).all()
     return serializer(queryset, many=True).data
 
 
@@ -425,9 +423,7 @@ class PepDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
                 'company__status'
             )
         else:
-            queryset = obj.related_companies.filter(
-                category__in=used_categories
-            ).select_related(
+            queryset = obj.related_companies.select_related(
                 'company',
                 'company__company_type',
                 'company__status'
