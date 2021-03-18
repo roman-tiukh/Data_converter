@@ -68,7 +68,7 @@ SchemaView = get_schema_view(
         ),
         contact=openapi.Contact(email="info@dataocean.us"),
         x_logo={
-            'url': f'{settings_local.LANDING_SITE_URL}/img/logo.svg',
+            'url': f'{settings_local.BACKEND_SITE_URL}/static/logo.png',
             'backgroundColor': '#FFFFFF"',
             'href': f'{settings_local.FRONTEND_SITE_URL}'
         }
