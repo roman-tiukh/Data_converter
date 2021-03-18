@@ -474,7 +474,7 @@ class PepConverterFromDB(Converter):
 
     def create_company_link_with_pep(self, company, pep, category, start_date, confirmation_date,
                                      end_date, is_state_company, source_id):
-        self.peps_companies_dict[f'{company.id}_{pep.id}'] = CompanyLinkWithPep.objects.create(
+        self.peps_companies_dict[source_id] = CompanyLinkWithPep.objects.create(
             company=company,
             pep=pep,
             category=category,
