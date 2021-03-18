@@ -273,6 +273,7 @@ class CompanyLinkWithPep(DataOceanModel):
                                                                 'if its false - the company is private.')
 
     class Meta:
+        unique_together = (('company', 'pep'),)
         verbose_name = _("company connection with Pep")
         verbose_name_plural = _("company connections with Peps")
         ordering = ['id']
