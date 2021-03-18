@@ -271,6 +271,7 @@ class CompanyLinkWithPep(DataOceanModel):
                                 help_text='Date of termination of connection between the person and  this company')
     is_state_company = models.BooleanField(null=True, help_text='Boolean type. If its true - the company is state-owned,'
                                                                 'if its false - the company is private.')
+    source_id = models.IntegerField(unique=True, null=True, default=None)
 
     class Meta:
         verbose_name = _("company connection with Pep")

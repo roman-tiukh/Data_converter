@@ -253,31 +253,50 @@ class PepConverterFromDB(Converter):
             'pep_id',
             'business_register',
             'CompanyLinkWithPep')
+
         self.invalid_data_counter = 0
-        self.PEP_QUERY = ('SELECT id, last_name, first_name, patronymic, '
-                          'last_name_en, first_name_en, patronymic_en, names, is_pep, '
-                          'dob, city_of_birth_uk, city_of_birth_en, '
-                          'reputation_sanctions_uk, reputation_sanctions_en, '
-                          'reputation_convictions_uk, reputation_convictions_en, '
-                          'reputation_assets_uk, reputation_assets_en, '
-                          'reputation_crimes_uk, reputation_crimes_en, '
-                          'reputation_manhunt_uk, reputation_manhunt_en, wiki_uk, wiki_en, '
-                          'type_of_official, reason_of_termination, termination_date '
-                          'FROM core_person;'
-                          )
-        self.PEPS_LINKS_QUERY = ('SELECT from_person_id, to_person_id, '
-                                 'from_relationship_type, to_relationship_type, '
-                                 'date_established, date_confirmed, date_finished '
-                                 'FROM core_person2person;')
-        self.PEPS_COMPANIES_QUERY = ('SELECT from_person_id, to_company_id, '
-                                     'core_person2company.date_established, core_person2company.date_confirmed, '
-                                     'core_person2company.date_finished, '
-                                     'category, edrpou, state_company, short_name_en, core_company.name, '
-                                     'core_country.name_en '
-                                     'FROM core_person2company '
-                                     'INNER JOIN core_company on to_company_id=core_company.id '
-                                     'INNER JOIN core_company2country on to_company_id = core_company2country.from_company_id '
-                                     'INNER JOIN core_country on to_country_id = core_country.id;')
+        self.PEP_QUERY = ("""
+            SELECT id, last_name, first_name, patronymic, 
+            last_name_en, first_name_en, patronymic_en, names, is_pep, 
+            dob, city_of_birth_uk, city_of_birth_en, 
+            reputation_sanctions_uk, reputation_sanctions_en, 
+            reputation_convictions_uk, reputation_convictions_en, 
+            reputation_assets_uk, reputation_assets_en, 
+            reputation_crimes_uk, reputation_crimes_en, 
+            reputation_manhunt_uk, reputation_manhunt_en, wiki_uk, wiki_en, 
+            type_of_official, reason_of_termination, termination_date 
+            FROM core_person;
+        """)
+        self.PEPS_LINKS_QUERY = ("""
+            SELECT from_person_id, to_person_id, 
+            from_relationship_type, to_relationship_type, 
+            date_established, date_confirmed, date_finished 
+            FROM core_person2person;
+        """)
+        self.PEPS_COMPANIES_QUERY = ("""
+            SELECT 
+                p2c.from_person_id,
+                p2c.to_company_id,
+                p2c.date_established,
+                p2c.date_confirmed,
+                p2c.date_finished,
+                p2c.category,
+                company.edrpou,
+                company.state_company,
+                company.short_name_en,
+                company.name,
+                country.name_en,
+                p2c.id
+            FROM core_person2company p2c
+            INNER JOIN core_company company on p2c.to_company_id=company.id
+            LEFT JOIN (
+                SELECT from_company_id, MAX(to_country_id) to_country_id
+                FROM core_company2country
+                where relationship_type = 'registered_in'
+                GROUP BY from_company_id
+            ) c2c on p2c.to_company_id = c2c.from_company_id
+            LEFT JOIN core_country country on c2c.to_country_id = country.id;
+        """)
         self.REASONS_OF_TERMINATION = {
             1: Pep.DIED,
             2: Pep.RESIGNED,
@@ -456,15 +475,16 @@ class PepConverterFromDB(Converter):
                 link.to_person.save(update_fields=['updated_at', ])
 
     def create_company_link_with_pep(self, company, pep, category, start_date, confirmation_date,
-                                     end_date, is_state_company):
-        CompanyLinkWithPep.objects.create(
+                                     end_date, is_state_company, source_id):
+        self.peps_companies_dict[f'{company.id}_{pep.id}'] = CompanyLinkWithPep.objects.create(
             company=company,
             pep=pep,
             category=category,
             start_date=start_date,
             confirmation_date=confirmation_date,
             end_date=end_date,
-            is_state_company=is_state_company
+            is_state_company=is_state_company,
+            source_id=source_id
         )
 
     def save_or_update_peps_companies(self, peps_companies_data):
@@ -487,6 +507,7 @@ class PepConverterFromDB(Converter):
             is_state_company = link[7]
             company_name = link[9]
             country_name = link[10]
+            source_id = link[11]
             country = address_converter.save_or_get_country(country_name) if country_name else None
             company = Company.include_deleted_objects.filter(antac_id=company_antac_id).first()
             if not company and edrpou:
@@ -502,13 +523,15 @@ class PepConverterFromDB(Converter):
                                                  code=company_name + edrpou, source=Company.ANTAC,
                                                  antac_id=company_antac_id, from_antac_only=True)
                 self.create_company_link_with_pep(company, pep, category, start_date,
-                                                  confirmation_date, end_date, is_state_company)
+                                                  confirmation_date, end_date, is_state_company,
+                                                  source_id)
                 is_changed = True
             else:
                 already_stored_link = self.peps_companies_dict.get(f'{company.id}_{pep.id}')
                 if not already_stored_link:
                     self.create_company_link_with_pep(company, pep, category, start_date,
-                                                      confirmation_date, end_date, is_state_company)
+                                                      confirmation_date, end_date, is_state_company,
+                                                      source_id)
                     is_changed = True
                 else:
                     update_fields = []
@@ -527,6 +550,9 @@ class PepConverterFromDB(Converter):
                     if already_stored_link.is_state_company != is_state_company:
                         already_stored_link.is_state_company = is_state_company
                         update_fields.append('is_state_company')
+                    if already_stored_link.source_id != source_id:
+                        already_stored_link.source_id = source_id
+                        update_fields.append('source_id')
                     if update_fields:
                         update_fields.append('updated_at')
                         already_stored_link.save(update_fields=update_fields)
