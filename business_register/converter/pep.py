@@ -253,31 +253,44 @@ class PepConverterFromDB(Converter):
             'pep_id',
             'business_register',
             'CompanyLinkWithPep')
+
         self.invalid_data_counter = 0
-        self.PEP_QUERY = ('SELECT id, last_name, first_name, patronymic, '
-                          'last_name_en, first_name_en, patronymic_en, names, is_pep, '
-                          'dob, city_of_birth_uk, city_of_birth_en, '
-                          'reputation_sanctions_uk, reputation_sanctions_en, '
-                          'reputation_convictions_uk, reputation_convictions_en, '
-                          'reputation_assets_uk, reputation_assets_en, '
-                          'reputation_crimes_uk, reputation_crimes_en, '
-                          'reputation_manhunt_uk, reputation_manhunt_en, wiki_uk, wiki_en, '
-                          'type_of_official, reason_of_termination, termination_date '
-                          'FROM core_person;'
-                          )
-        self.PEPS_LINKS_QUERY = ('SELECT from_person_id, to_person_id, '
-                                 'from_relationship_type, to_relationship_type, '
-                                 'date_established, date_confirmed, date_finished '
-                                 'FROM core_person2person;')
-        self.PEPS_COMPANIES_QUERY = ('SELECT from_person_id, to_company_id, '
-                                     'core_person2company.date_established, core_person2company.date_confirmed, '
-                                     'core_person2company.date_finished, '
-                                     'category, edrpou, state_company, short_name_en, core_company.name, '
-                                     'core_country.name_en '
-                                     'FROM core_person2company '
-                                     'INNER JOIN core_company on to_company_id=core_company.id '
-                                     'INNER JOIN core_company2country on to_company_id = core_company2country.from_company_id '
-                                     'INNER JOIN core_country on to_country_id = core_country.id;')
+        self.PEP_QUERY = ("""
+            SELECT id, last_name, first_name, patronymic, 
+            last_name_en, first_name_en, patronymic_en, names, is_pep, 
+            dob, city_of_birth_uk, city_of_birth_en, 
+            reputation_sanctions_uk, reputation_sanctions_en, 
+            reputation_convictions_uk, reputation_convictions_en, 
+            reputation_assets_uk, reputation_assets_en, 
+            reputation_crimes_uk, reputation_crimes_en, 
+            reputation_manhunt_uk, reputation_manhunt_en, wiki_uk, wiki_en, 
+            type_of_official, reason_of_termination, termination_date 
+            FROM core_person;
+        """)
+        self.PEPS_LINKS_QUERY = ("""
+            SELECT from_person_id, to_person_id, 
+            from_relationship_type, to_relationship_type, 
+            date_established, date_confirmed, date_finished 
+            FROM core_person2person;
+        """)
+        self.PEPS_COMPANIES_QUERY = ("""
+            SELECT 
+                p2c.from_person_id,
+                p2c.to_company_id,
+                p2c.date_established,
+                p2c.date_confirmed,
+                p2c.date_finished,
+                p2c.category,
+                company.edrpou,
+                company.state_company,
+                company.short_name_en,
+                company.name,
+                country.name_en
+            FROM core_person2company p2c
+            INNER JOIN core_company company on p2c.to_company_id=company.id
+            LEFT JOIN core_company2country c2c on p2c.to_company_id = c2c.from_company_id
+            LEFT JOIN core_country country on c2c.to_country_id = country.id;
+        """)
         self.REASONS_OF_TERMINATION = {
             1: Pep.DIED,
             2: Pep.RESIGNED,
