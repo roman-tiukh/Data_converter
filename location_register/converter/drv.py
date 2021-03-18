@@ -1,6 +1,7 @@
 # Drv means 'Державний реєстр виборців' - the source for the addresses data
 
 import logging
+import sys
 
 from django.conf import settings
 from django.utils import timezone
@@ -32,19 +33,32 @@ class DrvConverter(Converter):
         """
         self.invalid_data_counter = 0
         self.regions_dict = self.put_objects_to_dict('name', 'location_register', 'DrvRegion')
+        print(f'self.regions_dict has size: {sys.getsizeof(self.regions_dict)}')
         self.districts_dict = self.put_objects_to_dict('code', 'location_register', 'DrvDistrict')
+        print(f'districts_dict_dict has size: {sys.getsizeof(self.districts_dict)}')
         self.outdated_districts_dict = self.put_objects_to_dict('code',
                                                                 'location_register',
                                                                 'DrvDistrict')
+        print(f'self.outdated_districts_dict has size: {sys.getsizeof(self.regions_dict)}')
         self.councils_dict = self.put_objects_to_dict('code', 'location_register', 'DrvCouncil')
+        print(f'self.regions_dict has size: {sys.getsizeof(self.regions_dict)}')
         self.outdated_councils_dict = self.put_objects_to_dict('code', 'location_register', 'DrvCouncil')
+        print(f'self.regions_dict has size: {sys.getsizeof(self.regions_dict)}')
         self.atos_dict = self.put_objects_to_dict('code', 'location_register', 'DrvAto')
+        print(f'self.regions_dict has size: {sys.getsizeof(self.regions_dict)}')
         self.outdated_atos_dict = self.put_objects_to_dict('code', 'location_register', 'DrvAto')
+        print(f'self.regions_dict has size: {sys.getsizeof(self.regions_dict)}')
         self.streets_dict = self.put_objects_to_dict('code', 'location_register', 'DrvStreet')
+        print(f'self.regions_dict has size: {sys.getsizeof(self.regions_dict)}')
         self.outdated_streets_dict = self.put_objects_to_dict('code', 'location_register', 'DrvStreet')
+        print(f'self.regions_dict has size: {sys.getsizeof(self.regions_dict)}')
         self.zipcodes_dict = self.put_objects_to_dict('code', 'location_register', 'ZipCode')
+        print(f'self.regions_dict has size: {sys.getsizeof(self.regions_dict)}')
         self.outdated_zipcodes_dict = self.put_objects_to_dict('code', 'location_register', 'ZipCode')
+        print(f'self.regions_dict has size: {sys.getsizeof(self.regions_dict)}')
         self.outdated_buildings_list = list(DrvBuilding.objects.values_list('id', flat=True))
+        print(f'self.regions_dict has size: {sys.getsizeof(self.regions_dict)}')
+
         super().__init__()
 
     def parse_regions_data(self):
