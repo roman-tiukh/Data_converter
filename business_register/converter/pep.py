@@ -289,7 +289,12 @@ class PepConverterFromDB(Converter):
                 p2c.id
             FROM core_person2company p2c
             INNER JOIN core_company company on p2c.to_company_id=company.id
-            LEFT JOIN core_company2country c2c on p2c.to_company_id = c2c.from_company_id
+            LEFT JOIN (
+                SELECT from_company_id, MAX(to_country_id) to_country_id
+                FROM core_company2country
+                where relationship_type = 'registered_in'
+                GROUP BY from_company_id
+            ) c2c on p2c.to_company_id = c2c.from_company_id
             LEFT JOIN core_country country on c2c.to_country_id = country.id;
         """)
         self.REASONS_OF_TERMINATION = {
