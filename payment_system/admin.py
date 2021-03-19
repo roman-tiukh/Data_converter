@@ -168,13 +168,13 @@ class InvoiceAdmin(PaymentSystemModelAdmin):
         if obj:
             if timezone.localdate() < obj.project_subscription.expiring_date:
                 readonly_fields.add('grace_period_block')
-            else:
-                readonly_fields.add('paid_at')
+            #else:
+                #readonly_fields.add('paid_at')
             if obj.is_paid or not obj.grace_period_block:
                 readonly_fields.add('paid_at')
                 readonly_fields.add('grace_period_block')
-            if obj.project_subscription.status == ProjectSubscription.PAST:
-                readonly_fields.add('paid_at')
+            #if obj.project_subscription.status == ProjectSubscription.PAST:
+                #readonly_fields.add('paid_at')
         return list(readonly_fields)
 
     def get_form(self, request, obj=None, change=False, **kwargs):
