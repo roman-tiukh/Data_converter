@@ -233,14 +233,12 @@ class PepConverterFromDB(Converter):
         self.password = settings.PEP_SOURCE_PASSWORD
         self.peps_dict = self.put_objects_to_dict('code', 'business_register', 'Pep')
         self.outdated_peps_dict = self.put_objects_to_dict('code', 'business_register', 'Pep')
-        self.peps_links_dict = self.put_objects_to_dict_with_two_fields_key(
-            'from_person_id',
-            'to_person_id',
+        self.peps_links_dict = self.put_objects_to_dict(
+            'source_id',
             'business_register',
             'RelatedPersonsLink')
-        self.outdated_peps_links_dict = self.put_objects_to_dict_with_two_fields_key(
-            'from_person_id',
-            'to_person_id',
+        self.outdated_peps_links_dict = self.put_objects_to_dict(
+            'source_id',
             'business_register',
             'RelatedPersonsLink')
         self.peps_companies_dict = self.put_objects_to_dict(
@@ -429,9 +427,9 @@ class PepConverterFromDB(Converter):
             end_date = link[6]
             source_id = link[7]
 
-            stored_link = self.peps_links_dict.get(f'{from_person.id}_{to_person.id}')
+            stored_link = self.peps_links_dict.get(source_id)
             if not stored_link:
-                RelatedPersonsLink.objects.create(
+                self.peps_links_dict[source_id] = RelatedPersonsLink.objects.create(
                     from_person_id=from_person.id,
                     to_person_id=to_person.id,
                     from_person_relationship_type=from_person_relationship_type,
@@ -442,6 +440,7 @@ class PepConverterFromDB(Converter):
                     end_date=end_date,
                     source_id=source_id
                 )
+
                 is_changed = True
             else:
                 update_fields = []
@@ -470,8 +469,8 @@ class PepConverterFromDB(Converter):
                     update_fields.append('updated_at')
                     stored_link.save(update_fields=update_fields)
                     is_changed = True
-                if self.outdated_peps_links_dict.get(f'{from_person.id}_{to_person.id}'):
-                    del self.outdated_peps_links_dict[f'{from_person.id}_{to_person.id}']
+                if self.outdated_peps_links_dict.get(source_id):
+                    del self.outdated_peps_links_dict[source_id]
             if is_changed:
                 from_person.save(update_fields=['updated_at', ])
                 to_person.save(update_fields=['updated_at', ])
@@ -762,8 +761,10 @@ class PepDownloader(Downloader):
             self.report.save()
         peps_links_total_records = RelatedPersonsLink.objects.all().count()
         if peps_links_total_records != converter.peps_links_total_records_from_source:
-            # ToDo: decide should we store historical links
-            pass
+            self.report.update_status = False
+            self.report.update_message += (f'Total records of RelatedPersonsLink from source is '
+                                           f'{converter.peps_links_total_records_from_source} '
+                                           f'but in our DB it is {peps_links_total_records}. \n')
         peps_companies_total_records = CompanyLinkWithPep.objects.all().count()
         if peps_companies_total_records != converter.peps_companies_total_records_from_source:
             self.report.update_status = False
