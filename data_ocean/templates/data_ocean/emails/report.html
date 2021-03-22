@@ -3,6 +3,14 @@
 
         <tr>
             Всього спроб оновлення реєстрів: {{ reports|length }}
+
+        </tr>
+        <tr>
+            {% for report in reports %}
+                {% if not report.update_status %}
+                    Під час оновлення {{ report.registry_name }} виникла проблема. {{ report.update_message }}
+                {% endif %}
+            {% endfor %}
         </tr>
         <tr>
             <th>Назва реєстру</th>
@@ -18,14 +26,13 @@
             <tr>
                 <td>{{ report.registry_name }}</td>
                 <td>{{ report.update_status }}</td>
-                <td>{{ report.created_at|time:"H:i" }} </td>
-                <td>{{ report.updated_at|time:"H:i" }} </td>
+                <td>{{ report.created_at }} </td>
+                <td>{{ report.updated_at }} </td>
                 <td>{{ report.records_added }} </td>
                 <td>{{ report.records_changed }} </td>
                 <td>{{ report.records_deleted }} </td>
                 <td>{{ report.errors }} </td>
             </tr>
-
         {% endfor %}
     </p>
 {% endblock content %}

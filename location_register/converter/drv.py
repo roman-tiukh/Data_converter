@@ -356,7 +356,7 @@ class DrvUpdater(Downloader):
         logger.info(f'{self.reg_name}: DrvConverter().process() started ...')
         converter = DrvConverter()
         converter.process()
-        self.report.errors = converter.invalid_data_counter
+        self.report.invalid_data = converter.invalid_data_counter
         logger.info(f'{self.reg_name}: DrvConverter().process() finished successfully.')
 
         self.report.update_finish = timezone.now()
