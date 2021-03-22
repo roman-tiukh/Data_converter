@@ -2,16 +2,18 @@
     <p style="font-family: Roboto;font-weight: normal;font-size: 16px;line-height: 24px;margin-bottom: 30px;">
 
         <tr>
-            Всього спроб оновлення реєстрів: {{ reports|length }}
+            Всього спроб оновлення реєстрів: {{ reports|length }}.
 
         </tr>
         <tr>
             {% for report in reports %}
                 {% if not report.update_status %}
-                    Під час оновлення {{ report.registry_name }} виникла проблема. {{ report.update_message }}
+                    Під час оновлення {{ report.registry_name }} виникла проблема: "{{ report.update_message }}".
                 {% endif %}
             {% endfor %}
         </tr>
+    <table border="1px">
+        <thead>
         <tr>
             <th>Назва реєстру</th>
             <th>Оновлено успішно</th>
@@ -22,6 +24,8 @@
             <th>Видалено</th>
             <th>Не розпізнано</th>
         </tr>
+        </thead>
+        <tbody>
         {% for report in reports %}
             <tr>
                 <td>{{ report.registry_name }}</td>
@@ -31,8 +35,10 @@
                 <td>{{ report.records_added }} </td>
                 <td>{{ report.records_changed }} </td>
                 <td>{{ report.records_deleted }} </td>
-                <td>{{ report.errors }} </td>
+                <td>{{ report.invalid_data }} </td>
             </tr>
         {% endfor %}
+        </tbody>
+    </table>
     </p>
 {% endblock content %}
