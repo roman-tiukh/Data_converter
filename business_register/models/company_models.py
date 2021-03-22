@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.translation import ugettext_lazy as _
 from simple_history.models import HistoricalRecords
 
 from business_register.models.kved_models import Kved
@@ -7,18 +8,21 @@ from location_register.models.address_models import Country
 
 
 class Bylaw(DataOceanModel):
-    name = models.CharField(verbose_name='статут', max_length=320, unique=True, null=True)
+    name = models.CharField(verbose_name='name', max_length=320, unique=True, null=True,
+                            help_text='Company name in Ukrainian')
 
     class Meta:
-        verbose_name = 'статут'
+        verbose_name = _('charter')
 
 
 class CompanyType(DataOceanModel):
-    name = models.CharField('назва', max_length=270, unique=True, null=True)
-    name_eng = models.CharField('назва англійською', max_length=270, unique=True, null=True)
+    name = models.CharField('name', max_length=270, unique=True, null=True, help_text='Company name in Ukrainian')
+    name_eng = models.CharField("name in Company House (UK companies` register)",
+                                max_length=270, unique=True, null=True,
+                                help_text='Company name in Company House (UK companies` register)')
 
     class Meta:
-        verbose_name = 'організаційно-правова форма'
+        verbose_name = _('company type')
 
 
 class Company(DataOceanModel):  # constraint for not null in both name & short_name fields
@@ -27,37 +31,50 @@ class Company(DataOceanModel):  # constraint for not null in both name & short_n
     ANTAC = 'antac'
     SOURCES = (
         (UKRAINE_REGISTER,
-         'Єдиний державний реєстр юридичних осіб, фізичних осіб – підприємців та громадських формувань України'),
-        (GREAT_BRITAIN_REGISTER, 'Companies House'),
-        (ANTAC, 'Центр протидії корупції'),
+         _(
+             'The United State Register of Legal Entities, Individual Entrepreneurs and Public Organizations of Ukraine')),
+        (GREAT_BRITAIN_REGISTER, _('Company House (UK companies` register)')),
+        (ANTAC, _('ANTAC')),
     )
 
     INVALID = 'invalid'  # constant for empty edrpou fild etc.
-    name = models.CharField('назва', max_length=500, null=True)
-    short_name = models.CharField('коротка назва', max_length=500, null=True)
+    name = models.CharField(_('name'), max_length=500, null=True, help_text='Company name in Ukrainian')
+    short_name = models.CharField(_('short name'), max_length=500, null=True,
+                                  help_text='Short name of the company in Ukrainian')
     company_type = models.ForeignKey(CompanyType, on_delete=models.CASCADE, null=True,
-                                     verbose_name='організаційно-правова форма')
-    edrpou = models.CharField('код ЄДРПОУ', max_length=260, null=True, db_index=True)
-    boss = models.CharField('керівник', max_length=100, null=True, blank=True, default='')
-    authorized_capital = models.FloatField('статутний капітал', null=True)
+                                     verbose_name=_('company type'), help_text='Type of the company')
+    edrpou = models.CharField(_('number'), max_length=260, null=True, db_index=True,
+                              help_text='EDRPOU number as string')
+    boss = models.CharField(_('CEO'), max_length=100, null=True, blank=True, default='',
+                            help_text='CEO of the company')
+    authorized_capital = models.FloatField(_('share capital'), null=True, help_text='Authorized capital as number')
     country = models.ForeignKey(Country, max_length=60, on_delete=models.CASCADE, null=True,
-                                verbose_name='країна')
-    address = models.CharField('адреса', max_length=1000, null=True)
-    status = models.ForeignKey(Status, on_delete=models.CASCADE, null=True, verbose_name='статус')
-    bylaw = models.ForeignKey(Bylaw, on_delete=models.CASCADE, null=True, verbose_name='статут')
-    registration_date = models.DateField('дата реєстрації', null=True)
-    registration_info = models.CharField('реєстраційні дані', max_length=450, null=True)
-    contact_info = models.CharField('контакти', max_length=310, null=True)
+                                verbose_name=_('country'), help_text='Country of origin')
+    address = models.CharField(_('address'), max_length=1000, null=True,
+                               help_text='Registration address in Ukrainian')
+    status = models.ForeignKey(Status, on_delete=models.CASCADE, null=True,
+                               verbose_name=_('status'), help_text='Company legal status')
+    bylaw = models.ForeignKey(Bylaw, on_delete=models.CASCADE, null=True,
+                              verbose_name=_('charter'), help_text='By law')
+    registration_date = models.DateField(_('registration date'), null=True,
+                                         help_text='Registration date as string in YYYY-MM-DD format')
+    registration_info = models.CharField(_('registration info'), max_length=450, null=True,
+                                         help_text='Registration info of the company')
+    contact_info = models.CharField(_('contacts'), max_length=310, null=True, help_text='Info about contacts')
     authority = models.ForeignKey(Authority, on_delete=models.CASCADE, null=True,
-                                  verbose_name='орган реєстрації')
+                                  verbose_name=_('registration authority'),
+                                  help_text='Authorized state agency which register the company')
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True,
-                               verbose_name='є підрозділом компанії/організації')
-    antac_id = models.PositiveIntegerField("id from ANTAC`s DB", unique=True,
-                                           db_index=True, null=True, default=None, blank=True)
-    from_antac_only = models.BooleanField(null=True)
-    source = models.CharField('джерело даних', max_length=5, choices=SOURCES, null=True,
-                              blank=True, default=None)
-    code = models.CharField(max_length=510, db_index=True)
+                               verbose_name=_('parent company'),
+                               help_text='Company that has a controlling interest in the company')
+    antac_id = models.PositiveIntegerField(_("id from ANTACs DB"), unique=True,
+                                           db_index=True, null=True, default=None, blank=True,
+                                           help_text='ID from ANTACs DB')
+    from_antac_only = models.BooleanField(null=True, help_text='If this field has "true" - '
+                                                               'Data provided by the Anti-Corruption Action Center.')
+    source = models.CharField(_('source'), max_length=5, choices=SOURCES, null=True,
+                              blank=True, default=None, db_index=True, help_text='Source')
+    code = models.CharField(_('our code'), max_length=510, db_index=True, help_text='Our code')
     history = HistoricalRecords()
 
     @property
@@ -89,7 +106,8 @@ class Company(DataOceanModel):  # constraint for not null in both name & short_n
         return self.country.name != 'ukraine'
 
     class Meta:
-        verbose_name = 'компанія/організація'
+        verbose_name = _('company')
+        verbose_name_plural = _('companies')
         index_together = [
             ('edrpou', 'source')
         ]
@@ -97,86 +115,103 @@ class Company(DataOceanModel):  # constraint for not null in both name & short_n
 
 class Assignee(DataOceanModel):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='assignees',
-                                verbose_name='є правонаступником')
-    name = models.CharField('правонаступник', max_length=610, null=True)
-    edrpou = models.CharField('код ЄДРПОУ', max_length=11, null=True)
+                                verbose_name='є правонаступником', help_text='Company is the legal successor')
+    name = models.CharField('name', max_length=610, null=True, help_text='Assignee name in Ukrainian')
+    edrpou = models.CharField('number', max_length=11, null=True, help_text='EDRPOU number as string')
     history = HistoricalRecords()
 
     class Meta:
-        verbose_name = 'правонаступник'
-        verbose_name_plural = 'правонаступники'
+        verbose_name = _('assignee')
 
 
 class BancruptcyReadjustment(DataOceanModel):
     company = models.ForeignKey(Company, on_delete=models.CASCADE,
-                                related_name='bancruptcy_readjustment')
-    op_date = models.DateField(null=True)
-    reason = models.TextField('підстава', null=True)
-    sbj_state = models.CharField(max_length=345, null=True)
-    head_name = models.CharField(max_length=515, null=True)
+                                related_name='bancruptcy_readjustment', help_text='Bankruptcy readjustment')
+    op_date = models.DateField(null=True, help_text='Date of bankruptcy readjustment as string in YYYY-MM-DD format')
+    reason = models.TextField('reason', null=True, help_text='Reason of bankruptcy')
+    sbj_state = models.CharField(max_length=345, null=True, help_text='Subject state')
+    head_name = models.CharField(max_length=515, null=True, help_text='Head name')
     history = HistoricalRecords()
 
     def __str__(self):
         return self.sbj_state
 
+    class Meta:
+        verbose_name = _('bankruptcy readjustment')
+
 
 class CompanyDetail(DataOceanModel):
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='company_detail')
-    founding_document_number = models.CharField(max_length=375, null=True)
-    executive_power = models.CharField(max_length=390, null=True)
-    superior_management = models.CharField(max_length=620, null=True)
-    managing_paper = models.CharField(max_length=360, null=True)
-    terminated_info = models.CharField(max_length=600, null=True)
-    termination_cancel_info = models.CharField(max_length=570, null=True)
-    vp_dates = models.TextField(null=True)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='company_detail',
+                                help_text='Company name')
+    founding_document_number = models.CharField(max_length=375, null=True,
+                                                help_text='Founding document number as string')
+    executive_power = models.CharField(max_length=390, null=True, help_text='Executive power of the company')
+    superior_management = models.CharField(max_length=620, null=True, help_text='Superior management of the company')
+    managing_paper = models.CharField(max_length=360, null=True, help_text='Managing paper of the company')
+    terminated_info = models.CharField(max_length=600, null=True, help_text='Info about termination')
+    termination_cancel_info = models.CharField(max_length=570, null=True,
+                                               help_text='Info about termination cancellation')
+    vp_dates = models.TextField(null=True, help_text='Array of dates as string in YYYY-MM-DD format')
     history = HistoricalRecords()
 
     class Meta:
-        verbose_name = 'додаткові дані'
+        verbose_name = _('additional info')
 
 
 class CompanyToKved(DataOceanModel):  # constraint for only only one truth in primary field
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='kveds')
-    kved = models.ForeignKey(Kved, on_delete=models.CASCADE, verbose_name='КВЕД')
-    primary_kved = models.BooleanField('зазначений як основний', default=False)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='kveds',
+                                help_text='Company name')
+    kved = models.ForeignKey(Kved, on_delete=models.CASCADE, verbose_name='NACE', help_text='NACE as string')
+    primary_kved = models.BooleanField('declared as primary', default=False, help_text='Primary NACE as string')
     history = HistoricalRecords()
 
     class Meta:
-        verbose_name = 'КВЕДи компанії'
+        verbose_name = _('NACE')
 
     def __str__(self):
-        return f"{self.kved} (зазначений як основний)" if self.primary_kved else f"{self.kved}"
+        return f"{self.kved} (declared as primary)" if self.primary_kved else str(self.kved)
 
 
 class ExchangeDataCompany(DataOceanModel):
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='exchange_data')
+    company = company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='exchange_data',
+                            help_text='Company name')
     authority = models.ForeignKey(Authority, on_delete=models.CASCADE,
-                                  verbose_name='орган реєстрації')
-    taxpayer_type = models.ForeignKey(TaxpayerType, on_delete=models.CASCADE, null=True)
-    start_date = models.DateField(null=True)
-    start_number = models.CharField(max_length=555, null=True)
-    end_date = models.DateField(null=True)
-    end_number = models.CharField(max_length=555, null=True)
+                                  verbose_name='registration authority',
+                                  help_text='Authorized state agency which register the company')
+    taxpayer_type = models.ForeignKey(TaxpayerType, on_delete=models.CASCADE, null=True,
+                                      help_text='Taxpayer type of the company')
+    start_date = models.DateField(null=True, help_text='Start date as string in YYYY-MM-DD format')
+    start_number = models.CharField(max_length=555, null=True, help_text='Start number')
+    end_date = models.DateField(null=True, help_text='End date as string in YYYY-MM-DD format')
+    end_number = models.CharField(max_length=555, null=True, help_text='End number')
     history = HistoricalRecords()
 
     def __str__(self):
         return self.authority.name
 
+    class Meta:
+        verbose_name = _('registration info')
+
 
 class Founder(DataOceanModel):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='founders',
-                                verbose_name='є засновником компанії/організації')
-    info = models.CharField('наявні дані', max_length=2015)
-    info_additional = models.CharField('додаткові наявні дані', max_length=2015, null=True)
-    info_beneficiary = models.CharField('наявні дані бенефіціара', max_length=2015, null=True)
-    name = models.TextField("назва/повне ім'я", db_index=True)
-    edrpou = models.CharField('код ЄДРПОУ', max_length=9, null=True, blank=True, default='',
-                              db_index=True)
-    equity = models.FloatField('участь в статутному капіталі', null=True, blank=True)
-    address = models.CharField('адреса', max_length=2015, null=True, blank=True, default='')
-    country = models.CharField('держава', max_length=100, null=True, blank=True, default='')
-    is_beneficiary = models.BooleanField('є бенефіціаром', blank=True, default=False)
-    is_founder = models.BooleanField('є офіційним засновником', blank=True, default=False)
+                                verbose_name='owner', help_text='Company name')
+    info = models.CharField('info', max_length=2015, help_text='Info')
+    info_additional = models.CharField('additional info', max_length=2015, null=True,
+                                       help_text='Additional info')
+    info_beneficiary = models.CharField('beneficiary info', max_length=2015, null=True,
+                                        help_text='Beneficiary Info')
+    name = models.TextField("name or full name", db_index=True, help_text='Founder name in Ukrainian')
+    edrpou = models.CharField('number', max_length=9, null=True, blank=True, default='',
+                               db_index=True, help_text='EDRPOU number as string')
+    equity = models.FloatField('equity', null=True, blank=True, help_text='Equity')
+    address = models.CharField('address', max_length=2015, null=True, blank=True, default='',
+                               help_text='Founder address in Ukrainian')
+    country = models.CharField('country', max_length=100, null=True, blank=True, default='',
+                               help_text='Country of origin')
+    is_beneficiary = models.BooleanField('is beneficiary', blank=True, default=False,
+                                         help_text='Is beneficiary of the company')
+    is_founder = models.BooleanField('is owner', blank=True, default=False, help_text='Is founder of the company')
     history = HistoricalRecords()
 
     # retrieving id only for founder that is company
@@ -189,23 +224,21 @@ class Founder(DataOceanModel):
         return None
 
     class Meta:
-        verbose_name = 'засновник'
-        verbose_name_plural = 'засновники'
+        verbose_name = _('owner')
 
 
 class Predecessor(DataOceanModel):  # constraint for not null in both fields
-    name = models.CharField('назва', max_length=500, null=True)
-    edrpou = models.CharField('код ЄДРПОУ', max_length=405, null=True)
+    name = models.CharField('name', max_length=500, null=True, help_text='Predecessor name in Ukrainian')
+    edrpou = models.CharField('number', max_length=405, null=True, help_text='EDRPOU number as string')
 
     class Meta:
-        verbose_name = 'попередник'
-        verbose_name_plural = 'попередники'
+        verbose_name = _('predecessor')
 
 
 class CompanyToPredecessor(DataOceanModel):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='predecessors',
-                                verbose_name='є попередником організації')
-    predecessor = models.ForeignKey(Predecessor, on_delete=models.CASCADE)
+                                help_text='Company name')
+    predecessor = models.ForeignKey(Predecessor, on_delete=models.CASCADE, help_text='Predecessor name in Ukrainian')
     history = HistoricalRecords()
 
     def __str__(self):
@@ -213,24 +246,28 @@ class CompanyToPredecessor(DataOceanModel):
 
 
 class Signer(DataOceanModel):
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='signers')
-    name = models.CharField("повне ім'я", max_length=390, null=True)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='signers',
+                                help_text='Company name')
+    name = models.CharField("full name", max_length=390, null=True, help_text='Signer name in Ukrainian')
     history = HistoricalRecords()
 
     class Meta:
-        verbose_name = 'має право підпису'
-        verbose_name_plural = 'мають право підпису'
+        verbose_name = _('signer')
 
 
 class TerminationStarted(DataOceanModel):
     company = models.ForeignKey(Company, on_delete=models.CASCADE,
-                                related_name='termination_started')
-    op_date = models.DateField(null=True)
-    reason = models.TextField('підстава', null=True)
-    sbj_state = models.CharField(max_length=530, null=True)
-    signer_name = models.CharField(max_length=480, null=True)
-    creditor_reg_end_date = models.DateField(null=True)
+                                related_name='termination_started', help_text='Company name')
+    op_date = models.DateField(null=True, help_text='Date as string in YYYY-MM-DD format')
+    reason = models.TextField('reason', null=True, help_text='Reason of termination')
+    sbj_state = models.CharField(max_length=530, null=True, help_text='State of the company')
+    signer_name = models.CharField(max_length=480, null=True, help_text='Signer name in Ukrainian')
+    creditor_reg_end_date = models.DateField(null=True,
+                                             help_text='Creditor registration end date as string in YYYY-MM-DD format')
     history = HistoricalRecords()
 
     def __str__(self):
         return self.sbj_state
+
+    class Meta:
+        verbose_name = _("termination")

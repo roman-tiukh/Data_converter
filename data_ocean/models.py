@@ -12,8 +12,12 @@ class DataOceanManager(models.Manager):
 class DataOceanModel(models.Model):
     name = "No name field in model!"
 
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True,
+                                      help_text='When the object was created. In YYYY-MM-DDTHH:mm:ss.SSSSSSZ format.')
+    updated_at = models.DateTimeField(
+        auto_now=True, null=True, blank=True,
+        help_text='When the object was update. In YYYY-MM-DDTHH:mm:ss.SSSSSSZ format.'
+    )
     deleted_at = models.DateTimeField(null=True, blank=True, default=None, editable=False)
 
     objects = DataOceanManager()
@@ -46,25 +50,25 @@ class DataOceanModel(models.Model):
 
 
 class Status(DataOceanModel):
-    name = models.CharField('назва', max_length=100, unique=True)
+    name = models.CharField('name', max_length=100, unique=True)
 
     class Meta:
-        verbose_name = 'статус'
+        verbose_name = _('status')
 
 
 class Authority(DataOceanModel):
-    name = models.CharField('назва', max_length=500, unique=True)
-    code = models.CharField('код ЄДРПОУ', max_length=10, unique=True, null=True)
+    name = models.CharField('name', max_length=500, unique=True)
+    code = models.CharField('number', max_length=10, unique=True, null=True)
 
     class Meta:
-        verbose_name = 'орган реєстрації'
+        verbose_name = _('registration authority')
 
 
 class TaxpayerType(DataOceanModel):
-    name = models.CharField('назва', max_length=200, unique=True)
+    name = models.CharField('name', max_length=200, unique=True)
 
     class Meta:
-        verbose_name = 'тип платника податків'
+        verbose_name = _('taxpayer type')
 
 
 class Register(DataOceanModel):
@@ -76,24 +80,25 @@ class Register(DataOceanModel):
         (OUTDATED, _('Outdated')),
         (NOT_SUPPORTED, _('Not supported')),
     ]
-    name = models.CharField('назва', max_length=500, unique=True)
-    name_eng = models.CharField('назва англійською', max_length=500, unique=True, null=True)
-    source_name = models.CharField('назва джерела даних', max_length=300)
-    source_register_id = models.CharField('ID реєстру у джерелі даних', max_length=36, null=True)
-    source_url_address = models.URLField(max_length=500)
-    source_api_address = models.URLField(max_length=500, null=True)
-    api_list = models.CharField('ендпоінт списку', max_length=30, unique=True, null=True, blank=True)
-    api_detail = models.CharField("ендпоінт об'єкта", max_length=30, unique=True, null=True, blank=True)
-    total_records = models.PositiveIntegerField('кількість записів', default=1, blank=True)
-    status = models.CharField('статус', max_length=15, choices=STATUSES, default=RELEVANT,
+    name = models.CharField(_('name'), max_length=500, unique=True)
+    name_eng = models.CharField('name eng', max_length=500, unique=True, null=True)
+    source_name = models.CharField(_('source'), max_length=300)
+    source_register_id = models.CharField(_('source ID'), max_length=36, null=True)
+    source_url_address = models.URLField(_('source url'), max_length=500)
+    source_api_address = models.URLField(_('source API'), max_length=500, null=True)
+    api_list = models.CharField(_('API list'), max_length=30, unique=True, null=True, blank=True)
+    api_detail = models.CharField(_("API detail"), max_length=30, unique=True, null=True, blank=True)
+    total_records = models.PositiveIntegerField(_('total records'), default=1, blank=True)
+    status = models.CharField(_('status'), max_length=15, choices=STATUSES, default=RELEVANT,
                               blank=True)
 
     class Meta:
         ordering = ['id']
-        verbose_name = 'реєстр'
+        verbose_name = _('dataset')
+        verbose_name_plural = _('datasets')
 
 
-class RegistryUpdaterModel(models.Model):
+class Report(DataOceanModel):
     registry_name = models.CharField(max_length=20, db_index=True)
     download_start = models.DateTimeField(auto_now_add=True)
     download_finish = models.DateTimeField(null=True, blank=True)
@@ -111,7 +116,22 @@ class RegistryUpdaterModel(models.Model):
     update_start = models.DateTimeField(null=True, blank=True)
     update_finish = models.DateTimeField(null=True, blank=True)
     update_status = models.BooleanField(blank=True, default=False)
-    update_message = models.CharField(max_length=255, null=True, blank=True)
+    update_message = models.CharField(max_length=300, null=True, blank=True)
+
+    records_added = models.IntegerField(blank=True, default=0)
+    records_changed = models.IntegerField(blank=True, default=0)
+    records_deleted = models.IntegerField(blank=True, default=0)
+    invalid_data = models.IntegerField(blank=True, default=0)
+
+    @staticmethod
+    def collect_last_day_reports():
+        day_ago = timezone.now() - timezone.timedelta(hours=24)
+        return list(Report.objects.filter(created_at__gt=day_ago))
 
     def __str__(self):
         return self.registry_name
+
+    class Meta:
+        ordering = ['id']
+        verbose_name = _('data update report')
+        verbose_name_plural = _('data update reports')

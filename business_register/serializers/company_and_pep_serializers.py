@@ -1,10 +1,11 @@
 from django.apps import apps
 from drf_dynamic_fields import DynamicFieldsMixin
+from drf_yasg.utils import swagger_serializer_method
 from rest_framework import serializers
 
 from business_register.models.company_models import (
     BancruptcyReadjustment, CompanyDetail,
-    ExchangeDataCompany, TerminationStarted, Company, Founder
+    ExchangeDataCompany, TerminationStarted, Company, Founder, CompanyToKved, Signer, Assignee, CompanyToPredecessor
 )
 from business_register.models.pep_models import CompanyLinkWithPep, Pep, RelatedPersonsLink
 
@@ -32,9 +33,7 @@ def filter_with_parameter(obj, parameter, used_categories, model_related_name, s
             category__in=categories
         )
     else:
-        queryset = getattr(obj, model_related_name).filter(
-            category__in=used_categories
-        )
+        queryset = getattr(obj, model_related_name).all()
     return serializer(queryset, many=True).data
 
 
@@ -62,7 +61,7 @@ class CompanyDetailInfoSerializer(serializers.ModelSerializer):
 
 
 class ExchangeDataCompanySerializer(serializers.ModelSerializer):
-    authority = serializers.CharField(max_length=500)
+    authority = serializers.CharField(max_length=500, help_text=Company._meta.get_field('authority').help_text)
     taxpayer_type = serializers.CharField(max_length=200)
 
     class Meta:
@@ -86,8 +85,15 @@ class TerminationStartedSerializer(serializers.ModelSerializer):
 
 
 class CountFoundedCompaniesSerializer(serializers.ModelSerializer):
-    company_type = serializers.StringRelatedField()
-    status = serializers.StringRelatedField()
+    company_type = serializers.StringRelatedField(help_text=Company._meta.get_field('company_type').help_text)
+    status = serializers.StringRelatedField(help_text=Company._meta.get_field('status').help_text)
+    founder_of_count = serializers.IntegerField(help_text='The number of companies that have a founder '
+                                                          'with the same last name as this particular person.')
+    id = serializers.IntegerField(help_text='DataOcean\'s internal unique identifier of the object (company).')
+    is_closed = serializers.BooleanField(help_text='Boolean type. If its "true" - this company is closed, '
+                                                   '"false" - this is an operating company.')
+    is_foreign = serializers.BooleanField(help_text='Boolean type. If its "true" - this is a foreign company, '
+                                                    '"false" - this is Ukrainian company.')
 
     class Meta:
         model = Company
@@ -97,30 +103,41 @@ class CountFoundedCompaniesSerializer(serializers.ModelSerializer):
         )
 
 
-
 class CompanyShortSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(help_text='DataOcean\'s internal unique identifier of the object (company).')
+
     class Meta:
         model = Company
         fields = ('id', 'name', 'edrpou',)
 
 
 class CompanyListSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
-    country = serializers.StringRelatedField()
-    founders = FounderSerializer(many=True)
-    authorized_capital = serializers.FloatField()
-    parent = serializers.StringRelatedField()
-    predecessors = serializers.StringRelatedField(many=True)
-    company_type = serializers.StringRelatedField()
-    status = serializers.StringRelatedField()
-    authority = serializers.StringRelatedField()
-    assignees = serializers.StringRelatedField(many=True)
-    signers = serializers.StringRelatedField(many=True)
-    kveds = serializers.StringRelatedField(many=True)
-    bylaw = serializers.StringRelatedField()
-    bancruptcy_readjustment = BancruptcyReadjustmentSerializer(many=True)
-    company_detail = CompanyDetailInfoSerializer(many=True)
-    exchange_data = ExchangeDataCompanySerializer(many=True)
-    termination_started = TerminationStartedSerializer(many=True)
+    country = serializers.StringRelatedField(
+        help_text=Company._meta.get_field('country').help_text
+    )
+    founders = FounderSerializer(many=True, help_text=Founder._meta.get_field('company').help_text)
+    authorized_capital = serializers.FloatField(
+        help_text=Company._meta.get_field('authorized_capital').help_text
+    )
+    parent = serializers.StringRelatedField(help_text=Company._meta.get_field('parent').help_text)
+    predecessors = serializers.StringRelatedField(many=True,
+                                                  help_text=CompanyToPredecessor._meta.get_field('company').help_text)
+    company_type = serializers.StringRelatedField(help_text=Company._meta.get_field('company_type').help_text)
+    status = serializers.StringRelatedField(help_text=Company._meta.get_field('status').help_text)
+    authority = serializers.StringRelatedField(help_text=Company._meta.get_field('authority').help_text)
+    assignees = serializers.StringRelatedField(many=True, help_text=Assignee._meta.get_field('company').help_text)
+    signers = serializers.StringRelatedField(many=True, help_text=Signer._meta.get_field('company').help_text)
+    kveds = serializers.StringRelatedField(many=True, help_text=CompanyToKved._meta.get_field('company').help_text)
+    bylaw = serializers.StringRelatedField(help_text=Company._meta.get_field('bylaw').help_text)
+    bancruptcy_readjustment = BancruptcyReadjustmentSerializer(
+        many=True, help_text=BancruptcyReadjustment._meta.get_field('company').help_text)
+    company_detail = CompanyDetailInfoSerializer(many=True,
+                                                 help_text=CompanyDetail._meta.get_field('company').help_text)
+    exchange_data = ExchangeDataCompanySerializer(many=True,
+                                                  help_text=ExchangeDataCompany._meta.get_field('company').help_text)
+    termination_started = TerminationStartedSerializer(many=True,
+                                                       help_text=TerminationStarted._meta.get_field(
+                                                           'company').help_text)
 
     class Meta:
         model = Company
@@ -133,7 +150,8 @@ class CompanyListSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
 
 
 class PepShortSerializer(serializers.ModelSerializer):
-    pep_type = serializers.CharField(source='get_pep_type_display')
+    pep_type = serializers.CharField(source='get_pep_type_display', help_text=Pep._meta.get_field('pep_type').help_text)
+    id = serializers.IntegerField(help_text='DataOcean\'s internal unique identifier of the object (PEP).')
 
     class Meta:
         model = Pep
@@ -149,8 +167,7 @@ class CompanyLinkWithPepSerializer(serializers.ModelSerializer):
     class Meta:
         model = CompanyLinkWithPep
         fields = (
-            'pep', 'company_name_eng', 'company_short_name_eng', 'category', 'relationship_type',
-            'relationship_type_eng', 'start_date', 'end_date', 'is_state_company'
+            'pep', 'category', 'relationship_type', 'start_date', 'end_date', 'is_state_company'
         )
 
 
@@ -167,7 +184,8 @@ class CompanyDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
                 CompanyLinkWithPep.MANAGER
             ],
             model_related_name='relationships_with_peps',
-            serializer=CompanyLinkWithPepSerializer
+            serializer=CompanyLinkWithPepSerializer,
+
         )
 
     def get_founder_of(self, obj):
@@ -178,22 +196,32 @@ class CompanyDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
             serializer=CountFoundedCompaniesSerializer
         )
 
-    country = serializers.StringRelatedField()
-    founders = FounderSerializer(many=True)
-    authorized_capital = serializers.FloatField()
-    parent = serializers.StringRelatedField()
-    predecessors = serializers.StringRelatedField(many=True)
-    company_type = serializers.StringRelatedField()
-    status = serializers.StringRelatedField()
-    authority = serializers.StringRelatedField()
-    assignees = serializers.StringRelatedField(many=True)
-    signers = serializers.StringRelatedField(many=True)
-    kveds = serializers.StringRelatedField(many=True)
-    bylaw = serializers.StringRelatedField()
-    bancruptcy_readjustment = BancruptcyReadjustmentSerializer(many=True)
-    company_detail = CompanyDetailInfoSerializer(many=True)
-    exchange_data = ExchangeDataCompanySerializer(many=True)
-    termination_started = TerminationStartedSerializer(many=True)
+    country = serializers.StringRelatedField(
+        help_text=Company._meta.get_field('country').help_text
+    )
+    founders = FounderSerializer(many=True, help_text=Founder._meta.get_field('company').help_text)
+    authorized_capital = serializers.FloatField(
+        help_text=Company._meta.get_field('authorized_capital').help_text
+    )
+    parent = serializers.StringRelatedField(help_text=Company._meta.get_field('parent').help_text)
+    predecessors = serializers.StringRelatedField(many=True,
+                                                  help_text=CompanyToPredecessor._meta.get_field('company').help_text)
+    company_type = serializers.StringRelatedField(help_text=Company._meta.get_field('company_type').help_text)
+    status = serializers.StringRelatedField(help_text=Company._meta.get_field('status').help_text)
+    authority = serializers.StringRelatedField(help_text=Company._meta.get_field('authority').help_text)
+    assignees = serializers.StringRelatedField(many=True, help_text=Assignee._meta.get_field('company').help_text)
+    signers = serializers.StringRelatedField(many=True, help_text=Signer._meta.get_field('company').help_text)
+    kveds = serializers.StringRelatedField(many=True, help_text=CompanyToKved._meta.get_field('company').help_text)
+    bylaw = serializers.StringRelatedField(help_text=Company._meta.get_field('bylaw').help_text)
+    bancruptcy_readjustment = BancruptcyReadjustmentSerializer(
+        many=True, help_text=BancruptcyReadjustment._meta.get_field('company').help_text)
+    company_detail = CompanyDetailInfoSerializer(many=True,
+                                                 help_text=CompanyDetail._meta.get_field('company').help_text)
+    exchange_data = ExchangeDataCompanySerializer(many=True,
+                                                  help_text=ExchangeDataCompany._meta.get_field('company').help_text)
+    termination_started = TerminationStartedSerializer(many=True,
+                                                       help_text=TerminationStarted._meta.get_field(
+                                                           'company').help_text)
 
     class Meta:
         model = Company
@@ -267,8 +295,9 @@ class HistoricalTerminationStartedSerializer(serializers.ModelSerializer):
 
 
 class FromRelatedPersonLinkSerializer(serializers.ModelSerializer):
-    to_person = PepShortSerializer()
-    category_display = serializers.CharField(source='get_category_display')
+    to_person = PepShortSerializer(help_text=RelatedPersonsLink._meta.get_field('to_person').help_text)
+    category_display = serializers.CharField(source='get_category_display',
+                                             help_text=RelatedPersonsLink._meta.get_field('category').help_text)
 
     class Meta:
         model = RelatedPersonsLink
@@ -284,8 +313,9 @@ class FromRelatedPersonLinkSerializer(serializers.ModelSerializer):
 
 
 class ToRelatedPersonLinkSerializer(serializers.ModelSerializer):
-    from_person = PepShortSerializer()
-    category_display = serializers.CharField(source='get_category_display')
+    from_person = PepShortSerializer(help_text=RelatedPersonsLink._meta.get_field('from_person').help_text)
+    category_display = serializers.CharField(source='get_category_display',
+                                             help_text=RelatedPersonsLink._meta.get_field('category').help_text)
 
     class Meta:
         model = RelatedPersonsLink
@@ -301,40 +331,50 @@ class ToRelatedPersonLinkSerializer(serializers.ModelSerializer):
 
 
 class PepLinkWithCompanySerializer(serializers.ModelSerializer):
-    company = CompanyShortSerializer()
-    category_display = serializers.CharField(source='get_category_display')
+    company = CompanyShortSerializer(help_text=CompanyLinkWithPep._meta.get_field('company').help_text)
+    category_display = serializers.CharField(source='get_category_display',
+                                             help_text=CompanyLinkWithPep._meta.get_field('category').help_text)
 
     class Meta:
         model = CompanyLinkWithPep
         fields = (
-            'company', 'company_name_eng', 'company_short_name_eng', 'category',
-            'category_display', 'relationship_type', 'relationship_type_eng',
+            'company', 'category', 'category_display', 'relationship_type',
             'start_date', 'end_date', 'is_state_company',
         )
 
 
 class PepDetailLinkWithCompanySerializer(serializers.ModelSerializer):
-    company = CountFoundedCompaniesSerializer()
-    category_display = serializers.CharField(source='get_category_display')
+    company = CountFoundedCompaniesSerializer(help_text=CompanyLinkWithPep._meta.get_field('company').help_text)
+    category_display = serializers.CharField(source='get_category_display',
+                                             help_text=CompanyLinkWithPep._meta.get_field('category').help_text)
 
     class Meta:
         model = CompanyLinkWithPep
         fields = (
-            'company', 'company_name_eng', 'company_short_name_eng',
-            'category', 'category_display', 'relationship_type',
-            'relationship_type_eng', 'start_date', 'end_date', 'is_state_company',
+            'company', 'category', 'category_display', 'relationship_type',
+            'start_date', 'end_date', 'is_state_company',
         )
 
 
 class PepDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
-    from_person_links = serializers.SerializerMethodField()
-    to_person_links = serializers.SerializerMethodField()
-    related_companies = serializers.SerializerMethodField()
-    # other companies founded by persons with the same fullname as pep
-    check_companies = serializers.SerializerMethodField()
-    pep_type = serializers.CharField(source='get_pep_type_display')
-    reason_of_termination = serializers.CharField(source='get_reason_of_termination_display')
+    from_person_links = serializers.SerializerMethodField(
+        help_text=RelatedPersonsLink._meta.get_field('from_person').help_text
+    )
+    to_person_links = serializers.SerializerMethodField(
+        help_text=RelatedPersonsLink._meta.get_field('to_person').help_text
+    )
+    related_companies = serializers.SerializerMethodField(
+        help_text='Companies related to personal. Connection established by Anti-Corruption Action Center.'
+    )
+    check_companies = serializers.SerializerMethodField(
+        help_text='Other companies founded by persons with the same fullname as PEP.'
+    )
+    pep_type = serializers.CharField(source='get_pep_type_display', help_text=Pep._meta.get_field('pep_type').help_text)
+    reason_of_termination = serializers.CharField(source='get_reason_of_termination_display',
+                                                  help_text=Pep._meta.get_field('reason_of_termination').help_text)
+    id = serializers.IntegerField(help_text='DataOcean\'s internal unique identifier of the object (PEP).')
 
+    @swagger_serializer_method(serializer_or_field=FromRelatedPersonLinkSerializer(many=True))
     def get_from_person_links(self, obj):
         return filter_with_parameter(
             obj=obj,
@@ -347,6 +387,7 @@ class PepDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
             model_related_name='from_person_links',
             serializer=FromRelatedPersonLinkSerializer)
 
+    @swagger_serializer_method(serializer_or_field=ToRelatedPersonLinkSerializer(many=True))
     def get_to_person_links(self, obj):
         return filter_with_parameter(
             obj=obj,
@@ -360,6 +401,7 @@ class PepDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
             serializer=ToRelatedPersonLinkSerializer
         )
 
+    @swagger_serializer_method(serializer_or_field=PepDetailLinkWithCompanySerializer(many=True))
     def get_related_companies(self, obj):
         parameter = self.context['request'].query_params.get('company_relations')
         if parameter == 'none':
@@ -381,15 +423,14 @@ class PepDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
                 'company__status'
             )
         else:
-            queryset = obj.related_companies.filter(
-                category__in=used_categories
-            ).select_related(
+            queryset = obj.related_companies.select_related(
                 'company',
                 'company__company_type',
                 'company__status'
             )
         return PepDetailLinkWithCompanySerializer(queryset, many=True).data
 
+    @swagger_serializer_method(serializer_or_field=CountFoundedCompaniesSerializer(many=True))
     def get_check_companies(self, obj):
         return filter_property(
             obj=obj,
@@ -401,33 +442,102 @@ class PepDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     class Meta:
         model = Pep
         fields = (
-            'id', 'fullname', 'fullname_eng', 'fullname_transcriptions_eng', 'last_job_title',
-            'last_job_title_eng', 'last_employer', 'last_employer_eng', 'is_pep', 'pep_type',
-            'pep_type_eng', 'info', 'info_eng', 'sanctions', 'sanctions_eng',
-            'criminal_record', 'criminal_record_eng', 'assets_info', 'assets_info_eng',
-            'criminal_proceedings', 'criminal_proceedings_eng', 'wanted', 'wanted_eng',
-            'date_of_birth', 'place_of_birth', 'place_of_birth_eng', 'is_dead',
-            'termination_date', 'reason_of_termination', 'reason_of_termination_eng',
-            'to_person_links', 'from_person_links', 'related_companies', 'check_companies', 'created_at',
-            'updated_at'
+            'id', 'first_name', 'last_name', 'middle_name', 'fullname',
+            'fullname_transcriptions_eng', 'last_job_title', 'last_employer',
+            'is_pep', 'pep_type', 'info', 'sanctions', 'criminal_record', 'assets_info',
+            'criminal_proceedings', 'wanted', 'date_of_birth', 'place_of_birth', 'is_dead',
+            'termination_date', 'reason_of_termination', 'to_person_links', 'from_person_links',
+            'related_companies', 'check_companies', 'created_at', 'updated_at',
+        )
+
+
+class FromRelatedPersonListSerializer(serializers.ModelSerializer):
+    category_display = serializers.CharField(source='get_category_display',
+                                             help_text=RelatedPersonsLink._meta.get_field('category').help_text)
+
+    id = serializers.IntegerField(source='to_person.id',
+                                  help_text='DataOcean\'s internal unique identifier of the object (PEP).')
+    fullname = serializers.CharField(source='to_person.fullname', help_text=Pep._meta.get_field('fullname').help_text)
+    pep_type = serializers.CharField(source='to_person.get_pep_type_display',
+                                     help_text=Pep._meta.get_field('pep_type').help_text)
+
+    class Meta:
+        model = RelatedPersonsLink
+        fields = (
+            'id',
+            'fullname',
+            'pep_type',
+            'to_person_relationship_type',
+            'category_display',
+        )
+
+
+class ToRelatedPersonListSerializer(serializers.ModelSerializer):
+    category_display = serializers.CharField(source='get_category_display',
+                                             help_text=RelatedPersonsLink._meta.get_field('category').help_text)
+
+    id = serializers.IntegerField(source='from_person.id',
+                                  help_text='DataOcean\'s internal unique identifier of the object (PEP).')
+    fullname = serializers.CharField(source='from_person.fullname', help_text=Pep._meta.get_field('fullname').help_text)
+    pep_type = serializers.CharField(source='from_person.get_pep_type_display',
+                                     help_text=Pep._meta.get_field('pep_type').help_text)
+
+    class Meta:
+        model = RelatedPersonsLink
+        fields = (
+            'id',
+            'fullname',
+            'pep_type',
+            'from_person_relationship_type',
+            'category_display',
         )
 
 
 class PepListSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
-    related_persons = PepShortSerializer(many=True)
-    related_companies = PepLinkWithCompanySerializer(many=True)
-    pep_type = serializers.CharField(source='get_pep_type_display')
-    reason_of_termination = serializers.CharField(source='get_reason_of_termination_display')
+    # related_persons = PepShortSerializer(many=True)
+    to_person_links = ToRelatedPersonListSerializer(many=True,
+                                                    help_text=RelatedPersonsLink._meta.get_field('to_person').help_text)
+    from_person_links = FromRelatedPersonListSerializer(
+        many=True,
+        help_text=RelatedPersonsLink._meta.get_field('from_person').help_text
+    )
+    related_companies = PepLinkWithCompanySerializer(many=True,
+                                                     help_text='Companies related to personal. Connection established '
+                                                               'by Anti-Corruption Action Center.')
+
+    pep_type = serializers.CharField(source='get_pep_type_display', help_text=Pep._meta.get_field('pep_type').help_text)
+    reason_of_termination = serializers.CharField(source='get_reason_of_termination_display',
+                                                  help_text=Pep._meta.get_field('reason_of_termination').help_text)
+    id = serializers.IntegerField(help_text='DataOcean\'s internal unique identifier of the object (PEP).')
 
     class Meta:
         model = Pep
         fields = (
-            'id', 'fullname', 'fullname_eng', 'fullname_transcriptions_eng', 'last_job_title',
-            'last_job_title_eng', 'last_employer', 'last_employer_eng', 'is_pep', 'pep_type',
-            'pep_type_eng', 'info', 'info_eng', 'sanctions', 'sanctions_eng',
-            'criminal_record', 'criminal_record_eng', 'assets_info', 'assets_info_eng',
-            'criminal_proceedings', 'criminal_proceedings_eng', 'wanted', 'wanted_eng',
-            'date_of_birth', 'place_of_birth', 'place_of_birth_eng', 'is_dead',
-            'termination_date', 'reason_of_termination', 'reason_of_termination_eng',
-            'related_persons', 'related_companies', 'created_at', 'updated_at',
+            'id', 'first_name', 'last_name', 'middle_name', 'fullname',
+            'fullname_transcriptions_eng', 'last_job_title', 'last_employer',
+            'is_pep', 'pep_type', 'info', 'sanctions', 'criminal_record', 'assets_info',
+            'criminal_proceedings', 'wanted', 'date_of_birth', 'place_of_birth', 'is_dead',
+            'termination_date', 'reason_of_termination', 'from_person_links', 'to_person_links',
+            'related_companies', 'created_at', 'updated_at',
         )
+
+# class PepListFreemiumSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
+#     pep_type = serializers.CharField(
+#     source='get_pep_type_display',
+#     help_text='Type of politically exposed person. Can be national politically exposed person, '
+#               'foreign politically exposed person, politically exposed person, having '
+#               'political functions in international organization, associated person or family member.'
+#     )
+#
+#     class Meta:
+#         model = Pep
+#         fields = (
+#             'id',
+#             'fullname',
+#             'fullname_transcriptions_eng'
+#             'is_pep',
+#             'pep_type',
+#             'date_of_birth',
+#             'created_at',
+#             'updated_at',
+#         )

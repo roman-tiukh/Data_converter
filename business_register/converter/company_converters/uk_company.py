@@ -1,5 +1,4 @@
 import logging
-import time
 from csv import DictReader
 
 import requests
@@ -11,7 +10,6 @@ from business_register.converter.company_converters.company import CompanyConver
 from business_register.models.company_models import Company
 from data_ocean.downloader import Downloader
 from data_ocean.utils import format_date_to_yymmdd, to_lower_string_if_exists
-from location_register.converter.address import AddressConverter
 
 # Standard instance of a logger with __name__
 logger = logging.getLogger(__name__)
@@ -112,25 +110,29 @@ class UkCompanyDownloader(Downloader):
     def update(self):
         logger.info(f'{self.reg_name}: Update started...')
 
-        self.log_init()
+        self.report_init()
         self.download()
 
-        self.log_obj.update_start = timezone.now()
-        self.log_obj.save()
+        self.report.update_start = timezone.now()
+        self.report.save()
 
         logger.info(f'{self.reg_name}: save_to_db({self.file_path}) started ...')
         UkCompanyConverter().save_to_db(self.file_path)
         logger.info(f'{self.reg_name}: save_to_db({self.file_path}) finished successfully.')
 
-        self.log_obj.update_finish = timezone.now()
-        self.log_obj.update_status = True
-        self.log_obj.save()
+        self.report.update_finish = timezone.now()
+        self.report.update_status = True
+        self.report.save()
+
+        self.vacuum_analyze(table_list=['business_register_company', ])
 
         self.remove_file()
 
-        self.vacuum_analyze(table_list=['business_register_company', ])
         new_total_records = Company.objects.filter(source=Company.GREAT_BRITAIN_REGISTER).count()
-        self.update_field(settings.UK_COMPANY_REGISTER_LIST, 'total_records', new_total_records)
+        self.update_register_field(settings.UK_COMPANY_REGISTER_LIST, 'total_records', new_total_records)
         logger.info(f'{self.reg_name}: Update total records finished successfully.')
+
+        self.measure_company_changes(Company.GREAT_BRITAIN_REGISTER)
+        logger.info(f'{self.reg_name}: Report created successfully.')
 
         logger.info(f'{self.reg_name}: Update finished successfully.')

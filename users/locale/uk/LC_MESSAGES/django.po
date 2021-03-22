@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-02-02 12:09+0000\n"
+"POT-Creation-Date: 2021-03-11 06:57+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,15 +21,23 @@ msgstr ""
 "100 > 14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || "
 "(n % 100 >=11 && n % 100 <=14 )) ? 2: 3);\n"
 
-#: users/emails.py:13
+#: users/admin.py:62
+msgid "It cannot be longer than the duration of the tariff plan"
+msgstr "Не може бути більше ніж тривалість тарифного плану"
+
+#: users/admin.py:64
+msgid "Must be later than the current day"
+msgstr "Має бути більше ніж поточний день"
+
+#: users/emails.py:10
 msgid "Confirmation of registration in Data Ocean"
 msgstr "Підтвердження реєстрації у Data Ocean"
 
-#: users/emails.py:25
+#: users/emails.py:22
 msgid "Welcome to Data Ocean!"
 msgstr "Вітаємо у Data Ocean!"
 
-#: users/emails.py:38
+#: users/emails.py:34
 msgid "Password reset"
 msgstr "Скидання паролю"
 
@@ -117,59 +125,75 @@ msgstr "Пароль було скинуто з новим паролем."
 msgid "New password has been saved."
 msgstr "Новий пароль збережено."
 
-#: users/models.py:22
+#: users/models.py:23
 msgid "The Email must be set"
 msgstr "Електронна пошта повинна бути вказана"
 
-#: users/models.py:37
+#: users/models.py:38
 msgid "Superuser must have is_staff=True."
 msgstr "У суперкористувача повинно бути встановлено is_staff=True."
 
-#: users/models.py:39
+#: users/models.py:40
 msgid "Superuser must have is_superuser=True."
 msgstr "У суперкористувача повинно бути встановлено is_superuser=True."
 
-#: users/models.py:45 users/models.py:97
+#: users/models.py:57 users/models.py:119
 msgid "email address"
 msgstr "адреса електронної пошти"
 
-#: users/models.py:50 users/models.py:102
+#: users/models.py:62 users/models.py:124
 msgid "language"
 msgstr "мова"
 
-#: users/models.py:98
+#: users/models.py:103
+msgid "You have not paid the invoice"
+msgstr "У Вас не сплачений рахунок"
+
+#: users/models.py:120
 msgid "password"
 msgstr "пароль"
 
-#: users/models.py:99
+#: users/models.py:121
 msgid "first name"
 msgstr "ім'я"
 
-#: users/models.py:100
+#: users/models.py:122
 msgid "last name"
 msgstr "прізвище"
 
-#: users/models.py:108
+#: users/models.py:130
 msgid "expire at"
 msgstr "діє до"
 
-#: users/models.py:138
-msgid "Notification"
-msgstr "Сповіщення"
+#: users/models.py:146
+msgid "question"
+msgstr "запитання"
 
-#: users/models.py:139
-msgid "Notifications"
-msgstr "Сповіщення"
+#: users/models.py:147
+msgid "questions"
+msgstr "запитання"
 
-#: users/serializers.py:45
+#: users/models.py:164
+#, fuzzy
+#| msgid "Notification"
+msgid "notification"
+msgstr "сповіщення"
+
+#: users/models.py:165
+#, fuzzy
+#| msgid "Notifications"
+msgid "notifications"
+msgstr "сповіщення"
+
+#: users/serializers.py:54
 msgid "First Name"
 msgstr "Ім'я"
 
-#: users/serializers.py:46
+#: users/serializers.py:55
 msgid "Last Name"
 msgstr "Прізвище"
 
-#: users/serializers.py:51
+#: users/serializers.py:60
 msgid "Your password can’t be too similar to"
 msgstr "Ваш пароль не може бути надто схожим на"
 
@@ -220,6 +244,14 @@ msgstr "Ви замовили скидання пароля у системі Da
 msgid "Reset password"
 msgstr "Скинути пароль"
 
+#: users/validators.py:7
+msgid "Only alphanumeric characters, digits, and '-. are allowed"
+msgstr "Дозволено лише літери, цифри та символи'-. "
+
+#: users/validators.py:14
+msgid "No more than 2 identical symbols in a row are allowed"
+msgstr "Допускається не більше 2 однакових символів поспіль"
+
 #: users/views.py:55
 msgid "User with this email is already exists"
 msgstr "Користувач з цією електронною поштою вже існує"
@@ -232,6 +264,10 @@ msgstr "Посилання на підтвердження пошкоджено.
 msgid "Confirmation link is expired."
 msgstr "Дія посилання на підтвердження закінчилась."
 
-#: users/views.py:145 users/views.py:151
+#: users/views.py:114
+msgid "The link is invalid, the email address was confirmed earlier"
+msgstr "Посилання недійсне, електронна адреса була підтверджена раніше"
+
+#: users/views.py:150 users/views.py:156
 msgid "Email not sent. Try again later."
 msgstr "Лист на електронну пошту не надіслано. Спробуйте ще раз пізніше."

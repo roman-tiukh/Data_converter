@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-02-02 12:09+0000\n"
+"POT-Creation-Date: 2021-03-11 06:57+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,27 +21,101 @@ msgstr ""
 "100 > 14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || "
 "(n % 100 >=11 && n % 100 <=14 )) ? 2: 3);\n"
 
+#: data_ocean/filters.py:18
+msgid "is invalid request parameter. Could be true, false, 1, 0"
+msgstr ""
+"є некоректним параметром для булєвого запиту. Може бути true, false, 1, 0"
+
+#: data_ocean/models.py:56 data_ocean/models.py:92
+msgid "status"
+msgstr "статус"
+
 #: data_ocean/models.py:64
+msgid "registration authority"
+msgstr "орган реєстрації"
+
+#: data_ocean/models.py:71
+msgid "taxpayer type"
+msgstr "тип платника податків"
+
+#: data_ocean/models.py:79
 msgid "Relevant"
 msgstr "Актуальний"
 
-#: data_ocean/models.py:65
+#: data_ocean/models.py:80
 msgid "Outdated"
 msgstr "Дані застарілі"
 
-#: data_ocean/models.py:66
+#: data_ocean/models.py:81
 msgid "Not supported"
 msgstr "Не підтримується"
 
-#: data_ocean/templates/data_ocean/emails/_base.html:23
+#: data_ocean/models.py:83
+msgid "name"
+msgstr "назва"
+
+#: data_ocean/models.py:85
+msgid "source"
+msgstr "джерело даних"
+
+#: data_ocean/models.py:86
+msgid "source ID"
+msgstr "ID у джерелі даних"
+
+#: data_ocean/models.py:87
+msgid "source url"
+msgstr "url джерела даних"
+
+#: data_ocean/models.py:88
+msgid "source API"
+msgstr "API джерела даних"
+
+#: data_ocean/models.py:89
+msgid "API list"
+msgstr "API списку"
+
+#: data_ocean/models.py:90
+msgid "API detail"
+msgstr "API об'єкта"
+
+#: data_ocean/models.py:91
+msgid "total records"
+msgstr "кількість записів"
+
+#: data_ocean/models.py:97
+msgid "dataset"
+msgstr "набір даних"
+
+#: data_ocean/models.py:98
+msgid "datasets"
+msgstr "набори даних"
+
+#: data_ocean/models.py:136
+msgid "data update report"
+msgstr "звіт про оновлення даних"
+
+#: data_ocean/models.py:137
+msgid "data update reports"
+msgstr "звіти про оновлення даних"
+
+#: data_ocean/templates/admin/input_filter.html:3
+#, python-format
+msgid "By %(filter_title)s"
+msgstr "За %(filter_title)s"
+
+#: data_ocean/templates/admin/input_filter.html:18
+msgid "Remove"
+msgstr "Видалити"
+
+#: data_ocean/templates/data_ocean/emails/_base.html:24
 msgid "Regards"
 msgstr "З повагою"
 
-#: data_ocean/templates/data_ocean/emails/_base.html:47
+#: data_ocean/templates/data_ocean/emails/_base.html:48
 msgid "go to website"
 msgstr "Перейти на сайт"
 
-#: data_ocean/templates/data_ocean/emails/_base.html:51
+#: data_ocean/templates/data_ocean/emails/_base.html:52
 msgid "All rights reserved"
 msgstr "Всі права захищені"
 

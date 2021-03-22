@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.translation import ugettext_lazy as _
 from simple_history.models import HistoricalRecords
 
 from business_register.models.company_models import Company, Founder
@@ -13,12 +14,13 @@ class Pep(DataOceanModel):
     LEGISLATION_CHANGED = 'legislation changed'
     COMPANY_STATUS_CHANGED = 'company status changed'
     REASONS = (
-        (DIED, 'Помер'),
-        (RESIGNED, 'Звільнився або закінчилися повноваження'),
-        (LINKED_PEP_DIED, "Пов'язана особа або член сім'ї-публічний діяч помер"),
-        (LINKED_PEP_RESIGNED, "Пов'язана особа або член сім'ї-публічний діяч припинив ним бути"),
-        (LEGISLATION_CHANGED, 'Змінилося законодавство, що визначає статус публічного діяча'),
-        (COMPANY_STATUS_CHANGED, 'Змінилася форма власності компанії, посада в який надавала статус публічного діяча'),
+        (DIED, _('Is dead')),
+        (RESIGNED, _('Resigned or term ended')),
+        (LINKED_PEP_DIED, _("Associated PEP is dead")),
+        (LINKED_PEP_RESIGNED, _("Associated person is no more PEP")),
+        (LEGISLATION_CHANGED, _('Legislation was changed')),
+        (COMPANY_STATUS_CHANGED,
+         _('Company is no more state')),
     )
     NATIONAL_PEP = 'national PEP'
     FOREIGN_PEP = 'foreign PEP'
@@ -26,56 +28,113 @@ class Pep(DataOceanModel):
     PEP_ASSOCIATED_PERSON = 'associated person with PEP'
     PEP_FAMILY_MEMBER = "member of PEP`s family"
     TYPES = (
-        (NATIONAL_PEP, 'Національний публічний діяч'),
-        (FOREIGN_PEP, 'Іноземний публічний діяч'),
-        (PEP_FROM_INTERNATIONAL_ORGANISATION, 'Діяч, що виконує політичні функції у міжнародній організації'),
-        (PEP_ASSOCIATED_PERSON, "Пов'язана особа"),
-        (PEP_FAMILY_MEMBER, "Член сім'ї"),
+        (NATIONAL_PEP, _('National politically exposed person')),
+        (FOREIGN_PEP, _('Foreign politically exposed person')),
+        (PEP_FROM_INTERNATIONAL_ORGANISATION,
+         _('Politically exposed person, having political functions in international organization')),
+        (PEP_ASSOCIATED_PERSON, _("Associated person")),
+        (PEP_FAMILY_MEMBER, _("Family member")),
     )
 
     code = models.CharField(max_length=15, unique=True, db_index=True)
-    first_name = models.CharField("ім'я", max_length=20)
-    middle_name = models.CharField('по батькові', max_length=25)
-    last_name = models.CharField('прізвище', max_length=30)
-    fullname = models.CharField("повне ім'я", max_length=75, db_index=True)
-    fullname_eng = models.CharField("повне ім'я англійською", max_length=75, db_index=True)
-    fullname_transcriptions_eng = models.TextField('варіанти написання повного імені англійською')
-    last_job_title = models.CharField('остання посада', max_length=340, null=True)
-    last_job_title_eng = models.CharField('остання посада англійською', max_length=340, null=True)
-    last_employer = models.CharField('останнє місце роботи', max_length=512, null=True)
-    last_employer_eng = models.CharField('останнє місце роботи англійською', max_length=512,
-                                         null=True)
-    is_pep = models.BooleanField('є публічним діячем', default=True)
-    related_persons = models.ManyToManyField('self', "пов'язані особи",
+    first_name = models.CharField(_('first name'), max_length=20, help_text='First name of PEP in Ukrainian')
+    middle_name = models.CharField(_('middle name'), max_length=25, help_text='Middle name of PEP in Ukrainian')
+    last_name = models.CharField(_('surname'), max_length=30, help_text='Last name of PEP in Ukrainian')
+    fullname = models.CharField(
+        _("full name"),
+        max_length=75,
+        db_index=True,
+        help_text='Full name "last name first name middle name" in Ukrainian.'
+    )
+    fullname_transcriptions_eng = models.TextField(
+        _('options for writing the full name'),
+        db_index=True,
+        help_text='Full name in English transcription.'
+    )
+    last_job_title = models.CharField(
+        _('last position'),
+        max_length=340,
+        null=True,
+        db_index=True,
+        help_text='Title of the last job in Ukrainian.'
+    )
+    last_employer = models.CharField(
+        _('last office'),
+        max_length=512,
+        null=True, db_index=True,
+        help_text='Last employer in Ukrainian.'
+    )
+    is_pep = models.BooleanField(
+        _('is pep'),
+        default=True,
+        help_text='Boolean type. Can be true or false. True - person is politically exposed '
+                  'person, false - person is not politically exposed person.'
+    )
+    related_persons = models.ManyToManyField('self', verbose_name=_("associated persons"),
                                              through='RelatedPersonsLink')
-    pep_type = models.CharField('тип публічного діяча', choices=TYPES, max_length=60, null=True, blank=True)
-    pep_type_eng = models.CharField('тип публічного діяча англійською', max_length=60, null=True)
-    info = models.TextField('додаткова інформація', null=True)
-    info_eng = models.TextField('додаткова інформація англійською', null=True)
-    sanctions = models.TextField('відомі санкції проти особи', null=True)
-    sanctions_eng = models.TextField('відомі санкції проти особи англійською', null=True)
-    criminal_record = models.TextField('відомі вироки щодо особи', null=True)
-    criminal_record_eng = models.TextField('відомі вироки щодо особи англійською', null=True)
-    assets_info = models.TextField('дані про активи', null=True)
-    assets_info_eng = models.TextField('дані про активи англійською', null=True)
-    criminal_proceedings = models.TextField('відомі кримінальні провадження щодо особи', null=True)
-    criminal_proceedings_eng = models.TextField('відомі кримінальні провадження щодо особи англійською',
-                                                null=True)
-    wanted = models.TextField('перебування в розшуку', null=True)
-    wanted_eng = models.TextField('перебування в розшуку англійською', null=True)
-    date_of_birth = models.CharField('дата народження', max_length=10, null=True)
-    place_of_birth = models.CharField('місце народження', max_length=100, null=True)
-    place_of_birth_eng = models.CharField('місце народження англійською', max_length=100,
-                                          null=True)
-
-    is_dead = models.BooleanField('помер', default=False)
-    termination_date = models.CharField('дата припинення статусу публічного діяча', max_length=10,
-                                        null=True)
-    reason_of_termination = models.CharField('причина припинення статусу публічного діяча',
-                                             choices=REASONS, max_length=125, null=True, blank=True)
-    reason_of_termination_eng = models.CharField('причина припинення статусу публічного діяча англійською',
-                                                 max_length=125, null=True)
-    source_id = models.PositiveIntegerField("id from original ANTAC`s DB", unique=True,
+    pep_type = models.CharField(
+        _('type'),
+        choices=TYPES,
+        max_length=60,
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text='Type of politically exposed person. Can be national politically exposed '
+                  'person, foreign politically exposed person,  politically exposed person,'
+                  ' having political functions in international organization, associated '
+                  'person or family member.')
+    info = models.TextField(_('additional info'), null=True, help_text='Additional info about pep.')
+    sanctions = models.TextField(
+        _('known sanctions against the person'),
+        null=True,
+        help_text='Known sanctions against the person. If its is null, the person has no sanctions against him.'
+    )
+    criminal_record = models.TextField(
+        _('known sentences against the person'),
+        null=True,
+        help_text='Existing criminal proceeding. If its is null, the person has no sentences against him.'
+    )
+    assets_info = models.TextField(_('assets info'), null=True, help_text='Info about person`s assets.')
+    criminal_proceedings = models.TextField(
+        _('known criminal proceedings against the person'),
+        null=True,
+        help_text='Known criminal proceedings against the person. If its is null, the person has no criminal '
+                  'proceedings against him.'
+    )
+    wanted = models.TextField(
+        _('wanted'),
+        null=True,
+        help_text='Information on being wanted. If its null, the person is not on the wanted list.'
+    )
+    date_of_birth = models.CharField(
+        _('date of birth'),
+        max_length=10,
+        null=True,
+        help_text='Person`s date of birth in YYYY-MM-DD format.'
+    )
+    place_of_birth = models.CharField(
+        _('place of birth'),
+        max_length=100,
+        null=True,
+        help_text='The name of the settlement where the person was born.'
+    )
+    is_dead = models.BooleanField(
+        _('is_dead'),
+        default=False,
+        help_text='Boolean type. Can be true or false. True - person is dead, false - person is alive.'
+    )
+    termination_date = models.CharField(_('PEP status termination date '), max_length=10, null=True,
+                                        help_text='PEP status termination date in YYYY-MM-DD format.')
+    reason_of_termination = models.CharField(
+        _('reason of termination'),
+        choices=REASONS,
+        max_length=125,
+        null=True,
+        blank=True,
+        help_text='PEP status reason of termination. Can be "Is dead", "Resigned or term ended", "Associated PEP is'
+                  ' dead", "Legislation was changed", "Company is no more state" or null.'
+    )
+    source_id = models.PositiveIntegerField(_("id from ANTACs DB"), unique=True,
                                             null=True, blank=True)
     history = HistoricalRecords(excluded_fields=['url', 'code'])
 
@@ -95,48 +154,16 @@ class Pep(DataOceanModel):
         return possibly_founded_companies
 
     class Meta:
-        verbose_name = 'публічний діяч'
+        indexes = [
+            models.Index(fields=['fullname', 'date_of_birth']),
+            models.Index(fields=['updated_at']),
+        ]
+        verbose_name = _('politically exposed person')
+        verbose_name_plural = _('politically exposed persons')
         ordering = ['id']
 
     def __str__(self):
         return self.fullname
-
-
-class PepRelatedCountry(DataOceanModel):
-    pep = models.ForeignKey(Pep, on_delete=models.CASCADE, related_name='related_countries',
-                            verbose_name="пов'язана з публічним діячем")
-    name = models.CharField('назва', max_length=50, null=True)
-    name_eng = models.CharField('назва англійською', max_length=50, null=True)
-    relationship_type = models.CharField("тип зв'язку із публічним діячем", max_length=60,
-                                         null=True)
-
-    class Meta:
-        verbose_name = "пов'язана з публічним діячем країна"
-        ordering = ['id']
-
-
-class PepDeclaration(DataOceanModel):
-    pep = models.ForeignKey(Pep, on_delete=models.CASCADE, related_name='declarations',
-                            verbose_name="декларації публічного діяча")
-    year = models.SmallIntegerField('рік декларування', null=True)
-    income = models.FloatField('задекларований дохід за рік', null=True)
-    family_income = models.FloatField('задекларований дохід родини за рік', null=True)
-    job_title = models.CharField('посада під час декларування', max_length=200, null=True)
-    job_title_eng = models.CharField('посада під час декларування англійською', max_length=200,
-                                     null=True)
-    employer = models.CharField('назва місця роботи під час декларування', max_length=200, null=True)
-    employer_eng = models.CharField('назва місця роботи під час декларування англійською',
-                                    max_length=200, null=True)
-    url = models.URLField('посилання на декларацію', max_length=512)
-    region = models.CharField('регіон декларування', max_length=100, null=True)
-    region_eng = models.CharField('регіон декларування англійською', max_length=100, null=True)
-
-    class Meta:
-        verbose_name = 'декларація публічного діяча'
-        ordering = ['id']
-
-    def __str__(self):
-        return f"декларація публічного діяча {self.pep.fullname} за {self.year} рік"
 
 
 class RelatedPersonsLink(DataOceanModel):
@@ -144,60 +171,74 @@ class RelatedPersonsLink(DataOceanModel):
     BUSINESS = 'business'
     PERSONAL = 'personal'
     CATEGORIES = (
-        (FAMILY, 'родина'),
-        (BUSINESS, 'бізнес'),
-        (PERSONAL, "персональний зв'язок"),
+        (FAMILY, _('Family')),
+        (BUSINESS, _('Business')),
+        (PERSONAL, _('Personal')),
     )
 
     from_person = models.ForeignKey(
         Pep, on_delete=models.CASCADE,
-        verbose_name="пов'язана особа",
-        related_name='from_person_links'
+        verbose_name=_('associated person'),
+        related_name='from_person_links',
+        help_text='From which person the connection is established.'
     )
     to_person = models.ForeignKey(
         Pep, on_delete=models.CASCADE,
-        verbose_name="інша пов'язана особа",
-        related_name='to_person_links'
+        verbose_name=_("another associated person"),
+        related_name='to_person_links',
+        help_text='With what person the connection is established.'
     )
     from_person_relationship_type = models.CharField(
-        "тип зв'язку першої особи із іншою",
+        _("connection`s type"),
         max_length=90,
         null=True,
+        help_text='The type of relationship with a related person.'
     )
     to_person_relationship_type = models.CharField(
-        "тип зв'язку іншої особи із першою",
+        _("another person`s connection`s type"),
         max_length=90,
         null=True,
+        help_text='The type of relationship with a related person.'
     )
     category = models.CharField(
-        "категорія зв'язку між особами",
+        _("connection`s category"),
         choices=CATEGORIES,
         max_length=20,
         null=True,
-        blank=True
+        blank=True,
+        help_text='The category of the relationship with the related person. Can be: family, business, personal.'
     )
     start_date = models.CharField(
-        "дата виникнення зв'язку",
+        _("connection`s start date"),
         max_length=12,
-        null=True
+        null=True,
+        help_text='Date of the beginning of the relationship.'
     )
     confirmation_date = models.CharField(
-        "дата підтвердження зв'язку",
+        _("connection`s confirmation date"),
         max_length=12,
-        null=True
+        null=True,
+        help_text='Date of confirmation of connection in the "Anti-Corruption Action Center" database.'
     )
     end_date = models.CharField(
-        "дата припинення зв'язку",
+        _("connection`s end date"),
         max_length=12,
-        null=True
+        null=True,
+        help_text='The date the relationship ends.'
     )
-
-    class Meta:
-        verbose_name = "пов'язана з публічним діячем особа"
-        ordering = ['id']
+    source_id = models.PositiveIntegerField(
+        _("id from ANTACs DB"),
+        unique=True,
+        null=True,
+        default=None)
 
     def __str__(self):
-        return self.person.fullname
+        return f"connection of {self.from_person.fullname} with {self.to_person.fullname}"
+
+    class Meta:
+        verbose_name = _("connection with another PEP")
+        verbose_name_plural = _("connections with PEPs")
+        ordering = ['id']
 
 
 class CompanyLinkWithPep(DataOceanModel):
@@ -207,38 +248,41 @@ class CompanyLinkWithPep(DataOceanModel):
     MANAGER = 'manager'
     OTHER = 'other'
     CATEGORIES = (
-        (BANK_CUSTOMER, 'Клієнт банку'),
-        (OWNER, 'Власник'),
-        (BY_POSITION, 'За позицією'),
-        (MANAGER, 'Керівник'),
-        (OTHER, 'Інше'),
+        (BANK_CUSTOMER, _('Bank client')),
+        (OWNER, _('Owner')),
+        (BY_POSITION, _('By position')),
+        (MANAGER, _('Manager')),
+        (OTHER, _('Other')),
     )
 
     company = models.ForeignKey(Company, on_delete=models.CASCADE,
                                 related_name='relationships_with_peps',
-                                verbose_name="пов'язана з публічним діячем компанія")
+                                verbose_name=_("associated with PEP company"),
+                                help_text='The company associated with this person.')
     pep = models.ForeignKey(Pep, on_delete=models.CASCADE,
                             related_name='related_companies',
-                            verbose_name="пов'язаний з компанією публічний діяч")
-    company_name_eng = models.CharField('назва компанії англійською', max_length=500, null=True)
-    company_short_name_eng = models.CharField('скорочена назва компанії англійською',
-                                              max_length=500, null=True)
-    category = models.CharField('категорія', max_length=15, choices=CATEGORIES, null=True, default=None, blank=True)
-    relationship_type = models.CharField("тип зв'язку із публічним діячем", max_length=550,
-                                         null=True)
-    relationship_type_eng = models.CharField("тип зв'язку із публічним діячем англійською",
-                                             max_length=550, null=True)
-    start_date = models.CharField("дата виникнення зв'язку із публічним діячем", max_length=12,
-                                  null=True)
-    end_date = models.CharField("дата припинення зв'язку із публічним діячем", max_length=12,
-                                null=True)
-    confirmation_date = models.CharField("дата підтвердження зв'язку із публічним діячем",
-                                         max_length=12, null=True)
-    is_state_company = models.BooleanField(null=True)
+                            verbose_name=_("associated with company PEP"))
+    category = models.CharField(_("connection`s category"), max_length=15, choices=CATEGORIES, null=True, default=None,
+                                blank=True, help_text='Type of connection between the person and this company '
+                                                      'Can be: bank_customer, owner, manager, by_position, other.')
+    relationship_type = models.CharField(_("connection`s type"), max_length=550, null=True,
+                                         help_text='Type of connection between the person and this company')
+    start_date = models.CharField(_("connection`s start date"), max_length=12, null=True,
+                                  help_text='Date of the beginning of the person\'s connection with the company.')
+    confirmation_date = models.CharField(_("connection`s confirmation date"), max_length=12, null=True,
+                                         help_text='Date of confirmation of connection in the "Anti-Corruption Action '
+                                                   'Center" database.')
+    end_date = models.CharField(_("connection`s end date"), max_length=12, null=True,
+                                help_text='Date of termination of connection between the person and  this company')
+    is_state_company = models.BooleanField(null=True,
+                                           help_text='Boolean type. If its true - the company is state-owned,'
+                                                     'if its false - the company is private.')
+    source_id = models.PositiveIntegerField(_("id from ANTACs DB"), unique=True, null=True, default=None)
 
     class Meta:
-        verbose_name = "зв'язок компанії з публічним діячем"
+        verbose_name = _("company connection with Pep")
+        verbose_name_plural = _("company connections with Peps")
         ordering = ['id']
 
     def __str__(self):
-        return f"зв'язок компанії {self.company.name} з публічним діячем {self.pep.fullname}"
+        return f"connection of {self.company.name} with PEP {self.pep.fullname}"
