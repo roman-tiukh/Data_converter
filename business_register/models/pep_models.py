@@ -133,7 +133,7 @@ class Pep(DataOceanModel):
         blank=True,
         help_text='PEP status reason of termination. Can be "Is dead", "Resigned or term ended", "Associated PEP is'
                   ' dead", "Legislation was changed", "Company is no more state" or null.'
-        )
+    )
     source_id = models.PositiveIntegerField(_("id from ANTACs DB"), unique=True,
                                             null=True, blank=True)
     history = HistoricalRecords(excluded_fields=['url', 'code'])
@@ -226,6 +226,11 @@ class RelatedPersonsLink(DataOceanModel):
         null=True,
         help_text='The date the relationship ends.'
     )
+    source_id = models.PositiveIntegerField(
+        _("id from ANTACs DB"),
+        unique=True,
+        null=True,
+        default=None)
 
     def __str__(self):
         return f"connection of {self.from_person.fullname} with {self.to_person.fullname}"
@@ -269,9 +274,10 @@ class CompanyLinkWithPep(DataOceanModel):
                                                    'Center" database.')
     end_date = models.CharField(_("connection`s end date"), max_length=12, null=True,
                                 help_text='Date of termination of connection between the person and  this company')
-    is_state_company = models.BooleanField(null=True, help_text='Boolean type. If its true - the company is state-owned,'
-                                                                'if its false - the company is private.')
-    source_id = models.IntegerField(unique=True, null=True, default=None)
+    is_state_company = models.BooleanField(null=True,
+                                           help_text='Boolean type. If its true - the company is state-owned,'
+                                                     'if its false - the company is private.')
+    source_id = models.PositiveIntegerField(_("id from ANTACs DB"), unique=True, null=True, default=None)
 
     class Meta:
         verbose_name = _("company connection with Pep")
