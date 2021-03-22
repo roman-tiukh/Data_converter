@@ -426,7 +426,7 @@ class UkrCompanyConverter(CompanyConverter):
                 company_type = self.save_or_get_company_type(company_type, 'uk')
             edrpou = record.xpath('EDRPOU')[0].text
             if not edrpou:
-                self.report.errors += 1
+                self.report.invalid_data += 1
                 continue
             code = name + edrpou
             address = record.xpath('ADDRESS')[0].text
@@ -682,7 +682,7 @@ class UkrCompanyConverter(CompanyConverter):
         for record in records:
             # omitting records without company name or edrpou
             if not record.xpath('NAME')[0].text or not record.xpath('EDRPOU')[0].text:
-                self.report.errors += 1
+                self.report.invalid_data += 1
                 continue
             name = record.xpath('NAME')[0].text.lower()
             short_name = record.xpath('SHORT_NAME')[0].text

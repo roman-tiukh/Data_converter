@@ -251,6 +251,9 @@ class PepConverterFromDB(Converter):
             'source_id',
             'business_register',
             'CompanyLinkWithPep')
+        self.peps_total_records_from_source = 0
+        self.peps_links_total_records_from_source = 0
+        self.peps_companies_total_records_from_source = 0
 
         self.invalid_data_counter = 0
         self.PEP_QUERY = ("""
@@ -701,6 +704,9 @@ class PepConverterFromDB(Converter):
 
     def process(self):
         peps_data, peps_links_data, pep_companies_data = self.get_data_from_source_db()
+        self.peps_total_records_from_source = len(peps_data)
+        self.peps_links_total_records_from_source = len(peps_links_data)
+        self.peps_companies_total_records_from_source = len(pep_companies_data)
         logger.info(f'business_pep: save_or_update_peps started with {len(peps_data)} elements ...')
         self.save_or_update_peps(peps_data)
         logger.info(f'business_pep: save_or_update_peps finished.')
@@ -735,20 +741,40 @@ class PepDownloader(Downloader):
         logger.info(f'{self.reg_name}: process() started ...')
         converter = PepConverterFromDB()
         converter.process()
-        self.report.errors = converter.invalid_data_counter
-        logger.info(f'{self.reg_name}: process() finished successfully.')
-
         self.report.update_finish = timezone.now()
-        self.report.update_status = True
         self.report.save()
 
         self.vacuum_analyze(table_list=['business_register_pep', ])
 
-        new_total_records = Pep.objects.all().count()
-        self.update_register_field(settings.PEP_REGISTER_LIST, 'total_records', new_total_records)
-        logger.info(f'{self.reg_name}: Update total records finished successfully.')
+        self.report.update_status = True
+        peps_total_records = Pep.objects.all().count()
+        if peps_total_records != converter.peps_total_records_from_source:
+            self.report.update_status = False
+            self.report.update_message = (f'Total records of PEP objects from source is '
+                                          f'{converter.peps_total_records_from_source} '
+                                          f'but in our DB it is {peps_total_records}. \n')
+            self.report.save()
+        peps_links_total_records = RelatedPersonsLink.objects.all().count()
+        if peps_links_total_records != converter.peps_links_total_records_from_source:
+            # ToDo: decide should we store historical links
+            pass
+        peps_companies_total_records = CompanyLinkWithPep.objects.all().count()
+        if peps_companies_total_records != converter.peps_companies_total_records_from_source:
+            self.report.update_status = False
+            self.report.update_message += (f'Total records of CompanyLinkWithPep from source is '
+                                           f'{converter.peps_companies_total_records_from_source} '
+                                           f'but in our DB it is {peps_companies_total_records}')
+            self.report.save()
 
+        self.update_register_field(settings.PEP_REGISTER_LIST, 'total_records', peps_total_records)
+        self.report.save()
+
+        self.report.invalid_data = converter.invalid_data_counter
         self.measure_changes('business_register', 'Pep')
+        self.report.save()
         logger.info(f'{self.reg_name}: Report created successfully.')
 
-        logger.info(f'{self.reg_name}: Update total records finished successfully.')
+        if self.report.update_status:
+            logger.info(f'{self.reg_name}: Update finished unsuccessfully')
+        else:
+            logger.info(f'{self.reg_name}: Update finished unsuccessfully. See update_message')
