@@ -732,7 +732,8 @@ class DailyReport(models.Model):
     was_complete_count = models.SmallIntegerField(_('was complete counter'), default=0)
     was_overdue_count = models.SmallIntegerField(_('was overdue counter'), default=0)
 
-    def create_report(self):
+    @classmethod
+    def create_report(cls) -> str:
         should_complete = ''
         should_complete_counter = 0
         was_complete = ''
@@ -755,7 +756,7 @@ class DailyReport(models.Model):
                 was_complete += line
                 was_complete_counter += 1
 
-        self.DailyReport.objects.create(
+        cls.objects.create(
             created_at=timezone.localdate(),
             should_complete_count=should_complete_counter,
             was_complete_count=was_complete_counter,
