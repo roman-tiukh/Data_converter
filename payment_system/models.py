@@ -183,14 +183,14 @@ class Project(DataOceanModel):
         u2p: UserProject = self.user_projects.get(user=user)
         return u2p.status == UserProject.ACTIVE and u2p.role == UserProject.OWNER
 
-    def add_subscription(self, subscription: 'Subscription', **inv):
+    def add_subscription(self, subscription: 'Subscription', Inv=None):
         assert isinstance(subscription, Subscription)
         current_p2s = ProjectSubscription.objects.get(
             project=self,
             status=ProjectSubscription.ACTIVE,
         )
-        if subscription.is_default:
-            raise ValidationError(_('Can\'t add default subscription'))
+        #if subscription.is_default:
+        #    raise ValidationError(_('Can\'t add default subscription'))
 
         if ProjectSubscription.objects.filter(
                 project=self,
@@ -207,8 +207,8 @@ class Project(DataOceanModel):
                 ).exists()
             )
 
-        if (not inv) and any(grace_period_used):
-            raise ValidationError(_('Project have subscription on a grace period, can\'t add new subscription'))
+        #if any(grace_period_used) and :
+        #    raise ValidationError(_('Proj have subscription on a grace period, can\'t add new subscription'))
 
         if current_p2s.subscription == subscription and not current_p2s.subscription.grace_period:
             raise ValidationError(gettext('Project already on {}').format(subscription.name))
@@ -216,7 +216,7 @@ class Project(DataOceanModel):
         if current_p2s.subscription.is_default:
             current_p2s.status = ProjectSubscription.PAST
             current_p2s.save()
-            if not inv:
+            if not Inv:
                 new_p2s = ProjectSubscription.objects.create(
                     project=self,
                     subscription=subscription,
@@ -226,6 +226,7 @@ class Project(DataOceanModel):
                 )
                 Invoice.objects.create(project_subscription=new_p2s)
             else:
+                Invoice.paid_at = timezone.localdate()
                 new_p2s = ProjectSubscription.objects.create(
                     project=self,
                     subscription=subscription,
@@ -233,7 +234,6 @@ class Project(DataOceanModel):
                     start_date=timezone.localdate(),
                     is_grace_period=False,
                 )
-                Invoice.objects.create(project_subscription=new_p2s, paid_at=timezone.localdate())
         else:
             if current_p2s.is_grace_period:
                 raise ValidationError(_('Project have subscription on a grace period, can\'t add new subscription'))
@@ -385,13 +385,20 @@ class Invoice(DataOceanModel):
     def grace_period_end_date(self):
         return self.start_date + timezone.timedelta(days=self.project_subscription.grace_period)
 
+    @property
+    def is_overdue(self):
+        return self.project_subscription.status == ProjectSubscription.PAST and self.project_subscription.is_grace_period
+
     def save(self, *args, **kwargs):
         p2s = self.project_subscription
         if getattr(self, 'id', False):
             invoice_old = Invoice.objects.get(pk=self.pk)
-            if p2s.is_grace_period and invoice_old.is_paid and self.is_paid:
-                p2s.paid_up()
-                self.grace_period_block = False
+            if p2s.is_grace_period and not invoice_old.is_paid and self.is_paid:
+                if self.is_overdue:
+                    p2s.project.add_subscription(subscription=p2s.subscription, Inv=self)
+                else:
+                    p2s.paid_up()
+                    self.grace_period_block = False
                 emails.payment_confirmed(p2s)
             # else:
             #     if self.grace_period_block and not invoice_old.grace_period_block:
@@ -415,10 +422,12 @@ class Invoice(DataOceanModel):
     def get_pdf(self, user=None) -> io.BytesIO:
         if user is None:
             user = self.project_subscription.project.owner
-        if self.grace_period_end_date <= (timezone.now()).date():
-            self.start_date = self.created_at = timezone.localdate()
-            self.end_date = self.grace_period_end_date
+
+        date_now = timezone.localdate()
+        if self.is_overdue and self.start_date <= date_now:
+            self.start_date = date_now
             self.save()
+
 
         with translation.override('uk'):
             html_string = render_to_string('payment_system/invoice.html', {
@@ -583,8 +592,7 @@ class ProjectSubscription(DataOceanModel):
 
     def paid_up(self):
         assert self.is_grace_period
-        if self.is_grace_period == True:
-            self.project.add_subscription(subscription=self.subscription, invoice=self.latest_invoice)
+        self.project.add_subscription(subscription=self.subscription, Inv=self.latest_invoice)
         self.is_grace_period = False
         self.update_expiring_date()
         self.save()
