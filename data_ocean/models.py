@@ -42,7 +42,7 @@ class DataOceanModel(models.Model):
             c.execute('TRUNCATE TABLE "{0}" CASCADE'.format(cls._meta.db_table))
 
     def __str__(self):
-        return self.name
+        return self.name or ''
 
     class Meta:
         abstract = True
