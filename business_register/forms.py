@@ -1,5 +1,6 @@
 from datetime import timedelta
 from django import forms
+from django.utils.translation import ugettext_lazy as _
 
 
 class PepExportForm(forms.Form):
@@ -9,11 +10,11 @@ class PepExportForm(forms.Form):
         updated_at = cleaned_data.get('updated_at', None)
         if updated_at is None or updated_at.start is None or updated_at.stop is None:
             raise forms.ValidationError({
-                'updated_at': ['Period for updated_at is not provided.']
+                'updated_at': [_('Period for updated_at is not provided.')]
             })
         elif not timedelta(days=0) < updated_at.stop - updated_at.start <= timedelta(days=30):
             raise forms.ValidationError({
-                'updated_at': ['Period for updated_at not matches restrictions.']
+                'updated_at': [_('Period for updated_at not matches restrictions.')]
             })
         else:
             return cleaned_data

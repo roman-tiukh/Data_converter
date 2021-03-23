@@ -8,6 +8,9 @@ from openpyxl.utils.cell import get_column_letter
 
 from django.apps import apps
 from django.conf import settings
+from django.utils import translation
+from django.utils.module_loading import import_string
+from django.utils.translation import ugettext_lazy as _
 
 from data_ocean.emails import send_export_url_file_path_message
 from users.models import DataOceanUser
@@ -16,11 +19,10 @@ from users.models import DataOceanUser
 class ExportToXlsx:
 
     @staticmethod
-    def export(params, export_dict, model_name, model_app, filterset_name, filterset_module, user_id):
+    def export(params, export_dict, model_name, model_app, filterset_module, user_id):
         queryset = apps.get_model(model_app, model_name).objects.all()
-        filterset_module = __import__(filterset_module, globals(), locals(), [filterset_name], 0)
-        export_filterset_class = getattr(filterset_module, filterset_name)
-        queryset = export_filterset_class(params,  queryset).qs
+        export_filterset = import_string(filterset_module)
+        queryset = export_filterset(params,  queryset).qs
 
         workbook = Workbook()
         worksheet = workbook.active
@@ -57,8 +59,10 @@ class ExportToXlsx:
         )
         s3.Bucket('pep-xlsx').put_object(Key=export_file_name, Body=data, ACL='public-read')
         export_url = settings.PEP_EXPORT_FOLDER_URL + export_file_name
-        DataOceanUser(id=user_id).notify(
-            'Generation of .xlsx file has ended. You may download the file by link:',
-            export_url
-        )
-        send_export_url_file_path_message(user_id, export_url)
+        user = DataOceanUser.objects.get(id=user_id)
+        with translation.override(user.language):
+            user.notify(
+                _('Generation of .xlsx file has ended. You may download the file by link:'),
+                export_url
+            )
+            send_export_url_file_path_message(user, export_url)

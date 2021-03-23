@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.utils.translation import ugettext_lazy as _
 
 from data_converter.email_utils import send_template_mail
 from data_ocean.models import Report
@@ -16,11 +17,10 @@ def send_reports_mail():
     )
 
 
-def send_export_url_file_path_message(user_id: int, link: str):
-    user = DataOceanUser.objects.get(id=user_id)
+def send_export_url_file_path_message(user: DataOceanUser, link: str):
     send_template_mail(
         to=[user.email],
-        subject='Generation of .xlsx export file completed',
+        subject=_('Generation of .xlsx export file completed'),
         template='data_ocean/emails/export_to_xlsx_completed.html',
         context={
             'user': user,
