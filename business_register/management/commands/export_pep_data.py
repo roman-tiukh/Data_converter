@@ -7,7 +7,7 @@ from django.http import HttpRequest
 from rest_framework.request import Request
 from business_register.models.pep_models import Pep
 from business_register.serializers.company_and_pep_serializers import (
-    PepDetailSerializer,
+    PepDetailWithoutCheckCompaniesSerializer
 )
 from data_converter.file_generators import JSONGenerator, XMLGenerator
 
@@ -17,6 +17,8 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('-f', '--format', type=str, default='xml', nargs='?', choices=['xml', 'json'])
+        parser.add_argument('-l', '--limit', type=int, nargs='?')
+        parser.add_argument('-p', '--pretty', dest='pretty', action='store_true')
 
     def print(self, message, success=False):
         if success:
@@ -26,9 +28,10 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         export_format = options['format']
-
+        pretty = options['pretty']
+        limit = options['limit']
         request = Request(HttpRequest())
-        request._request.GET.setdefault('show_check_companies', 'none')
+        # request._request.GET.setdefault('show_check_companies', 'none')
         # request._request.GET.setdefault('company_relations', 'none')
 
         count = Pep.objects.count()
@@ -39,19 +42,21 @@ class Command(BaseCommand):
             # 'related_companies__company__status',
             # 'related_companies__company__founders',
         )
+        if limit:
+            peps = peps[:limit]
 
         self.print(f'Start generate data in {export_format} format')
         if export_format == 'json':
-            generator = JSONGenerator()
+            generator = JSONGenerator(indent=2 if pretty else None)
         elif export_format == 'xml':
-            generator = XMLGenerator(pretty_print=True)
+            generator = XMLGenerator(pretty_print=pretty)
         else:
             raise ValueError(f'Format not allowed = "{export_format}"')
 
         generator.start()
         i = 1
         for pep in peps.iterator():
-            serializer = PepDetailSerializer(pep, context={'request': request})
+            serializer = PepDetailWithoutCheckCompaniesSerializer(pep, context={'request': request})
             generator.add_list_item(serializer.data)
             if i % 10 == 0:
                 self.stdout.write(f'Processed {i} of {count}', ending='\r')
