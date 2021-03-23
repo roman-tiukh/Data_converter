@@ -1,5 +1,4 @@
 from django.conf import settings
-
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
@@ -9,7 +8,6 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
-
 
 from business_register.filters import PepFilterSet, PepExportFilterSet
 from business_register.models.pep_models import Pep
@@ -48,7 +46,7 @@ class PepViewSet(RegisterViewMixin,
         serializer = self.get_serializer(pep)
         return Response(serializer.data)
 
-    @action(detail=False, url_path='xlsx', filterset_class=PepExportFilterSet)
+    @action(detail=False, url_path='xlsx')
     def export_to_xlsx(self, request):
         filterset = PepExportFilterSet(request.GET, self.get_queryset())
         if not filterset.is_valid():
