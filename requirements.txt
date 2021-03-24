@@ -48,7 +48,6 @@ inflection==0.5.0
 isodate==0.6.0
 isort==4.3.21
 itypes==1.2.0
-jdcal==1.4.1
 Jinja2==2.11.2
 jmespath==0.10.0
 kombu==4.6.10
@@ -58,7 +57,7 @@ MarkupSafe==1.1.1
 mccabe==0.6.1
 num2words==0.5.10
 oauthlib==3.1.0
-openpyxl==3.0.6
+openpyxl==3.0.7
 packaging==20.4
 paramiko==2.7.2
 Pillow==8.1.0

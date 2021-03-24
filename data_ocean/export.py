@@ -40,10 +40,13 @@ class ExportToXlsx:
             cell.font = fonts.Font(b=True)
             cell.fill = PatternFill(bgColor='0033CCCC', fill_type="solid")
             for record in queryset:
-                cell_value = getattr(record, column_properties[0])
+
                 row_num += 1
                 cell = worksheet.cell(row=row_num, column=col_num)
                 cell.alignment = Alignment(vertical='top', wrap_text=True)
+                cell_value = getattr(record, column_properties[0])
+                if isinstance(cell_value, datetime):
+                    cell_value = cell_value.replace(tzinfo=None)
                 cell.value = cell_value
         export_file_name = model + '_{0}.xlsx'.format(datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
         data = BytesIO()
