@@ -46,6 +46,7 @@ class SubscriptionAdmin(PaymentSystemModelAdmin):
         'requests_limit',
         'periodicity',
         'grace_period',
+        'pep_checks',
         'is_custom',
         'is_default',
     )
@@ -66,6 +67,8 @@ class SubscriptionAdmin(PaymentSystemModelAdmin):
         'platform_requests_limit',
         'periodicity',
         'grace_period',
+        'pep_checks',
+        'pep_checks_per_minute',
         'is_custom',
         'is_default',
     )

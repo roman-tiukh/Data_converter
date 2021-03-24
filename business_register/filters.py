@@ -233,5 +233,21 @@ class PepFilterSet(filters.FilterSet):
         fields = {}
 
 
+class PepCheckFilterSet(filters.FilterSet):
+    first_name = filters.CharFilter(lookup_expr='iexact', required=True)
+    last_name = filters.CharFilter(lookup_expr='iexact', required=True)
+    middle_name = filters.CharFilter(lookup_expr='iexact')
+    date_of_birth = filters.CharFilter(
+        lookup_expr='contains',
+        help_text='Filter by date_of_birth, string contains type. '
+                  'Examples: date_of_birth=1964, date_of_birth=1964-02, '
+                  'date_of_birth=1964-02-06'
+    )
+
+    class Meta:
+        model = Pep
+        fields = {}
+
+
 class HistoricalCompanyRelatedFilterSet(filters.FilterSet):
     history_date = filters.DateFromToRangeFilter()
