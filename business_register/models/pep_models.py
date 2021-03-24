@@ -208,21 +208,18 @@ class RelatedPersonsLink(DataOceanModel):
         blank=True,
         help_text='The category of the relationship with the related person. Can be: family, business, personal.'
     )
-    start_date = models.CharField(
+    start_date = models.DateField(
         _("connection`s start date"),
-        max_length=12,
         null=True,
         help_text='Date of the beginning of the relationship.'
     )
-    confirmation_date = models.CharField(
+    confirmation_date = models.DateField(
         _("connection`s confirmation date"),
-        max_length=12,
         null=True,
         help_text='Date of confirmation of connection in the "Anti-Corruption Action Center" database.'
     )
-    end_date = models.CharField(
+    end_date = models.DateField(
         _("connection`s end date"),
-        max_length=12,
         null=True,
         help_text='The date the relationship ends.'
     )
@@ -267,12 +264,12 @@ class CompanyLinkWithPep(DataOceanModel):
                                                       'Can be: bank_customer, owner, manager, by_position, other.')
     relationship_type = models.CharField(_("connection`s type"), max_length=550, null=True,
                                          help_text='Type of connection between the person and this company')
-    start_date = models.CharField(_("connection`s start date"), max_length=12, null=True,
+    start_date = models.DateField(_("connection`s start date"), null=True,
                                   help_text='Date of the beginning of the person\'s connection with the company.')
-    confirmation_date = models.CharField(_("connection`s confirmation date"), max_length=12, null=True,
+    confirmation_date = models.DateField(_("connection`s confirmation date"), null=True,
                                          help_text='Date of confirmation of connection in the "Anti-Corruption Action '
                                                    'Center" database.')
-    end_date = models.CharField(_("connection`s end date"), max_length=12, null=True,
+    end_date = models.DateField(_("connection`s end date"), null=True,
                                 help_text='Date of termination of connection between the person and  this company')
     is_state_company = models.BooleanField(null=True,
                                            help_text='Boolean type. If its true - the company is state-owned,'
