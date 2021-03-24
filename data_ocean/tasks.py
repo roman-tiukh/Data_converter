@@ -15,11 +15,11 @@ def send_report():
 
 
 @shared_task
-def export_to_s3(params, export_dict, model_name, model_app, filterset_module, user_id):
+def export_to_s3(params, export_dict, model_path, filterset_module, user_id):
     print('***************************')
-    print(' Export ' + model_name + ' to S3')
+    print(' Export ' + model_path + ' to S3')
     print('***************************')
 
     from data_ocean.export import ExportToXlsx
 
-    ExportToXlsx.export(params, export_dict, model_name, model_app, filterset_module, user_id)
+    ExportToXlsx.export(params, export_dict, model_path, filterset_module, user_id)

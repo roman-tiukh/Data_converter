@@ -10,7 +10,7 @@ from django.apps import apps
 from django.conf import settings
 from django.utils import translation
 from django.utils.module_loading import import_string
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext
 
 from data_ocean.emails import send_export_url_file_path_message
 from users.models import DataOceanUser
@@ -19,14 +19,15 @@ from users.models import DataOceanUser
 class ExportToXlsx:
 
     @staticmethod
-    def export(params, export_dict, model_name, model_app, filterset_module, user_id):
-        queryset = apps.get_model(model_app, model_name).objects.all()
+    def export(params, export_dict, model_path, filterset_module, user_id):
+        app, model = model_path.split('.')
+        queryset = apps.get_model(app, model).objects.all()
         export_filterset = import_string(filterset_module)
         queryset = export_filterset(params,  queryset).qs
 
         workbook = Workbook()
         worksheet = workbook.active
-        worksheet.title = model_name
+        worksheet.title = model
         worksheet.sheet_properties.tabColor = '0033CCCC'
         worksheet.row_dimensions[1].height = 20
         worksheet.freeze_panes = 'A2'
@@ -44,7 +45,7 @@ class ExportToXlsx:
                 cell = worksheet.cell(row=row_num, column=col_num)
                 cell.alignment = Alignment(vertical='top', wrap_text=True)
                 cell.value = cell_value
-        export_file_name = model_name + '_{0}.xlsx'.format(datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
+        export_file_name = model + '_{0}.xlsx'.format(datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
         data = BytesIO()
         workbook.save(data)
         data = data.getvalue()
@@ -62,7 +63,8 @@ class ExportToXlsx:
         user = DataOceanUser.objects.get(id=user_id)
         with translation.override(user.language):
             user.notify(
-                _('Generation of .xlsx file has ended. You may download the file by link:'),
-                export_url
+                gettext('Generation of .xlsx file has ended. You may download the file by address %(address)s') % {
+                    'address': export_url
+                }
             )
             send_export_url_file_path_message(user, export_url)

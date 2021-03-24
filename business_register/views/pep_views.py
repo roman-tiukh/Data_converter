@@ -64,7 +64,7 @@ class PepViewSet(RegisterViewMixin,
             'Last Employer': ['last_employer', 20]
         }
         from data_ocean.tasks import export_to_s3
-        export_to_s3.delay(request.GET, export_dict, 'Pep', 'business_register',
+        export_to_s3.delay(request.GET, export_dict, 'business_register.Pep',
                            'business_register.filters.PepExportFilterSet', request.user.id)
         from django.utils.translation import ugettext_lazy as _
         return Response(

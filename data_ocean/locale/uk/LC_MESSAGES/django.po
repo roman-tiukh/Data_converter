@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-03-23 19:44+0200\n"
+"POT-Creation-Date: 2021-03-24 14:03+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,13 +21,18 @@ msgstr ""
 "100 > 14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || "
 "(n % 100 >=11 && n % 100 <=14 )) ? 2: 3);\n"
 
-#: emails.py:24
+#: emails.py:23
 msgid "Generation of .xlsx export file completed"
 msgstr "Генерацію .xlsx файла завершено"
 
-#: export.py:62
-msgid "Generation of .xlsx file has ended. You may download the file by link:"
-msgstr "Генерацію .xlsx файла завершено. Скачати файл можна за посиланням:"
+#: export.py:66
+#, python-format
+msgid ""
+"Generation of .xlsx file has ended. You may download the file by address "
+"%(address)s"
+msgstr ""
+"Генерацію .xlsx файла завершено. Ви можете скачати файл за адресою "
+"%(address)s"
 
 #: filters.py:18
 msgid "is invalid request parameter. Could be true, false, 1, 0"
@@ -127,12 +132,12 @@ msgstr "Перейти на сайт"
 msgid "All rights reserved"
 msgstr "Всі права захищені"
 
-#: templates/data_ocean/emails/export_to_xlsx_completed.html:8
-msgid "We have generated the .xlsx file for your request. Now You may"
+#: templates/data_ocean/emails/export_to_xlsx_completed.html:9
+msgid "We have generated the .xlsx file for your request."
 msgstr "Файл формату .xlsx за Вашим запитом сгенеровано."
 
-#: templates/data_ocean/emails/export_to_xlsx_completed.html:12
-msgid "download it"
+#: templates/data_ocean/emails/export_to_xlsx_completed.html:13
+msgid "Download file"
 msgstr "Скачати файл"
 
 #: templates/data_ocean/emails/hi_there.html:3

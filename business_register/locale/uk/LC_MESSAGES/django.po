@@ -31,13 +31,11 @@ msgstr "Пов'язана компанія має код ЄДРПОУ (введ�
 
 #: forms.py:13
 msgid "Period for updated_at is not provided."
-msgstr "Не вказано період виборки даних для поля updated_at (від і до)."
+msgstr "Не вказано період для updated_at."
 
 #: forms.py:17
 msgid "Period for updated_at not matches restrictions."
-msgstr ""
-"Період виборки даних для поля updated_at не відповідає вимогам (не більше 30 "
-"діб)."
+msgstr "Період для updated_at не відповідає вимогам."
 
 #: models/company_models.py:15 models/company_models.py:58
 msgid "charter"
