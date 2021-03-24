@@ -49,6 +49,7 @@ class PepViewSet(RegisterViewMixin,
 
     @action(detail=False, filterset_class=PepCheckFilterSet,
             permission_classes=[PepChecksPermission],
+            filter_backends=[DODjangoFilterBackend],
             serializer_class=PepDetailWithoutCheckCompaniesSerializer)
     @method_decorator(cache_page(settings.CACHE_MIDDLEWARE_SECONDS))
     def check(self, request):
