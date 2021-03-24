@@ -9,12 +9,15 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
 
-from business_register.filters import PepFilterSet, PepExportFilterSet
+from business_register.filters import PepFilterSet, PepExportFilterSet, PepCheckFilterSet
 from business_register.models.pep_models import Pep
 from business_register.permissions import PepSchemaToken
-from business_register.serializers.company_and_pep_serializers import PepListSerializer, PepDetailSerializer
+from business_register.serializers.company_and_pep_serializers import (
+    PepListSerializer, PepDetailSerializer, PepDetailWithoutCheckCompaniesSerializer
+)
 from data_converter.filter import DODjangoFilterBackend
 from data_ocean.views import CachedViewSetMixin, RegisterViewMixin
+from payment_system.permissions import PepChecksPermission
 
 
 @method_decorator(name='retrieve', decorator=swagger_auto_schema(tags=['pep']))
@@ -39,7 +42,7 @@ class PepViewSet(RegisterViewMixin,
             return PepDetailSerializer
         return super().get_serializer_class()
 
-    @action(methods=['get'], detail=True, url_path='source-id', serializer_class=PepDetailSerializer)
+    @action(detail=True, url_path='source-id', serializer_class=PepDetailSerializer)
     @method_decorator(cache_page(settings.CACHE_MIDDLEWARE_SECONDS))
     def retrieve_by_source_id(self, request, pk):
         pep = get_object_or_404(self.get_queryset(), source_id=pk)
@@ -71,3 +74,13 @@ class PepViewSet(RegisterViewMixin,
             {"detail": _("Generation of .xlsx file has begin. Expect an email with downloading link.")},
             status=200
         )
+
+    @action(detail=False, filterset_class=PepCheckFilterSet,
+            permission_classes=[PepChecksPermission],
+            filter_backends=[DODjangoFilterBackend],
+            serializer_class=PepDetailWithoutCheckCompaniesSerializer)
+    @method_decorator(cache_page(settings.CACHE_MIDDLEWARE_SECONDS))
+    def check(self, request):
+        peps = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(peps, many=True)
+        return Response(serializer.data)
