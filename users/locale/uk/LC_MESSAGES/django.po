@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-03-11 06:57+0000\n"
+"POT-Creation-Date: 2021-03-24 12:00+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -124,6 +124,16 @@ msgstr "Пароль було скинуто з новим паролем."
 #: users/lc_messages/uk/rest_auth.py:85
 msgid "New password has been saved."
 msgstr "Новий пароль збережено."
+
+#: users/lc_messages/uk/rest_framework.py:5
+#, python-brace-format
+msgid "Expected available in {wait} second."
+msgstr "Очікується, що буде доступно через {wait} секунду."
+
+#: users/lc_messages/uk/rest_framework.py:9
+#, python-brace-format
+msgid "Expected available in {wait} seconds."
+msgstr "Очікується, що буде доступно через {wait} секунд."
 
 #: users/models.py:23
 msgid "The Email must be set"
