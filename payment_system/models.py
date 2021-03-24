@@ -185,6 +185,7 @@ class Project(DataOceanModel):
 
     def add_subscription(self, subscription: 'Subscription', invoice=None):
         assert isinstance(subscription, Subscription)
+        current_date = timezone.localdate()
         current_p2s = ProjectSubscription.objects.get(
             project=self,
             status=ProjectSubscription.ACTIVE,
@@ -221,17 +222,17 @@ class Project(DataOceanModel):
                     project=self,
                     subscription=subscription,
                     status=ProjectSubscription.ACTIVE,
-                    start_date=timezone.localdate(),
+                    start_date=current_date,
                     is_grace_period=True,
                 )
                 Invoice.objects.create(project_subscription=new_p2s)
             else:
-                Invoice.paid_at = timezone.localdate()
+                Invoice.paid_at = current_date
                 new_p2s = ProjectSubscription.objects.create(
                     project=self,
                     subscription=subscription,
                     status=ProjectSubscription.ACTIVE,
-                    start_date=timezone.localdate(),
+                    start_date=current_date,
                     is_grace_period=False,
                 )
         else:
