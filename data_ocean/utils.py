@@ -93,3 +93,26 @@ def uah2words(value):
         kop = round(kop * 100)
         amount_words = f'{num2words(uah, lang=lang, to="cardinal")} hryvnias {kop:02} kopiyok'
     return amount_words
+
+
+class Timer():
+
+    def __init__(self):
+        self.previous = datetime.datetime.now()
+        self.times_dict = {}
+        self.times_dict['total'] = datetime.datetime.now() - datetime.datetime.now()
+
+    def time_it(self, period_name: str):
+        now = datetime.datetime.now()
+        if period_name in self.times_dict:
+            self.times_dict[period_name] += now - self.previous
+        else:
+            self.times_dict[period_name] = now - self.previous
+        self.times_dict['total'] += now - self.previous
+        self.previous = now
+
+    def print_result(self):
+        print('--------------------------------------------------------')
+        for period_name, value in self.times_dict.items():
+            print(period_name, '    ', value)
+        print('--------------------------------------------------------')
