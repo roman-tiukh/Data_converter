@@ -123,7 +123,7 @@ class Pep(DataOceanModel):
         default=False,
         help_text='Boolean type. Can be true or false. True - person is dead, false - person is alive.'
     )
-    termination_date = models.CharField(_('PEP status termination date '), max_length=10, null=True,
+    termination_date = models.DateField(_('PEP status termination date '), null=True,
                                         help_text='PEP status termination date in YYYY-MM-DD format.')
     reason_of_termination = models.CharField(
         _('reason of termination'),
