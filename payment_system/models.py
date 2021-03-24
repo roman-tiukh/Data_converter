@@ -14,8 +14,6 @@ from sendgrid import Mail, SendGridAPIClient
 from weasyprint import HTML
 
 from data_converter.settings_local import SENDGRID_API_KEY
-from celery import Celery
-from celery.schedules import crontab
 from data_ocean.models import DataOceanModel
 from data_ocean.utils import generate_key
 
@@ -731,9 +729,10 @@ class DailyReport(models.Model):
     should_complete_count = models.SmallIntegerField(_('should complete counter'), default=0)
     was_complete_count = models.SmallIntegerField(_('was complete counter'), default=0)
     was_overdue_count = models.SmallIntegerField(_('was overdue counter'), default=0)
+    #new field - was owerdued grace period
 
     @classmethod
-    def create_report(cls) -> str:
+    def create_report(cls):
         should_complete = ''
         should_complete_counter = 0
         was_complete = ''
@@ -741,23 +740,24 @@ class DailyReport(models.Model):
         was_overdue = ''
         was_overdue_counter = 0
         message_text = ''
-        for one in Invoice.objects.all():
-            email = one.project_subscription.project.owner.email
-            line = str(one.project_subscription) + ' | ' + one.project_name + ' | ' + str(
-                one.id) + ' | ' + email + '<br>'
-            if one.paid_at is None:
-                if one.start_date == timezone.localdate():
+        current_date = timezone.localdate()
+        for invoice in Invoice.objects.all():
+            email = invoice.project_subscription.project.owner.email
+            line = str(invoice.project_subscription) + ' | ' + invoice.project_name + ' | ' + str(
+                invoice.id) + ' | ' + email + '<br>'
+            if invoice.paid_at is None:
+                if invoice.start_date == current_date:
                     should_complete += line
                     should_complete_counter += 1
-                elif one.start_date == (timezone.localdate() - timezone.timedelta(days=1)):
+                elif invoice.start_date == (current_date - timezone.timedelta(days=1)):
                     was_overdue += line
                     was_overdue_counter += 1
-            elif one.start_date == timezone.localdate():
+            elif invoice.start_date == current_date:
                 was_complete += line
                 was_complete_counter += 1
 
         cls.objects.create(
-            created_at=timezone.localdate(),
+            created_at=current_date,
             should_complete_count=should_complete_counter,
             was_complete_count=was_complete_counter,
             was_overdue_count=was_overdue_counter,
