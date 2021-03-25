@@ -2,6 +2,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.db.models import Q
 from django_filters import rest_framework as filters
 
+from business_register.forms import PepExportForm
 from business_register.models.company_models import Company
 from business_register.models.fop_models import Fop
 from business_register.models.pep_models import Pep, CompanyLinkWithPep
@@ -227,6 +228,32 @@ class PepFilterSet(filters.FilterSet):
             'pep_id', flat=True
         )
         return queryset.filter(id__in=peps_id)
+
+    class Meta:
+        model = Pep
+        fields = {}
+
+
+class PepExportFilterSet(filters.FilterSet):
+    updated_at = filters.DateFromToRangeFilter()
+    is_pep = filters.BooleanFilter()
+
+    class Meta:
+        model = Pep
+        fields = {}
+        form = PepExportForm
+
+
+class PepCheckFilterSet(filters.FilterSet):
+    first_name = filters.CharFilter(lookup_expr='iexact', required=True)
+    last_name = filters.CharFilter(lookup_expr='iexact', required=True)
+    middle_name = filters.CharFilter(lookup_expr='iexact')
+    date_of_birth = filters.CharFilter(
+        lookup_expr='contains',
+        help_text='Filter by date_of_birth, string contains type. '
+                  'Examples: date_of_birth=1964, date_of_birth=1964-02, '
+                  'date_of_birth=1964-02-06'
+    )
 
     class Meta:
         model = Pep
