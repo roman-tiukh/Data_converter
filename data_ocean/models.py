@@ -42,7 +42,7 @@ class DataOceanModel(models.Model):
             c.execute('TRUNCATE TABLE "{0}" CASCADE'.format(cls._meta.db_table))
 
     def __str__(self):
-        return self.name
+        return self.name or ''
 
     class Meta:
         abstract = True
@@ -116,12 +116,12 @@ class Report(DataOceanModel):
     update_start = models.DateTimeField(null=True, blank=True)
     update_finish = models.DateTimeField(null=True, blank=True)
     update_status = models.BooleanField(blank=True, default=False)
-    update_message = models.CharField(max_length=255, null=True, blank=True)
+    update_message = models.CharField(max_length=300, null=True, blank=True)
 
     records_added = models.IntegerField(blank=True, default=0)
     records_changed = models.IntegerField(blank=True, default=0)
     records_deleted = models.IntegerField(blank=True, default=0)
-    errors = models.IntegerField(blank=True, default=0)
+    invalid_data = models.IntegerField(blank=True, default=0)
 
     @staticmethod
     def collect_last_day_reports():

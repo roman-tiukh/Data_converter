@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-03-11 14:20+0200\n"
+"POT-Creation-Date: 2021-03-23 17:42+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,25 +21,31 @@ msgstr ""
 "100 > 14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || "
 "(n % 100 >=11 && n % 100 <=14 )) ? 2: 3);\n"
 
-#: business_register/filters.py:161
+#: filters.py:153
 msgid "Options for writing full name"
 msgstr "Варіанти написання прізвища англійською містять"
 
-#: business_register/filters.py:196
+#: filters.py:187
 msgid "Associated company`s number (provide a number)"
 msgstr "Пов'язана компанія має код ЄДРПОУ (введіть код)"
 
-#: business_register/models/company_models.py:15
-#: business_register/models/company_models.py:58
+#: forms.py:13
+msgid "Period for updated_at is not provided."
+msgstr "Не вказано період для updated_at."
+
+#: forms.py:17
+msgid "Period for updated_at not matches restrictions."
+msgstr "Період для updated_at не відповідає вимогам."
+
+#: models/company_models.py:15 models/company_models.py:58
 msgid "charter"
 msgstr "статут"
 
-#: business_register/models/company_models.py:25
-#: business_register/models/company_models.py:45
+#: models/company_models.py:25 models/company_models.py:45
 msgid "company type"
 msgstr "тип компанії"
 
-#: business_register/models/company_models.py:35
+#: models/company_models.py:35
 msgid ""
 "The United State Register of Legal Entities, Individual Entrepreneurs and "
 "Public Organizations of Ukraine"
@@ -47,404 +53,390 @@ msgstr ""
 "Єдиний державний реєстр юридичних осіб, фізичних осіб – підприємців та "
 "громадських формувань України"
 
-#: business_register/models/company_models.py:36
+#: models/company_models.py:36
 msgid "Company House (UK companies` register)"
 msgstr "Реєстр компаній Великобританії (Company House)"
 
-#: business_register/models/company_models.py:37
+#: models/company_models.py:37
 msgid "ANTAC"
 msgstr "ЦПК"
 
-#: business_register/models/company_models.py:41
-#: business_register/models/kved_models.py:47
+#: models/company_models.py:41 models/kved_models.py:51
 msgid "name"
 msgstr "назва"
 
-#: business_register/models/company_models.py:42
+#: models/company_models.py:42
 msgid "short name"
 msgstr "скорочена назва"
 
-#: business_register/models/company_models.py:46
+#: models/company_models.py:46
 msgid "number"
 msgstr "код"
 
-#: business_register/models/company_models.py:48
+#: models/company_models.py:48
 msgid "CEO"
 msgstr "директор"
 
-#: business_register/models/company_models.py:50
+#: models/company_models.py:50
 msgid "share capital"
 msgstr "статутний капітал"
 
-#: business_register/models/company_models.py:52
+#: models/company_models.py:52
 msgid "country"
 msgstr "країна"
 
-#: business_register/models/company_models.py:53
-#: business_register/models/fop_models.py:11
+#: models/company_models.py:53 models/fop_models.py:11
 msgid "address"
 msgstr "адреса"
 
-#: business_register/models/company_models.py:56
-#: business_register/models/fop_models.py:12
+#: models/company_models.py:56 models/fop_models.py:12
 msgid "status"
 msgstr "статус"
 
-#: business_register/models/company_models.py:59
-#: business_register/models/fop_models.py:13
+#: models/company_models.py:59 models/fop_models.py:13
 msgid "registration date"
 msgstr "дата реєстрації"
 
-#: business_register/models/company_models.py:61
-#: business_register/models/company_models.py:192
-#: business_register/models/fop_models.py:14
-#: business_register/models/fop_models.py:62
+#: models/company_models.py:61 models/company_models.py:193
+#: models/fop_models.py:14 models/fop_models.py:62
 msgid "registration info"
 msgstr "дані про реєстрацію"
 
-#: business_register/models/company_models.py:63
-#: business_register/models/fop_models.py:20
+#: models/company_models.py:63 models/fop_models.py:20
 msgid "contacts"
 msgstr "контакти"
 
-#: business_register/models/company_models.py:65
-#: business_register/models/fop_models.py:23
+#: models/company_models.py:65 models/fop_models.py:23
 msgid "registration authority"
 msgstr "орган реєстрації"
 
-#: business_register/models/company_models.py:68
+#: models/company_models.py:68
 msgid "parent company"
 msgstr "материнська компанія"
 
-#: business_register/models/company_models.py:70
-#: business_register/models/pep_models.py:124
+#: models/company_models.py:70 models/pep_models.py:137
+#: models/pep_models.py:230 models/pep_models.py:280
 msgid "id from ANTACs DB"
 msgstr "id з бази даних ЦПК"
 
-#: business_register/models/company_models.py:74
+#: models/company_models.py:75
 msgid "source"
 msgstr "джерело даних"
 
-#: business_register/models/company_models.py:76
-#: business_register/models/fop_models.py:24
+#: models/company_models.py:77 models/fop_models.py:24
 msgid "our code"
 msgstr "наш код"
 
-#: business_register/models/company_models.py:108
+#: models/company_models.py:109
 msgid "company"
 msgstr "компанія/організація"
 
-#: business_register/models/company_models.py:109
+#: models/company_models.py:110
 msgid "companies"
 msgstr "компанії/організації"
 
-#: business_register/models/company_models.py:123
+#: models/company_models.py:124
 msgid "assignee"
 msgstr "правонаступник"
 
-#: business_register/models/company_models.py:139
+#: models/company_models.py:140
 msgid "bankruptcy readjustment"
 msgstr "санація"
 
-#: business_register/models/company_models.py:157
-#: business_register/models/pep_models.py:86
+#: models/company_models.py:158 models/pep_models.py:86
 msgid "additional info"
 msgstr "додаткові дані"
 
-#: business_register/models/company_models.py:168
-#: business_register/models/kved_models.py:51
+#: models/company_models.py:169 models/kved_models.py:55
 msgid "NACE"
 msgstr "КВЕД"
 
-#: business_register/models/company_models.py:226
+#: models/company_models.py:227
 msgid "owner"
 msgstr "власник"
 
-#: business_register/models/company_models.py:234
+#: models/company_models.py:235
 msgid "predecessor"
 msgstr "попередник"
 
-#: business_register/models/company_models.py:254
+#: models/company_models.py:255
 msgid "signer"
 msgstr "має право підпису"
 
-#: business_register/models/company_models.py:272
+#: models/company_models.py:273
 msgid "termination"
 msgstr "ліквідація"
 
-#: business_register/models/fop_models.py:10
-#: business_register/models/pep_models.py:44
+#: models/fop_models.py:10 models/pep_models.py:44
 msgid "full name"
 msgstr "повне ім'я"
 
-#: business_register/models/fop_models.py:16
+#: models/fop_models.py:16
 msgid "termination date"
 msgstr "дата ліквідації"
 
-#: business_register/models/fop_models.py:17
+#: models/fop_models.py:17
 msgid "termination info"
 msgstr "інформація про ліквідацію"
 
-#: business_register/models/fop_models.py:18
+#: models/fop_models.py:18
 msgid "termination cancellation info"
 msgstr "інформація про припинення ліквідації"
 
-#: business_register/models/fop_models.py:32
+#: models/fop_models.py:32
 msgid "entrepreneur"
 msgstr "фізична особа-підприємець"
 
-#: business_register/models/fop_models.py:33
+#: models/fop_models.py:33
 msgid "entrepreneurs"
 msgstr "фізичні особи-підприємці"
 
-#: business_register/models/kved_models.py:11
-#: business_register/models/kved_models.py:43
+#: models/kved_models.py:11 models/kved_models.py:43
 msgid "section"
 msgstr "секція"
 
-#: business_register/models/kved_models.py:23
-#: business_register/models/kved_models.py:44
+#: models/kved_models.py:23 models/kved_models.py:45
 msgid "division"
 msgstr "розділ"
 
-#: business_register/models/kved_models.py:36
-#: business_register/models/kved_models.py:45
+#: models/kved_models.py:36 models/kved_models.py:47
 msgid "group"
 msgstr "група"
 
-#: business_register/models/kved_models.py:46
+#: models/kved_models.py:49
 msgid "code"
 msgstr "код"
 
-#: business_register/models/kved_models.py:48
+#: models/kved_models.py:52
 msgid "is valid"
 msgstr "є чинним"
 
-#: business_register/models/kved_models.py:52
+#: models/kved_models.py:56
 msgid "Classification of economic activities"
 msgstr "Класифікація видів економічної діяльності"
 
-#: business_register/models/pep_models.py:17
+#: models/pep_models.py:17
 msgid "Is dead"
 msgstr "Is dead"
 
-#: business_register/models/pep_models.py:18
+#: models/pep_models.py:18
 msgid "Resigned or term ended"
 msgstr "Звільнився або закінчилися повноваження"
 
-#: business_register/models/pep_models.py:19
+#: models/pep_models.py:19
 msgid "Associated PEP is dead"
 msgstr "Пов'язана особа або член сім'ї-публічний діяч помер"
 
-#: business_register/models/pep_models.py:20
+#: models/pep_models.py:20
 msgid "Associated person is no more PEP"
 msgstr "Пов'язана особа або член сім'ї-публічний діяч припинив ним бути"
 
-#: business_register/models/pep_models.py:21
+#: models/pep_models.py:21
 msgid "Legislation was changed"
 msgstr "Змінилося законодавство, що визначає статус публічного діяча"
 
-#: business_register/models/pep_models.py:23
+#: models/pep_models.py:23
 msgid "Company is no more state"
 msgstr ""
 "Змінилася форма власності компанії, посада в який надавала статус публічного "
 "діяча"
 
-#: business_register/models/pep_models.py:31
+#: models/pep_models.py:31
 msgid "National politically exposed person"
 msgstr "Національний публічний діяч"
 
-#: business_register/models/pep_models.py:32
+#: models/pep_models.py:32
 msgid "Foreign politically exposed person"
 msgstr "Іноземний публічний діяч"
 
-#: business_register/models/pep_models.py:34
+#: models/pep_models.py:34
 msgid ""
 "Politically exposed person, having political functions in international "
 "organization"
 msgstr "Діяч, що виконує політичні функції у міжнародній організації"
 
-#: business_register/models/pep_models.py:35
+#: models/pep_models.py:35
 msgid "Associated person"
 msgstr "Пов'язана особа"
 
-#: business_register/models/pep_models.py:36
+#: models/pep_models.py:36
 msgid "Family member"
 msgstr "Член сім'ї"
 
-#: business_register/models/pep_models.py:40
+#: models/pep_models.py:40
 msgid "first name"
 msgstr "ім'я"
 
-#: business_register/models/pep_models.py:41
+#: models/pep_models.py:41
 msgid "middle name"
 msgstr "по батькові"
 
-#: business_register/models/pep_models.py:42
+#: models/pep_models.py:42
 msgid "surname"
 msgstr "прізвище"
 
-#: business_register/models/pep_models.py:50
+#: models/pep_models.py:50
 msgid "options for writing the full name"
 msgstr "варіанти написання прізвища англійською"
 
-#: business_register/models/pep_models.py:55
+#: models/pep_models.py:55
 msgid "last position"
 msgstr "остання посада"
 
-#: business_register/models/pep_models.py:62
+#: models/pep_models.py:62
 msgid "last office"
 msgstr "останнє місце роботи"
 
-#: business_register/models/pep_models.py:68
+#: models/pep_models.py:68
 msgid "is pep"
 msgstr "є публічним діячем"
 
-#: business_register/models/pep_models.py:73
+#: models/pep_models.py:73
 msgid "associated persons"
 msgstr "пов'язана особа"
 
-#: business_register/models/pep_models.py:76
+#: models/pep_models.py:76
 msgid "type"
 msgstr "тип"
 
-#: business_register/models/pep_models.py:88
+#: models/pep_models.py:88
 msgid "known sanctions against the person"
 msgstr "відомі санкції щодо особи"
 
-#: business_register/models/pep_models.py:93
+#: models/pep_models.py:93
 msgid "known sentences against the person"
 msgstr "відомі вироки щодо особи"
 
-#: business_register/models/pep_models.py:97
+#: models/pep_models.py:97
 msgid "assets info"
 msgstr "інформація про активи"
 
-#: business_register/models/pep_models.py:98
+#: models/pep_models.py:99
 msgid "known criminal proceedings against the person"
 msgstr "відомі кримінальні провадження щодо особи"
 
-#: business_register/models/pep_models.py:100
+#: models/pep_models.py:105
 msgid "wanted"
 msgstr "розшук"
 
-#: business_register/models/pep_models.py:105
+#: models/pep_models.py:110
 msgid "date of birth"
 msgstr "дата народження"
 
-#: business_register/models/pep_models.py:111
+#: models/pep_models.py:116
 msgid "place of birth"
 msgstr "місце народження"
 
-#: business_register/models/pep_models.py:117
+#: models/pep_models.py:122
 msgid "is_dead"
 msgstr "помер"
 
-#: business_register/models/pep_models.py:121
+#: models/pep_models.py:126
 msgid "PEP status termination date "
 msgstr "дата втрати статусу публічного діяча"
 
-#: business_register/models/pep_models.py:122
+#: models/pep_models.py:129
 msgid "reason of termination"
 msgstr "причина втрати статусу"
 
-#: business_register/models/pep_models.py:148
+#: models/pep_models.py:161
 msgid "politically exposed person"
 msgstr "публічний діяч"
 
-#: business_register/models/pep_models.py:149
+#: models/pep_models.py:162
 msgid "politically exposed persons"
 msgstr "публічні діячі"
 
-#: business_register/models/pep_models.py:161
+#: models/pep_models.py:174
 msgid "Family"
 msgstr "Родинний"
 
-#: business_register/models/pep_models.py:162
+#: models/pep_models.py:175
 msgid "Business"
 msgstr "Бізнес"
 
-#: business_register/models/pep_models.py:163
+#: models/pep_models.py:176
 msgid "Personal"
 msgstr "Особистий"
 
-#: business_register/models/pep_models.py:168
+#: models/pep_models.py:181
 msgid "associated person"
 msgstr "пов'язана особа"
 
-#: business_register/models/pep_models.py:173
+#: models/pep_models.py:187
 msgid "another associated person"
 msgstr "інша пов'язана особа"
 
-#: business_register/models/pep_models.py:177
-#: business_register/models/pep_models.py:240
+#: models/pep_models.py:192 models/pep_models.py:268
 msgid "connection`s type"
 msgstr "тип зв'язку"
 
-#: business_register/models/pep_models.py:182
+#: models/pep_models.py:198
 msgid "another person`s connection`s type"
 msgstr "тип зв'язку для іншої особи"
 
-#: business_register/models/pep_models.py:187
-#: business_register/models/pep_models.py:238
+#: models/pep_models.py:204 models/pep_models.py:265
 msgid "connection`s category"
 msgstr "категорія зв'язку"
 
-#: business_register/models/pep_models.py:194
-#: business_register/models/pep_models.py:242
+#: models/pep_models.py:212 models/pep_models.py:270
 msgid "connection`s start date"
 msgstr "дата встановлення зв'язку"
 
-#: business_register/models/pep_models.py:199
-#: business_register/models/pep_models.py:244
+#: models/pep_models.py:218 models/pep_models.py:272
 msgid "connection`s confirmation date"
 msgstr "дата підтвердження зв'язку"
 
-#: business_register/models/pep_models.py:204
-#: business_register/models/pep_models.py:246
+#: models/pep_models.py:224 models/pep_models.py:275
 msgid "connection`s end date"
 msgstr "дата завершення зв'язку"
 
-#: business_register/models/pep_models.py:213
+#: models/pep_models.py:239
 msgid "connection with another PEP"
 msgstr "зв'язки з іншим публічним діячем"
 
-#: business_register/models/pep_models.py:214
+#: models/pep_models.py:240
 msgid "connections with PEPs"
 msgstr "зв'язки з іншими публічними діячами"
 
-#: business_register/models/pep_models.py:225
+#: models/pep_models.py:251
 msgid "Bank client"
 msgstr "Клієнт банку"
 
-#: business_register/models/pep_models.py:226
+#: models/pep_models.py:252
 msgid "Owner"
 msgstr "Власник"
 
-#: business_register/models/pep_models.py:227
+#: models/pep_models.py:253
 msgid "By position"
 msgstr "За посадою"
 
-#: business_register/models/pep_models.py:228
+#: models/pep_models.py:254
 msgid "Manager"
 msgstr "Керівник"
 
-#: business_register/models/pep_models.py:229
+#: models/pep_models.py:255
 msgid "Other"
 msgstr "Інше"
 
-#: business_register/models/pep_models.py:234
+#: models/pep_models.py:260
 msgid "associated with PEP company"
 msgstr "Пов'язана з публічним діячем компанія"
 
-#: business_register/models/pep_models.py:237
+#: models/pep_models.py:264
 msgid "associated with company PEP"
 msgstr "Пов'язаний з компанією публічний діяч"
 
-#: business_register/models/pep_models.py:251
+#: models/pep_models.py:283
 msgid "company connection with Pep"
 msgstr "зв'язок компанії з публічними діячами"
 
-#: business_register/models/pep_models.py:252
+#: models/pep_models.py:284
 msgid "company connections with Peps"
 msgstr "зв'язки компанії з публічними діячами"
+
+#: views/pep_views.py:73
+msgid ""
+"Generation of .xlsx file has begin. Expect an email with downloading link."
+msgstr ""
+"Розпочато генерацію .xlsx файла. Очікуйте на email із посиланням для загрузки файла."

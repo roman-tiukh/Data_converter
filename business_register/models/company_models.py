@@ -116,8 +116,8 @@ class Company(DataOceanModel):  # constraint for not null in both name & short_n
 class Assignee(DataOceanModel):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='assignees',
                                 verbose_name='є правонаступником', help_text='Company is the legal successor')
-    name = models.CharField('name', max_length=610, null=True, help_text='Assignee name in Ukrainian')
-    edrpou = models.CharField('number', max_length=11, null=True, help_text='EDRPOU number as string')
+    name = models.CharField('name', max_length=610, blank=True, default='', help_text='Assignee name in Ukrainian')
+    edrpou = models.CharField('number', max_length=11, blank=True, default='', help_text='EDRPOU number as string')
     history = HistoricalRecords()
 
     class Meta:

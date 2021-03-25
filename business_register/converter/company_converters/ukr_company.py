@@ -1,8 +1,5 @@
-import codecs
 import logging
-import os
 import re
-import tempfile
 from time import sleep
 
 import requests
@@ -429,7 +426,7 @@ class UkrCompanyConverter(CompanyConverter):
                 company_type = self.save_or_get_company_type(company_type, 'uk')
             edrpou = record.xpath('EDRPOU')[0].text
             if not edrpou:
-                self.report.errors += 1
+                self.report.invalid_data += 1
                 continue
             code = name + edrpou
             address = record.xpath('ADDRESS')[0].text
@@ -685,7 +682,7 @@ class UkrCompanyConverter(CompanyConverter):
         for record in records:
             # omitting records without company name or edrpou
             if not record.xpath('NAME')[0].text or not record.xpath('EDRPOU')[0].text:
-                self.report.errors += 1
+                self.report.invalid_data += 1
                 continue
             name = record.xpath('NAME')[0].text.lower()
             short_name = record.xpath('SHORT_NAME')[0].text
@@ -760,7 +757,7 @@ class UkrCompanyDownloader(Downloader):
     unzip_required_file_sign = 'EDR_UO'
     unzip_after_download = True
     source_dataset_url = settings.BUSINESS_UKR_COMPANY_SOURCE_PACKAGE
-    LOCAL_FILE_NAME = settings.LOCAL_FILE_NAME_UO_FULL
+    LOCAL_FILE_NAME = settings.LOCAL_FILE_NAME_UO
 
     def get_source_file_url(self):
 
@@ -812,15 +809,3 @@ class UkrCompanyDownloader(Downloader):
         logger.info(f'{self.reg_name}: Report created successfully.')
 
         logger.info(f'{self.reg_name}: Update finished successfully.')
-
-    def remove_unreadable_characters(self):
-        file = self.local_path + self.LOCAL_FILE_NAME
-        tmp = tempfile.mkstemp()
-        with codecs.open(file, 'r', 'Windows-1251') as fd1, codecs.open(tmp[1], 'w', 'UTF-8') as fd2:
-            for line in fd1:
-                line = line.replace('&quot;', '"')\
-                    .replace('windows-1251', 'UTF-8')\
-                    .replace('&#3;', '')\
-                    .replace('&#30;', '')
-                fd2.write(line)
-        os.rename(tmp[1], file)
