@@ -245,9 +245,18 @@ class PepExportFilterSet(filters.FilterSet):
 
 
 class PepCheckFilterSet(filters.FilterSet):
-    first_name = filters.CharFilter(lookup_expr='iexact', required=True)
-    last_name = filters.CharFilter(lookup_expr='iexact', required=True)
-    middle_name = filters.CharFilter(lookup_expr='iexact')
+    first_name = filters.CharFilter(
+        lookup_expr='iexact', required=True,
+        help_text='Filter by first name of PEP in Ukrainian',
+    )
+    last_name = filters.CharFilter(
+        lookup_expr='iexact', required=True,
+        help_text='Filter by last name of PEP in Ukrainian',
+    )
+    middle_name = filters.CharFilter(
+        lookup_expr='iexact',
+        help_text='Filter by middle name of PEP in Ukrainian',
+    )
     date_of_birth = filters.CharFilter(
         lookup_expr='contains',
         help_text='Filter by date_of_birth, string contains type. '
