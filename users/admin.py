@@ -12,7 +12,7 @@ from users.models import DataOceanUser, Question
 
 
 admin.site.unregister(Group)
-admin.site.unregister(Token)
+# admin.site.unregister(Token)
 
 
 class DataOceanUserCreationForm(UserCreationForm):
