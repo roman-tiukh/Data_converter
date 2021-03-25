@@ -357,7 +357,6 @@ class UkrCompanyFullConverter(CompanyConverter):
     def add_assignees(self, assignees_from_record, code):
         assignees = []
         for item in assignees_from_record:
-
             assignee = Assignee()
             if item.xpath('NAME')[0].text:
                 assignee.name = item.xpath('NAME')[0].text.lower()
