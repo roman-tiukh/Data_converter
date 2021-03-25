@@ -14,8 +14,12 @@ two_in_row_validator = RegexValidator(
     message=_("No more than 2 identical symbols in a row are allowed")
 )
 
-validate_iban = RegexValidator(regex='^UA\\d{8}[A-Z0-9]{19}$',
-                                   message = _('This field must contain 29 characters, numbers and Latin'))
+iban_validator = RegexValidator(
+    regex='^[A-Za-z]{2}\d{27}$',
+    message = _('Wrong IBAN format')
+)
 
-validate_edrpou = RegexValidator(regex='^[0-9]{8}$',
-                                   message = _('This field must contain 8 characters, only numbers'))
+edrpou_validator = RegexValidator(
+    regex='^\d{8}$',
+    message = _('This field must contain 8 characters, only numbers')
+)
