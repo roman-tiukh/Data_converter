@@ -896,28 +896,18 @@ class UkrCompanyFullConverter(CompanyConverter):
                 if update_fields:
                     update_fields.append('updated_at')
                     company.save(update_fields=update_fields)
-                self.t.time_it('update companies\t')
                 self.update_company_detail(founding_document_number, executive_power, superior_management,
                                            managing_paper, terminated_info, termination_cancel_info, vp_dates, company)
-                self.t.time_it('update company details\t')
                 self.update_founders(record.xpath('FOUNDERS')[0], company)
-                self.t.time_it('update founders\t\t')
                 self.update_company_to_kved(record.xpath('ACTIVITY_KINDS')[0], company)
-                self.t.time_it('update kveds\t\t')
                 self.update_signers(record.xpath('SIGNERS')[0], company)
-                self.t.time_it('update signers\t\t')
                 self.update_termination_started(record, company)
-                self.t.time_it('update termination\t')
                 self.update_bancruptcy_readjustment(record, company)
-                self.t.time_it('update bancruptcy\t')
                 self.update_company_to_predecessors(record.xpath('PREDECESSORS')[0], company)
-                self.t.time_it('update predecessors\t')
                 self.update_assignees(record.xpath('ASSIGNEES')[0], company)
-                self.t.time_it('update assignes\t\t')
                 self.update_exchange_data(record.xpath('EXCHANGE_DATA')[0], company)
                 if record.xpath('BENEFICIARIES\t'):
                     self.update_beneficiaries(record.xpath('BENEFICIARIES')[0], company)
-                self.t.time_it('update beneficiaries\t')
 
         if len(self.bulk_manager.queues['business_register.Company']):
             self.bulk_manager.commit(Company)
