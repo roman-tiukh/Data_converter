@@ -37,7 +37,7 @@ class ExportToXlsx:
             cell.value = column_title
             worksheet.column_dimensions[get_column_letter(col_num)].width = column_properties[1]
             cell.alignment = Alignment(horizontal='center', vertical='center')
-            cell.font = fonts.Font(b=True)
+            cell.font = fonts.Font(b=True, color='00FFFFFF')
             cell.fill = PatternFill(bgColor='0033CCCC', fill_type="solid")
             for record in queryset:
 
