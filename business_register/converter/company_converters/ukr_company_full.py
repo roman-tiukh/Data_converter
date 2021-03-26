@@ -58,8 +58,8 @@ class UkrCompanyFullConverter(CompanyConverter):
         super().__init__()
         '''
         Uncomment import Timer and line below for use time measuring utility. Also uncomment .time_it() methods
-        in save_to_db() below and add another .time_it() methods if it needs. At least two .time_it() requires
-        at the begin and at the end of save_to_db() before .print_result().
+        in save_to_db() below and add another .time_it() and .print_result() methods if it needs. At least two
+        .time_it() requires at the begin and at the end of save_to_db() before .print_result().
         '''
         # self.t = Timer()
 
