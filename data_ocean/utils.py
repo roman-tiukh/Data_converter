@@ -112,7 +112,10 @@ class Timer():
         self.previous = now
 
     def print_result(self):
+        sorted_times_array = sorted(self.times_dict.items(), key=lambda item: item[1], reverse=True)
+        self.times_dict = dict(sorted_times_array[1:] + sorted_times_array[:1])
         print('----------------------------------------------------------------------------------')
         for period_name, value in self.times_dict.items():
-            print(period_name, '\t', value, 's\t', round(value / self.times_dict['total\t\t\t'] * 100, 2), '%')
+            print(period_name, '\t', str(value).split(".")[0], '\t',
+                  round(value / self.times_dict['total\t\t\t'] * 100, 2), '%')
         print('----------------------------------------------------------------------------------')
