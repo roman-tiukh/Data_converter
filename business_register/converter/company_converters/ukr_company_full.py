@@ -906,7 +906,7 @@ class UkrCompanyFullConverter(CompanyConverter):
                 self.update_company_to_predecessors(record.xpath('PREDECESSORS')[0], company)
                 self.update_assignees(record.xpath('ASSIGNEES')[0], company)
                 self.update_exchange_data(record.xpath('EXCHANGE_DATA')[0], company)
-                if record.xpath('BENEFICIARIES\t'):
+                if record.xpath('BENEFICIARIES'):
                     self.update_beneficiaries(record.xpath('BENEFICIARIES')[0], company)
 
         if len(self.bulk_manager.queues['business_register.Company']):
