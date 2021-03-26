@@ -102,7 +102,7 @@ class RegisterView(RegisterViewMixin, viewsets.ReadOnlyModelViewSet):
     serializer_class = RegisterSerializer
     filterset_class = RegisterFilter
     filter_backends = [DjangoFilterBackend, SearchFilter]
-    search_fields = ['name', 'source_register_id', 'status', ]
+    search_fields = ['name', 'name_eng', ]
 
 
 class DOAutoSchemaClass(SwaggerAutoSchema):
