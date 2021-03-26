@@ -505,9 +505,9 @@ class PepConverterFromDB(Converter):
                 self.invalid_data_counter += 1
                 continue
             company_antac_id = link[1]
-            start_date = to_lower_string_if_exists(link[2])
-            confirmation_date = to_lower_string_if_exists(link[3])
-            end_date = to_lower_string_if_exists(link[4])
+            start_date = link[2]
+            confirmation_date = link[3]
+            end_date = link[4]
             category = link[5]
             edrpou = link[6]
             is_state_company = link[7]
@@ -614,7 +614,7 @@ class PepConverterFromDB(Converter):
             reason_of_termination = (self.REASONS_OF_TERMINATION.get(reason_of_termination_number)
                                      if reason_of_termination_number else None)
             is_dead = (reason_of_termination_number == 1)
-            termination_date = to_lower_string_if_exists(pep_data[26])
+            termination_date = pep_data[26]
             pep = self.peps_dict.get(code)
             if not pep:
                 pep = Pep.objects.create(

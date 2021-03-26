@@ -364,7 +364,10 @@ class UkrCompanyFullConverter(CompanyConverter):
             else:
                 assignee.name = ''
             assignee.edrpou = item.xpath('CODE')[0].text
-            assignees.append(assignee)
+            if not assignee.edrpou:
+                assignee.edrpou = ''
+            if assignee.name or assignee.edrpou:
+                assignees.append(assignee)
         self.assignee_to_dict[code] = assignees
 
     def update_assignees(self, assignees_from_record, company):
@@ -375,7 +378,11 @@ class UkrCompanyFullConverter(CompanyConverter):
                 name = name.lower()
             else:
                 name = ''
-            edrpou = item.xpath('CODE')[0].text or ''
+            edrpou = item.xpath('CODE')[0].text
+            if not edrpou:
+                edrpou = ''
+            if not name and not edrpou:
+                continue
             already_stored = False
             if len(already_stored_assignees):
                 for stored_assignee in already_stored_assignees:
