@@ -120,7 +120,6 @@ def get_source_records(search_text, search_tag='EDRPOU', converter_module=
             print('Record #', index, 'from:', converter.LOCAL_FILE_NAME)
             print('-------------------------------------------------------------------------')
             print_recursion(record, '')
-            break
         record.clear()
         for ancestor in record.xpath('ancestor-or-self::*'):
             while ancestor.getprevious() is not None:
