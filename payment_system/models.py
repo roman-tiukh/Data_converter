@@ -207,8 +207,8 @@ class Project(DataOceanModel):
                 ).exists()
             )
 
-        #if any(grace_period_used):
-        #    raise ValidationError(_('Project have subscription on a grace period, can\'t add new subscription'))
+        if any(grace_period_used):
+            raise ValidationError(_('Project have subscription on a grace period, can\'t add new subscription'))
 
         if current_p2s.subscription == subscription:
             raise ValidationError(gettext('Project already on {}').format(subscription.name))
@@ -220,12 +220,11 @@ class Project(DataOceanModel):
                 project=self,
                 subscription=subscription,
                 status=ProjectSubscription.ACTIVE,
-                start_date=current_date,
+                start_date=timezone.localdate(),
                 is_grace_period=True,
             )
             if invoice:
                 invoice.project_subscription = new_p2s
-                invoice.project_subscription.is_grace_period = True
                 invoice.project_subscription.paid_up()
                 invoice.save()
             else:
@@ -391,7 +390,7 @@ class Invoice(DataOceanModel):
             if p2s.is_grace_period and not invoice_old.is_paid and self.is_paid:
                 if self.is_overdue:
                     self.grace_period_block = False
-                    self.project_subscription.is_grace_period = False
+                    #self.project_subscription.is_grace_period = False
                     super().save(update_fields=['grace_period_block'])
                     p2s.project.add_subscription(subscription=p2s.subscription, invoice=self)
                     emails.payment_confirmed(self.project_subscription)
@@ -422,10 +421,9 @@ class Invoice(DataOceanModel):
         if user is None:
             user = self.project_subscription.project.owner
 
-        date_now = timezone.localdate()
-        if self.is_overdue and self.start_date <= date_now:
-            self.start_date = self.created_at = date_now
-            self.project_subscription.start_date = date_now
+        current_date = timezone.localdate()
+        if self.is_overdue and self.start_date <= current_date:
+            self.start_date = current_date
             self.end_date = self.project_subscription.generate_expiring_date()
             self.save()
 
