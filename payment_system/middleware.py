@@ -50,19 +50,25 @@ class ProjectAuthenticationMiddleware:
             if current_p2s.expiring_date <= timezone.localdate():
                 current_p2s.expire()
 
-            request.token_keyword = keyword
             request.project = project
+            request.current_p2s = current_p2s
 
-        response: HttpResponse = self.get_response(request)
-        # project: Project = getattr(request, 'project', None)
+            response: HttpResponse = self.get_response(request)
 
-        if is_project_authenticated and response.status_code // 100 != 5:
-            current_p2s = project.active_p2s
-            if getattr(request, 'token_keyword', None) == settings.PROJECT_PLATFORM_TOKEN_KEYWORD:
-                current_p2s.platform_requests_left -= 1
-                current_p2s.platform_requests_used += 1
-            else:
-                current_p2s.requests_left -= 1
-                current_p2s.requests_used += 1
-            current_p2s.save()
-        return response
+            if response.status_code // 100 != 5 and getattr(request, '_decrease_requests_counter', True):
+                if keyword == settings.PROJECT_PLATFORM_TOKEN_KEYWORD:
+                    current_p2s.platform_requests_left -= 1
+                    current_p2s.platform_requests_used += 1
+                    current_p2s.save(update_fields=[
+                        'platform_requests_left',
+                        'platform_requests_used',
+                    ])
+                else:
+                    current_p2s.requests_left -= 1
+                    current_p2s.requests_used += 1
+                    current_p2s.save(update_fields=[
+                        'requests_left',
+                        'requests_used',
+                    ])
+            return response
+        return self.get_response(request)
