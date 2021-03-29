@@ -26,6 +26,10 @@ logger.setLevel(logging.INFO)
 
 
 class UkrCompanyFullConverter(CompanyConverter):
+    """
+    Uncomment for switch Timer ON.
+    """
+    # timing = True
 
     def __init__(self):
         self.LOCAL_FILE_NAME = settings.LOCAL_FILE_NAME_UO_FULL
@@ -788,8 +792,10 @@ class UkrCompanyFullConverter(CompanyConverter):
                 authority = self.save_or_get_authority(authority)
             else:
                 authority = None
+            self.time_it('getting data from record')
 
             company = Company.include_deleted_objects.filter(code=code, source=Company.UKRAINE_REGISTER).first()
+            self.time_it('trying get companies\t')
 
             if not company:
                 company = Company(
@@ -831,6 +837,7 @@ class UkrCompanyFullConverter(CompanyConverter):
                     self.add_founders(record.xpath('FOUNDERS')[0], code)
                 if len(record.xpath('BENEFICIARIES')[0]):
                     self.add_beneficiaries(record.xpath('BENEFICIARIES')[0], code)
+                self.time_it('save companies\t')
             else:
                 self.uptodated_companies.append(company.id)
                 update_fields = []
@@ -885,18 +892,29 @@ class UkrCompanyFullConverter(CompanyConverter):
                 if update_fields:
                     update_fields.append('updated_at')
                     company.save(update_fields=update_fields)
+                self.time_it('update companies\t')
                 self.update_company_detail(founding_document_number, executive_power, superior_management,
                                            managing_paper, terminated_info, termination_cancel_info, vp_dates, company)
+                self.time_it('update company details\t')
                 self.update_founders(record.xpath('FOUNDERS')[0], company)
+                self.time_it('update founders\t\t')
                 self.update_company_to_kved(record.xpath('ACTIVITY_KINDS')[0], company)
+                self.time_it('update kveds\t\t')
                 self.update_signers(record.xpath('SIGNERS')[0], company)
+                self.time_it('update signers\t\t')
                 self.update_termination_started(record, company)
+                self.time_it('update termination\t')
                 self.update_bancruptcy_readjustment(record, company)
+                self.time_it('update bancruptcy\t')
                 self.update_company_to_predecessors(record.xpath('PREDECESSORS')[0], company)
+                self.time_it('update predecessors\t')
                 self.update_assignees(record.xpath('ASSIGNEES')[0], company)
+                self.time_it('update assignes\t\t')
                 self.update_exchange_data(record.xpath('EXCHANGE_DATA')[0], company)
-                if record.xpath('BENEFICIARIES'):
+                self.time_it('update exchange data\t')
+                if record.xpath('BENEFICIARIES\t'):
                     self.update_beneficiaries(record.xpath('BENEFICIARIES')[0], company)
+                self.time_it('update beneficiaries\t')
 
         if len(self.bulk_manager.queues['business_register.Company']):
             self.bulk_manager.commit(Company)
@@ -963,6 +981,7 @@ class UkrCompanyFullConverter(CompanyConverter):
         self.company_to_predecessor_to_dict = {}
         self.assignee_to_dict = {}
         self.exchange_data_to_dict = {}
+        self.time_it('save others\t\t')
 
     def delete_outdated(self):
         outdated_companies = list(set(self.already_stored_companies) - set(self.uptodated_companies))
