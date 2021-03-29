@@ -33,9 +33,7 @@ def filter_with_parameter(obj, parameter, used_categories, model_related_name, s
             category__in=categories
         )
     else:
-        queryset = getattr(obj, model_related_name).filter(
-            category__in=used_categories
-        )
+        queryset = getattr(obj, model_related_name).all()
     return serializer(queryset, many=True).data
 
 
@@ -425,9 +423,7 @@ class PepDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
                 'company__status'
             )
         else:
-            queryset = obj.related_companies.filter(
-                category__in=used_categories
-            ).select_related(
+            queryset = obj.related_companies.select_related(
                 'company',
                 'company__company_type',
                 'company__status'
@@ -446,14 +442,20 @@ class PepDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     class Meta:
         model = Pep
         fields = (
-            'id', 'fullname', 'fullname_transcriptions_eng', 'last_job_title', 'last_employer',
-            'is_pep', 'pep_type', 'info',
-            'sanctions', 'criminal_record', 'assets_info', 'criminal_proceedings', 'wanted',
-            'date_of_birth', 'place_of_birth', 'is_dead',
-            'termination_date', 'reason_of_termination',
-            'to_person_links', 'from_person_links', 'related_companies', 'check_companies', 'created_at',
-            'updated_at'
+            'id', 'first_name', 'last_name', 'middle_name', 'fullname',
+            'fullname_transcriptions_eng', 'last_job_title', 'last_employer',
+            'is_pep', 'pep_type', 'info', 'sanctions', 'criminal_record', 'assets_info',
+            'criminal_proceedings', 'wanted', 'date_of_birth', 'place_of_birth', 'is_dead',
+            'termination_date', 'reason_of_termination', 'to_person_links', 'from_person_links',
+            'related_companies', 'check_companies', 'created_at', 'updated_at',
         )
+
+
+class PepDetailWithoutCheckCompaniesSerializer(PepDetailSerializer):
+    check_companies = None
+
+    class Meta(PepDetailSerializer.Meta):
+        fields = [f for f in PepDetailSerializer.Meta.fields if f != 'check_companies']
 
 
 class FromRelatedPersonListSerializer(serializers.ModelSerializer):
@@ -518,7 +520,8 @@ class PepListSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     class Meta:
         model = Pep
         fields = (
-            'id', 'fullname', 'fullname_transcriptions_eng', 'last_job_title', 'last_employer',
+            'id', 'first_name', 'last_name', 'middle_name', 'fullname',
+            'fullname_transcriptions_eng', 'last_job_title', 'last_employer',
             'is_pep', 'pep_type', 'info', 'sanctions', 'criminal_record', 'assets_info',
             'criminal_proceedings', 'wanted', 'date_of_birth', 'place_of_birth', 'is_dead',
             'termination_date', 'reason_of_termination', 'from_person_links', 'to_person_links',

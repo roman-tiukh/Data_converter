@@ -1,6 +1,12 @@
+import codecs
 import logging
+import os
 import re
+import tempfile
+from time import sleep
+import requests
 from django.conf import settings
+from django.utils import timezone
 
 from data_ocean.models import Authority
 from business_register.converter.company_converters.company import CompanyConverter
@@ -10,6 +16,7 @@ from business_register.models.company_models import (
     Signer, TerminationStarted
 )
 from data_ocean.converter import BulkCreateManager
+from data_ocean.downloader import Downloader
 from data_ocean.utils import (cut_first_word, format_date_to_yymmdd, get_first_word,
                               to_lower_string_if_exists)
 from location_register.converter.address import AddressConverter
@@ -19,6 +26,10 @@ logger.setLevel(logging.INFO)
 
 
 class UkrCompanyFullConverter(CompanyConverter):
+    """
+    Uncomment for switch Timer ON.
+    """
+    # timing = True
 
     def __init__(self):
         self.LOCAL_FILE_NAME = settings.LOCAL_FILE_NAME_UO_FULL
@@ -353,8 +364,13 @@ class UkrCompanyFullConverter(CompanyConverter):
             assignee = Assignee()
             if item.xpath('NAME')[0].text:
                 assignee.name = item.xpath('NAME')[0].text.lower()
+            else:
+                assignee.name = ''
             assignee.edrpou = item.xpath('CODE')[0].text
-            assignees.append(assignee)
+            if not assignee.edrpou:
+                assignee.edrpou = ''
+            if assignee.name or assignee.edrpou:
+                assignees.append(assignee)
         self.assignee_to_dict[code] = assignees
 
     def update_assignees(self, assignees_from_record, company):
@@ -363,7 +379,13 @@ class UkrCompanyFullConverter(CompanyConverter):
             name = item.xpath('NAME')[0].text
             if name:
                 name = name.lower()
+            else:
+                name = ''
             edrpou = item.xpath('CODE')[0].text
+            if not edrpou:
+                edrpou = ''
+            if not name and not edrpou:
+                continue
             already_stored = False
             if len(already_stored_assignees):
                 for stored_assignee in already_stored_assignees:
@@ -770,8 +792,10 @@ class UkrCompanyFullConverter(CompanyConverter):
                 authority = self.save_or_get_authority(authority)
             else:
                 authority = None
+            self.time_it('getting data from record')
 
             company = Company.include_deleted_objects.filter(code=code, source=Company.UKRAINE_REGISTER).first()
+            self.time_it('trying get companies\t')
 
             if not company:
                 company = Company(
@@ -813,6 +837,7 @@ class UkrCompanyFullConverter(CompanyConverter):
                     self.add_founders(record.xpath('FOUNDERS')[0], code)
                 if len(record.xpath('BENEFICIARIES')[0]):
                     self.add_beneficiaries(record.xpath('BENEFICIARIES')[0], code)
+                self.time_it('save companies\t')
             else:
                 self.uptodated_companies.append(company.id)
                 update_fields = []
@@ -867,18 +892,29 @@ class UkrCompanyFullConverter(CompanyConverter):
                 if update_fields:
                     update_fields.append('updated_at')
                     company.save(update_fields=update_fields)
+                self.time_it('update companies\t')
                 self.update_company_detail(founding_document_number, executive_power, superior_management,
                                            managing_paper, terminated_info, termination_cancel_info, vp_dates, company)
+                self.time_it('update company details\t')
                 self.update_founders(record.xpath('FOUNDERS')[0], company)
+                self.time_it('update founders\t\t')
                 self.update_company_to_kved(record.xpath('ACTIVITY_KINDS')[0], company)
+                self.time_it('update kveds\t\t')
                 self.update_signers(record.xpath('SIGNERS')[0], company)
+                self.time_it('update signers\t\t')
                 self.update_termination_started(record, company)
+                self.time_it('update termination\t')
                 self.update_bancruptcy_readjustment(record, company)
+                self.time_it('update bancruptcy\t')
                 self.update_company_to_predecessors(record.xpath('PREDECESSORS')[0], company)
+                self.time_it('update predecessors\t')
                 self.update_assignees(record.xpath('ASSIGNEES')[0], company)
+                self.time_it('update assignes\t\t')
                 self.update_exchange_data(record.xpath('EXCHANGE_DATA')[0], company)
-                if record.xpath('BENEFICIARIES'):
+                self.time_it('update exchange data\t')
+                if record.xpath('BENEFICIARIES\t'):
                     self.update_beneficiaries(record.xpath('BENEFICIARIES')[0], company)
+                self.time_it('update beneficiaries\t')
 
         if len(self.bulk_manager.queues['business_register.Company']):
             self.bulk_manager.commit(Company)
@@ -945,6 +981,7 @@ class UkrCompanyFullConverter(CompanyConverter):
         self.company_to_predecessor_to_dict = {}
         self.assignee_to_dict = {}
         self.exchange_data_to_dict = {}
+        self.time_it('save others\t\t')
 
     def delete_outdated(self):
         outdated_companies = list(set(self.already_stored_companies) - set(self.uptodated_companies))
@@ -978,3 +1015,82 @@ class UkrCompanyFullConverter(CompanyConverter):
                 for company_to_kved in outdated_company_to_kved:
                     company_to_kved.soft_delete()
             Company.objects.get(id=company_id).soft_delete()
+
+
+class UkrCompanyFullDownloader(Downloader):
+    chunk_size = 16 * 1024 * 1024
+    reg_name = 'business_ukr_company'
+    zip_required_file_sign = 'ufop_full'
+    unzip_required_file_sign = 'EDR_UO_FULL'
+    unzip_after_download = True
+    source_dataset_url = settings.BUSINESS_UKR_COMPANY_SOURCE_PACKAGE
+    LOCAL_FILE_NAME = settings.LOCAL_FILE_NAME_UO_FULL
+
+    def get_source_file_url(self):
+
+        r = requests.get(self.source_dataset_url)
+        if r.status_code != 200:
+            print(f'Request error to {self.source_dataset_url}')
+            return
+
+        for i in r.json()['result']['resources']:
+            # 17-ufop_25-11-2020.zip
+            # 17-ufop_full_07-08-2020.zip  <---
+            if self.zip_required_file_sign in i['url']:
+                return i['url']
+
+    def get_source_file_name(self):
+        return self.url.split('/')[-1]
+
+    def remove_unreadable_characters(self):
+        file = self.local_path + self.LOCAL_FILE_NAME
+        logger.info(f'{self.reg_name}: remove_unreadable_characters for {file} started ...')
+        tmp = tempfile.mkstemp()
+        with codecs.open(file, 'r', 'Windows-1251') as fd1, codecs.open(tmp[1], 'w', 'UTF-8') as fd2:
+            for line in fd1:
+                line = line.replace('&quot;', '"')\
+                    .replace('windows-1251', 'UTF-8')\
+                    .replace('&#3;', '')\
+                    .replace('&#30;', '')
+                fd2.write(line)
+        os.rename(tmp[1], file)
+        logger.info(f'{self.reg_name}: remove_unreadable_characters finished.')
+
+    def update(self):
+
+        logger.info(f'{self.reg_name}: Update started...')
+
+        self.report_init()
+        self.download()
+
+        self.LOCAL_FILE_NAME = self.file_name
+        self.remove_unreadable_characters()
+
+        self.report.update_start = timezone.now()
+        self.report.save()
+
+        logger.info(f'{self.reg_name}: process() with {self.file_path} started ...')
+        ukr_company_full = UkrCompanyFullConverter()
+        ukr_company_full.LOCAL_FILE_NAME = self.file_name
+
+        sleep(5)
+        ukr_company_full.process()
+        logger.info(f'{self.reg_name}: process() with {self.file_path} finished successfully.')
+
+        self.report.update_finish = timezone.now()
+        self.report.update_status = True
+        self.report.save()
+
+        sleep(5)
+        self.vacuum_analyze(table_list=['business_register_company', ])
+
+        self.remove_file()
+
+        new_total_records = Company.objects.filter(source=Company.UKRAINE_REGISTER).count()
+        self.update_register_field(settings.UKR_COMPANY_REGISTER_LIST, 'total_records', new_total_records)
+        logger.info(f'{self.reg_name}: Update total records finished successfully.')
+
+        self.measure_company_changes(Company.UKRAINE_REGISTER)
+        logger.info(f'{self.reg_name}: Report created successfully.')
+
+        logger.info(f'{self.reg_name}: Update finished successfully.')
