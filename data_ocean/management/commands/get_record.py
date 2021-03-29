@@ -1,7 +1,7 @@
 from lxml import etree
 
 from django.core.management.base import BaseCommand
-from django.utils.module_loading import import_stringgit
+from django.utils.module_loading import import_string
 
 
 class Command(BaseCommand):
