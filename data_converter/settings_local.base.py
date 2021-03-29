@@ -292,3 +292,10 @@ ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 PEP_SCHEMA_TOKENS = {
     'google.com': 'mThmM2Q1MTU1MoVlNGRkNjdkOTcyYTk2YmE5Njc2YjdmYWQzMj',
 }
+
+# AWS S3 configuration and credentials
+# region where Data_converter deployed as aws region code. For example: 'eu-central-1'
+PROJECT_SERVER_AWS_REGION_NAME = ''
+# credentials
+AWS_ACCESS_KEY_ID = ''
+AWS_SECRET_ACCESS_KEY = ''
