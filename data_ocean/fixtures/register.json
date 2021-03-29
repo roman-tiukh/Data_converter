@@ -20,7 +20,7 @@
     "fields": {
       "created_at": "2020-06-17 19:20",
       "name": "Єдиний державний реєстр юридичних осіб, фізичних осіб-підприємців та громадських формувань: Юридичні особи",
-      "name_eng": "The United State Register of Legal Entities, Individual Entrepreneurs and Public Organizations of Ukraine: Companies",
+      "name_eng": "The United State Register of Legal Entities, Private Entrepreneurs and Public Organizations of Ukraine: Companies",
       "source_name": "data.gov.ua",
       "source_register_id": "1c7f3815-3259-45e0-bdf1-64dca07ddc10",
       "source_url_address": "https://data.gov.ua/dataset/b244f35a-e50a-4a80-b704-032c42ba8142/resource/06bbccbd-e19c-40d5-9e18-447b110c0b4c/download/17-ufop_20-05-2020.zip",
@@ -35,7 +35,7 @@
     "fields": {
       "created_at": "2020-06-17 19:20",
       "name": "Єдиний державний реєстр юридичних осіб, фізичних осіб-підприємців та громадських формувань: Фізичні особи-підприємці",
-      "name_eng": "The United State Register of Legal Entities, Individual Entrepreneurs and Public Organizations of Ukraine: Private entrepreneurs",
+      "name_eng": "The United State Register of Legal Entities, Private Entrepreneurs and Public Organizations of Ukraine: Private entrepreneurs",
       "source_name": "data.gov.ua",
       "source_register_id": "1c7f3815-3259-45e0-bdf1-64dca07ddc10",
       "source_url_address": "https://data.gov.ua/dataset/b244f35a-e50a-4a80-b704-032c42ba8142/resource/06bbccbd-e19c-40d5-9e18-447b110c0b4c/download/17-ufop_20-05-2020.zip",
