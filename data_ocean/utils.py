@@ -119,34 +119,3 @@ class Timer():
             print(period_name, '\t', str(value).split(".")[0], '\t',
                   round(value / self.times_dict['total\t\t\t'] * 100, 2), '%')
         print('----------------------------------------------------------------------------------')
-
-
-def print_recursion(record, root_tab):
-    for elem in record:
-        print(root_tab, elem.tag, ':', elem.text or '')
-        child_tab = root_tab + '\t'
-        print_recursion(elem, child_tab)
-
-
-def get_source_records(search_text, search_tag='EDRPOU', converter_module=
-                        'business_register.converter.company_converters.ukr_company_full.UkrCompanyFullConverter'):
-    from lxml import etree
-    from django.utils.module_loading import import_string
-    converter = import_string(converter_module)()
-    elements = etree.iterparse(
-        source=converter.LOCAL_FOLDER + converter.LOCAL_FILE_NAME,
-        tag=converter.RECORD_TAG,
-        recover=False,
-    )
-    index = 0
-    for _, record in elements:
-        index += 1
-        text_from_record = record.xpath(search_tag)[0].text
-        if text_from_record == search_text:
-            print('Record #', index, 'from:', converter.LOCAL_FILE_NAME)
-            print('-------------------------------------------------------------------------')
-            print_recursion(record, '')
-        record.clear()
-        for ancestor in record.xpath('ancestor-or-self::*'):
-            while ancestor.getprevious() is not None:
-                del ancestor.getparent()[0]
