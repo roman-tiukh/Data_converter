@@ -51,13 +51,15 @@ class SubscriptionAdmin(PaymentSystemModelAdmin):
         'is_default',
     )
     list_filter = (
+        'periodicity',
         'is_custom',
         'is_default',
         'requests_limit',
+        'pep_checks',
+        'pep_db_downloading',
     )
     search_fields = (
         'name',
-        'price',
     )
     fields = (
         'name',
@@ -69,12 +71,14 @@ class SubscriptionAdmin(PaymentSystemModelAdmin):
         'grace_period',
         'pep_checks',
         'pep_checks_per_minute',
+        'pep_db_downloading',
+        'position',
+        'yearly_subscription',
         'is_custom',
         'is_default',
     )
-    readonly_fields = (
-        'is_default',
-    )
+    readonly_fields = ('is_default',)
+    autocomplete_fields = ('yearly_subscription',)
     actions = [set_default_subscription]
     actions_on_bottom = True
 
