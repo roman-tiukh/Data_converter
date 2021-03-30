@@ -72,7 +72,7 @@ class TaxpayerType(DataOceanModel):
 
 
 class Register(DataOceanModel):
-    RELEVANT = 'Up-to-date'
+    RELEVANT = 'relevant'
     OUTDATED = 'outdated'
     NOT_SUPPORTED = 'not supported'
     STATUSES = [
