@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-03-11 06:57+0000\n"
+"POT-Creation-Date: 2021-03-30 12:08+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -26,41 +26,41 @@ msgid "country"
 msgstr "країна"
 
 #: location_register/models/drv_models.py:15
-#: location_register/models/drv_models.py:80
+#: location_register/models/drv_models.py:82
 #: location_register/models/ratu_models.py:15
 #: location_register/models/ratu_models.py:64
 msgid "region"
 msgstr "область"
 
-#: location_register/models/drv_models.py:23
-#: location_register/models/drv_models.py:81
+#: location_register/models/drv_models.py:24
+#: location_register/models/drv_models.py:83
 #: location_register/models/ratu_models.py:26
 #: location_register/models/ratu_models.py:65
 msgid "district"
 msgstr "район"
 
-#: location_register/models/drv_models.py:31
-#: location_register/models/drv_models.py:82
+#: location_register/models/drv_models.py:33
+#: location_register/models/drv_models.py:84
 msgid "council"
 msgstr "рада"
 
-#: location_register/models/drv_models.py:46
-#: location_register/models/drv_models.py:84
+#: location_register/models/drv_models.py:48
+#: location_register/models/drv_models.py:86
 msgid "administrative-territorial unit"
 msgstr "адміністративно-територіальна одиниця"
 
-#: location_register/models/drv_models.py:60
-#: location_register/models/drv_models.py:85
+#: location_register/models/drv_models.py:62
+#: location_register/models/drv_models.py:87
 #: location_register/models/ratu_models.py:75
 msgid "street"
 msgstr "вулиця"
 
-#: location_register/models/drv_models.py:72
-#: location_register/models/drv_models.py:87
+#: location_register/models/drv_models.py:74
+#: location_register/models/drv_models.py:89
 msgid "ZIP code"
 msgstr "поштовий індекс"
 
-#: location_register/models/drv_models.py:88
+#: location_register/models/drv_models.py:90
 #: location_register/models/koatuu_models.py:17
 #: location_register/models/koatuu_models.py:31
 #: location_register/models/koatuu_models.py:47
@@ -69,11 +69,11 @@ msgstr "поштовий індекс"
 msgid "code"
 msgstr "код"
 
-#: location_register/models/drv_models.py:95
+#: location_register/models/drv_models.py:97
 msgid "building"
 msgstr "будинок"
 
-#: location_register/models/drv_models.py:96
+#: location_register/models/drv_models.py:98
 msgid "buildings"
 msgstr "будинки"
 
