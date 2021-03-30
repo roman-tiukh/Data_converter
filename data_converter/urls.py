@@ -127,9 +127,12 @@ urlpatterns = [
 ]
 
 if settings.DEBUG:
-    # import debug_toolbar
-
     urlpatterns += [
         path('debug-rest-auth/', include('rest_framework.urls', namespace='rest_framework')),
-        # path('__debug__/', include(debug_toolbar.urls)),
+    ]
+
+if settings.DEBUG_TOOLBAR:
+    import debug_toolbar
+    urlpatterns += [
+        path('__debug__/', include(debug_toolbar.urls)),
     ]

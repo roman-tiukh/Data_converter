@@ -295,6 +295,12 @@ class Subscription(DataOceanModel):
         help_text='Allow to use api/pep/check/ endpoint',
     )
     pep_checks_per_minute = models.PositiveSmallIntegerField(default=0)
+    pep_db_downloading = models.BooleanField(blank=True, default=False)
+    position = models.PositiveSmallIntegerField(default=1, help_text='Position of subscription on frontend')
+    yearly_subscription = models.ForeignKey(
+        'self', models.PROTECT, blank=True, null=True, default=None,
+        help_text='Related yearly subscription. Example: Business -> Business +',
+    )
 
     @classmethod
     def get_default_subscription(cls):
@@ -317,7 +323,7 @@ class Subscription(DataOceanModel):
         return self.name
 
     class Meta:
-        ordering = ['price']
+        ordering = ['position', 'price']
         verbose_name = _('subscription')
         verbose_name_plural = _('subscriptions')
 

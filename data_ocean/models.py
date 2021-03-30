@@ -18,7 +18,7 @@ class DataOceanModel(models.Model):
         auto_now=True, null=True, blank=True,
         help_text='When the object was update. In YYYY-MM-DDTHH:mm:ss.SSSSSSZ format.'
     )
-    deleted_at = models.DateTimeField(null=True, blank=True, default=None, editable=False)
+    deleted_at = models.DateTimeField(null=True, blank=True, default=None, editable=False, db_index=True)
 
     objects = DataOceanManager()
     include_deleted_objects = models.Manager()
@@ -76,7 +76,7 @@ class Register(DataOceanModel):
     OUTDATED = 'outdated'
     NOT_SUPPORTED = 'not supported'
     STATUSES = [
-        (RELEVANT, _('Relevant')),
+        (RELEVANT, _('Up-to-date')),
         (OUTDATED, _('Outdated')),
         (NOT_SUPPORTED, _('Not supported')),
     ]
