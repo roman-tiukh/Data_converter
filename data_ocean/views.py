@@ -66,6 +66,9 @@ SchemaView = get_schema_view(
             'для розробників програмного забезпечення.<p/><p style="font-style: normal; cursor: default; color: #000000">'
             f'Download API samples Postman collection: <a download target=\'_blank\' href=\'{settings.STATIC_URL}'
             f'DataOcean - pep_list v.3.postman_collection.json\' class=\'sc-fzobTh cbdZGY\'>Download</a><p/>'
+            '<p style="font-style: normal; cursor: default; color: #000000">For former <a href=\'https://pep.org.ua/\'>'
+            f'pep.org.ua</a> users: <a download target=\'_blank\' href=\'{settings.STATIC_URL}For former pep.org.ua '
+            'users.zip\'class=\'sc-fzobTh cbdZGY\'>Download</a><p/>'
         ),
         contact=openapi.Contact(email="info@dataocean.us"),
         x_logo={

@@ -133,12 +133,19 @@ class ProjectSerializer(serializers.ModelSerializer):
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):
+    pep_db_downloading_if_yearly = serializers.BooleanField(
+        source='yearly_subscription.pep_db_downloading',
+        default=False,
+    )
+
     class Meta:
         model = Subscription
         read_only_fields = (
             'id', 'name', 'description', 'price',
             'requests_limit', 'platform_requests_limit', 'periodicity', 'grace_period',
-            'is_custom', 'is_default',
+            'is_custom', 'is_default', 'pep_checks', 'pep_checks_per_minute',
+            'pep_db_downloading', 'position', 'yearly_subscription',
+            'pep_db_downloading_if_yearly',
         )
         fields = read_only_fields
 
