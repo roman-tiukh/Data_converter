@@ -52,8 +52,19 @@ class Company(DataOceanModel):  # constraint for not null in both name & short_n
                                 verbose_name=_('country'), help_text='Country of origin')
     address = models.CharField(_('address'), max_length=1000, null=True,
                                help_text='Registration address in Ukrainian')
-    status = models.ForeignKey(Status, on_delete=models.CASCADE, null=True,
-                               verbose_name=_('status'), help_text='Company legal status')
+    status = models.ForeignKey(
+        Status,
+        on_delete=models.CASCADE,
+        null=True,
+        verbose_name=_('status'),
+        help_text='Company legal status. Can be: "зареєстровано", "в стані припинення", "припинено", "EMP", "порушено '
+                  'справу про банкрутство", "порушено справу про банкрутство (санація)", "зареєстровано, свідоцтво про '
+                  'державну реєстрацію недійсне", "скасовано", "active", "active - proposal to strike off", "liquidation",'
+                  ' "administration order", "voluntary arrangement", "in administration/administrative receiver", '
+                  '"in administration", "live but receiver manager on at least one charge", "in administration/receiver '
+                  'manager", "receivership", "receiver manager / administrative receiver", "administrative receiver", '
+                  'voluntary arrangement / administrative receiver", "voluntary arrangement / receiver manager".'
+    )
     bylaw = models.ForeignKey(Bylaw, on_delete=models.CASCADE, null=True,
                               verbose_name=_('charter'), help_text='By law')
     registration_date = models.DateField(_('registration date'), null=True,
