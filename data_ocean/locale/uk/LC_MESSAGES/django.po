@@ -52,7 +52,7 @@ msgid "taxpayer type"
 msgstr "тип платника податків"
 
 #: models.py:79
-msgid "Relevant"
+msgid "Up-to-date"
 msgstr "Актуальний"
 
 #: models.py:80
