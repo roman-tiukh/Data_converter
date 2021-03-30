@@ -87,6 +87,7 @@ class CustomRegisterSerializer(RegisterSerializer):
 
 class CustomLoginSerializer(LoginSerializer):
     username = None
+    email = serializers.EmailField(required=True)
 
 
 class TokenSerializer(serializers.ModelSerializer):
