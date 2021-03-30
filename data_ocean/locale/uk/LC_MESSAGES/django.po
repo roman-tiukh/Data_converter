@@ -52,7 +52,7 @@ msgid "taxpayer type"
 msgstr "тип платника податків"
 
 #: data_ocean/models.py:79
-msgid "Relevant"
+msgid "Up-to-date"
 msgstr "Актуальний"
 
 #: data_ocean/models.py:80
