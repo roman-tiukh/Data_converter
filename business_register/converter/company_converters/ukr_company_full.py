@@ -176,7 +176,7 @@ class UkrCompanyFullConverter(CompanyConverter):
                 self.founder_to_dict[code].append(founder)
 
     def update_beneficiaries(self, beneficiaries_from_record, company):
-        already_stored_founders = list(Founder.objects.filter(company=company))
+        already_stored_founders = list(Founder.objects.filter(company_id=company.id))
         for item in beneficiaries_from_record:
             info = item.text
             name, country, address = self.extract_beneficiary_data(info)
@@ -498,7 +498,7 @@ class UkrCompanyFullConverter(CompanyConverter):
             kved_from_db = self.get_kved_from_DB(kved_code, kved_name)
             if len(already_stored_company_to_kved):
                 for stored_company_to_kved in already_stored_company_to_kved:
-                    if stored_company_to_kved.kved == kved_from_db:
+                    if stored_company_to_kved.kved_id == kved_from_db.id:
                         already_stored = True
                         update_fields = []
                         if item.xpath('PRIMARY'):
@@ -573,7 +573,7 @@ class UkrCompanyFullConverter(CompanyConverter):
                         if stored_exchange_data.start_number != start_number:
                             stored_exchange_data.start_number = start_number
                             update_fields.append('start_number')
-                        if stored_exchange_data.taxpayer_type != taxpayer_type:
+                        if stored_exchange_data.taxpayer_type_id != taxpayer_type.id:
                             stored_exchange_data.taxpayer_type = taxpayer_type
                             update_fields.append('taxpayer_type')
                         if stored_exchange_data.end_date != end_date:

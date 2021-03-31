@@ -9,8 +9,12 @@ https://docs.djangoproject.com/en/2.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.0/ref/settings/
 """
+
 from data_converter.settings_local import *
 from django.utils.translation import ugettext_lazy as _
+
+
+DEBUG_TOOLBAR = locals().get('DEBUG_TOOLBAR', False)
 
 # Application definition
 
@@ -27,7 +31,6 @@ INSTALLED_APPS = [
     'django_celery_beat',
     'django_extensions',
     'django_filters',
-    # 'debug_toolbar',
     'drf_yasg',
     'rangefilter',  # plugin for django admin
     'corsheaders',
@@ -56,7 +59,6 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
-    # 'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -64,6 +66,10 @@ MIDDLEWARE = [
     'stats.middleware.ApiUsageMiddleware',
     'payment_system.middleware.ProjectAuthenticationMiddleware',
 ]
+
+if DEBUG_TOOLBAR:
+    INSTALLED_APPS += ['debug_toolbar']
+    MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware']
 
 INTERNAL_IPS = [
     '127.0.0.1',
