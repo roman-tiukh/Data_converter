@@ -323,7 +323,7 @@ class Invoice(DataOceanModel):
         help_text='This operation is irreversible, you cannot '
                   'cancel the payment of the subscription for the project.'
     )
-    payment_registration_date = models.DateField('payment registration date', default=timezone.localdate())
+    payment_registration_date = models.DateField('payment registration date', auto_now_add=True)
 
     token = models.UUIDField(db_index=True, default=uuid.uuid4, blank=True)
 
@@ -406,7 +406,7 @@ class Invoice(DataOceanModel):
     def get_pdf(self, user=None) -> io.BytesIO:
         if user is None:
             user = self.project_subscription.project.owner
-        InvoiceDailyReport.create_daily_report()
+        InvoiceReports.create_daily_report()
         with translation.override('uk'):
             html_string = render_to_string('payment_system/invoice.html', {
                 'invoice': self,
@@ -724,12 +724,12 @@ class CustomSubscriptionRequest(DataOceanModel):
         verbose_name_plural = _('custom subscription requests')
 
 
-class InvoiceDailyReport(models.Model):
-    created_at = models.DateField('created_at', auto_now_add=True)
-    should_complete_count = models.SmallIntegerField('should complete counter', default=0)
-    was_complete_count = models.SmallIntegerField('was complete counter', default=0)
-    was_overdue_count = models.SmallIntegerField('was overdue counter', default=0)
-    was_overdue_grace_period_count = models.SmallIntegerField('was overdue grace period', default=0)
+class InvoiceReports(models.Model):
+    created_at = models.DateField(auto_now_add=True)
+    should_complete_count = models.SmallIntegerField(default=0)
+    was_complete_count = models.SmallIntegerField(default=0)
+    was_overdue_count = models.SmallIntegerField(default=0)
+    was_overdue_grace_period_count = models.SmallIntegerField(default=0)
 
     @classmethod
     def create_daily_report(cls):
