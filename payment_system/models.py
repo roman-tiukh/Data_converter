@@ -185,7 +185,6 @@ class Project(DataOceanModel):
 
     def add_subscription(self, subscription: 'Subscription', invoice=None):
         assert isinstance(subscription, Subscription)
-        current_date = timezone.localdate()
         current_p2s = ProjectSubscription.objects.get(
             project=self,
             status=ProjectSubscription.ACTIVE,
@@ -422,7 +421,7 @@ class Invoice(DataOceanModel):
             user = self.project_subscription.project.owner
 
         current_date = timezone.localdate()
-        if self.is_overdue and self.start_date <= current_date:
+        if self.is_overdue and self.grace_period_end_date <= current_date:
             self.start_date = current_date
             self.end_date = self.project_subscription.generate_expiring_date()
             self.save()
