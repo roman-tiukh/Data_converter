@@ -406,7 +406,7 @@ class Invoice(DataOceanModel):
     def get_pdf(self, user=None) -> io.BytesIO:
         if user is None:
             user = self.project_subscription.project.owner
-
+        InvoiceDailyReport.create_daily_report()
         with translation.override('uk'):
             html_string = render_to_string('payment_system/invoice.html', {
                 'invoice': self,
@@ -725,11 +725,11 @@ class CustomSubscriptionRequest(DataOceanModel):
 
 
 class InvoiceDailyReport(models.Model):
-    created_at = models.DateField(_('created_at'))
-    should_complete_count = models.SmallIntegerField(_('should complete counter'), default=0)
-    was_complete_count = models.SmallIntegerField(_('was complete counter'), default=0)
-    was_overdue_count = models.SmallIntegerField(_('was overdue counter'), default=0)
-    was_overdue_grace_period_count = models.SmallIntegerField(_('was overdue grace period'), default=0)
+    created_at = models.DateField('created_at', auto_now_add=True)
+    should_complete_count = models.SmallIntegerField('should complete counter', default=0)
+    was_complete_count = models.SmallIntegerField('was complete counter', default=0)
+    was_overdue_count = models.SmallIntegerField('was overdue counter', default=0)
+    was_overdue_grace_period_count = models.SmallIntegerField('was overdue grace period', default=0)
 
     @classmethod
     def create_daily_report(cls):
@@ -740,12 +740,10 @@ class InvoiceDailyReport(models.Model):
         was_overdue_counter = 0
         was_overdue_grace_period_counter = 0
 
-        should_complete = ''
-        was_complete = ''
-        was_overdue = ''
-        was_overdue_grace_period = ''
-
-        message_text = ''
+        cls.should_complete = ''
+        cls.was_complete = ''
+        cls.was_overdue = ''
+        cls.was_overdue_grace_period = ''
 
         for invoice in Invoice.objects.all():
             email = invoice.project_subscription.project.owner.email
@@ -755,16 +753,16 @@ class InvoiceDailyReport(models.Model):
             if invoice.paid_at is None:
                 if invoice.start_date == current_date:
                     should_complete_counter += 1
-                    should_complete += line
-                elif invoice.start_date == current_date + timezone.timedelta(days=1):
+                    cls.should_complete += line
+                elif invoice.start_date == current_date - timezone.timedelta(days=1):
                     was_overdue_counter += 1
-                    was_overdue += line
-                elif invoice.start_date == invoice.grace_period_end_date:
+                    cls.was_overdue += line
+                elif current_date == invoice.grace_period_end_date:
                     was_overdue_grace_period_counter += 1
-                    was_overdue_grace_period += line
+                    cls.was_overdue_grace_period += line
             elif invoice.payment_registration_date == current_date:
                 was_complete_counter += 1
-                was_complete += line
+                cls.was_complete += line
 
         cls.objects.create(
             created_at=current_date,
@@ -774,10 +772,4 @@ class InvoiceDailyReport(models.Model):
             was_overdue_grace_period_count=was_overdue_grace_period_counter,
         )
 
-        message_text += 'Should be completed: ' + str(should_complete_counter) + ' <br> ' + should_complete + \
-                        ' <br> ' + 'Was overdue: ' + str(was_overdue_counter) + ' <br> ' + was_overdue + \
-                        ' <br> ' + 'Was completed:' + str(was_complete_counter) + ' <br> ' + was_complete + \
-                        ' <br> ' + 'Was overdue grace period:' + str(was_overdue_grace_period_counter) + \
-                        ' <br> ' + was_overdue_grace_period
-
-        emails.create_report(message_text)
+        emails.create_report(cls.objects.last())
