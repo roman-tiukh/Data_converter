@@ -325,6 +325,8 @@ class Invoice(DataOceanModel):
         help_text='This operation is irreversible, you cannot '
                   'cancel the payment of the subscription for the project.'
     )
+    payment_registration_date = models.DateField('payment registration date', default=timezone.localdate())
+
     token = models.UUIDField(db_index=True, default=uuid.uuid4, blank=True)
 
     project_subscription = models.ForeignKey(
@@ -381,6 +383,7 @@ class Invoice(DataOceanModel):
             invoice_old = Invoice.objects.get(pk=self.pk)
             if p2s.is_grace_period and not invoice_old.is_paid and self.is_paid:
                 p2s.paid_up()
+                self.payment_registration_date = timezone.localdate()
                 self.grace_period_block = False
                 emails.payment_confirmed(p2s)
             # else:
@@ -411,7 +414,6 @@ class Invoice(DataOceanModel):
                 'invoice': self,
                 'user': user,
             })
-
         html = HTML(string=html_string, base_url=os.path.join(settings.BASE_DIR, 'payment_system'))
         result = html.write_pdf()
         file = io.BytesIO(result)
@@ -724,61 +726,60 @@ class CustomSubscriptionRequest(DataOceanModel):
         verbose_name_plural = _('custom subscription requests')
 
 
-class DailyReport(models.Model):
-    created_at = models.DateField(_('created_at'), null=True, blank=False, default=None)
+class InvoiceDailyReport(models.Model):
+    created_at = models.DateField(_('created_at'))
     should_complete_count = models.SmallIntegerField(_('should complete counter'), default=0)
     was_complete_count = models.SmallIntegerField(_('was complete counter'), default=0)
     was_overdue_count = models.SmallIntegerField(_('was overdue counter'), default=0)
-    #new field - was owerdued grace period
+    was_overdue_grace_period_count = models.SmallIntegerField(_('was overdue grace period'), default=0)
 
     @classmethod
-    def create_report(cls):
-        should_complete = ''
-        should_complete_counter = 0
-        was_complete = ''
-        was_complete_counter = 0
-        was_overdue = ''
-        was_overdue_counter = 0
-        message_text = ''
+    def create_daily_report(cls):
         current_date = timezone.localdate()
+
+        should_complete_counter = 0
+        was_complete_counter = 0
+        was_overdue_counter = 0
+        was_overdue_grace_period_counter = 0
+
+        should_complete = ''
+        was_complete = ''
+        was_overdue = ''
+        was_overdue_grace_period = ''
+
+        message_text = ''
+
         for invoice in Invoice.objects.all():
             email = invoice.project_subscription.project.owner.email
             line = str(invoice.project_subscription) + ' | ' + invoice.project_name + ' | ' + str(
                 invoice.id) + ' | ' + email + '<br>'
+
             if invoice.paid_at is None:
                 if invoice.start_date == current_date:
-                    should_complete += line
                     should_complete_counter += 1
-                elif invoice.start_date == (current_date - timezone.timedelta(days=1)):
-                    was_overdue += line
+                    should_complete += line
+                elif invoice.start_date == current_date + timezone.timedelta(days=1):
                     was_overdue_counter += 1
-            elif invoice.start_date == current_date:
-                was_complete += line
+                    was_overdue += line
+                elif invoice.start_date == invoice.grace_period_end_date:
+                    was_overdue_grace_period_counter += 1
+                    was_overdue_grace_period += line
+            elif invoice.payment_registration_date == current_date:
                 was_complete_counter += 1
+                was_complete += line
 
         cls.objects.create(
             created_at=current_date,
             should_complete_count=should_complete_counter,
             was_complete_count=was_complete_counter,
             was_overdue_count=was_overdue_counter,
+            was_overdue_grace_period_count=was_overdue_grace_period_counter,
         )
 
-        message_text += 'Should be completed ' + str(should_complete_counter) + '<br>' + should_complete + \
-                        '<br>' + 'Was overdue: ' + str(was_overdue_counter) + '<br>' + was_overdue + \
-                        '<br>' + 'Was completed:' + str(was_complete_counter) + '<br>' + was_complete
+        message_text += 'Should be completed: ' + str(should_complete_counter) + ' <br> ' + should_complete + \
+                        ' <br> ' + 'Was overdue: ' + str(was_overdue_counter) + ' <br> ' + was_overdue + \
+                        ' <br> ' + 'Was completed:' + str(was_complete_counter) + ' <br> ' + was_complete + \
+                        ' <br> ' + 'Was overdue grace period:' + str(was_overdue_grace_period_counter) + \
+                        ' <br> ' + was_overdue_grace_period
 
-        message = Mail(
-            from_email='viktor6ivanov@gmail.com',
-            to_emails='viktor6ivanov@gmail.com',
-            subject='Daily payments report',
-            html_content=message_text
-        )
-        key = SENDGRID_API_KEY
-        try:
-            sg = SendGridAPIClient(key)
-            response = sg.send(message)
-            print(response.status_code)
-            print(response.body)
-            print(response.headers)
-        except Exception as e:
-            print(e)
+        emails.create_report(message_text)

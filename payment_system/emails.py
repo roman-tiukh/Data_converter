@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from django.utils import translation
+from django.utils import translation, timezone
 
 if TYPE_CHECKING:
     from payment_system.models import (
@@ -11,6 +11,7 @@ if TYPE_CHECKING:
         Invoice,
         CustomSubscriptionRequest,
         Invitation,
+        InvoiceDailyReport,
     )
 
 from django.conf import settings
@@ -258,5 +259,16 @@ def new_custom_sub_request(custom_subscription_request: 'CustomSubscriptionReque
         template='payment_system/emails/new_custom_sub_request.html',
         context={
             'csr': custom_subscription_request,
+        },
+    )
+
+
+def create_report(daily_report: 'InvoiceDailyReport'):
+    send_template_mail(
+        to=[settings.SUPPORT_EMAIL],
+        subject=f'Підсумок оплати інвойсів за {timezone.localdate()}',
+        template='payment_system/emails/new_daily_report.html',
+        context={
+            'csr': daily_report,
         },
     )
