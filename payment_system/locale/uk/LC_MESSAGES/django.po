@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-03-30 12:08+0000\n"
+"POT-Creation-Date: 2021-03-31 17:56+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -348,8 +348,8 @@ msgid "Contact the owner to restore access"
 msgstr "Для відновлення доступу зв’яжіться з його власником"
 
 #: payment_system/templates/payment_system/emails/member_removed.html:10
-msgid "To restore access to the connection with its owner"
-msgstr ""
+msgid "Contact the project owner to restore access"
+msgstr "Для відновлення доступу зв’яжіться власником проєкту"
 
 #: payment_system/templates/payment_system/emails/membership_confirmed.html:10
 msgid "Have a good teamwork on the project"

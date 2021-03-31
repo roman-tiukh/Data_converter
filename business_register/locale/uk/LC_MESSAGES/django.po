@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-03-30 12:08+0000\n"
+"POT-Creation-Date: 2021-03-31 17:56+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -38,7 +38,7 @@ msgid "Period for updated_at not matches restrictions."
 msgstr "Період для updated_at не відповідає вимогам."
 
 #: business_register/models/company_models.py:15
-#: business_register/models/company_models.py:58
+#: business_register/models/company_models.py:69
 msgid "charter"
 msgstr "статут"
 
@@ -93,92 +93,92 @@ msgstr "країна"
 msgid "address"
 msgstr "адреса"
 
-#: business_register/models/company_models.py:56
+#: business_register/models/company_models.py:59
 #: business_register/models/fop_models.py:12
 msgid "status"
 msgstr "статус"
 
-#: business_register/models/company_models.py:59
+#: business_register/models/company_models.py:70
 #: business_register/models/fop_models.py:13
 msgid "registration date"
 msgstr "дата реєстрації"
 
-#: business_register/models/company_models.py:61
-#: business_register/models/company_models.py:193
+#: business_register/models/company_models.py:72
+#: business_register/models/company_models.py:204
 #: business_register/models/fop_models.py:14
 #: business_register/models/fop_models.py:62
 msgid "registration info"
 msgstr "дані про реєстрацію"
 
-#: business_register/models/company_models.py:63
+#: business_register/models/company_models.py:74
 #: business_register/models/fop_models.py:20
 msgid "contacts"
 msgstr "контакти"
 
-#: business_register/models/company_models.py:65
+#: business_register/models/company_models.py:76
 #: business_register/models/fop_models.py:23
 msgid "registration authority"
 msgstr "орган реєстрації"
 
-#: business_register/models/company_models.py:68
+#: business_register/models/company_models.py:79
 msgid "parent company"
 msgstr "материнська компанія"
 
-#: business_register/models/company_models.py:70
+#: business_register/models/company_models.py:81
 #: business_register/models/pep_models.py:127
 #: business_register/models/pep_models.py:216
 #: business_register/models/pep_models.py:266
 msgid "id from ANTACs DB"
 msgstr "id з бази даних ЦПК"
 
-#: business_register/models/company_models.py:75
+#: business_register/models/company_models.py:86
 msgid "source"
 msgstr "джерело даних"
 
-#: business_register/models/company_models.py:77
+#: business_register/models/company_models.py:88
 #: business_register/models/fop_models.py:24
 msgid "our code"
 msgstr "наш код"
 
-#: business_register/models/company_models.py:109
+#: business_register/models/company_models.py:120
 msgid "company"
 msgstr "компанія/організація"
 
-#: business_register/models/company_models.py:110
+#: business_register/models/company_models.py:121
 msgid "companies"
 msgstr "компанії/організації"
 
-#: business_register/models/company_models.py:124
+#: business_register/models/company_models.py:135
 msgid "assignee"
 msgstr "правонаступник"
 
-#: business_register/models/company_models.py:140
+#: business_register/models/company_models.py:151
 msgid "bankruptcy readjustment"
 msgstr "санація"
 
-#: business_register/models/company_models.py:158
+#: business_register/models/company_models.py:169
 #: business_register/models/pep_models.py:83
 msgid "additional info"
 msgstr "додаткові дані"
 
-#: business_register/models/company_models.py:169
+#: business_register/models/company_models.py:180
 #: business_register/models/kved_models.py:55
 msgid "NACE"
 msgstr "КВЕД"
 
-#: business_register/models/company_models.py:227
+#: business_register/models/company_models.py:238
 msgid "owner"
 msgstr "власник"
 
-#: business_register/models/company_models.py:235
+#: business_register/models/company_models.py:246
 msgid "predecessor"
 msgstr "попередник"
 
-#: business_register/models/company_models.py:255
+#: business_register/models/company_models.py:266
 msgid "signer"
 msgstr "має право підпису"
 
-#: business_register/models/company_models.py:273
+#: business_register/models/company_models.py:284
 msgid "termination"
 msgstr "ліквідація"
 

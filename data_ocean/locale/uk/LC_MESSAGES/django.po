@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-03-30 12:08+0000\n"
+"POT-Creation-Date: 2021-03-31 17:56+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -39,75 +39,75 @@ msgid "is invalid request parameter. Could be true, false, 1, 0"
 msgstr ""
 "є некоректним параметром для булєвого запиту. Може бути true, false, 1, 0"
 
-#: data_ocean/models.py:56 data_ocean/models.py:92
+#: data_ocean/models.py:57 data_ocean/models.py:93
 msgid "status"
 msgstr "статус"
 
-#: data_ocean/models.py:64
+#: data_ocean/models.py:65
 msgid "registration authority"
 msgstr "орган реєстрації"
 
-#: data_ocean/models.py:71
+#: data_ocean/models.py:72
 msgid "taxpayer type"
 msgstr "тип платника податків"
 
-#: models.py:79
+#: data_ocean/models.py:80
 msgid "Up-to-date"
 msgstr "Актуальний"
 
-#: data_ocean/models.py:80
+#: data_ocean/models.py:81
 msgid "Outdated"
 msgstr "Дані застарілі"
 
-#: data_ocean/models.py:81
+#: data_ocean/models.py:82
 msgid "Not supported"
 msgstr "Не підтримується"
 
-#: data_ocean/models.py:83
+#: data_ocean/models.py:84
 msgid "name"
 msgstr "назва"
 
-#: data_ocean/models.py:85
+#: data_ocean/models.py:86
 msgid "source"
 msgstr "джерело даних"
 
-#: data_ocean/models.py:86
+#: data_ocean/models.py:87
 msgid "source ID"
 msgstr "ID у джерелі даних"
 
-#: data_ocean/models.py:87
+#: data_ocean/models.py:88
 msgid "source url"
 msgstr "url джерела даних"
 
-#: data_ocean/models.py:88
+#: data_ocean/models.py:89
 msgid "source API"
 msgstr "API джерела даних"
 
-#: data_ocean/models.py:89
+#: data_ocean/models.py:90
 msgid "API list"
 msgstr "API списку"
 
-#: data_ocean/models.py:90
+#: data_ocean/models.py:91
 msgid "API detail"
 msgstr "API об'єкта"
 
-#: data_ocean/models.py:91
+#: data_ocean/models.py:92
 msgid "total records"
 msgstr "кількість записів"
 
-#: data_ocean/models.py:97
+#: data_ocean/models.py:98
 msgid "dataset"
 msgstr "набір даних"
 
-#: data_ocean/models.py:98
+#: data_ocean/models.py:99
 msgid "datasets"
 msgstr "набори даних"
 
-#: data_ocean/models.py:136
+#: data_ocean/models.py:137
 msgid "data update report"
 msgstr "звіт про оновлення даних"
 
-#: data_ocean/models.py:137
+#: data_ocean/models.py:138
 msgid "data update reports"
 msgstr "звіти про оновлення даних"
 
