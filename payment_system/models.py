@@ -10,10 +10,8 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone, translation
 from django.utils.translation import gettext, gettext_lazy as _
-from sendgrid import Mail, SendGridAPIClient
 from weasyprint import HTML
 
-from data_converter.settings_local import SENDGRID_API_KEY
 from data_ocean.models import DataOceanModel
 from data_ocean.utils import generate_key
 

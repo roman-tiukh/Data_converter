@@ -12,6 +12,7 @@ def update_project_subscriptions():
     print('******************************')
 
     message = ProjectSubscription.update_expire_subscriptions()
+
     print(message)
 
 

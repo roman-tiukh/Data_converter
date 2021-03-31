@@ -266,7 +266,7 @@ def new_custom_sub_request(custom_subscription_request: 'CustomSubscriptionReque
 def create_report(daily_report: 'InvoiceDailyReport'):
     send_template_mail(
         to=[settings.SUPPORT_EMAIL],
-        subject=f'Підсумок оплати інвойсів за {timezone.localdate()}',
+        subject='Підсумок оплати інвойсів за ' + f'{timezone.localdate()}',
         template='payment_system/emails/new_daily_report.html',
         context={
             'csr': daily_report,
