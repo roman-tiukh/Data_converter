@@ -451,6 +451,13 @@ class PepDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
         )
 
 
+class PepDetailWithoutCheckCompaniesSerializer(PepDetailSerializer):
+    check_companies = None
+
+    class Meta(PepDetailSerializer.Meta):
+        fields = [f for f in PepDetailSerializer.Meta.fields if f != 'check_companies']
+
+
 class FromRelatedPersonListSerializer(serializers.ModelSerializer):
     category_display = serializers.CharField(source='get_category_display',
                                              help_text=RelatedPersonsLink._meta.get_field('category').help_text)

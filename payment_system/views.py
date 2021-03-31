@@ -52,8 +52,10 @@ class ProjectListForUserView(ProjectViewMixin, generics.ListAPIView):
         projects = list(self.get_queryset())
 
         def sort_projects(project):
-            rate = 2
+            rate = 3
             user_project = project.user_projects.get(user=self.request.user)
+            if user_project.is_default:
+                rate -= 1
             if user_project.role == UserProject.OWNER:
                 rate -= 1
             if project.is_active:

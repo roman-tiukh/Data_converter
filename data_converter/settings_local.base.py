@@ -16,6 +16,7 @@ SECRET_KEY = '89di$5_t-fo8f*z0!kvbli20gcz^6f)8&2!e1g3o4pbe7v(h^q'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+DEBUG_TOOLBAR = False
 
 # SITE URLS
 # For development mode
@@ -292,3 +293,10 @@ ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 PEP_SCHEMA_TOKENS = {
     'google.com': 'mThmM2Q1MTU1MoVlNGRkNjdkOTcyYTk2YmE5Njc2YjdmYWQzMj',
 }
+
+# AWS S3 configuration and credentials
+# region where Data_converter deployed as aws region code. For example: 'eu-central-1'
+PROJECT_SERVER_AWS_REGION_NAME = ''
+# credentials
+AWS_ACCESS_KEY_ID = ''
+AWS_SECRET_ACCESS_KEY = ''

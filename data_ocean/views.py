@@ -59,10 +59,16 @@ SchemaView = get_schema_view(
         title="DataOcean",
         default_version='v1',
         description=(
-            f"<div><a href='{settings.FRONTEND_SITE_URL}/docs/TermsAndConditionsEn.html' target= '_blank'>Terms and conditions |<a/>"
-            f"<a href='{settings.FRONTEND_SITE_URL}/docs/TermsAndConditionsUk.html' target= '_blank'> Правила та умови<a/><div/>"
-            '<p style="font-style: normal; cursor: default; color: #000000">An easy access to the data, using the Rest API for software developers.<br>'
-            'Зручний доступ до даних за допомогою Rest API для розробників програмного забезпечення.<p/>'
+            f'<div><a href=\'{settings.FRONTEND_SITE_URL}/docs/TermsAndConditionsEn.html\' target= \'_blank\'>Terms and '
+            f'conditions |</a><a href=\'{settings.FRONTEND_SITE_URL}/docs/TermsAndConditionsUk.html\' target= \'_blank\'>'
+            ' Правила та умови</a><div/><p style="font-style: normal; cursor: default; color: #000000">An easy access '
+            'to the data, using the Rest API for software developers.<br>Зручний доступ до даних за допомогою Rest API '
+            'для розробників програмного забезпечення.<p/><p style="font-style: normal; cursor: default; color: #000000">'
+            f'Download API samples Postman collection: <a download target=\'_blank\' href=\'{settings.STATIC_URL}'
+            f'DataOcean - pep_list v.3.postman_collection.json\' class=\'sc-fzobTh cbdZGY\'>Download</a><p/>'
+            '<p style="font-style: normal; cursor: default; color: #000000">For former <a href=\'https://pep.org.ua/\'>'
+            f'pep.org.ua</a> users: <a download target=\'_blank\' href=\'{settings.STATIC_URL}For former pep.org.ua '
+            'users.zip\'class=\'sc-fzobTh cbdZGY\'>Download</a><p/>'
         ),
         contact=openapi.Contact(email="info@dataocean.us"),
         x_logo={
@@ -99,7 +105,7 @@ class RegisterView(RegisterViewMixin, viewsets.ReadOnlyModelViewSet):
     serializer_class = RegisterSerializer
     filterset_class = RegisterFilter
     filter_backends = [DjangoFilterBackend, SearchFilter]
-    search_fields = ['name', 'source_register_id', 'status', ]
+    search_fields = ['name', 'name_eng', ]
 
 
 class DOAutoSchemaClass(SwaggerAutoSchema):
