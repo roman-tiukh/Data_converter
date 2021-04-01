@@ -51,7 +51,7 @@ class XMLGenerator(BaseGenerator):
             return string.decode('utf-8')
 
 
-class JSONGenerator(BaseGenerator):
+class JSONGeneratorDict(BaseGenerator):
     def __init__(self, indent: int = None):
         self.indent = indent
         self.items = []
@@ -61,3 +61,29 @@ class JSONGenerator(BaseGenerator):
 
     def get_data(self):
         return json.dumps(self.items, ensure_ascii=False, indent=self.indent)
+
+
+class JSONGenerator(BaseGenerator):
+    def __init__(self, indent: int = None):
+        self.indent = indent
+        self.stream = StringIO()
+        self.is_first_item = True
+
+    def dump_json(self, data):
+        return json.dumps(data, ensure_ascii=False, indent=self.indent)
+
+    def start(self):
+        self.stream.write('[')
+
+    def add_list_item(self, data: dict):
+        if self.is_first_item:
+            self.is_first_item = False
+        else:
+            self.stream.write(',')
+        self.stream.write(self.dump_json(data))
+
+    def finish(self):
+        self.stream.write(']')
+
+    def get_data(self):
+        return self.stream.getvalue()
