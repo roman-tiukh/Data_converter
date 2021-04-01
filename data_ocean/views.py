@@ -1,5 +1,6 @@
 from django.views.decorators.cache import cache_page
 from django.utils.decorators import method_decorator
+from drf_dynamic_fields import DynamicFieldsMixin
 from drf_yasg.generators import OpenAPISchemaGenerator, EndpointEnumerator
 from drf_yasg.inspectors import SwaggerAutoSchema
 from drf_yasg.utils import swagger_auto_schema
@@ -226,15 +227,16 @@ class DOAutoSchemaClass(SwaggerAutoSchema):
         return responses
 
     def add_manual_parameters(self, parameters):
-        return super().add_manual_parameters(parameters) + [
+        fields = super().add_manual_parameters(parameters) + [
             openapi.Parameter(
                 name='format',
                 in_=openapi.IN_QUERY,
                 description='You can receive data in json and xml format. The default format = json. To get data in xml'
                             ' format, specify ?format=xml in the query parameters.',
                 type=openapi.TYPE_STRING
-            ),
-            openapi.Parameter(
+            )]
+        if DynamicFieldsMixin in self.view.serializer_class.__bases__:
+            fields += [openapi.Parameter(
                 name='fields',
                 in_=openapi.IN_QUERY,
                 description='A parameter that allows you to select the fields that will be returned as a result of '
@@ -242,5 +244,5 @@ class DOAutoSchemaClass(SwaggerAutoSchema):
                             '<br/> In general:<br/> ?fields=fieldname1,fieldname2, etc. The recording is made through '
                             'a comma without a space.',
                 type=openapi.TYPE_STRING,
-            )
-        ]
+            )]
+        return fields
