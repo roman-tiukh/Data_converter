@@ -20,6 +20,10 @@ class SanctionType(DataOceanModel):
         help_text=_('law used to impose sanctions')
     )
 
+    class Meta:
+        verbose_name = _('Sanction type')
+        verbose_name_plural = _('Sanction types')
+
 
 class Sanction(DataOceanModel):
     PERSON = 'p'
