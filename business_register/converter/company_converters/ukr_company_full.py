@@ -281,8 +281,6 @@ class UkrCompanyFullConverter(CompanyConverter):
                     is_beneficiary=is_beneficiary,
                     is_founder=True
                 )
-                if len(country) > 100:
-                    print(country, name, address)
                 self.bulk_manager.add(founder)
         for beneficiary in beneficiaries_from_record:
             name_beneficiary, country_beneficiary, address_beneficiary, edrpou_beneficiary = \
