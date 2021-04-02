@@ -138,17 +138,11 @@ class UkrCompanyFullConverter(CompanyConverter):
         # split by semicolons that usually separates name, country and address
         info_to_list = beneficiary_info.split(';', 3)
         info_to_list = [string.strip() for string in info_to_list]
-        if len(info_to_list) > 2:
-            if info_to_list[0].lower() == 'україна':
-                country = info_to_list[0]
-                address = info_to_list[1]
-                edrpou = info_to_list[2]
-                name = info_to_list[3] or None
-            else:
-                name = info_to_list[0]
-                country = info_to_list[1]
-                address = info_to_list[2]
-                edrpou = None
+        if info_to_list[0].lower() == 'україна' and len(info_to_list) == 4:
+            country, address, edrpou, name = [item for item in info_to_list]
+        elif len(info_to_list) == 3:
+            name, country, address = [item for item in info_to_list]
+            edrpou = None
         else:
             name, country, address, edrpou = beneficiary_info, None, None, None
         return name, country, address, edrpou
