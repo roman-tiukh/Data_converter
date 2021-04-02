@@ -29,7 +29,7 @@ class UkrCompanyFullConverter(CompanyConverter):
     """
     Uncomment for switch Timer ON.
     """
-    timing = True
+    # timing = True
 
     def __init__(self):
         self.LOCAL_FILE_NAME = settings.LOCAL_FILE_NAME_UO_FULL
