@@ -143,7 +143,7 @@ class UkrCompanyFullConverter(CompanyConverter):
                 country = info_to_list[0]
                 address = info_to_list[1]
                 edrpou = info_to_list[2]
-                name = info_to_list[3]
+                name = info_to_list[3] or None
             else:
                 name = info_to_list[0]
                 country = info_to_list[1]
