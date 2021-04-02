@@ -642,7 +642,6 @@ class UkrCompanyFullConverter(CompanyConverter):
         for item in signers_from_record:
             signer = Signer()
             signer.name = item.text[:389].lower()
-            self.signer_to_dict[code] = signers.append(signer)
             signers.append(signer)
         self.signer_to_dict[code] = signers
 
