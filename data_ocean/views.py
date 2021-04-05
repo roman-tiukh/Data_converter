@@ -36,8 +36,13 @@ class CachedViewSetMixin:
 
 
 class RegisterViewMixin:
-    # TODO: remove IsAuthenticated after project-tokens will be finished.
-    permission_classes = [IsAuthenticated | AccessFromProjectToken]
+    permission_classes = [AccessFromProjectToken]
+
+    def get_permissions(self):
+        if settings.DEBUG:
+            permission_classes = [self.permission_classes[0] | IsAuthenticated]
+            return [permission() for permission in permission_classes]
+        return super().get_permissions()
 
 
 class DOEndpointEnumerator(EndpointEnumerator):
