@@ -64,7 +64,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'stats.middleware.ApiUsageMiddleware',
     'payment_system.middleware.ProjectAuthenticationMiddleware',
-    'data_ocean.middleware.DataOceanLocaleMiddleware',
 ]
 
 if DEBUG_TOOLBAR:
