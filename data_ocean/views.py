@@ -235,7 +235,8 @@ class DOAutoSchemaClass(SwaggerAutoSchema):
                 description='You can receive data in json and xml format. The default format = json. To get data in xml'
                             ' format, specify ?format=xml in the query parameters.',
                 type=openapi.TYPE_STRING
-            ))
+            )
+        )
         if DynamicFieldsMixin in self.view.serializer_class.__bases__:
             fields.append(openapi.Parameter(
                 name='fields',
@@ -246,4 +247,4 @@ class DOAutoSchemaClass(SwaggerAutoSchema):
                             'a comma without a space.',
                 type=openapi.TYPE_STRING,
             ))
-            return fields
+        return fields
