@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-03-31 17:56+0000\n"
+"POT-Creation-Date: 2021-04-05 17:42+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -20,6 +20,19 @@ msgstr ""
 "11 ? 0 : n % 1 == 0 && n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % "
 "100 > 14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || "
 "(n % 100 >=11 && n % 100 <=14 )) ? 2: 3);\n"
+
+#: location_register/models/address_models.py:8
+#: location_register/models/koatuu_models.py:16
+#: location_register/models/koatuu_models.py:30
+#: location_register/models/koatuu_models.py:46
+#: location_register/models/koatuu_models.py:70
+#: location_register/models/ratu_models.py:9
+#: location_register/models/ratu_models.py:19
+#: location_register/models/ratu_models.py:35
+#: location_register/models/ratu_models.py:53
+#: location_register/models/ratu_models.py:71
+msgid "name"
+msgstr "назва"
 
 #: location_register/models/address_models.py:11
 msgid "country"
@@ -83,18 +96,6 @@ msgstr "будинки"
 #: location_register/models/koatuu_models.py:69
 msgid "category"
 msgstr "категорія"
-
-#: location_register/models/koatuu_models.py:16
-#: location_register/models/koatuu_models.py:30
-#: location_register/models/koatuu_models.py:46
-#: location_register/models/koatuu_models.py:70
-#: location_register/models/ratu_models.py:9
-#: location_register/models/ratu_models.py:19
-#: location_register/models/ratu_models.py:35
-#: location_register/models/ratu_models.py:53
-#: location_register/models/ratu_models.py:71
-msgid "name"
-msgstr "назва"
 
 #: location_register/models/koatuu_models.py:20
 msgid "first level (region or city with special status)"
