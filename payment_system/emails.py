@@ -269,13 +269,6 @@ def create_report(daily_report: 'InvoiceReports'):
         subject='Підсумок оплати інвойсів за ' + f'{timezone.localdate()}',
         template='payment_system/emails/daily_report.html',
         context={
-            'should_complete_count': daily_report.should_complete_count,
-            'should_complete': daily_report.should_complete,
-            'was_overdue_count': daily_report.was_overdue_count,
-            'was_overdue': daily_report.was_overdue,
-            'was_complete_count': daily_report.was_complete_count,
-            'was_complete': daily_report.was_complete,
-            'was_overdue_grace_period_count': daily_report.was_overdue_grace_period_count,
-            'was_overdue_grace_period': daily_report.was_overdue_grace_period,
+            'daily_report' : daily_report,
         },
     )
