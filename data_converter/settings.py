@@ -13,7 +13,6 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 from data_converter.settings_local import *
 from django.utils.translation import ugettext_lazy as _
 
-
 DEBUG_TOOLBAR = locals().get('DEBUG_TOOLBAR', False)
 
 # Application definition

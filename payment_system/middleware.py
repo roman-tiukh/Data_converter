@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.http import HttpRequest, HttpResponse, JsonResponse
-from django.utils import timezone
+from django.utils import timezone, translation
 from django.utils.translation import gettext_lazy as _
 from payment_system.models import Project
 
@@ -32,6 +32,14 @@ class ProjectAuthenticationMiddleware:
                 return None, None
         return None, None
 
+    def set_locale(self, request, project: Project):
+        # checking if the language was already set from the header
+        if request.headers.get('Accept-Language'):
+            return
+
+        translation.activate(project.owner.language)
+        request.LANGUAGE_CODE = translation.get_language()
+
     def __call__(self, request: HttpRequest):
         project, keyword = self.authenticate_project(request)
         is_project_authenticated = bool(project and isinstance(project, Project))
@@ -52,7 +60,7 @@ class ProjectAuthenticationMiddleware:
 
             request.project = project
             request.current_p2s = current_p2s
-
+            self.set_locale(request, project)
             response: HttpResponse = self.get_response(request)
 
             if response.status_code // 100 != 5 and getattr(request, '_decrease_requests_counter', True):
