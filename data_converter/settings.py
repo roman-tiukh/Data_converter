@@ -48,7 +48,7 @@ INSTALLED_APPS = [
     'location_register',
     'stats',
     'payment_system',
-    'corrupter_register'
+    'corrupt_person_register'
 ]
 
 MIDDLEWARE = [
