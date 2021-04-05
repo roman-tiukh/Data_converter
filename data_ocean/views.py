@@ -106,7 +106,8 @@ class Views(GenericAPIView):
 
 @method_decorator(name='retrieve', decorator=swagger_auto_schema(auto_schema=None))
 @method_decorator(name='list', decorator=swagger_auto_schema(auto_schema=None))
-class RegisterView(RegisterViewMixin, viewsets.ReadOnlyModelViewSet):
+class RegisterView(viewsets.ReadOnlyModelViewSet):
+    permission_classes = [IsAuthenticated]
     queryset = Register.objects.all()
     serializer_class = RegisterSerializer
     filterset_class = RegisterFilter
