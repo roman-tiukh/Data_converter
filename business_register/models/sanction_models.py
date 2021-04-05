@@ -1,5 +1,5 @@
 from django.db import models
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from data_ocean.models import DataOceanModel
 from location_register.models.address_models import Country
@@ -105,7 +105,7 @@ class Sanction(DataOceanModel):
         null=True,
         related_name='residents_under_sanctions',
         verbose_name=_('country'),
-        help_text='Country of citizenship/registration of the person or company under sanctions')
+        help_text=_('country of citizenship/registration of the person or company under sanctions'))
     position = models.CharField(
         _('position'),
         max_length=500,
@@ -116,12 +116,12 @@ class Sanction(DataOceanModel):
 
     )
     id_card = models.CharField(
-        _('id card info'),
-        max_length=100,
+        _('id cards info'),
+        max_length=180,
         null=True,
         blank=True,
         default=None,
-        help_text=_('id card the person under sanctions')
+        help_text=_('id cards info of the person under sanctions')
     )
     taxpayer_number = models.CharField(
         _('taxpayer number'),
@@ -132,12 +132,11 @@ class Sanction(DataOceanModel):
         default=None,
         help_text=_('taxpayer number of the person or company under sanctions')
     )
-    type_of_sanctions = models.ForeignKey(
+    types_of_sanctions = models.ManyToManyField(
         SanctionType,
-        on_delete=models.CASCADE,
         related_name='objects_of_sanction',
-        verbose_name=_('type of sanctions'),
-        help_text=_('type of sanctions')
+        verbose_name=_('types of sanctions'),
+        help_text=_('types of sanctions applied')
     )
     # Maybe, we should established a different model later
     imposed_by = models.CharField(
