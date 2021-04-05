@@ -7,7 +7,7 @@
     <br>
     <br>
     {% blocktrans with owner=project.owner.get_full_name project=project.name trimmed %}
-      {{ owner }} has invited you to project {{ project }}. To get started
+      The user {{ owner }} has invited you to the project {{ project }}. For start
     {% endblocktrans %}
     {% if not is_user_exists %}
       <a href="{{ frontend_link }}/auth/sign-up/" target="_blank">
