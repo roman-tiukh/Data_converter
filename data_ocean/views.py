@@ -228,16 +228,16 @@ class DOAutoSchemaClass(SwaggerAutoSchema):
 
     def add_manual_parameters(self, parameters):
         fields = super().add_manual_parameters(parameters)
-        fields.extend([
+        fields.append(
             openapi.Parameter(
                 name='format',
                 in_=openapi.IN_QUERY,
                 description='You can receive data in json and xml format. The default format = json. To get data in xml'
                             ' format, specify ?format=xml in the query parameters.',
                 type=openapi.TYPE_STRING
-            )])
+            ))
         if DynamicFieldsMixin in self.view.serializer_class.__bases__:
-            fields.extend([openapi.Parameter(
+            fields.append(openapi.Parameter(
                 name='fields',
                 in_=openapi.IN_QUERY,
                 description='A parameter that allows you to select the fields that will be returned as a result of '
@@ -245,5 +245,5 @@ class DOAutoSchemaClass(SwaggerAutoSchema):
                             '<br/> In general:<br/> ?fields=fieldname1,fieldname2, etc. The recording is made through '
                             'a comma without a space.',
                 type=openapi.TYPE_STRING,
-            )])
-        return fields
+            ))
+            return fields
