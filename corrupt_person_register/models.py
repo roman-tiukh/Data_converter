@@ -6,28 +6,27 @@ from location_register.models.drv_models import ZipCode, DrvStreet, DrvRegion
 
 
 class CorruptCodexArticle(DataOceanModel):
-    codex_article_nazk_id = models.PositiveIntegerField(
+    nazk_id = models.PositiveIntegerField(
         _('codex_article_nazk_id'),
         unique=True,
         help_text='Identifier of the article according to which the person was prosecuted.'
     )
-    codex_article_name = models.TextField(
+    name = models.TextField(
         _('codex article name'),
         help_text='The name of the article under which the person was prosecuted.'
     )
 
     class Meta:
         verbose_name = 'Codex articles'
-        ordering = ['id']
 
 
 class Court(DataOceanModel):
-    court_nazk_id = models.PositiveIntegerField(
+    nazk_id = models.PositiveIntegerField(
         _('court id'),
         unique=True,
         help_text='Identifier of court.'
     )
-    court_name = models.CharField(
+    name = models.CharField(
         _('court name'),
         max_length=100,
         help_text='The name of the court.'
@@ -35,32 +34,30 @@ class Court(DataOceanModel):
 
     class Meta:
         verbose_name = 'Court'
-        ordering = ['id']
 
 
 class Offense(DataOceanModel):
-    offense_nazk_id = models.PositiveIntegerField(
+    nazk_id = models.PositiveIntegerField(
         _('id of offense'),
         unique=True,
         help_text='Identifier of the corruption offense.'
     )
-    offense_name = models.TextField(
+    name = models.TextField(
         _('name of offense'),
         help_text='The name of the composition of the corruption offense / Method of imposing a disciplinary process.'
     )
 
     class Meta:
         verbose_name = 'Corruption offense'
-        ordering = ['id']
 
 
 class LegalForm(DataOceanModel):
-    legal_form_nazk_id = models.PositiveIntegerField(
+    nazk_id = models.PositiveIntegerField(
         _('id of legal form'),
         unique=True,
         help_text='Identifier of organizational and legal form of ownership of a legal entity.'
     )
-    legal_form_name = models.CharField(
+    name = models.CharField(
         _('name of legal form'),
         max_length=50,
         help_text='Name of the organizational and legal form of ownership of the legal entity.'
@@ -68,16 +65,15 @@ class LegalForm(DataOceanModel):
 
     class Meta:
         verbose_name = 'Organizational and legal form of ownership of a legal entity'
-        ordering = ['id']
 
 
 class ActivityShpere(DataOceanModel):
-    activity_sphere_nazk_id = models.PositiveIntegerField(
+    nazk_id = models.PositiveIntegerField(
         _('Id of activity sphere on offense moment'),
         unique=True,
         help_text='Identifier of the sphere of activity of an individual at the time of the offense'
     )
-    activity_sphere_name = models.CharField(
+    name = models.CharField(
         _('name of activity sphere'),
         max_length=200,
         help_text='Name of the sphere of activity of an  individual at the time of the offense.'
@@ -85,7 +81,6 @@ class ActivityShpere(DataOceanModel):
 
     class Meta:
         verbose_name = 'Activity sphere'
-        ordering = ['id']
 
 
 class CorruptPerson(DataOceanModel):
@@ -292,4 +287,3 @@ class CorruptPerson(DataOceanModel):
 
     class Meta:
         verbose_name = _('persons who have committed corruption or corruption-related offenses')
-        ordering = ['id']
