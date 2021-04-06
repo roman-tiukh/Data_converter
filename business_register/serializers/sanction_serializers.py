@@ -19,8 +19,9 @@ class SanctionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sanction
         fields = (
-            'object_type', 'is_foreign', 'object_name', 'object_origin_name', 'country',
-            'date_of_birth', 'place_of_birth', 'address',
+            'object_type', 'pep', 'country', 'company', 'is_foreign',
+            'object_name', 'object_origin_name',
+            'country_of_origin', 'date_of_birth', 'place_of_birth', 'address',
             'registration_date', 'registration_number', 'taxpayer_number',
             'position', 'id_card',
             'types_of_sanctions', 'imposed_by', 'start_date', 'end_date', 'reasoning'
