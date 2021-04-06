@@ -144,6 +144,12 @@ BUSINESS_PEP_AUTH_USER = ''
 BUSINESS_PEP_AUTH_PASSWORD = ''
 BUSINESS_PEP_SOURCE_URL = 'https://pep.org.ua/opendata/persons/json'
 
+AWS_S3_ACCESS_KEY_ID = ''
+AWS_S3_SECRET_ACCESS_KEY = ''
+AWS_S3_REGION_NAME = 'eu-central-1'
+AWS_S3_PEP_EXPORT_BUCKET_NAME = 'pep-export'
+
+
 # PEP use SSH for connection
 PEP_SOURCE_USE_SSH = False
 # ssh params
