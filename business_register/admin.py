@@ -40,6 +40,8 @@ class SanctionTypeAdmin(RegisterModelAdmin):
 class SanctionAdmin(RegisterModelAdmin):
     list_display = (
         'object_name',
+        'pep',
+        'company',
         'country',
         'taxpayer_number',
         'taxpayer_number',
@@ -61,7 +63,7 @@ class SanctionAdmin(RegisterModelAdmin):
         'object_type',
         'is_foreign',
         'types_of_sanctions__name',
-        'country__name'
+        'country__name',
     )
 
     def has_change_permission(self, request, obj=None):
