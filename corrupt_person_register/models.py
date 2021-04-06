@@ -154,33 +154,44 @@ class CorruptPerson(DataOceanModel):
         ActivityShpere,
         on_delete=models.CASCADE,
     )
-    addr_post_index = models.ForeignKey(
-        ZipCode,
-        on_delete=models.CASCADE,
-        verbose_name=_('postcode'),
+    addr_post_index = models.CharField(
+        _('postcode'),
+        max_length=50,
         null=True,
         blank=True,
         help_text='Address of registration of a legal entity at the time of the offense: postal code.'
     )
-    addr_country_name = models.ForeignKey(
-        Country,
-        on_delete=models.CASCADE,
+    addr_country_id = models.PositiveIntegerField(
+        _('country identifier'),
+        null=True,
+        blank=True,
+        help_text='Address of registration of a legal entity at the time of law enforcement: country identifier.'
+    )
+    addr_country_name = models.CharField(
+        _('country'),
+        max_length=50,
         null=True,
         blank=True,
         help_text='Address of registration of a legal entity at the time of the offense: name of the country.'
     )
-    addr_state_name = models.ForeignKey(
-        DrvRegion,
-        on_delete=models.CASCADE,
+    addr_state_id = models.PositiveIntegerField(
+        _('the identifier of the region/city of national importance'),
+        null=True,
+        blank=True,
+        help_text='The address of registration of the legal entity at the time of the offense: the identifier of '
+                  'the region/city of national importance.'
+    )
+    addr_state_name = models.CharField(
+        _('the name of the region/city of national importance'),
+        max_length=50,
         null=True,
         blank=True,
         help_text='The address of registration of the legal entity at the time of the offense: the name of '
                   'the region/city of national importance'
     )
-    addr_str = models.ForeignKey(
-        DrvStreet,
-        on_delete=models.CASCADE,
-        verbose_name=_('full address'),
+    addr_str = models.CharField(
+        _('full address'),
+        max_length=200,
         null=True,
         blank=True,
         help_text='The address of registration of the legal entity at the time of the offense: district, town, '
