@@ -93,7 +93,7 @@ class CorruptPerson(DataOceanModel):
     INDIVIDUAL = 'I'
     LEGAL_ENTITY = 'LE'
     ENTITY_TYPES = (
-        (INDIVIDUAL, _('Individual entrepreneur')),
+        (INDIVIDUAL, _('Individual')),
         (LEGAL_ENTITY, _('Legal entity'))
     )
     punishment_type = models.CharField(
@@ -110,7 +110,7 @@ class CorruptPerson(DataOceanModel):
         max_length=2,
         null=True,
         blank=True,
-        help_text='Entity type. Can be \'Individual entrepreneur\' or \'Legal entity\'.'
+        help_text='Entity type. Can be \'Individual\' or \'Legal entity\'.'
     )
     last_name = models.CharField(
         _('last name'),
