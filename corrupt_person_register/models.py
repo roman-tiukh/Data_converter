@@ -97,7 +97,7 @@ class CorruptPerson(DataOceanModel):
         (LEGAL_ENTITY, _('Legal entity'))
     )
     punishment_type = models.CharField(
-        _('punishment_type'),
+        _('punishment type'),
         choices=PUNISHMENT_TYPES,
         max_length=2,
         null=True,
@@ -178,14 +178,14 @@ class CorruptPerson(DataOceanModel):
         help_text='Address of registration of a legal entity at the time of the offense: name of the country.'
     )
     addr_state_id = models.PositiveIntegerField(
-        _('the identifier of the region/city of national importance'),
+        _('the identifier of the region/city'),
         null=True,
         blank=True,
         help_text='The address of registration of the legal entity at the time of the offense: the identifier of '
                   'the region/city of national importance.'
     )
     addr_state_name = models.CharField(
-        _('the name of the region/city of national importance'),
+        _('the name of the region/city'),
         max_length=50,
         null=True,
         blank=True,
@@ -201,7 +201,7 @@ class CorruptPerson(DataOceanModel):
                   'street, house, premises in the form of a line.'
     )
     short_name = models.CharField(
-        _('Short name of the legal entity'),
+        _('short name of the legal entity'),
         max_length=20,
         db_index=True,
         null=True,
