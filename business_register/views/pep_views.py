@@ -7,7 +7,7 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.filters import SearchFilter
-from rest_framework.permissions import IsAuthenticated
+from data_ocean.permissions import ExportPermission
 from rest_framework.response import Response
 
 from business_register.filters import PepFilterSet, PepExportFilterSet, PepCheckFilterSet
@@ -50,7 +50,7 @@ class PepViewSet(RegisterViewMixin,
         serializer = self.get_serializer(pep)
         return Response(serializer.data)
 
-    @action(detail=False, url_path='xlsx', permission_classes=[IsAuthenticated])
+    @action(detail=False, url_path='xlsx', permission_classes=[ExportPermission])
     def export_to_xlsx(self, request):
         filterset = PepExportFilterSet(request.GET, self.get_queryset())
         if not filterset.is_valid():
