@@ -107,7 +107,7 @@ msgid ""
 msgstr ""
 "Через відсутність оплати проєкт %(project)s переведено на безкоштовний "
 "тарифний план без можливості його зміни. Для відновлення роботи за "
-"попередніми умовами - зверніться до служби підтримки."
+"попередніми умовами зверніться до служби підтримки."
 
 #: payment_system/emails.py:192
 msgid ""
@@ -195,8 +195,8 @@ msgstr "Ви не можете вимкнути базовий проєкт"
 msgid "Can't add second future subscription"
 msgstr "Не вдається додати другий майбутній тарифний план"
 
-#: payment_system/models.py:209
-msgid "Project have subscription on a grace period, cant add new subscription"
+#: payment_system/models.py:209 payment_system/models.py:233
+msgid "Project have subscription on a grace period, can't add new subscription"
 msgstr ""
 "Проєкт має тарифний план на пільговому періоді, не можете додати новий "
 "тарифний план"
@@ -204,12 +204,6 @@ msgstr ""
 #: payment_system/models.py:212
 msgid "Project already on {}"
 msgstr "Проєкт вже на {}"
-
-#: payment_system/models.py:227
-msgid "Project have subscription on a grace period, can't add new subscription"
-msgstr ""
-"Проєкт має тарифний план на пільговому періоді, не можете додати новий "
-"тарифний план"
 
 #: payment_system/models.py:243
 msgid "Project don't have future subscription"

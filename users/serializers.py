@@ -47,14 +47,18 @@ class DataOceanUserSerializer(serializers.ModelSerializer):
 
 class CustomRegisterSerializer(RegisterSerializer):
     username = None
-    first_name = serializers.CharField(required=True, write_only=True, validators=[
-        name_symbols_validator,
-        two_in_row_validator,
-    ])
-    last_name = serializers.CharField(required=True, write_only=True, validators=[
-        name_symbols_validator,
-        two_in_row_validator,
-    ])
+    first_name = serializers.CharField(
+        required=True,
+        write_only=True,
+        max_length=150,
+        validators=[name_symbols_validator, two_in_row_validator]
+    )
+    last_name = serializers.CharField(
+        required=True,
+        write_only=True,
+        max_length=150,
+        validators=[name_symbols_validator, two_in_row_validator]
+    )
 
     def get_cleaned_data(self):
         return {
