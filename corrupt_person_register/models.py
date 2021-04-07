@@ -7,12 +7,12 @@ from location_register.models.drv_models import ZipCode, DrvStreet, DrvRegion
 
 class CorruptCodexArticle(DataOceanModel):
     nazk_id = models.PositiveIntegerField(
-        _('codex_article_nazk_id'),
+        'NAZK id',
         unique=True,
         help_text='Identifier of the article according to which the person was prosecuted.'
     )
     name = models.TextField(
-        _('codex article name'),
+        _('name'),
         help_text='The name of the article under which the person was prosecuted.'
     )
 
@@ -22,65 +22,65 @@ class CorruptCodexArticle(DataOceanModel):
 
 class Court(DataOceanModel):
     nazk_id = models.PositiveIntegerField(
-        _('court id'),
+        'NAZK id',
         unique=True,
         help_text='Identifier of court.'
     )
     name = models.CharField(
-        _('court name'),
+        _('name'),
         max_length=100,
         help_text='The name of the court.'
     )
 
     class Meta:
-        verbose_name = 'Court'
+        verbose_name = _('Court')
 
 
 class Offense(DataOceanModel):
     nazk_id = models.PositiveIntegerField(
-        _('id of offense'),
+        'NAZK id',
         unique=True,
         help_text='Identifier of the corruption offense.'
     )
     name = models.TextField(
-        _('name of offense'),
+        _('name'),
         help_text='The name of the composition of the corruption offense / Method of imposing a disciplinary process.'
     )
 
     class Meta:
-        verbose_name = 'Corruption offense'
+        verbose_name = _('Corruption offense')
 
 
 class LegalForm(DataOceanModel):
     nazk_id = models.PositiveIntegerField(
-        _('id of legal form'),
+        'NAZK id',
         unique=True,
         help_text='Identifier of organizational and legal form of ownership of a legal entity.'
     )
     name = models.CharField(
-        _('name of legal form'),
+        _('name'),
         max_length=50,
-        help_text='Name of the organizational and legal form of ownership of the legal entity.'
+        help_text='The name of the organizational and legal form of ownership of the legal entity.'
     )
 
     class Meta:
-        verbose_name = 'Organizational and legal form of ownership of a legal entity'
+        verbose_name = _('Organizational and legal form')
 
 
 class ActivityShpere(DataOceanModel):
     nazk_id = models.PositiveIntegerField(
-        _('Id of activity sphere on offense moment'),
+        'NAZK id',
         unique=True,
         help_text='Identifier of the sphere of activity of an individual at the time of the offense'
     )
     name = models.CharField(
-        _('name of activity sphere'),
+        _('name'),
         max_length=200,
         help_text='Name of the sphere of activity of an  individual at the time of the offense.'
     )
 
     class Meta:
-        verbose_name = 'Activity sphere'
+        verbose_name = _('Activity sphere')
 
 
 class CorruptPerson(DataOceanModel):
@@ -102,7 +102,7 @@ class CorruptPerson(DataOceanModel):
         max_length=2,
         null=True,
         blank=True,
-        help_text='Punishment type. Can be \'court decision\' or \'disciplinary action\'.'
+        help_text='Punishment type. Can be \'Court decision\' or \'Disciplinary action\'.'
     )
     entity_type = models.CharField(
         _('entity type'),
@@ -153,6 +153,9 @@ class CorruptPerson(DataOceanModel):
     activity_sphere_name = models.ForeignKey(
         ActivityShpere,
         on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        help_text='The sphere of activity of an  individual at the time of the offense.'
     )
     addr_post_index = models.CharField(
         _('postcode'),
@@ -219,14 +222,15 @@ class CorruptPerson(DataOceanModel):
         db_index=True,
         null=True,
         blank=True,
-        help_text='EDRPOU code of the legal entity'
+        help_text='EDRPOU code of the legal entity.'
     )
     legal_form_name = models.ForeignKey(
         LegalForm,
         on_delete=models.CASCADE,
         verbose_name=_('name of legal form'),
         null=True,
-        blank=True
+        blank=True,
+        help_text='The organizational and legal form of ownership of the legal entity.',
     )
     offense_name = models.ForeignKey(
         Offense,
@@ -234,10 +238,11 @@ class CorruptPerson(DataOceanModel):
         null=True,
         blank=True,
         on_delete=models.CASCADE,
+        help_text='The composition of the corruption offense / Method of imposing a disciplinary process.'
     )
     punishment = models.TextField(
         _('punishment'),
-        default=_('Data are missing.'),
+        default=_('data are missing.'),
         null=True,
         blank=True,
         help_text='The essence of satisfaction of claims / Type of disciplinary action.'
@@ -284,9 +289,10 @@ class CorruptPerson(DataOceanModel):
     court_name = models.ForeignKey(
         Court,
         on_delete=models.CASCADE,
-        verbose_name=_('name of the court'),
+        verbose_name=_('the name of the court'),
         null=True,
         blank=True,
+        help_text='The court that made the judgment.'
     )
     codex_articles = models.ManyToManyField(
         CorruptCodexArticle,
@@ -294,7 +300,8 @@ class CorruptPerson(DataOceanModel):
         verbose_name=_('codex articles'),
         null=True,
         blank=True,
+        help_text='The article under which the person was prosecuted.'
     )
 
     class Meta:
-        verbose_name = _('persons who have committed corruption or corruption-related offenses')
+        verbose_name = _('Persons who have committed corruption or corruption-related offenses')
