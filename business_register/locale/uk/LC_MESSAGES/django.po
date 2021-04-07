@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-04-05 17:42+0300\n"
+"POT-Creation-Date: 2021-04-07 09:23+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -634,6 +634,11 @@ msgstr "Санкція"
 #: business_register/models/sanction_models.py:166
 msgid "Sanctions"
 msgstr "Санкції"
+
+#: business_register/templates/business_register/emails/new_company_type.html:10
+#, python-format
+msgid "New company type with id %(company)s was added."
+msgstr "Новий тип компанії з id %(company)s було додано"
 
 #: business_register/views/pep_views.py:74
 msgid ""

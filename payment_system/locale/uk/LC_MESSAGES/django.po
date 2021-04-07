@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-04-05 17:42+0300\n"
+"POT-Creation-Date: 2021-04-07 09:23+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -127,15 +127,15 @@ msgstr "У проєкті змінився токен доступу"
 msgid "You have not paid the bill"
 msgstr "У Вас не сплачений рахунок"
 
-#: payment_system/middleware.py:43
+#: payment_system/middleware.py:51
 msgid "You have 0 requests left"
 msgstr "У вас залишилося 0 запитів"
 
-#: payment_system/middleware.py:46
+#: payment_system/middleware.py:54
 msgid "You have 0 views left"
 msgstr "У вас залишилося 0 переглядів"
 
-#: payment_system/middleware.py:48
+#: payment_system/middleware.py:56
 msgid "You do not have permission to perform this action."
 msgstr "У вас немає дозволу на виконання цієї дії."
 
