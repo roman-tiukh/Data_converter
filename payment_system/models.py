@@ -435,6 +435,7 @@ class Invoice(DataOceanModel):
     def get_pdf(self, user=None) -> io.BytesIO:
         if user is None:
             user = self.project_subscription.project.owner
+
         current_date = timezone.localdate()
         if self.is_overdue and self.grace_period_end_date <= current_date:
             self.start_date = current_date
@@ -446,6 +447,7 @@ class Invoice(DataOceanModel):
                 'invoice': self,
                 'user': user,
             })
+
         html = HTML(string=html_string, base_url=os.path.join(settings.BASE_DIR, 'payment_system'))
         result = html.write_pdf()
         file = io.BytesIO(result)
