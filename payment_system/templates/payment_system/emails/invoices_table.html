@@ -1,16 +1,22 @@
 {% block content %}
-  <p style="font-family: Roboto;font-weight: normal;font-size: 16px;line-height: 24px;margin-bottom: 30px;">
-    <br>
-      <style>table, th, td {border: 1px solid black;}</style>
-      <table>
-        {% for invoice in invoices %}
+      <table border="1" style="border-collapse: collapse">
+        <thead>
           <tr>
-            <td>{{ invoice.project_subscription.project.owner.email }}</td>
-            <td>{{ invoice.project_subscription }}</td>
-            <td>{{ invoice.project_name }}</td>
-            <td>{{ invoice.id }}</td>
+            <th scope="col">Email</th>
+            <th scope="col">Subscription</th>
+            <th scope="col">Name</th>
+            <th scope="col">ID</th>
           </tr>
+        </thead>
+        {% for invoice in invoices %}
+          <tbody>
+            <tr>
+              <td>{{ invoice.project_subscription.project.owner.email }}</td>
+              <td>{{ invoice.project_subscription }}</td>
+              <td>{{ invoice.project_name }}</td>
+              <td>{{ invoice.id }}</td>
+            </tr>
+          </tbody>
         {% endfor %}
       </table>
-  </p>
 {% endblock content %}

@@ -1,27 +1,25 @@
 {% extends "data_ocean/emails/_base.html" %}
 
 {% block content %}
-  <p style="font-family: Roboto;font-weight: normal;font-size: 16px;line-height: 24px;margin-bottom: 30px;">
-  <table>
-    <tr>
-    <td><b>Should complete:</b> {{should_complete_invoices|length}}</td>
-    <td><b>Was overdue:</b> {{was_overdue_invoices|length}}</td>
-    <td><b>Was overdue grace period:</b> {{was_overdue_grace_period_invoices|length}}</td>
-    <td><b>Was complete:</b> {{was_complete_invoices|length}}</td>
-    </tr>
+  <table border="1" style="border-collapse: collapse">
+    <tr><td><b>Should complete:</b></td> <td>{{should_complete_invoices|length}}</td></tr>
+    <tr><td><b>Was overdue:</b></td> <td>{{was_overdue_invoices|length}}</td></tr>
+    <tr><td><b>Was overdue grace period:</b></td> <td>{{was_overdue_grace_period_invoices|length}}</td></tr>
+    <tr><td><b>Was complete:</b></td> <td>{{was_complete_invoices|length}}</td></tr>
   </table>
-    <br>
-      <b>Should complete:</b>
-      <b>{% include 'payment_system/emails/invoices_table.html' with invoices=should_complete_invoices %}</b><br>
-    <br>
-      <b>Was overdue:</b>
-      <b>{% include 'payment_system/emails/invoices_table.html' with invoices=was_overdue_invoices %}</b>
-    <br>
-      <b>Was overdue grace period:</b>
-      <b>{% include 'payment_system/emails/invoices_table.html' with invoices=was_overdue_grace_period_invoices %}</b>
-    <br>
-      <b>Was complete:</b>
-      <b>{% include 'payment_system/emails/invoices_table.html' with invoices=was_complete_invoices %}</b>
-    <br>
-  </p>
+    <tr>
+      <br>
+        Should complete:
+        {% include 'payment_system/emails/invoices_table.html' with invoices=should_complete_invoices %}
+      <br>
+        Was overdue:
+        {% include 'payment_system/emails/invoices_table.html' with invoices=was_overdue_invoices %}
+      <br>
+        Was overdue grace period:
+        {% include 'payment_system/emails/invoices_table.html' with invoices=was_overdue_grace_period_invoices %}
+      <br>
+        Was complete:
+        {% include 'payment_system/emails/invoices_table.html' with invoices=was_complete_invoices %}
+      <br>
+    </tr>
 {% endblock content %}
