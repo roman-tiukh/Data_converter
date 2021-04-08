@@ -55,7 +55,7 @@ class DataOceanUser(AbstractUser):
         (LEGAL_ENTITY, _('Legal entity')),
     )
 
-    first_name = models.CharField(max_length=30, validators=[
+    first_name = models.CharField(max_length=150, validators=[
         name_symbols_validator,
         two_in_row_validator,
     ])
@@ -132,7 +132,7 @@ class DataOceanUser(AbstractUser):
 class CandidateUserModel(models.Model):
     email = models.EmailField(_('email address'), unique=True)
     password = models.CharField(_('password'), max_length=128)
-    first_name = models.CharField(_('first name'), max_length=30)
+    first_name = models.CharField(_('first name'), max_length=150)
     last_name = models.CharField(_('last name'), max_length=150)
     language = models.CharField(
         _('language'),

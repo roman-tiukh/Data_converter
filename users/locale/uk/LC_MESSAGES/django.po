@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-03-26 10:59+0200\n"
+"POT-Creation-Date: 2021-04-07 09:23+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,225 +21,225 @@ msgstr ""
 "100 > 14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || "
 "(n % 100 >=11 && n % 100 <=14 )) ? 2: 3);\n"
 
-#: admin.py:62
+#: users/admin.py:62
 msgid "It cannot be longer than the duration of the tariff plan"
 msgstr "Не може бути більше ніж тривалість тарифного плану"
 
-#: admin.py:64
+#: users/admin.py:64
 msgid "Must be later than the current day"
 msgstr "Має бути більше ніж поточний день"
 
-#: emails.py:10
+#: users/emails.py:10
 msgid "Confirmation of registration in Data Ocean"
 msgstr "Підтвердження реєстрації у Data Ocean"
 
-#: emails.py:22
+#: users/emails.py:22
 msgid "Welcome to Data Ocean!"
 msgstr "Вітаємо у Data Ocean!"
 
-#: emails.py:34
+#: users/emails.py:34
 msgid "Password reset"
 msgstr "Скидання паролю"
 
-#: lc_messages/uk/rest_auth.py:5
+#: users/lc_messages/uk/rest_auth.py:5
 msgid "View is not defined, pass it as a context variable"
 msgstr "View не визначено, передайте його як змінну контексту"
 
-#: lc_messages/uk/rest_auth.py:9
+#: users/lc_messages/uk/rest_auth.py:9
 msgid "Define adapter_class in view"
 msgstr "Визначте adapter_class у view"
 
-#: lc_messages/uk/rest_auth.py:13
+#: users/lc_messages/uk/rest_auth.py:13
 msgid "Define callback_url in view"
 msgstr "Визначте callback_url у view"
 
-#: lc_messages/uk/rest_auth.py:17
+#: users/lc_messages/uk/rest_auth.py:17
 msgid "Define client_class in view"
 msgstr "Визначте client_class у view"
 
-#: lc_messages/uk/rest_auth.py:21
+#: users/lc_messages/uk/rest_auth.py:21
 msgid "Incorrect input. access_token or code is required."
 msgstr "Некоректне введення. Необхідний токен доступу або код."
 
-#: lc_messages/uk/rest_auth.py:25
+#: users/lc_messages/uk/rest_auth.py:25
 msgid "Incorrect value"
 msgstr "Некоректне значення"
 
-#: lc_messages/uk/rest_auth.py:29
+#: users/lc_messages/uk/rest_auth.py:29
 msgid "User is already registered with this e-mail address."
 msgstr "Користувач уже зареєстрований з цією електронною адресою."
 
-#: lc_messages/uk/rest_auth.py:33
+#: users/lc_messages/uk/rest_auth.py:33
 msgid "A user is already registered with this e-mail address."
 msgstr "Користувач уже зареєстрований з цією електронною адресою."
 
-#: lc_messages/uk/rest_auth.py:37
+#: users/lc_messages/uk/rest_auth.py:37
 msgid "The two password fields didn't match."
 msgstr "Два поля паролів не збіглись."
 
-#: lc_messages/uk/rest_auth.py:41
+#: users/lc_messages/uk/rest_auth.py:41
 msgid "Verification e-mail sent."
 msgstr "Електронна пошта для підтвердження надіслана."
 
-#: lc_messages/uk/rest_auth.py:45
+#: users/lc_messages/uk/rest_auth.py:45
 msgid "ok"
 msgstr "так"
 
-#: lc_messages/uk/rest_auth.py:49
+#: users/lc_messages/uk/rest_auth.py:49
 msgid "Must include \"email\" and \"password\"."
 msgstr "Потрібно включати \"email\" та \"password\"."
 
-#: lc_messages/uk/rest_auth.py:53
+#: users/lc_messages/uk/rest_auth.py:53
 msgid "Must include \"username\" and \"password\"."
 msgstr "Потрібно включати \"username\" та \"password\"."
 
-#: lc_messages/uk/rest_auth.py:57
+#: users/lc_messages/uk/rest_auth.py:57
 msgid "Must include either \"username\" or \"email\" and \"password\"."
 msgstr "Потрібно включати або \"username\" або \"email\" та \"password\"."
 
-#: lc_messages/uk/rest_auth.py:61
+#: users/lc_messages/uk/rest_auth.py:61
 msgid "User account is disabled."
 msgstr "Обліковий запис користувача відключено."
 
-#: lc_messages/uk/rest_auth.py:65
+#: users/lc_messages/uk/rest_auth.py:65
 msgid "Unable to log in with provided credentials."
 msgstr "Не вдається увійти за допомогою наданих облікових даних."
 
-#: lc_messages/uk/rest_auth.py:69
+#: users/lc_messages/uk/rest_auth.py:69
 msgid "E-mail is not verified."
 msgstr "Електронна пошта не перевірена."
 
-#: lc_messages/uk/rest_auth.py:73
+#: users/lc_messages/uk/rest_auth.py:73
 msgid "Successfully logged out."
 msgstr "Успішний вихід."
 
-#: lc_messages/uk/rest_auth.py:77
+#: users/lc_messages/uk/rest_auth.py:77
 msgid "Password reset e-mail has been sent."
 msgstr "Електронна пошта для відновлення пароля надіслана."
 
-#: lc_messages/uk/rest_auth.py:81
+#: users/lc_messages/uk/rest_auth.py:81
 msgid "Password has been reset with the new password."
 msgstr "Пароль було скинуто з новим паролем."
 
-#: lc_messages/uk/rest_auth.py:85
+#: users/lc_messages/uk/rest_auth.py:85
 msgid "New password has been saved."
 msgstr "Новий пароль збережено."
 
-#: lc_messages/uk/rest_framework.py:5
+#: users/lc_messages/uk/rest_framework.py:5
 #, python-brace-format
 msgid "Expected available in {wait} second."
 msgstr "Очікується, що буде доступно через {wait} секунду."
 
-#: lc_messages/uk/rest_framework.py:9
+#: users/lc_messages/uk/rest_framework.py:9
 #, python-brace-format
 msgid "Expected available in {wait} seconds."
 msgstr "Очікується, що буде доступно через {wait} секунд."
 
-#: models.py:23
+#: users/models.py:23
 msgid "The Email must be set"
 msgstr "Електронна пошта повинна бути вказана"
 
-#: models.py:38
+#: users/models.py:38
 msgid "Superuser must have is_staff=True."
 msgstr "У суперкористувача повинно бути встановлено is_staff=True."
 
-#: models.py:40
+#: users/models.py:40
 msgid "Superuser must have is_superuser=True."
 msgstr "У суперкористувача повинно бути встановлено is_superuser=True."
 
-#: models.py:53
+#: users/models.py:53
 msgid "Individual"
 msgstr "Физична особа"
 
-#: models.py:54
+#: users/models.py:54
 #, fuzzy
 #| msgid "Individual"
 msgid "Individual entrepreneur"
 msgstr "ФОП"
 
-#: models.py:55
+#: users/models.py:55
 msgid "Legal entity"
 msgstr "Юридична особа"
 
-#: models.py:66 models.py:133
+#: users/models.py:66 users/models.py:133
 msgid "email address"
 msgstr "адреса електронної пошти"
 
-#: models.py:71 models.py:138
+#: users/models.py:71 users/models.py:138
 msgid "language"
 msgstr "мова"
 
-#: models.py:117
+#: users/models.py:117
 msgid "You have not paid the invoice"
 msgstr "У Вас не сплачений рахунок"
 
-#: models.py:134
+#: users/models.py:134
 msgid "password"
 msgstr "пароль"
 
-#: models.py:135
+#: users/models.py:135
 msgid "first name"
 msgstr "ім'я"
 
-#: models.py:136
+#: users/models.py:136
 msgid "last name"
 msgstr "прізвище"
 
-#: models.py:144
+#: users/models.py:144
 msgid "expire at"
 msgstr "діє до"
 
-#: models.py:160
+#: users/models.py:160
 msgid "question"
 msgstr "запитання"
 
-#: models.py:161
+#: users/models.py:161
 msgid "questions"
 msgstr "запитання"
 
-#: models.py:178
+#: users/models.py:178
 #, fuzzy
 #| msgid "Notification"
 msgid "notification"
 msgstr "сповіщення"
 
-#: models.py:179
+#: users/models.py:179
 #, fuzzy
 #| msgid "Notifications"
 msgid "notifications"
 msgstr "сповіщення"
 
-#: serializers.py:25
+#: users/serializers.py:25
 #, fuzzy, python-format
 #| msgid "IBAN is required for {data.get('person_statuse').replace('_', ' ')}"
 msgid "IBAN is required for %(person_status)s"
 msgstr "IBAN обов'язкове поле для"
 
-#: serializers.py:30
+#: users/serializers.py:30
 msgid "EDRPOU is required for Legal entity"
 msgstr "ЄДРПОУ необхідний для юридичної особи"
 
-#: serializers.py:32
+#: users/serializers.py:32
 msgid "Company name is required for Legal entity"
 msgstr "Назва компанії необхідна для юридичної особи"
 
-#: serializers.py:34
+#: users/serializers.py:34
 msgid "Registration address is required for Legal entity"
 msgstr "Адреса реєстрації необхідна для юридичної особи"
 
-#: serializers.py:76
+#: users/serializers.py:76
 msgid "First Name"
 msgstr "Ім'я"
 
-#: serializers.py:77
+#: users/serializers.py:77
 msgid "Last Name"
 msgstr "Прізвище"
 
-#: serializers.py:82
+#: users/serializers.py:82
 msgid "Your password can’t be too similar to"
 msgstr "Ваш пароль не може бути надто схожим на"
 
-#: templates/users/emails/confirm_email.html:9
+#: users/templates/users/emails/confirm_email.html:9
 msgid ""
 "We have received a request from you to register with Data Ocean. To confirm "
 "your email, please follow the link:"
@@ -247,17 +247,17 @@ msgstr ""
 "Ми отримали від Вас запит на реєстрацію у Data Ocean. Щоб підтвердити "
 "електронну пошту, будь ласка, перейдіть за посиланням:"
 
-#: templates/users/emails/confirm_email.html:17
+#: users/templates/users/emails/confirm_email.html:17
 msgid "Confirm e-mail"
 msgstr "Підтвердити е-майл"
 
-#: templates/users/emails/confirm_email.html:20
-#: templates/users/emails/reset_password.html:16
+#: users/templates/users/emails/confirm_email.html:20
+#: users/templates/users/emails/reset_password.html:16
 msgid "If you did not send a request or make mistake - ignore this email"
 msgstr ""
 "Якщо Ви не надсилали запит або зробили це помилково - проігноруйте цей лист"
 
-#: templates/users/emails/registration_confirmed.html:11
+#: users/templates/users/emails/registration_confirmed.html:11
 msgid ""
 "Welcome to Data Ocean! With our services you will get access to open "
 "registers, data sets and reports. By default, we created for you"
@@ -266,58 +266,58 @@ msgstr ""
 "відкритих реєстрів, наборів даних та звітностей. За замовчуванням для Вас "
 "створений"
 
-#: templates/users/emails/registration_confirmed.html:17
+#: users/templates/users/emails/registration_confirmed.html:17
 msgid "a new project"
 msgstr "новий проєкт"
 
-#: templates/users/emails/registration_confirmed.html:22
+#: users/templates/users/emails/registration_confirmed.html:22
 msgid "Need"
 msgstr "Потрібно"
 
-#: templates/users/emails/registration_confirmed.html:24
+#: users/templates/users/emails/registration_confirmed.html:24
 msgid "more features"
 msgstr "більше можливостей"
 
-#: templates/users/emails/reset_password.html:9
+#: users/templates/users/emails/reset_password.html:9
 msgid "Did you order a password reset in the Data Ocean system"
 msgstr "Ви замовили скидання пароля у системі Data Ocean"
 
-#: templates/users/emails/reset_password.html:13
+#: users/templates/users/emails/reset_password.html:13
 msgid "Reset password"
 msgstr "Скинути пароль"
 
-#: validators.py:8
+#: users/validators.py:8
 msgid "Only alphanumeric characters, digits, and '-. are allowed"
 msgstr "Дозволено лише літери, цифри та символи'-. "
 
-#: validators.py:14
+#: users/validators.py:14
 msgid "No more than 2 identical symbols in a row are allowed"
 msgstr "Допускається не більше 2 однакових символів поспіль"
 
-#: validators.py:19
+#: users/validators.py:19
 msgid "Wrong IBAN format"
 msgstr "Неправильний формат IBAN"
 
-#: validators.py:24
+#: users/validators.py:24
 msgid "This field must contain 8 characters, only numbers"
 msgstr "Це поле має містити 8 символів, лише цифри"
 
-#: views.py:55
+#: users/views.py:55
 msgid "User with this email is already exists"
 msgstr "Користувач з цією електронною поштою вже існує"
 
-#: views.py:94 views.py:110
+#: users/views.py:94 users/views.py:110
 msgid "Confirmation link is broken"
 msgstr "Посилання на підтвердження пошкоджено."
 
-#: views.py:98
+#: users/views.py:98
 msgid "Confirmation link is expired."
 msgstr "Дія посилання на підтвердження закінчилась."
 
-#: views.py:114
+#: users/views.py:114
 msgid "The link is invalid, the email address was confirmed earlier"
 msgstr "Посилання недійсне, електронна адреса була підтверджена раніше"
 
-#: views.py:150 views.py:156
+#: users/views.py:150 users/views.py:156
 msgid "Email not sent. Try again later."
 msgstr "Лист на електронну пошту не надіслано. Спробуйте ще раз пізніше."

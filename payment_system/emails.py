@@ -85,7 +85,7 @@ def new_invitation(invitation: 'Invitation'):  # 2
     user = DataOceanUser.objects.filter(email=invited_email).first()
     if user:
         user.notify(
-            message=_('{owner} has invited you to project "{project}"').format(
+            message=_('The user {owner} has invited you to the project "{project}"').format(
                 owner=project.owner.get_full_name(),
                 project=project.name,
             ),
@@ -235,7 +235,7 @@ def tomorrow_payment_day(project_subscription: 'ProjectSubscription'):  # 8
     with translation.override(owner.language):
         send_template_mail(
             to=[owner.email],
-            subject=_('You have not paid the invoice'),
+            subject=_('You have not paid the bill'),
             template='payment_system/emails/tomorrow_payment_day.html',
             context={
                 'user': owner,

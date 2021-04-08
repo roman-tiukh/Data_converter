@@ -5,7 +5,7 @@ from data_ocean.models import DataOceanModel
 
 
 class Country(DataOceanModel):
-    name = models.CharField('name', max_length=60, unique=True)
+    name = models.CharField(_('name'), max_length=60, unique=True)
 
     class Meta:
         verbose_name = _('country')
