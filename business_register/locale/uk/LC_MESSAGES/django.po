@@ -635,11 +635,6 @@ msgstr "Санкція"
 msgid "Sanctions"
 msgstr "Санкції"
 
-#: business_register/templates/business_register/emails/new_company_type.html:10
-#, python-format
-msgid "New company type with id %(company)s was added."
-msgstr "Новий тип компанії з id %(company)s було додано"
-
 #: business_register/views/pep_views.py:74
 msgid ""
 "Generation of .xlsx file has begin. Expect an email with downloading link."
