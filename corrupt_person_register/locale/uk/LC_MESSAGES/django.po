@@ -20,6 +20,7 @@ msgstr ""
 "11 ? 0 : n % 1 == 0 && n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % "
 "100 > 14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || "
 "(n % 100 >=11 && n % 100 <=14 )) ? 2: 3);\n"
+
 #: corrupt_person_register/models.py:15 corrupt_person_register/models.py:30
 #: corrupt_person_register/models.py:46 corrupt_person_register/models.py:61
 #: corrupt_person_register/models.py:77
@@ -100,7 +101,7 @@ msgstr "країна"
 
 #: corrupt_person_register/models.py:181
 msgid "the identifier of the region/city"
-msgstr ""
+msgstr "ідентифікатор регіону/міста"
 
 #: corrupt_person_register/models.py:188
 msgid "the name of the region/city"
@@ -127,7 +128,9 @@ msgid "name of legal form"
 msgstr "найменування форми власності"
 
 #: corrupt_person_register/models.py:237
-msgid "name of offense"
+#, fuzzy
+#| msgid "name of offense"
+msgid "offense"
 msgstr "найменування правопорушення"
 
 #: corrupt_person_register/models.py:244
@@ -163,8 +166,10 @@ msgid "punishment start"
 msgstr "початок дії судового рішння"
 
 #: corrupt_person_register/models.py:292
-msgid "the name of the court"
-msgstr "Назва суду"
+#, fuzzy
+#| msgid "Court"
+msgid "court"
+msgstr "Суд"
 
 #: corrupt_person_register/models.py:300
 msgid "codex articles"
@@ -173,3 +178,6 @@ msgstr "статті"
 #: corrupt_person_register/models.py:307
 msgid "Persons who have committed corruption or corruption-related offenses"
 msgstr "Особи, які вчинили корупцію або пов'язані з корупцією правопорушення"
+
+#~ msgid "the name of the court"
+#~ msgstr "Назва суду"

@@ -96,6 +96,11 @@ class CorruptPerson(DataOceanModel):
         (INDIVIDUAL, _('Individual')),
         (LEGAL_ENTITY, _('Legal entity'))
     )
+    person_nazk_id = models.PositiveIntegerField(
+        'NAZK id',
+        unique=True,
+        help_text='Identifier of the person in the NAZK database.'
+    )
     punishment_type = models.CharField(
         _('punishment type'),
         choices=PUNISHMENT_TYPES,
@@ -232,9 +237,9 @@ class CorruptPerson(DataOceanModel):
         blank=True,
         help_text='The organizational and legal form of ownership of the legal entity.',
     )
-    offense_name = models.ForeignKey(
+    offense = models.ForeignKey(
         Offense,
-        verbose_name=_('name of offense'),
+        verbose_name=_('offense'),
         null=True,
         blank=True,
         on_delete=models.CASCADE,
@@ -286,10 +291,10 @@ class CorruptPerson(DataOceanModel):
         blank=True,
         help_text='Date in YYYY-MM-DD format. Date of entry into force of the court decision.'
     )
-    court_name = models.ForeignKey(
+    court = models.ForeignKey(
         Court,
         on_delete=models.CASCADE,
-        verbose_name=_('the name of the court'),
+        verbose_name=_('court'),
         null=True,
         blank=True,
         help_text='The court that made the judgment.'
