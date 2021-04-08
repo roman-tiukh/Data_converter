@@ -348,6 +348,7 @@ class Invoice(DataOceanModel):
     project_name = models.CharField(_("project`s name"), max_length=100)
     is_custom_subscription = models.BooleanField(_("is subscription custom"), )
     price = models.IntegerField(_("price"))
+    report_date = models.DateField()
 
     @property
     def link(self):
@@ -406,7 +407,7 @@ class Invoice(DataOceanModel):
     def get_pdf(self, user=None) -> io.BytesIO:
         if user is None:
             user = self.project_subscription.project.owner
-        InvoiceReports.create_daily_report()
+        InvoiceReport.create_daily_report()###############3
         with translation.override('uk'):
             html_string = render_to_string('payment_system/invoice.html', {
                 'invoice': self,
@@ -724,7 +725,7 @@ class CustomSubscriptionRequest(DataOceanModel):
         verbose_name_plural = _('custom subscription requests')
 
 
-class InvoiceReports(models.Model):
+class InvoiceReport(models.Model):
     created_at = models.DateField(auto_now_add=True)
     should_complete_count = models.SmallIntegerField(default=0)
     was_complete_count = models.SmallIntegerField(default=0)
@@ -734,41 +735,34 @@ class InvoiceReports(models.Model):
     @classmethod
     def create_daily_report(cls):
 
-        should_complete_counter = 0
-        was_complete_counter = 0
-        was_overdue_counter = 0
-        was_overdue_grace_period_counter = 0
+        invoices = {
+            'should_complete': [],
+            'was_complete': [],
+            'was_overdue': [],
+            'was_overdue_grace_period': [],
+        }
 
-        cls.should_complete = ''
-        cls.was_complete = ''
-        cls.was_overdue = ''
-        cls.was_overdue_grace_period = ''
-
-        for invoice in Invoice.objects.all():
-            email = invoice.project_subscription.project.owner.email
-            line = str(invoice.project_subscription) + ' | ' + invoice.project_name + ' | ' + str(
-                invoice.id) + ' | ' + email + '<br>'
+        for invoice in Invoice.objects.filter(report_date=None):
             current_date = timezone.localdate()
             if invoice.paid_at is None:
                 if invoice.start_date == current_date:
-                    should_complete_counter += 1
-                    cls.should_complete += line
-                elif invoice.start_date == current_date - timezone.timedelta(days=1):
-                    was_overdue_counter += 1
-                    cls.was_overdue += line
+                    invoices['should_complete'].append(invoice)
+                    invoice.report_date = current_date
+                elif invoice.start_date == current_date - timezone.timedelta(days=2):
+                    invoices['was_overdue'].append(invoice)
+                    invoice.report_date = current_date
                 elif current_date == invoice.grace_period_end_date:
-                    was_overdue_grace_period_counter += 1
-                    cls.was_overdue_grace_period += line
-            elif invoice.payment_registration_date == current_date:
-                was_complete_counter += 1
-                cls.was_complete += line
+                    invoices['was_overdue_grace_period'].append(invoice)
+                    invoice.report_date = current_date
+            elif invoice.payment_registration_date == current_date - timezone.timedelta(days=1):
+                invoices['was_complete'].append(invoice)
+                invoice.report_date = current_date
 
         cls.objects.create(
-            created_at=current_date,
-            should_complete_count=should_complete_counter,
-            was_complete_count=was_complete_counter,
-            was_overdue_count=was_overdue_counter,
-            was_overdue_grace_period_count=was_overdue_grace_period_counter,
+            should_complete_count=len(invoices['should_complete']),
+            was_complete_count=len(invoices['was_complete']),
+            was_overdue_count=len(invoices['was_overdue']),
+            was_overdue_grace_period_count=len(invoices['was_overdue_grace_period']),
         )
 
-        emails.create_report(cls.objects.last())
+        emails.create_report(invoices)

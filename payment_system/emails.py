@@ -11,7 +11,7 @@ if TYPE_CHECKING:
         Invoice,
         CustomSubscriptionRequest,
         Invitation,
-        InvoiceReports,
+        InvoiceReport,
     )
 
 from django.conf import settings
@@ -263,12 +263,15 @@ def new_custom_sub_request(custom_subscription_request: 'CustomSubscriptionReque
     )
 
 
-def create_report(daily_report: 'InvoiceReports'):
+def create_report(invoices: dict):
     send_template_mail(
         to=[settings.SUPPORT_EMAIL],
-        subject='Підсумок оплати інвойсів за ' + f'{timezone.localdate()}',
+        subject=f'Підсумок оплати інвойсів за {timezone.localdate()}',
         template='payment_system/emails/daily_report.html',
         context={
-            'daily_report' : daily_report,
+            'should_complete_invoices': invoices['should_complete'],
+            'was_overdue_invoices': invoices['was_overdue'],
+            'was_overdue_grace_period_invoices': invoices['was_overdue_grace_period'],
+            'was_complete_invoices': invoices['was_complete'],
         },
     )
