@@ -302,10 +302,8 @@ class CorruptPerson(DataOceanModel):
     )
     codex_articles = models.ManyToManyField(
         CorruptCodexArticle,
-        on_delete=models.CASCADE,
         verbose_name=_('codex articles'),
-        null=True,
-        blank=True,
+        default='no data',
         help_text='The article under which the person was prosecuted.'
     )
 
