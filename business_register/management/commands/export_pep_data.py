@@ -1,9 +1,7 @@
 import os
 from datetime import date
-import string
-import random
-import boto3
 from django.conf import settings
+from data_ocean import s3bucket
 from django.core.management.base import BaseCommand
 from django.http import HttpRequest
 from rest_framework.request import Request
@@ -38,35 +36,11 @@ class Command(BaseCommand):
             file.write(data)
         return f'export/{file_name}'
 
-    def save_to_s3bucket(self, data, export_format):
-        salt = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
-        file_name = f'dataocean_pep_{date.today()}_{salt}.{export_format}'
-        bucket_name = settings.AWS_S3_PEP_EXPORT_BUCKET_NAME
-        bucket_region = settings.AWS_S3_REGION_NAME
-
-        self.print(f'Write to file in S3 bucket - "{file_name}"')
-        s3 = boto3.resource(
-            's3',
-            aws_access_key_id=settings.AWS_S3_ACCESS_KEY_ID,
-            aws_secret_access_key=settings.AWS_S3_SECRET_ACCESS_KEY,
-            region_name=bucket_region,
-        )
-        s3.Bucket(bucket_name).put_object(
-            Key=file_name,
-            Body=data,
-            ACL='public-read',
-            ContentDisposition='attachment',
-            ContentType='application/octet-stream',
-        )
-        url = f'https://{bucket_name}.s3.{bucket_region}.amazonaws.com/{file_name}'
-        self.print(f'File URL: {url}', success=True)
-        return url
-
     def handle(self, *args, **options):
         export_format = options['format']
         pretty = options['pretty']
         limit = options['limit']
-        s3 = options['s3']
+        export_to_s3 = options['s3']
         request = Request(HttpRequest())
         # request._request.GET.setdefault('show_check_companies', 'none')
         # request._request.GET.setdefault('company_relations', 'none')
@@ -102,8 +76,9 @@ class Command(BaseCommand):
         generator.finish()
         data = generator.get_data()
 
-        if s3:
-            self.save_to_s3bucket(data, export_format)
+        if export_to_s3:
+            file_name = f'dataocean_pep_{date.today()}.{export_format}'
+            url = s3bucket.save_file(file_name, data)
         else:
             self.save_to_file(data, export_format)
 
