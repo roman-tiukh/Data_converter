@@ -303,7 +303,6 @@ class CorruptPerson(DataOceanModel):
     codex_articles = models.ManyToManyField(
         CorruptCodexArticle,
         verbose_name=_('codex articles'),
-        default='no data',
         help_text='The article under which the person was prosecuted.'
     )
 
