@@ -11,6 +11,7 @@ import xmltodict
 from django.apps import apps
 from lxml import etree
 
+from data_ocean.utils import Timer
 from location_register.models.address_models import Country
 
 logger = logging.getLogger(__name__)
@@ -23,9 +24,21 @@ class Converter:
     LOCAL_FOLDER = "source_data/"  # local folder for unzipped source files
     DOWNLOAD_FOLDER = "download/"  # folder to downloaded files
     URLS_DICT = {}  # control remote dataset files update
+    timing = False
+    timer = None
 
     def __init__(self):
         self.all_countries_dict = self.put_objects_to_dict("name", "location_register", "Country")
+        if self.timing:
+            self.timer = Timer()
+
+    def time_it(self, code_block_name):
+        if self.timing:
+            self.timer.time_it(code_block_name)
+
+    def print_running_times(self):
+        if self.timing:
+            self.timer.print_result()
 
     def save_or_get_country(self, name):
         name = name.lower()
@@ -221,7 +234,9 @@ class Converter:
                 # print(f'>>> Start save to db records {chunk_start_index}-{i}')
                 try:
                     if i >= start_index:
+                        self.time_it('preparing chunk of records')
                         self.save_to_db(records)
+                    self.print_running_times()
                     print(i)
                 except Exception as e:
                     msg = f'!!! Save to db failed at index = {chunk_start_index}. Error: {str(e)}'

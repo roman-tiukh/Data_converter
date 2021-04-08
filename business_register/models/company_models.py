@@ -1,5 +1,5 @@
 from django.db import models
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from simple_history.models import HistoricalRecords
 
 from business_register.models.kved_models import Kved
@@ -52,8 +52,19 @@ class Company(DataOceanModel):  # constraint for not null in both name & short_n
                                 verbose_name=_('country'), help_text='Country of origin')
     address = models.CharField(_('address'), max_length=1000, null=True,
                                help_text='Registration address in Ukrainian')
-    status = models.ForeignKey(Status, on_delete=models.CASCADE, null=True,
-                               verbose_name=_('status'), help_text='Company legal status')
+    status = models.ForeignKey(
+        Status,
+        on_delete=models.CASCADE,
+        null=True,
+        verbose_name=_('status'),
+        help_text='Company legal status. Can be: "зареєстровано", "в стані припинення", "припинено", "EMP", "порушено '
+                  'справу про банкрутство", "порушено справу про банкрутство (санація)", "зареєстровано, свідоцтво про '
+                  'державну реєстрацію недійсне", "скасовано", "active", "active - proposal to strike off", "liquidation",'
+                  ' "administration order", "voluntary arrangement", "in administration/administrative receiver", '
+                  '"in administration", "live but receiver manager on at least one charge", "in administration/receiver '
+                  'manager", "receivership", "receiver manager / administrative receiver", "administrative receiver", '
+                  'voluntary arrangement / administrative receiver", "voluntary arrangement / receiver manager".'
+    )
     bylaw = models.ForeignKey(Bylaw, on_delete=models.CASCADE, null=True,
                               verbose_name=_('charter'), help_text='By law')
     registration_date = models.DateField(_('registration date'), null=True,
@@ -116,8 +127,8 @@ class Company(DataOceanModel):  # constraint for not null in both name & short_n
 class Assignee(DataOceanModel):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='assignees',
                                 verbose_name='є правонаступником', help_text='Company is the legal successor')
-    name = models.CharField('name', max_length=610, null=True, help_text='Assignee name in Ukrainian')
-    edrpou = models.CharField('number', max_length=11, null=True, help_text='EDRPOU number as string')
+    name = models.CharField('name', max_length=610, blank=True, default='', help_text='Assignee name in Ukrainian')
+    edrpou = models.CharField('number', max_length=11, blank=True, default='', help_text='EDRPOU number as string')
     history = HistoricalRecords()
 
     class Meta:

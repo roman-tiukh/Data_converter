@@ -18,7 +18,7 @@ class DataOceanModel(models.Model):
         auto_now=True, null=True, blank=True,
         help_text='When the object was update. In YYYY-MM-DDTHH:mm:ss.SSSSSSZ format.'
     )
-    deleted_at = models.DateTimeField(null=True, blank=True, default=None, editable=False)
+    deleted_at = models.DateTimeField(null=True, blank=True, default=None, editable=False, db_index=True)
 
     objects = DataOceanManager()
     include_deleted_objects = models.Manager()
@@ -28,8 +28,9 @@ class DataOceanModel(models.Model):
         return bool(self.deleted_at)
 
     def soft_delete(self):
-        self.deleted_at = timezone.now()
-        self.save(update_fields=['deleted_at', 'updated_at'])
+        if not self.deleted_at:
+            self.deleted_at = timezone.now()
+            self.save(update_fields=['deleted_at', 'updated_at'])
 
     @classmethod
     def truncate(cls):
@@ -42,7 +43,7 @@ class DataOceanModel(models.Model):
             c.execute('TRUNCATE TABLE "{0}" CASCADE'.format(cls._meta.db_table))
 
     def __str__(self):
-        return self.name
+        return self.name or ''
 
     class Meta:
         abstract = True
@@ -76,7 +77,7 @@ class Register(DataOceanModel):
     OUTDATED = 'outdated'
     NOT_SUPPORTED = 'not supported'
     STATUSES = [
-        (RELEVANT, _('Relevant')),
+        (RELEVANT, _('Up-to-date')),
         (OUTDATED, _('Outdated')),
         (NOT_SUPPORTED, _('Not supported')),
     ]
@@ -116,12 +117,12 @@ class Report(DataOceanModel):
     update_start = models.DateTimeField(null=True, blank=True)
     update_finish = models.DateTimeField(null=True, blank=True)
     update_status = models.BooleanField(blank=True, default=False)
-    update_message = models.CharField(max_length=255, null=True, blank=True)
+    update_message = models.CharField(max_length=300, null=True, blank=True)
 
     records_added = models.IntegerField(blank=True, default=0)
     records_changed = models.IntegerField(blank=True, default=0)
     records_deleted = models.IntegerField(blank=True, default=0)
-    errors = models.IntegerField(blank=True, default=0)
+    invalid_data = models.IntegerField(blank=True, default=0)
 
     @staticmethod
     def collect_last_day_reports():

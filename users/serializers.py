@@ -15,11 +15,33 @@ from .validators import name_symbols_validator, two_in_row_validator
 
 
 class DataOceanUserSerializer(serializers.ModelSerializer):
+
+    def validate(self, data):
+
+        """validate fop and legal_entity fields"""
+
+        if data.get('person_status') in ('individual_entrepreneur', 'legal_entity'):
+            if not data.get('iban'):
+              raise serializers.ValidationError({'iban':_(f"IBAN is required for %(person_status)s" % {
+                  'person_status': data.get('person_status').replace('_', ' '),
+              })})
+        if data.get('person_status') == DataOceanUser.LEGAL_ENTITY:
+            if not data.get('edrpou'):
+                raise serializers.ValidationError({'edrpou':_("EDRPOU is required for Legal entity")})
+            if not data.get('company_name'):
+                raise serializers.ValidationError({'name_company':_("Company name is required for Legal entity")})
+            if not data.get('registration_address'):
+                raise serializers.ValidationError({'registration_address':_("Registration address is required for Legal entity")})
+
+        return data
+
     class Meta:
         model = DataOceanUser
         fields = (
             'id', 'last_name', 'first_name', 'email',
-            'organization', 'position', 'date_of_birth', 'language'
+            'organization', 'position', 'date_of_birth', 'language',
+            'person_status', 'iban', 'company_name', 'registration_address',
+            'edrpou',
         )
 
 
@@ -65,6 +87,7 @@ class CustomRegisterSerializer(RegisterSerializer):
 
 class CustomLoginSerializer(LoginSerializer):
     username = None
+    email = serializers.EmailField(required=True)
 
 
 class TokenSerializer(serializers.ModelSerializer):

@@ -160,7 +160,7 @@ class FopConverter(BusinessConverter):
             fullname = record.xpath('NAME')[0].text
             if not fullname:
                 logger.warning(f'ФОП без прізвища: {record}')
-                self.report.errors += 1
+                self.report.invalid_data += 1
                 continue
             if len(fullname) > 100:
                 logger.warning(f'ФОП із задовгим прізвищем: {record}')
@@ -300,7 +300,7 @@ class FopConverter(BusinessConverter):
             fullname = record.xpath('FIO')[0].text
             if not fullname:
                 logger.warning(f'ФОП без прізвища: {record}')
-                self.report.errors += 1
+                self.report.invalid_data += 1
                 continue
             if len(fullname) > 100:
                 logger.warning(f'ФОП із задовгим прізвищем: {record}')

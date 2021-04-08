@@ -1,5 +1,6 @@
 from django.views.decorators.cache import cache_page
 from django.utils.decorators import method_decorator
+from drf_dynamic_fields import DynamicFieldsMixin
 from drf_yasg.generators import OpenAPISchemaGenerator, EndpointEnumerator
 from drf_yasg.inspectors import SwaggerAutoSchema
 from drf_yasg.utils import swagger_auto_schema
@@ -35,8 +36,13 @@ class CachedViewSetMixin:
 
 
 class RegisterViewMixin:
-    # TODO: remove IsAuthenticated after project-tokens will be finished.
-    permission_classes = [IsAuthenticated | AccessFromProjectToken]
+    permission_classes = [AccessFromProjectToken]
+
+    def get_permissions(self):
+        if settings.DEBUG:
+            permission_classes = [self.permission_classes[0] | IsAuthenticated]
+            return [permission() for permission in permission_classes]
+        return super().get_permissions()
 
 
 class DOEndpointEnumerator(EndpointEnumerator):
@@ -59,10 +65,16 @@ SchemaView = get_schema_view(
         title="DataOcean",
         default_version='v1',
         description=(
-            f"<div><a href='{settings.FRONTEND_SITE_URL}/docs/TermsAndConditionsEn.html' target= '_blank'>Terms and conditions |<a/>"
-            f"<a href='{settings.FRONTEND_SITE_URL}/docs/TermsAndConditionsUk.html' target= '_blank'> Правила та умови<a/><div/>"
-            '<p style="font-style: normal; cursor: default; color: #000000">An easy access to the data, using the Rest API for software developers.<br>'
-            'Зручний доступ до даних за допомогою Rest API для розробників програмного забезпечення.<p/>'
+            f'<div><a href=\'{settings.FRONTEND_SITE_URL}/docs/TermsAndConditionsEn.html\' target= \'_blank\'>Terms and '
+            f'conditions |</a><a href=\'{settings.FRONTEND_SITE_URL}/docs/TermsAndConditionsUk.html\' target= \'_blank\'>'
+            ' Правила та умови</a><div/><p style="font-style: normal; cursor: default; color: #000000">An easy access '
+            'to the data, using the Rest API for software developers.<br>Зручний доступ до даних за допомогою Rest API '
+            'для розробників програмного забезпечення.<p/><p style="font-style: normal; cursor: default; color: #000000">'
+            f'Download API samples Postman collection: <a download target=\'_blank\' href=\'{settings.STATIC_URL}'
+            f'DataOcean - pep_list v.3.postman_collection.json\' class=\'sc-fzobTh cbdZGY\'>Download</a><p/>'
+            '<p style="font-style: normal; cursor: default; color: #000000">For former <a href=\'https://pep.org.ua/\'>'
+            f'pep.org.ua</a> users: <a download target=\'_blank\' href=\'{settings.STATIC_URL}For former pep.org.ua '
+            'users.zip\'class=\'sc-fzobTh cbdZGY\'>Download</a><p/>'
         ),
         contact=openapi.Contact(email="info@dataocean.us"),
         x_logo={
@@ -94,12 +106,13 @@ class Views(GenericAPIView):
 
 @method_decorator(name='retrieve', decorator=swagger_auto_schema(auto_schema=None))
 @method_decorator(name='list', decorator=swagger_auto_schema(auto_schema=None))
-class RegisterView(RegisterViewMixin, viewsets.ReadOnlyModelViewSet):
+class RegisterView(viewsets.ReadOnlyModelViewSet):
+    permission_classes = [IsAuthenticated]
     queryset = Register.objects.all()
     serializer_class = RegisterSerializer
     filterset_class = RegisterFilter
     filter_backends = [DjangoFilterBackend, SearchFilter]
-    search_fields = ['name', 'source_register_id', 'status', ]
+    search_fields = ['name', 'name_eng', ]
 
 
 class DOAutoSchemaClass(SwaggerAutoSchema):
@@ -119,7 +132,7 @@ class DOAutoSchemaClass(SwaggerAutoSchema):
             example_php = "$opts = [\n\t'https' => [\n\t\t'method' => 'GET',\n\t\t'header' => 'Accept: application/json'," \
                           "\n\t\t\t    'Authorization: DataOcean {token}', \n\t\t\t    'Content-type: application/json'," \
                           f"\n\t\t\t    'Host: {str(settings.BACKEND_SITE_URL)[8:]}'\n\t]\n];\n$context = stream_" \
-                          f"context_create($opts);\n$response = file_get_contents('{settings.BACKEND_SITE_URL}/api/"\
+                          f"context_create($opts);\n$response = file_get_contents('{settings.BACKEND_SITE_URL}/api/" \
                           f"{'/'.join(operation_keys[:-1])}', false, $context);\nvar_dump($response);"
         elif operation_keys[-1] == 'read':
             example_curl = f"curl -X GET -H 'Authorization: DataOcean {{token}}' \\\n{settings.BACKEND_SITE_URL}/" \
@@ -131,7 +144,7 @@ class DOAutoSchemaClass(SwaggerAutoSchema):
             example_php = "$opts = [\n\t'https' => [\n\t\t'method' => 'GET',\n\t\t'header' => 'Accept: application/json'," \
                           "\n\t\t\t    'Authorization: DataOcean {token}', \n\t\t\t    'Content-type: application/json'," \
                           f"\n\t\t\t    'Host: {str(settings.BACKEND_SITE_URL)[8:]}'\n\t]\n];\n$context = stream_" \
-                          f"context_create($opts);\n$response = file_get_contents('{settings.BACKEND_SITE_URL}/api/"\
+                          f"context_create($opts);\n$response = file_get_contents('{settings.BACKEND_SITE_URL}/api/" \
                           f"{'/'.join(operation_keys[:-1])}/{{id}}', false, $context);\nvar_dump($response);"
         if example_curl:
             operation.update({
@@ -220,21 +233,26 @@ class DOAutoSchemaClass(SwaggerAutoSchema):
         return responses
 
     def add_manual_parameters(self, parameters):
-        return super().add_manual_parameters(parameters) + [
+        fields = super().add_manual_parameters(parameters)
+        fields.append(
             openapi.Parameter(
                 name='format',
                 in_=openapi.IN_QUERY,
                 description='You can receive data in json and xml format. The default format = json. To get data in xml'
                             ' format, specify ?format=xml in the query parameters.',
                 type=openapi.TYPE_STRING
-            ),
-            openapi.Parameter(
-                name='fields',
-                in_=openapi.IN_QUERY,
-                description='A parameter that allows you to select the fields that will be returned as a result of '
-                            'request. For example, if you need to select the id and fullname fields: ?fields=id,fullname. '
-                            '<br/> In general:<br/> ?fields=fieldname1,fieldname2, etc. The recording is made through '
-                            'a comma without a space.',
-                type=openapi.TYPE_STRING,
             )
-        ]
+        )
+        if DynamicFieldsMixin in self.view.serializer_class.__bases__:
+            fields.append(
+                openapi.Parameter(
+                    name='fields',
+                    in_=openapi.IN_QUERY,
+                    description='A parameter that allows you to select the fields that will be returned as a result of '
+                                'request. For example, if you need to select the id and fullname fields: ?fields=id,fullname. '
+                                '<br/> In general:<br/> ?fields=fieldname1,fieldname2, etc. The recording is made through '
+                                'a comma without a space.',
+                    type=openapi.TYPE_STRING,
+                )
+            )
+        return fields

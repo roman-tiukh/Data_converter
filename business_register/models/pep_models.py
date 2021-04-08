@@ -1,5 +1,5 @@
 from django.db import models
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from simple_history.models import HistoricalRecords
 
 from business_register.models.company_models import Company, Founder
@@ -37,52 +37,49 @@ class Pep(DataOceanModel):
     )
 
     code = models.CharField(max_length=15, unique=True, db_index=True)
-    first_name = models.CharField(_('first name'), max_length=20, help_text='First name of PEP in Ukrainian')
-    middle_name = models.CharField(_('middle name'), max_length=25, help_text='Middle name of PEP in Ukrainian')
-    last_name = models.CharField(_('surname'), max_length=30, help_text='Last name of PEP in Ukrainian')
+    first_name = models.CharField(
+        _('first name'), max_length=20, db_index=True,
+        help_text='First name of PEP in Ukrainian'
+    )
+    middle_name = models.CharField(
+        _('middle name'), max_length=25, db_index=True,
+        help_text='Middle name of PEP in Ukrainian'
+    )
+    last_name = models.CharField(
+        _('surname'), max_length=30, db_index=True,
+        help_text='Last name of PEP in Ukrainian'
+    )
     fullname = models.CharField(
-        _("full name"),
-        max_length=75,
-        db_index=True,
+        _("full name"), max_length=75, db_index=True,
         help_text='Full name "last name first name middle name" in Ukrainian.'
     )
     fullname_transcriptions_eng = models.TextField(
-        _('options for writing the full name'),
-        db_index=True,
+        _('options for writing the full name'), db_index=True,
         help_text='Full name in English transcription.'
     )
     last_job_title = models.CharField(
-        _('last position'),
-        max_length=340,
-        null=True,
-        db_index=True,
+        _('last position'), max_length=340, null=True, db_index=True,
         help_text='Title of the last job in Ukrainian.'
     )
     last_employer = models.CharField(
-        _('last office'),
-        max_length=512,
-        null=True, db_index=True,
+        _('last office'), max_length=512, null=True, db_index=True,
         help_text='Last employer in Ukrainian.'
     )
     is_pep = models.BooleanField(
-        _('is pep'),
-        default=True,
+        _('is pep'), default=True,
         help_text='Boolean type. Can be true or false. True - person is politically exposed '
                   'person, false - person is not politically exposed person.'
     )
     related_persons = models.ManyToManyField('self', verbose_name=_("associated persons"),
                                              through='RelatedPersonsLink')
     pep_type = models.CharField(
-        _('type'),
-        choices=TYPES,
-        max_length=60,
-        null=True,
-        blank=True,
-        db_index=True,
+        _('type'), choices=TYPES, max_length=60, null=True,
+        blank=True, db_index=True,
         help_text='Type of politically exposed person. Can be national politically exposed '
                   'person, foreign politically exposed person,  politically exposed person,'
                   ' having political functions in international organization, associated '
-                  'person or family member.')
+                  'person or family member.'
+    )
     info = models.TextField(_('additional info'), null=True, help_text='Additional info about pep.')
     sanctions = models.TextField(
         _('known sanctions against the person'),
@@ -107,35 +104,28 @@ class Pep(DataOceanModel):
         help_text='Information on being wanted. If its null, the person is not on the wanted list.'
     )
     date_of_birth = models.CharField(
-        _('date of birth'),
-        max_length=10,
-        null=True,
+        _('date of birth'), max_length=10, null=True, db_index=True,
         help_text='Person`s date of birth in YYYY-MM-DD format.'
     )
     place_of_birth = models.CharField(
-        _('place of birth'),
-        max_length=100,
-        null=True,
+        _('place of birth'), max_length=100, null=True,
         help_text='The name of the settlement where the person was born.'
     )
     is_dead = models.BooleanField(
-        _('is_dead'),
-        default=False,
+        _('is_dead'), default=False,
         help_text='Boolean type. Can be true or false. True - person is dead, false - person is alive.'
     )
-    termination_date = models.CharField(_('PEP status termination date '), max_length=10, null=True,
+    termination_date = models.DateField(_('PEP status termination date '), null=True,
                                         help_text='PEP status termination date in YYYY-MM-DD format.')
     reason_of_termination = models.CharField(
-        _('reason of termination'),
-        choices=REASONS,
-        max_length=125,
-        null=True,
-        blank=True,
+        _('reason of termination'), choices=REASONS, max_length=125,
+        null=True, blank=True,
         help_text='PEP status reason of termination. Can be "Is dead", "Resigned or term ended", "Associated PEP is'
                   ' dead", "Legislation was changed", "Company is no more state" or null.'
-        )
-    source_id = models.PositiveIntegerField(_("id from ANTACs DB"), unique=True,
-                                            null=True, blank=True)
+    )
+    source_id = models.PositiveIntegerField(
+        _("id from ANTACs DB"), unique=True, null=True, blank=True
+    )
     history = HistoricalRecords(excluded_fields=['url', 'code'])
 
     @property
@@ -155,7 +145,6 @@ class Pep(DataOceanModel):
 
     class Meta:
         indexes = [
-            models.Index(fields=['fullname', 'date_of_birth']),
             models.Index(fields=['updated_at']),
         ]
         verbose_name = _('politically exposed person')
@@ -208,24 +197,26 @@ class RelatedPersonsLink(DataOceanModel):
         blank=True,
         help_text='The category of the relationship with the related person. Can be: family, business, personal.'
     )
-    start_date = models.CharField(
+    start_date = models.DateField(
         _("connection`s start date"),
-        max_length=12,
         null=True,
         help_text='Date of the beginning of the relationship.'
     )
-    confirmation_date = models.CharField(
+    confirmation_date = models.DateField(
         _("connection`s confirmation date"),
-        max_length=12,
         null=True,
         help_text='Date of confirmation of connection in the "Anti-Corruption Action Center" database.'
     )
-    end_date = models.CharField(
+    end_date = models.DateField(
         _("connection`s end date"),
-        max_length=12,
         null=True,
         help_text='The date the relationship ends.'
     )
+    source_id = models.PositiveIntegerField(
+        _("id from ANTACs DB"),
+        unique=True,
+        null=True,
+        default=None)
 
     def __str__(self):
         return f"connection of {self.from_person.fullname} with {self.to_person.fullname}"
@@ -262,16 +253,17 @@ class CompanyLinkWithPep(DataOceanModel):
                                                       'Can be: bank_customer, owner, manager, by_position, other.')
     relationship_type = models.CharField(_("connection`s type"), max_length=550, null=True,
                                          help_text='Type of connection between the person and this company')
-    start_date = models.CharField(_("connection`s start date"), max_length=12, null=True,
+    start_date = models.DateField(_("connection`s start date"), null=True,
                                   help_text='Date of the beginning of the person\'s connection with the company.')
-    confirmation_date = models.CharField(_("connection`s confirmation date"), max_length=12, null=True,
+    confirmation_date = models.DateField(_("connection`s confirmation date"), null=True,
                                          help_text='Date of confirmation of connection in the "Anti-Corruption Action '
                                                    'Center" database.')
-    end_date = models.CharField(_("connection`s end date"), max_length=12, null=True,
+    end_date = models.DateField(_("connection`s end date"), null=True,
                                 help_text='Date of termination of connection between the person and  this company')
-    is_state_company = models.BooleanField(null=True, help_text='Boolean type. If its true - the company is state-owned,'
-                                                                'if its false - the company is private.')
-    source_id = models.IntegerField(unique=True, null=True, default=None)
+    is_state_company = models.BooleanField(null=True,
+                                           help_text='Boolean type. If its true - the company is state-owned,'
+                                                     'if its false - the company is private.')
+    source_id = models.PositiveIntegerField(_("id from ANTACs DB"), unique=True, null=True, default=None)
 
     class Meta:
         verbose_name = _("company connection with Pep")

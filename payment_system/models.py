@@ -276,7 +276,7 @@ class Subscription(DataOceanModel):
 
     name = models.CharField(_('name'), max_length=50, unique=True)
     description = models.TextField(_('description'), blank=True, default='')
-    price = models.SmallIntegerField(_('price'), default=0)
+    price = models.PositiveIntegerField(_('price'), default=0)
     requests_limit = models.IntegerField(_('requests limit'), help_text='Limit for API requests from the project')
     platform_requests_limit = models.IntegerField(
         _('platform requests limit'),
@@ -289,6 +289,18 @@ class Subscription(DataOceanModel):
         help_text='Custom subscription not shown to users',
     )
     is_default = models.BooleanField(_('is default'), blank=True, default=False)
+
+    pep_checks = models.BooleanField(
+        blank=True, default=False,
+        help_text='Allow to use api/pep/check/ endpoint',
+    )
+    pep_checks_per_minute = models.PositiveSmallIntegerField(default=0)
+    pep_db_downloading = models.BooleanField(blank=True, default=False)
+    position = models.PositiveSmallIntegerField(default=1, help_text='Position of subscription on frontend')
+    yearly_subscription = models.ForeignKey(
+        'self', models.PROTECT, blank=True, null=True, default=None,
+        help_text='Related yearly subscription. Example: Business -> Business +',
+    )
 
     @classmethod
     def get_default_subscription(cls):
@@ -311,7 +323,7 @@ class Subscription(DataOceanModel):
         return self.name
 
     class Meta:
-        ordering = ['price']
+        ordering = ['position', 'price']
         verbose_name = _('subscription')
         verbose_name_plural = _('subscriptions')
 
@@ -503,6 +515,9 @@ class ProjectSubscription(DataOceanModel):
 
     periodicity = models.CharField(max_length=5, choices=Subscription.PERIODS)
     grace_period = models.SmallIntegerField(help_text='days')
+
+    pep_checks_count_per_minute = models.PositiveSmallIntegerField(default=0)
+    pep_checks_minute = models.PositiveIntegerField(default=0)
 
     def generate_expiring_date(self):
         year = self.start_date.year

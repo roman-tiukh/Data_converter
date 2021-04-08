@@ -30,6 +30,7 @@ from business_register.views.company_views import (CompanyViewSet, CompanyUkrVie
 from business_register.views.fop_views import FopViewSet
 from business_register.views.kved_views import KvedViewSet
 from business_register.views.pep_views import PepViewSet
+from business_register.views.sanction_views import SanctionViewSet
 from data_ocean.views import RegisterView, SchemaView
 from location_register.views.drv_views import DrvBuildingViewSet
 from location_register.views.ratu_views import (RatuRegionView, RatuCityView, RatuStreetView,
@@ -73,6 +74,7 @@ router.register(r'historical-signer', HistoricalSignerView, basename='historical
 router.register(r'historical-termination-started', HistoricalTerminationStartedView,
                 basename='historical_termination_started')
 router.register(r'pep', PepViewSet, basename='pep')
+router.register(r'sanction', SanctionViewSet, basename='sanction')
 
 urlpatterns = [
     path('api/stats/', include('stats.urls')),
@@ -127,9 +129,12 @@ urlpatterns = [
 ]
 
 if settings.DEBUG:
-    # import debug_toolbar
-
     urlpatterns += [
         path('debug-rest-auth/', include('rest_framework.urls', namespace='rest_framework')),
-        # path('__debug__/', include(debug_toolbar.urls)),
+    ]
+
+if settings.DEBUG_TOOLBAR:
+    import debug_toolbar
+    urlpatterns += [
+        path('__debug__/', include(debug_toolbar.urls)),
     ]

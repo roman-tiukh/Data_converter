@@ -26,6 +26,10 @@ logger.setLevel(logging.INFO)
 
 
 class UkrCompanyFullConverter(CompanyConverter):
+    """
+    Uncomment for switch Timer ON.
+    """
+    # timing = True
 
     def __init__(self):
         self.LOCAL_FILE_NAME = settings.LOCAL_FILE_NAME_UO_FULL
@@ -90,7 +94,7 @@ class UkrCompanyFullConverter(CompanyConverter):
                     # getting the name with commas inside
                     info_to_new_list = founder_info.split(string)
                     name = info_to_new_list[0]
-                    logger.warning(f'Нестандартний запис: {founder_info}')
+                    # logger.warning(f'Нестандартний запис: {founder_info}')
                     break
         equity = None
         element_with_equity = None
@@ -108,8 +112,8 @@ class UkrCompanyFullConverter(CompanyConverter):
             address = address.replace(element_with_equity, '')
         if address and len(address) < 15:
             address = None
-        if address and len(address) > 200:
-            logger.warning(f'Завелика адреса: {address} із запису: {founder_info}')
+        # if address and len(address) > 200:
+            # logger.warning(f'Завелика адреса: {address} із запису: {founder_info}')
         return name, edrpou, address, equity
 
     def extract_founder_data(self, founder_info):
@@ -131,90 +135,20 @@ class UkrCompanyFullConverter(CompanyConverter):
         return name, is_beneficiary, address, equity
 
     def extract_beneficiary_data(self, beneficiary_info):
-        # split by first comma that usually separates name and equity that also has comma
-        info_to_list = beneficiary_info.split(';', 1)
+        # split by semicolons that usually separates name, country and address
+        info_to_list = beneficiary_info.split(';', 3)
         info_to_list = [string.strip() for string in info_to_list]
-        if len(info_to_list) > 2:
-            name = info_to_list[0]
-            country = info_to_list[1]
-            address = info_to_list[2]
+        if info_to_list[0].lower() == 'україна' and len(info_to_list) == 4:
+            country, address, edrpou, name = [item for item in info_to_list]
+        elif len(info_to_list) == 3:
+            name, country, address = [item for item in info_to_list]
+            edrpou = None
         else:
-            name, country, address = beneficiary_info, None, None
-        return name, country, address
+            name, country, address, edrpou = beneficiary_info, None, None, None
+        return name, country, address, edrpou
 
-    def add_beneficiaries(self, beneficiaries_from_record, code):
-        for item in beneficiaries_from_record:
-            info = item.text
-            name, country, address = self.extract_beneficiary_data(info)
-            if name:
-                name = name.lower()
-            if country:
-                country = country.lower()
-            already_stored = False
-            if self.founder_to_dict[code]:
-                for stored_founder in self.founder_to_dict[code]:
-                    if stored_founder.name == name:
-                        already_stored = True
-                        if not stored_founder.is_beneficiary:
-                            stored_founder.is_beneficiary = True
-                        stored_founder.info_beneficiary = info
-                        stored_founder.country = country
-                        stored_founder.address = address
-                        break
-            if not already_stored:
-                founder = Founder(
-                    info_beneficiary=info,
-                    name=name,
-                    country=country,
-                    address=address,
-                    is_beneficiary=True
-                )
-                self.founder_to_dict[code].append(founder)
-
-    def update_beneficiaries(self, beneficiaries_from_record, company):
-        already_stored_founders = list(Founder.objects.filter(company=company))
-        for item in beneficiaries_from_record:
-            info = item.text
-            name, country, address = self.extract_beneficiary_data(info)
-            if name:
-                name = name.lower()
-            if country:
-                country = country.lower()
-            already_stored = False
-            if len(already_stored_founders):
-                for stored_founder in already_stored_founders:
-                    if stored_founder.name == name:
-                        already_stored = True
-                        update_fields = []
-                        if stored_founder.info_beneficiary != info:
-                            stored_founder.info_beneficiary = info
-                            update_fields.append('info_beneficiary')
-                            if not stored_founder.is_beneficiary:
-                                stored_founder.is_beneficiary = True
-                                update_fields.append('is_beneficiary')
-                            if address and stored_founder.address != address:
-                                stored_founder.address = address
-                                update_fields.append('address')
-                            if stored_founder.country != country:
-                                stored_founder.country = country
-                                update_fields.append('country')
-                            if update_fields:
-                                update_fields.append('updated_at')
-                                stored_founder.save(update_fields=update_fields)
-                        break
-            if not already_stored:
-                founder = Founder(
-                    company=company,
-                    info_beneficiary=info,
-                    name=name,
-                    country=country,
-                    address=address,
-                    is_beneficiary=True
-                )
-                self.bulk_manager.add(founder)
-
-    def add_founders(self, founders_from_record, code):
-        founders = []
+    def add_founders(self, founders_from_record, beneficiaries_from_record, code):
+        self.founder_to_dict[code] = []
         for item in founders_from_record:
             info = item.text
             # checking if field contains data
@@ -227,20 +161,52 @@ class UkrCompanyFullConverter(CompanyConverter):
             else:
                 name = item.text.lower()
                 edrpou, equity, address = None, None, None
+            country = None
             is_beneficiary = False
+            info_beneficiary = None
+            for beneficiary in beneficiaries_from_record:
+                name_beneficiary, country_beneficiary, address_beneficiary, edrpou_beneficiary =\
+                    self.extract_beneficiary_data(beneficiary.text)
+                name_beneficiary = name_beneficiary.lower()
+                if name_beneficiary == name:
+                    info_beneficiary = beneficiary.text
+                    country = country_beneficiary.lower()
+                    address = address_beneficiary
+                    edrpou = edrpou_beneficiary or edrpou
+                    is_beneficiary = True
+                    beneficiaries_from_record.remove(beneficiary)
+                    break
             founder = Founder(
                 info=info,
+                info_beneficiary=info_beneficiary,
                 name=name,
                 edrpou=edrpou,
                 address=address,
                 equity=equity,
+                country=country,
                 is_beneficiary=is_beneficiary,
                 is_founder=True
             )
-            founders.append(founder)
-        self.founder_to_dict[code].extend(founders)
+            self.founder_to_dict[code].append(founder)
+        for beneficiary in beneficiaries_from_record:
+            name_beneficiary, country_beneficiary, address_beneficiary, edrpou_beneficiary = \
+                self.extract_beneficiary_data(beneficiary.text)
+            name = name_beneficiary.lower()
+            info_beneficiary = beneficiary.text
+            country = country_beneficiary.lower() if country_beneficiary else None
+            address = address_beneficiary
+            founder = Founder(
+                info_beneficiary=info_beneficiary,
+                name=name,
+                address=address,
+                country=country,
+                edrpou=edrpou_beneficiary,
+                is_beneficiary=True,
+                is_founder=False
+            )
+            self.founder_to_dict[code].append(founder)
 
-    def update_founders(self, founders_from_record, company):
+    def update_founders(self, founders_from_record, beneficiaries_from_record, company):
         already_stored_founders = list(Founder.include_deleted_objects.filter(company_id=company.id))
         for item in founders_from_record:
             info = item.text
@@ -249,21 +215,36 @@ class UkrCompanyFullConverter(CompanyConverter):
                 continue
             # checking if there is additional data except name
             if ',' in item.text:
-                name, is_beneficiary, address, equity = self.extract_founder_data(item.text)
+                name, edrpou, address, equity = self.extract_detail_founder_data(item.text)
                 name = name.lower()
             else:
                 name = item.text.lower()
-                equity, address = None, None
-                is_beneficiary = False
+                edrpou, equity, address = None, None, None
+            country = None
+            is_beneficiary = False
+            info_beneficiary = None
+            for beneficiary in beneficiaries_from_record:
+                name_beneficiary, country_beneficiary, address_beneficiary, edrpou_beneficiary = \
+                    self.extract_beneficiary_data(beneficiary.text)
+                name_beneficiary = name_beneficiary.lower()
+                if name_beneficiary == name:
+                    info_beneficiary = beneficiary.text
+                    country = country_beneficiary.lower()
+                    address = address_beneficiary
+                    edrpou = edrpou_beneficiary or edrpou
+                    is_beneficiary = True
+                    beneficiaries_from_record.remove(beneficiary)
+                    break
             already_stored = False
             if len(already_stored_founders):
                 for stored_founder in already_stored_founders:
                     if stored_founder.name == name:
                         already_stored = True
-                        if stored_founder.info != info:
+                        if stored_founder.info != info or stored_founder.info_beneficiary != info_beneficiary:
                             update_fields = []
                             stored_founder.info = info
-                            update_fields.append('info')
+                            stored_founder.info_beneficiary = info_beneficiary
+                            update_fields.extend(['info', 'info_beneficiary'])
                             if stored_founder.is_beneficiary != is_beneficiary:
                                 stored_founder.is_beneficiary = is_beneficiary
                                 update_fields.append('is_beneficiary')
@@ -273,6 +254,12 @@ class UkrCompanyFullConverter(CompanyConverter):
                             if equity and stored_founder.equity != equity:
                                 stored_founder.equity = equity
                                 update_fields.append('equity')
+                            if edrpou and stored_founder.edrpou != edrpou:
+                                stored_founder.edrpou = edrpou
+                                update_fields.append('edrpou')
+                            if country and stored_founder.country != country:
+                                stored_founder.country = country
+                                update_fields.append('country')
                             if stored_founder.deleted_at:
                                 stored_founder.deleted_at = None
                                 update_fields.append('deleted_at')
@@ -283,14 +270,60 @@ class UkrCompanyFullConverter(CompanyConverter):
                         break
             if not already_stored:
                 founder = Founder(
-                    company=company,
+                    company_id=company.id,
                     info=info,
+                    info_beneficiary=info_beneficiary,
                     name=name,
+                    edrpou=edrpou,
                     address=address,
                     equity=equity,
+                    country=country,
                     is_beneficiary=is_beneficiary,
                     is_founder=True
                 )
+                self.bulk_manager.add(founder)
+        for beneficiary in beneficiaries_from_record:
+            name_beneficiary, country_beneficiary, address_beneficiary, edrpou_beneficiary = \
+                self.extract_beneficiary_data(beneficiary.text)
+            name = name_beneficiary.lower()
+            info_beneficiary = beneficiary.text
+            if country_beneficiary:
+                country_beneficiary = country_beneficiary.lower()
+            already_stored = False
+            if len(already_stored_founders):
+                for stored_founder in already_stored_founders:
+                    if stored_founder.name == name:
+                        already_stored = True
+                        if stored_founder.info_beneficiary != info_beneficiary:
+                            stored_founder.info_beneficiary = info_beneficiary
+                            stored_founder.address = address_beneficiary
+                            stored_founder.country = country_beneficiary
+                            stored_founder.edrpou = edrpou_beneficiary
+                            stored_founder.is_beneficiary = True
+                            stored_founder.is_founder = False
+                            update_fields = ['info_beneficiary', 'address', 'country', 'edrpou', 'is_beneficiary',
+                                             'is_founder']
+                            if stored_founder.deleted_at:
+                                stored_founder.deleted_at = None
+                                update_fields.append('deleted_at')
+                            update_fields.append('updated_at')
+                            stored_founder.save(update_fields=update_fields)
+                        already_stored_founders.remove(stored_founder)
+                        break
+            if not already_stored:
+                founder = Founder(
+                    company_id=company.id,
+                    info_beneficiary=info_beneficiary,
+                    name=name,
+                    address=address_beneficiary,
+                    country=country_beneficiary,
+                    edrpou=edrpou_beneficiary,
+                    is_beneficiary=True,
+                    is_founder=False
+                )
+
+                if country_beneficiary and len(country_beneficiary) > 100:
+                    print('country', country_beneficiary, 'name', name, 'address', address)
                 self.bulk_manager.add(founder)
         if len(already_stored_founders):
             for outdated_founder in already_stored_founders:
@@ -360,8 +393,13 @@ class UkrCompanyFullConverter(CompanyConverter):
             assignee = Assignee()
             if item.xpath('NAME')[0].text:
                 assignee.name = item.xpath('NAME')[0].text.lower()
+            else:
+                assignee.name = ''
             assignee.edrpou = item.xpath('CODE')[0].text
-            assignees.append(assignee)
+            if not assignee.edrpou:
+                assignee.edrpou = ''
+            if assignee.name or assignee.edrpou:
+                assignees.append(assignee)
         self.assignee_to_dict[code] = assignees
 
     def update_assignees(self, assignees_from_record, company):
@@ -370,7 +408,13 @@ class UkrCompanyFullConverter(CompanyConverter):
             name = item.xpath('NAME')[0].text
             if name:
                 name = name.lower()
+            else:
+                name = ''
             edrpou = item.xpath('CODE')[0].text
+            if not edrpou:
+                edrpou = ''
+            if not name and not edrpou:
+                continue
             already_stored = False
             if len(already_stored_assignees):
                 for stored_assignee in already_stored_assignees:
@@ -483,7 +527,7 @@ class UkrCompanyFullConverter(CompanyConverter):
             kved_from_db = self.get_kved_from_DB(kved_code, kved_name)
             if len(already_stored_company_to_kved):
                 for stored_company_to_kved in already_stored_company_to_kved:
-                    if stored_company_to_kved.kved == kved_from_db:
+                    if stored_company_to_kved.kved_id == kved_from_db.id:
                         already_stored = True
                         update_fields = []
                         if item.xpath('PRIMARY'):
@@ -558,7 +602,7 @@ class UkrCompanyFullConverter(CompanyConverter):
                         if stored_exchange_data.start_number != start_number:
                             stored_exchange_data.start_number = start_number
                             update_fields.append('start_number')
-                        if stored_exchange_data.taxpayer_type != taxpayer_type:
+                        if stored_exchange_data.taxpayer_type_id != taxpayer_type.id:
                             stored_exchange_data.taxpayer_type = taxpayer_type
                             update_fields.append('taxpayer_type')
                         if stored_exchange_data.end_date != end_date:
@@ -627,7 +671,6 @@ class UkrCompanyFullConverter(CompanyConverter):
         for item in signers_from_record:
             signer = Signer()
             signer.name = item.text[:389].lower()
-            self.signer_to_dict[code] = signers.append(signer)
             signers.append(signer)
         self.signer_to_dict[code] = signers
 
@@ -777,8 +820,10 @@ class UkrCompanyFullConverter(CompanyConverter):
                 authority = self.save_or_get_authority(authority)
             else:
                 authority = None
+            self.time_it('getting data from record')
 
             company = Company.include_deleted_objects.filter(code=code, source=Company.UKRAINE_REGISTER).first()
+            self.time_it('trying get companies\t')
 
             if not company:
                 company = Company(
@@ -815,11 +860,10 @@ class UkrCompanyFullConverter(CompanyConverter):
                     self.add_assignees(record.xpath('ASSIGNEES')[0], code)
                 if len(record.xpath('EXCHANGE_DATA')[0]):
                     self.add_exchange_data(record.xpath('EXCHANGE_DATA')[0], code)
-                self.founder_to_dict[code] = []
-                if len(record.xpath('FOUNDERS')[0]):
-                    self.add_founders(record.xpath('FOUNDERS')[0], code)
-                if len(record.xpath('BENEFICIARIES')[0]):
-                    self.add_beneficiaries(record.xpath('BENEFICIARIES')[0], code)
+                self.add_founders(record.xpath('FOUNDERS')[0] if len(record.xpath('FOUNDERS')[0]) else [],
+                                  record.xpath('BENEFICIARIES')[0] if len(record.xpath('BENEFICIARIES')[0]) else [],
+                                  code)
+                self.time_it('save companies\t')
             else:
                 self.uptodated_companies.append(company.id)
                 update_fields = []
@@ -874,18 +918,28 @@ class UkrCompanyFullConverter(CompanyConverter):
                 if update_fields:
                     update_fields.append('updated_at')
                     company.save(update_fields=update_fields)
+                self.time_it('update companies\t')
                 self.update_company_detail(founding_document_number, executive_power, superior_management,
                                            managing_paper, terminated_info, termination_cancel_info, vp_dates, company)
-                self.update_founders(record.xpath('FOUNDERS')[0], company)
+                self.time_it('update company details\t')
+                self.update_founders(record.xpath('FOUNDERS')[0] if len(record.xpath('FOUNDERS')[0]) else [],
+                                  record.xpath('BENEFICIARIES')[0] if len(record.xpath('BENEFICIARIES')[0]) else [],
+                                  company)
+                self.time_it('update founders\t\t')
                 self.update_company_to_kved(record.xpath('ACTIVITY_KINDS')[0], company)
+                self.time_it('update kveds\t\t')
                 self.update_signers(record.xpath('SIGNERS')[0], company)
+                self.time_it('update signers\t\t')
                 self.update_termination_started(record, company)
+                self.time_it('update termination\t')
                 self.update_bancruptcy_readjustment(record, company)
+                self.time_it('update bancruptcy\t')
                 self.update_company_to_predecessors(record.xpath('PREDECESSORS')[0], company)
+                self.time_it('update predecessors\t')
                 self.update_assignees(record.xpath('ASSIGNEES')[0], company)
+                self.time_it('update assignes\t\t')
                 self.update_exchange_data(record.xpath('EXCHANGE_DATA')[0], company)
-                if record.xpath('BENEFICIARIES'):
-                    self.update_beneficiaries(record.xpath('BENEFICIARIES')[0], company)
+                self.time_it('update exchange data\t')
 
         if len(self.bulk_manager.queues['business_register.Company']):
             self.bulk_manager.commit(Company)
@@ -952,6 +1006,7 @@ class UkrCompanyFullConverter(CompanyConverter):
         self.company_to_predecessor_to_dict = {}
         self.assignee_to_dict = {}
         self.exchange_data_to_dict = {}
+        self.time_it('save others\t\t')
 
     def delete_outdated(self):
         outdated_companies = list(set(self.already_stored_companies) - set(self.uptodated_companies))

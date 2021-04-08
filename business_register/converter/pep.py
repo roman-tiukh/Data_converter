@@ -233,14 +233,12 @@ class PepConverterFromDB(Converter):
         self.password = settings.PEP_SOURCE_PASSWORD
         self.peps_dict = self.put_objects_to_dict('code', 'business_register', 'Pep')
         self.outdated_peps_dict = self.put_objects_to_dict('code', 'business_register', 'Pep')
-        self.peps_links_dict = self.put_objects_to_dict_with_two_fields_key(
-            'from_person_id',
-            'to_person_id',
+        self.peps_links_dict = self.put_objects_to_dict(
+            'source_id',
             'business_register',
             'RelatedPersonsLink')
-        self.outdated_peps_links_dict = self.put_objects_to_dict_with_two_fields_key(
-            'from_person_id',
-            'to_person_id',
+        self.outdated_peps_links_dict = self.put_objects_to_dict(
+            'source_id',
             'business_register',
             'RelatedPersonsLink')
         self.peps_companies_dict = self.put_objects_to_dict(
@@ -251,6 +249,9 @@ class PepConverterFromDB(Converter):
             'source_id',
             'business_register',
             'CompanyLinkWithPep')
+        self.peps_total_records_from_source = 0
+        self.peps_links_total_records_from_source = 0
+        self.peps_companies_total_records_from_source = 0
 
         self.invalid_data_counter = 0
         self.PEP_QUERY = ("""
@@ -268,7 +269,8 @@ class PepConverterFromDB(Converter):
         self.PEPS_LINKS_QUERY = ("""
             SELECT from_person_id, to_person_id, 
             from_relationship_type, to_relationship_type, 
-            date_established, date_confirmed, date_finished 
+            date_established, date_confirmed, date_finished,
+            id 
             FROM core_person2person;
         """)
         self.PEPS_COMPANIES_QUERY = ("""
@@ -423,10 +425,11 @@ class PepConverterFromDB(Converter):
             start_date = link[4]
             confirmation_date = link[5]
             end_date = link[6]
+            source_id = link[7]
 
-            stored_link = self.peps_links_dict.get(f'{from_person.id}_{to_person.id}')
+            stored_link = self.peps_links_dict.get(source_id)
             if not stored_link:
-                RelatedPersonsLink.objects.create(
+                self.peps_links_dict[source_id] = RelatedPersonsLink.objects.create(
                     from_person_id=from_person.id,
                     to_person_id=to_person.id,
                     from_person_relationship_type=from_person_relationship_type,
@@ -434,8 +437,10 @@ class PepConverterFromDB(Converter):
                     category=category,
                     start_date=start_date,
                     confirmation_date=confirmation_date,
-                    end_date=end_date
+                    end_date=end_date,
+                    source_id=source_id
                 )
+
                 is_changed = True
             else:
                 update_fields = []
@@ -457,12 +462,15 @@ class PepConverterFromDB(Converter):
                 if stored_link.end_date != end_date:
                     stored_link.end_date = end_date
                     update_fields.append('end_date')
+                if stored_link.source_id != source_id:
+                    stored_link.source_id = source_id
+                    update_fields.append('source_id')
                 if update_fields:
                     update_fields.append('updated_at')
                     stored_link.save(update_fields=update_fields)
                     is_changed = True
-                if self.outdated_peps_links_dict.get(f'{from_person.id}_{to_person.id}'):
-                    del self.outdated_peps_links_dict[f'{from_person.id}_{to_person.id}']
+                if self.outdated_peps_links_dict.get(source_id):
+                    del self.outdated_peps_links_dict[source_id]
             if is_changed:
                 from_person.save(update_fields=['updated_at', ])
                 to_person.save(update_fields=['updated_at', ])
@@ -497,9 +505,9 @@ class PepConverterFromDB(Converter):
                 self.invalid_data_counter += 1
                 continue
             company_antac_id = link[1]
-            start_date = to_lower_string_if_exists(link[2])
-            confirmation_date = to_lower_string_if_exists(link[3])
-            end_date = to_lower_string_if_exists(link[4])
+            start_date = link[2]
+            confirmation_date = link[3]
+            end_date = link[4]
             category = link[5]
             edrpou = link[6]
             is_state_company = link[7]
@@ -606,7 +614,7 @@ class PepConverterFromDB(Converter):
             reason_of_termination = (self.REASONS_OF_TERMINATION.get(reason_of_termination_number)
                                      if reason_of_termination_number else None)
             is_dead = (reason_of_termination_number == 1)
-            termination_date = to_lower_string_if_exists(pep_data[26])
+            termination_date = pep_data[26]
             pep = self.peps_dict.get(code)
             if not pep:
                 pep = Pep.objects.create(
@@ -701,6 +709,9 @@ class PepConverterFromDB(Converter):
 
     def process(self):
         peps_data, peps_links_data, pep_companies_data = self.get_data_from_source_db()
+        self.peps_total_records_from_source = len(peps_data)
+        self.peps_links_total_records_from_source = len(peps_links_data)
+        self.peps_companies_total_records_from_source = len(pep_companies_data)
         logger.info(f'business_pep: save_or_update_peps started with {len(peps_data)} elements ...')
         self.save_or_update_peps(peps_data)
         logger.info(f'business_pep: save_or_update_peps finished.')
@@ -735,20 +746,42 @@ class PepDownloader(Downloader):
         logger.info(f'{self.reg_name}: process() started ...')
         converter = PepConverterFromDB()
         converter.process()
-        self.report.errors = converter.invalid_data_counter
-        logger.info(f'{self.reg_name}: process() finished successfully.')
-
         self.report.update_finish = timezone.now()
-        self.report.update_status = True
         self.report.save()
 
         self.vacuum_analyze(table_list=['business_register_pep', ])
 
-        new_total_records = Pep.objects.all().count()
-        self.update_register_field(settings.PEP_REGISTER_LIST, 'total_records', new_total_records)
-        logger.info(f'{self.reg_name}: Update total records finished successfully.')
+        self.report.update_status = True
+        peps_total_records = Pep.objects.all().count()
+        if peps_total_records != converter.peps_total_records_from_source:
+            self.report.update_status = False
+            self.report.update_message = (f'Total records of PEP objects from source is '
+                                          f'{converter.peps_total_records_from_source} '
+                                          f'but in our DB it is {peps_total_records}. \n')
+            self.report.save()
+        peps_links_total_records = RelatedPersonsLink.objects.all().count()
+        if peps_links_total_records != converter.peps_links_total_records_from_source:
+            self.report.update_status = False
+            self.report.update_message += (f'Total records of RelatedPersonsLink from source is '
+                                           f'{converter.peps_links_total_records_from_source} '
+                                           f'but in our DB it is {peps_links_total_records}. \n')
+        peps_companies_total_records = CompanyLinkWithPep.objects.all().count()
+        if peps_companies_total_records != converter.peps_companies_total_records_from_source:
+            self.report.update_status = False
+            self.report.update_message += (f'Total records of CompanyLinkWithPep from source is '
+                                           f'{converter.peps_companies_total_records_from_source} '
+                                           f'but in our DB it is {peps_companies_total_records}')
+            self.report.save()
 
+        self.update_register_field(settings.PEP_REGISTER_LIST, 'total_records', peps_total_records)
+        self.report.save()
+
+        self.report.invalid_data = converter.invalid_data_counter
         self.measure_changes('business_register', 'Pep')
+        self.report.save()
         logger.info(f'{self.reg_name}: Report created successfully.')
 
-        logger.info(f'{self.reg_name}: Update total records finished successfully.')
+        if self.report.update_status:
+            logger.info(f'{self.reg_name}: Update finished unsuccessfully')
+        else:
+            logger.info(f'{self.reg_name}: Update finished unsuccessfully. See update_message')

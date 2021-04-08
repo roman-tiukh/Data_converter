@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.http import HttpRequest, HttpResponse, JsonResponse
-from django.utils import timezone
+from django.utils import timezone, translation
 from django.utils.translation import gettext_lazy as _
 from payment_system.models import Project
 
@@ -32,6 +32,14 @@ class ProjectAuthenticationMiddleware:
                 return None, None
         return None, None
 
+    def set_locale(self, request, project: Project):
+        # checking if the language was already set from the header
+        if request.headers.get('Accept-Language'):
+            return
+
+        translation.activate(project.owner.language)
+        request.LANGUAGE_CODE = translation.get_language()
+
     def __call__(self, request: HttpRequest):
         project, keyword = self.authenticate_project(request)
         is_project_authenticated = bool(project and isinstance(project, Project))
@@ -50,19 +58,25 @@ class ProjectAuthenticationMiddleware:
             if current_p2s.expiring_date <= timezone.localdate():
                 current_p2s.expire()
 
-            request.token_keyword = keyword
             request.project = project
+            request.current_p2s = current_p2s
+            self.set_locale(request, project)
+            response: HttpResponse = self.get_response(request)
 
-        response: HttpResponse = self.get_response(request)
-        # project: Project = getattr(request, 'project', None)
-
-        if is_project_authenticated and response.status_code // 100 != 5:
-            current_p2s = project.active_p2s
-            if getattr(request, 'token_keyword', None) == settings.PROJECT_PLATFORM_TOKEN_KEYWORD:
-                current_p2s.platform_requests_left -= 1
-                current_p2s.platform_requests_used += 1
-            else:
-                current_p2s.requests_left -= 1
-                current_p2s.requests_used += 1
-            current_p2s.save()
-        return response
+            if response.status_code // 100 != 5 and getattr(request, '_decrease_requests_counter', True):
+                if keyword == settings.PROJECT_PLATFORM_TOKEN_KEYWORD:
+                    current_p2s.platform_requests_left -= 1
+                    current_p2s.platform_requests_used += 1
+                    current_p2s.save(update_fields=[
+                        'platform_requests_left',
+                        'platform_requests_used',
+                    ])
+                else:
+                    current_p2s.requests_left -= 1
+                    current_p2s.requests_used += 1
+                    current_p2s.save(update_fields=[
+                        'requests_left',
+                        'requests_used',
+                    ])
+            return response
+        return self.get_response(request)
