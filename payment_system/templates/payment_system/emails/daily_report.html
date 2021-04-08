@@ -4,24 +4,24 @@
   <p style="font-family: Roboto;font-weight: normal;font-size: 16px;line-height: 24px;margin-bottom: 30px;">
   <table>
     <tr>
-    <td>{{should_complete_invoices|length}}</td>
-    <td>{{was_overdue_invoices|length}}</td>
-    <td>{{was_overdue_grace_period_invoices|length}}</td>
-    <td>{{was_complete_invoices|length}}</td>
+    <td><b>Should complete:</b> {{should_complete_invoices|length}}</td>
+    <td><b>Was overdue:</b> {{was_overdue_invoices|length}}</td>
+    <td><b>Was overdue grace period:</b> {{was_overdue_grace_period_invoices|length}}</td>
+    <td><b>Was complete:</b> {{was_complete_invoices|length}}</td>
     </tr>
   </table>
     <br>
       <b>Should complete:</b>
-      <br><b{% include 'payment_system/emails/invoices_table.html' with invoices=v %}></b><br>
+      <b>{% include 'payment_system/emails/invoices_table.html' with invoices=should_complete_invoices %}</b><br>
     <br>
       <b>Was overdue:</b>
-      <b{% include 'payment_system/emails/invoices_table.html' with invoices=was_overdue_invoices %}></b>
+      <b>{% include 'payment_system/emails/invoices_table.html' with invoices=was_overdue_invoices %}</b>
     <br>
       <b>Was overdue grace period:</b>
-      <b{% include 'payment_system/emails/invoices_table.html' with invoices=was_overdue_grace_period_invoices %}></b>
+      <b>{% include 'payment_system/emails/invoices_table.html' with invoices=was_overdue_grace_period_invoices %}</b>
     <br>
       <b>Was complete:</b>
-      <b{% include 'payment_system/emails/invoices_table.html' with invoices=was_complete_invoices %}></b>
+      <b>{% include 'payment_system/emails/invoices_table.html' with invoices=was_complete_invoices %}</b>
     <br>
   </p>
 {% endblock content %}

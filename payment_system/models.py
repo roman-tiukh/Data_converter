@@ -365,7 +365,6 @@ class Invoice(DataOceanModel):
     project_name = models.CharField(_("project`s name"), max_length=100)
     is_custom_subscription = models.BooleanField(_("is subscription custom"), )
     price = models.IntegerField(_("price"))
-    report_date = models.DateField()
 
     @property
     def link(self):
@@ -433,6 +432,8 @@ class Invoice(DataOceanModel):
             emails.new_invoice(self, p2s.project)
 
     def get_pdf(self, user=None) -> io.BytesIO:
+        InvoiceReport.create_daily_report()
+
         if user is None:
             user = self.project_subscription.project.owner
 
@@ -780,21 +781,17 @@ class InvoiceReport(models.Model):
             'was_overdue_grace_period': [],
         }
 
-        for invoice in Invoice.objects.filter(report_date=None):
+        for invoice in Invoice.objects.all():
             current_date = timezone.localdate()
             if invoice.paid_at is None:
                 if invoice.start_date == current_date:
                     invoices['should_complete'].append(invoice)
-                    invoice.report_date = current_date
                 elif invoice.start_date == current_date - timezone.timedelta(days=2):
                     invoices['was_overdue'].append(invoice)
-                    invoice.report_date = current_date
                 elif current_date == invoice.grace_period_end_date:
                     invoices['was_overdue_grace_period'].append(invoice)
-                    invoice.report_date = current_date
             elif invoice.payment_registration_date == current_date - timezone.timedelta(days=1):
                 invoices['was_complete'].append(invoice)
-                invoice.report_date = current_date
 
         cls.objects.create(
             should_complete_count=len(invoices['should_complete']),

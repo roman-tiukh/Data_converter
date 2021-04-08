@@ -1,14 +1,15 @@
 {% block content %}
   <p style="font-family: Roboto;font-weight: normal;font-size: 16px;line-height: 24px;margin-bottom: 30px;">
     <br>
+      <style>table, th, td {border: 1px solid black;}</style>
       <table>
         {% for invoice in invoices %}
-          {% cycle '<tr>' '' '' '' %}
-            <td>{{invoice.project_subscription.project.owner.email}}</td>
-            <td>{{invoice.project_subscription}}</td>
-            <td>{{invoice.project_name}}</td>
-            <td>{{invoice.id}}</td>
-          {% cycle '' '' '' '</tr>' %}
+          <tr>
+            <td>{{ invoice.project_subscription.project.owner.email }}</td>
+            <td>{{ invoice.project_subscription }}</td>
+            <td>{{ invoice.project_name }}</td>
+            <td>{{ invoice.id }}</td>
+          </tr>
         {% endfor %}
       </table>
   </p>
