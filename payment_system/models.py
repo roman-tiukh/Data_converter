@@ -432,8 +432,6 @@ class Invoice(DataOceanModel):
             emails.new_invoice(self, p2s.project)
 
     def get_pdf(self, user=None) -> io.BytesIO:
-        InvoiceReport.create_daily_report()
-
         if user is None:
             user = self.project_subscription.project.owner
 
