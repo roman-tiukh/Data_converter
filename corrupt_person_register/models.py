@@ -155,12 +155,13 @@ class CorruptPerson(DataOceanModel):
         blank=True,
         help_text='Position of an  individual at the time of the offense.'
     )
-    activity_sphere_name = models.ForeignKey(
+    activity_sphere = models.ForeignKey(
         ActivityShpere,
         on_delete=models.CASCADE,
+        verbose_name=_('activity sphere'),
         null=True,
         blank=True,
-        help_text='The sphere of activity of an  individual at the time of the offense.'
+        help_text='The sphere of activity of an individual at the time of the offense.'
     )
     addr_post_index = models.CharField(
         _('postcode'),
@@ -229,10 +230,10 @@ class CorruptPerson(DataOceanModel):
         blank=True,
         help_text='EDRPOU code of the legal entity.'
     )
-    legal_form_name = models.ForeignKey(
+    legal_form = models.ForeignKey(
         LegalForm,
         on_delete=models.CASCADE,
-        verbose_name=_('name of legal form'),
+        verbose_name=_('legal form'),
         null=True,
         blank=True,
         help_text='The organizational and legal form of ownership of the legal entity.',
