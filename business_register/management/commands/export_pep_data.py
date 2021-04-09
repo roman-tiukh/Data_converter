@@ -27,8 +27,7 @@ class Command(BaseCommand):
         else:
             self.stdout.write(f'> {message}')
 
-    def save_to_file(self, data, export_format):
-        file_name = f'dataocean_pep_{date.today()}.{export_format}'
+    def save_to_file(self, file_name, data):
         self.print(f'Write to file - "export/{file_name}"')
         file_dir = os.path.join(settings.BASE_DIR, 'export')
         os.makedirs(file_dir, exist_ok=True)
@@ -76,10 +75,11 @@ class Command(BaseCommand):
         generator.finish()
         data = generator.get_data()
 
+        file_name = f'dataocean_pep_{date.today()}.{export_format}'
         if export_to_s3:
-            file_name = f'dataocean_pep_{date.today()}.{export_format}'
-            url = s3bucket.save_file(file_name, data)
+            url = s3bucket.save_file(f'pep/{file_name}', data)
         else:
-            self.save_to_file(data, export_format)
+            url = self.save_to_file(file_name, data)
 
         self.print('Success!', success=True)
+        self.print(url, success=True)
