@@ -27,6 +27,8 @@ class ProjectAuthenticationMiddleware:
         if keyword in (settings.PROJECT_PLATFORM_TOKEN_KEYWORD, settings.PROJECT_TOKEN_KEYWORD):
             try:
                 project = Project.objects.get(token=token)
+                if project.is_disabled:
+                    return None, None
                 return project, keyword
             except Project.DoesNotExist:
                 return None, None

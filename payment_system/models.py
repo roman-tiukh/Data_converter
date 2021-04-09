@@ -40,6 +40,10 @@ class Project(DataOceanModel):
     def frontend_link(self):
         return f'{self.frontend_projects_link}{self.id}/'
 
+    @property
+    def is_disabled(self):
+        return bool(self.disabled_at)
+
     def __str__(self):
         return f'{self.name} of {self.owner}'
 
