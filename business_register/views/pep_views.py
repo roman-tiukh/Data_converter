@@ -7,7 +7,7 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.filters import SearchFilter
-from data_ocean.permissions import ExportPermission
+from data_ocean.permissions import IsAuthenticatedAndPaidSubscription
 from rest_framework.response import Response
 
 from business_register.filters import PepFilterSet, PepExportFilterSet, PepCheckFilterSet
@@ -19,6 +19,7 @@ from business_register.serializers.company_and_pep_serializers import (
 from data_converter.filter import DODjangoFilterBackend
 from data_ocean.views import CachedViewSetMixin, RegisterViewMixin
 from payment_system.permissions import PepChecksPermission
+from rest_framework.permissions import IsAuthenticated
 
 
 @method_decorator(name='retrieve', decorator=swagger_auto_schema(tags=['pep']))
@@ -50,7 +51,7 @@ class PepViewSet(RegisterViewMixin,
         serializer = self.get_serializer(pep)
         return Response(serializer.data)
 
-    @action(detail=False, url_path='xlsx', permission_classes=[ExportPermission])
+    @action(detail=False, url_path='xlsx', permission_classes=[IsAuthenticatedAndPaidSubscription])
     def export_to_xlsx(self, request):
         filterset = PepExportFilterSet(request.GET, self.get_queryset())
         if not filterset.is_valid():
