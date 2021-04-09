@@ -19,7 +19,6 @@ from business_register.serializers.company_and_pep_serializers import (
 from data_converter.filter import DODjangoFilterBackend
 from data_ocean.views import CachedViewSetMixin, RegisterViewMixin
 from payment_system.permissions import PepChecksPermission
-from rest_framework.permissions import IsAuthenticated
 
 
 @method_decorator(name='retrieve', decorator=swagger_auto_schema(tags=['pep']))
