@@ -164,7 +164,7 @@ class DOAutoSchemaClass(SwaggerAutoSchema):
                            "\t.build();\n" \
                            "HttpResponse<String> response = HttpClient\n" \
                            "\t.newBuilder()\n" \
-                           "\t.build();\n" \
+                           "\t.build()\n" \
                            "\t.send(request, HttpResponse.BodyHandler.asString());"
 
         if example_curl:
