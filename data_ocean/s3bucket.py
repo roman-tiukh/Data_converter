@@ -45,13 +45,8 @@ SECRET_ACCESS_KEY = settings.AWS_S3_SECRET_ACCESS_KEY
 HASH_LENGTH = 16
 
 
-def save_file(
-        file_path: str,
-        file_body,
-        content_disposition: str = ATTACHMENT,
-        acl: str = PUBLIC_READ,
-        hashing: bool = True,
-) -> str:
+def save_file(file_path: str, file_body, content_disposition: str = ATTACHMENT,
+              acl: str = PUBLIC_READ, hashing: bool = True) -> str:
 
     if content_disposition not in CONTENT_DISPOSITION:
         content_disposition = ATTACHMENT

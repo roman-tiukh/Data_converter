@@ -54,7 +54,7 @@ class ExportToXlsx:
         workbook.save(data)
         data = data.getvalue()
 
-        export_url = s3bucket.save_file(export_file_name, data, content_disposition=s3bucket.INLINE)
+        export_url = s3bucket.save_file(export_file_name, data)
         user = DataOceanUser.objects.get(id=user_id)
         with translation.override(user.language):
             user.notify(
