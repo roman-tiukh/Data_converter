@@ -5,7 +5,7 @@ from payment_system.models import UserProject
 
 class IsAuthenticatedAndPaidSubscription(IsAuthenticated):
     """
-       Allows access only to authenticated users with active and not default project(s).
+       Allows access only to authenticated users with not disabled project(s) with paid subscription.
     """
 
     def has_permission(self, request, view):
