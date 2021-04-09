@@ -66,6 +66,7 @@ class DataOceanUser(AbstractUser):
     email = models.EmailField(_('email address'), unique=True)
     organization = models.CharField(max_length=255, default='', blank=True)
     position = models.CharField(max_length=150, default='', blank=True)
+    phone = models.CharField(max_length=16, default='', blank=True)
     date_of_birth = models.DateField(default=None, null=True, blank=True)
     language = models.CharField(
         _('language'),
@@ -134,6 +135,7 @@ class CandidateUserModel(models.Model):
     password = models.CharField(_('password'), max_length=128)
     first_name = models.CharField(_('first name'), max_length=30)
     last_name = models.CharField(_('last name'), max_length=150)
+    phone = models.CharField(max_length=16, default='', blank=True)
     language = models.CharField(
         _('language'),
         max_length=2,

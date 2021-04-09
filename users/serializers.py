@@ -41,7 +41,7 @@ class DataOceanUserSerializer(serializers.ModelSerializer):
             'id', 'last_name', 'first_name', 'email',
             'organization', 'position', 'date_of_birth', 'language',
             'person_status', 'iban', 'company_name', 'registration_address',
-            'edrpou',
+            'edrpou', 'phone',
         )
 
 
@@ -63,6 +63,7 @@ class CustomRegisterSerializer(RegisterSerializer):
             'email': self.validated_data.get('email', ''),
             'password1': self.validated_data.get('password1', ''),
             'password2': self.validated_data.get('password2', ''),
+            'phone': self.validated_data.get('phone', ''),
         }
 
     def validate(self, data):
