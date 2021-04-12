@@ -229,6 +229,8 @@ class Project(DataOceanModel):
             if invoice:
                 invoice.project_subscription = new_p2s
                 invoice.project_subscription.paid_up()
+                invoice.start_date = new_p2s.start_date
+                invoice.end_date = new_p2s.generate_expiring_date()
                 invoice.save()
             else:
                 Invoice.objects.create(project_subscription=new_p2s)
@@ -394,6 +396,8 @@ class Invoice(DataOceanModel):
 
     @property
     def grace_period_end_date(self):
+        if self.is_overdue:
+            return self.start_date + timezone.timedelta(days=settings.OVERDUE_INVOICE_DATE_INCREASE)
         return self.start_date + timezone.timedelta(days=self.project_subscription.grace_period)
 
     @property
@@ -440,10 +444,8 @@ class Invoice(DataOceanModel):
             user = self.project_subscription.project.owner
 
         current_date = timezone.localdate()
-        if self.is_overdue and self.grace_period_end_date <= current_date:
+        if self.is_overdue:
             self.start_date = current_date
-            self.end_date = self.project_subscription.generate_expiring_date()
-            self.save()
 
         with translation.override('uk'):
             html_string = render_to_string('payment_system/invoice.html', {
