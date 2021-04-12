@@ -122,6 +122,7 @@ class CustomRegistrationConfirmView(views.APIView):
             first_name=user.first_name,
             last_name=user.last_name,
             language=user.language,
+            phone=user.phone,
         )
 
         # send mail
