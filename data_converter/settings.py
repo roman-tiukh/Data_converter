@@ -279,6 +279,8 @@ DEFAULT_PROJECT_DESCRIPTION = 'This is auto created default project'
 PROJECT_PLATFORM_TOKEN_KEYWORD = 'Platform'
 PROJECT_TOKEN_KEYWORD = 'DataOcean'
 
+OVERDUE_INVOICE_DATE_INCREASE = 10  # days
+
 # DATASET`S CONSTANTS ==================
 PEP_REGISTER_LIST = '/api/pep/'
 FOP_REGISTER_LIST = '/api/fop/'
