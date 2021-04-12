@@ -1,0 +1,22 @@
+{% block content %}
+      <table border="1" style="border-collapse: collapse">
+        <thead>
+          <tr>
+            <th scope="col">Email</th>
+            <th scope="col">Subscription</th>
+            <th scope="col">Name</th>
+            <th scope="col">ID</th>
+          </tr>
+        </thead>
+        {% for invoice in invoices %}
+          <tbody>
+            <tr>
+              <td>{{ invoice.project_subscription.project.owner.email }}</td>
+              <td>{{ invoice.project_subscription }}</td>
+              <td>{{ invoice.project_name }}</td>
+              <td>{{ invoice.id }}</td>
+            </tr>
+          </tbody>
+        {% endfor %}
+      </table>
+{% endblock content %}

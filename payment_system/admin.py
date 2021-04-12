@@ -171,6 +171,7 @@ class InvoiceAdmin(PaymentSystemModelAdmin):
             'project_name',
             'price',
             'is_custom_subscription',
+            'payment_registration_date',
         }
         if obj:
             if timezone.localdate() < obj.project_subscription.expiring_date:

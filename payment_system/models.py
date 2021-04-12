@@ -344,6 +344,8 @@ class Invoice(DataOceanModel):
         help_text='This operation is irreversible, you cannot '
                   'cancel the payment of the subscription for the project.'
     )
+    payment_registration_date = models.DateField('payment registration date', auto_now_add=True)
+
     token = models.UUIDField(db_index=True, default=uuid.uuid4, blank=True)
 
     project_subscription = models.ForeignKey(
@@ -413,6 +415,7 @@ class Invoice(DataOceanModel):
                     p2s.paid_up()
                     self.grace_period_block = False
                     emails.payment_confirmed(p2s)
+                self.payment_registration_date = timezone.localdate()
             # else:
             #     if self.grace_period_block and not invoice_old.grace_period_block:
             #         p2s.is_grace_period = False
@@ -761,3 +764,43 @@ class CustomSubscriptionRequest(DataOceanModel):
         ordering = ['is_processed', '-created_at']
         verbose_name = _('custom subscription request')
         verbose_name_plural = _('custom subscription requests')
+
+
+class InvoiceReport(models.Model):
+    created_at = models.DateField(auto_now_add=True)
+    should_complete_count = models.SmallIntegerField(default=0)
+    was_complete_count = models.SmallIntegerField(default=0)
+    was_overdue_count = models.SmallIntegerField(default=0)
+    was_overdue_grace_period_count = models.SmallIntegerField(default=0)
+
+    @classmethod
+    def create_daily_report(cls):
+
+        invoices = {
+            'should_complete': [],
+            'was_complete': [],
+            'was_overdue': [],
+            'was_overdue_grace_period': [],
+        }
+
+        for invoice in Invoice.objects.all():
+            current_date = timezone.localdate()
+            if invoice.paid_at is None:
+                if invoice.start_date == current_date:
+                    invoices['should_complete'].append(invoice)
+                elif invoice.start_date == current_date - timezone.timedelta(days=2):
+                    invoices['was_overdue'].append(invoice)
+                elif current_date == invoice.grace_period_end_date:
+                    invoices['was_overdue_grace_period'].append(invoice)
+            elif invoice.payment_registration_date == current_date - timezone.timedelta(days=1):
+                invoices['was_complete'].append(invoice)
+
+        cls.objects.create(
+            should_complete_count=len(invoices['should_complete']),
+            was_complete_count=len(invoices['was_complete']),
+            was_overdue_count=len(invoices['was_overdue']),
+            was_overdue_grace_period_count=len(invoices['was_overdue_grace_period']),
+        )
+
+        emails.create_report(invoices)
+
