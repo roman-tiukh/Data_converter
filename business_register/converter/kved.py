@@ -1,10 +1,10 @@
-import json
 import logging
 from csv import DictReader
-from django.utils import timezone
+
 import django
 import requests
 from django.conf import settings
+from django.utils import timezone
 
 from business_register.models.kved_models import KvedSection, KvedDivision, KvedGroup, Kved
 from data_ocean.converter import Converter

@@ -2,7 +2,7 @@ from django.utils.translation import gettext_lazy as _
 from django.db.models import Q
 from django_filters import rest_framework as filters
 
-from business_register.forms import PepExportForm
+from business_register.forms import PepExportForm, PepCheckFilterForm
 from business_register.models.company_models import Company
 from business_register.models.fop_models import Fop
 from business_register.models.pep_models import Pep, CompanyLinkWithPep
@@ -246,16 +246,22 @@ class PepExportFilterSet(filters.FilterSet):
 
 class PepCheckFilterSet(filters.FilterSet):
     first_name = filters.CharFilter(
-        lookup_expr='iexact', required=True,
+        lookup_expr='iexact',
         help_text='Filter by first name of PEP in Ukrainian',
     )
     last_name = filters.CharFilter(
-        lookup_expr='iexact', required=True,
+        lookup_expr='iexact',
         help_text='Filter by last name of PEP in Ukrainian',
     )
     middle_name = filters.CharFilter(
         lookup_expr='iexact',
         help_text='Filter by middle name of PEP in Ukrainian',
+    )
+    fullname_transcription = filters.CharFilter(
+        field_name='fullname_transcriptions_eng',
+        lookup_expr='search',
+        help_text='Filter by fullname transcription, min length of value = 2 words. '
+                  'Examples: ivan ivanovich, ivanov ivan ivanovich'
     )
     date_of_birth = filters.CharFilter(
         lookup_expr='contains',
@@ -267,6 +273,7 @@ class PepCheckFilterSet(filters.FilterSet):
     class Meta:
         model = Pep
         fields = {}
+        form = PepCheckFilterForm
 
 
 class HistoricalCompanyRelatedFilterSet(filters.FilterSet):

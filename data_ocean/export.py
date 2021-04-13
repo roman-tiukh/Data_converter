@@ -11,6 +11,7 @@ from django.conf import settings
 from django.utils import translation
 from django.utils.module_loading import import_string
 from django.utils.translation import gettext
+from data_ocean import s3bucket
 
 from data_ocean.emails import send_export_url_file_path_message
 from users.models import DataOceanUser
@@ -52,17 +53,8 @@ class ExportToXlsx:
         data = BytesIO()
         workbook.save(data)
         data = data.getvalue()
-        config = Config(
-            region_name=settings.PROJECT_SERVER_AWS_REGION_NAME
-        )
-        s3 = boto3.resource(
-            's3',
-            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-            config=config
-        )
-        s3.Bucket('pep-xlsx').put_object(Key=export_file_name, Body=data, ACL='public-read')
-        export_url = settings.PEP_EXPORT_FOLDER_URL + export_file_name
+
+        export_url = s3bucket.save_file(export_file_name, data)
         user = DataOceanUser.objects.get(id=user_id)
         with translation.override(user.language):
             user.notify(

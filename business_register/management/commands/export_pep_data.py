@@ -1,7 +1,7 @@
 import os
 from datetime import date
-
 from django.conf import settings
+from data_ocean import s3bucket
 from django.core.management.base import BaseCommand
 from django.http import HttpRequest
 from rest_framework.request import Request
@@ -19,6 +19,7 @@ class Command(BaseCommand):
         parser.add_argument('-f', '--format', type=str, default='xml', nargs='?', choices=['xml', 'json'])
         parser.add_argument('-l', '--limit', type=int, nargs='?')
         parser.add_argument('-p', '--pretty', dest='pretty', action='store_true')
+        parser.add_argument('-s', '--s3', dest='s3', action='store_true')
 
     def print(self, message, success=False):
         if success:
@@ -26,10 +27,19 @@ class Command(BaseCommand):
         else:
             self.stdout.write(f'> {message}')
 
+    def save_to_file(self, file_name, data):
+        self.print(f'Write to file - "export/{file_name}"')
+        file_dir = os.path.join(settings.BASE_DIR, 'export')
+        os.makedirs(file_dir, exist_ok=True)
+        with open(os.path.join(file_dir, file_name), 'w') as file:
+            file.write(data)
+        return f'export/{file_name}'
+
     def handle(self, *args, **options):
         export_format = options['format']
         pretty = options['pretty']
         limit = options['limit']
+        export_to_s3 = options['s3']
         request = Request(HttpRequest())
         # request._request.GET.setdefault('show_check_companies', 'none')
         # request._request.GET.setdefault('company_relations', 'none')
@@ -66,10 +76,10 @@ class Command(BaseCommand):
         data = generator.get_data()
 
         file_name = f'dataocean_pep_{date.today()}.{export_format}'
-        self.print(f'Write to file - "export/{file_name}"')
-        file_dir = os.path.join(settings.BASE_DIR, 'export')
-        os.makedirs(file_dir, exist_ok=True)
-        with open(os.path.join(file_dir, file_name), 'w') as file:
-            file.write(data)
+        if export_to_s3:
+            url = s3bucket.save_file(f'pep/{file_name}', data)
+        else:
+            url = self.save_to_file(file_name, data)
 
         self.print('Success!', success=True)
+        self.print(url, success=True)

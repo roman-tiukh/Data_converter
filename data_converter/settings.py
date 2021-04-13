@@ -49,7 +49,8 @@ INSTALLED_APPS = [
     'business_register',
     'location_register',
     'stats',
-    'payment_system'
+    'payment_system',
+    'corrupt_person_register'
 ]
 
 MIDDLEWARE = [
@@ -277,6 +278,8 @@ DEFAULT_PROJECT_DESCRIPTION = 'This is auto created default project'
 # Authorization: DataOcean <project_token>
 PROJECT_PLATFORM_TOKEN_KEYWORD = 'Platform'
 PROJECT_TOKEN_KEYWORD = 'DataOcean'
+
+OVERDUE_INVOICE_DATE_INCREASE = 10  # days
 
 # DATASET`S CONSTANTS ==================
 PEP_REGISTER_LIST = '/api/pep/'

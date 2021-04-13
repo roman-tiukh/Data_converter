@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-04-05 17:42+0300\n"
+"POT-Creation-Date: 2021-04-09 08:52+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -29,13 +29,29 @@ msgstr "Варіанти написання прізвища англійськ�
 msgid "Associated company`s number (provide a number)"
 msgstr "Пов'язана компанія має код ЄДРПОУ (введіть код)"
 
-#: business_register/forms.py:13
+#: business_register/forms.py:14
 msgid "Period for updated_at is not provided."
 msgstr "Не вказано період для updated_at."
 
-#: business_register/forms.py:17
+#: business_register/forms.py:18
 msgid "Period for updated_at not matches restrictions."
 msgstr "Період для updated_at не відповідає вимогам."
+
+#: business_register/forms.py:33
+msgid ""
+"Use first_name + last_name + middle_name or fullname_transcription fields "
+"for check person"
+msgstr ""
+"Використовуйте поля first_name + last_name + second_name або "
+"fullname_transcription для перевірки особи"
+
+#: business_register/forms.py:40 business_register/forms.py:42
+msgid "This field is required"
+msgstr "Це поле є обовязковим"
+
+#: business_register/forms.py:47
+msgid "The length of the field value must be 2 or more words"
+msgstr "Довжина значення поля має бути 2 або більше слів"
 
 #: business_register/models/company_models.py:15
 #: business_register/models/company_models.py:69
@@ -65,7 +81,7 @@ msgstr "ЦПК"
 
 #: business_register/models/company_models.py:41
 #: business_register/models/kved_models.py:51
-#: business_register/models/sanction_models.py:10
+#: business_register/models/sanction_models.py:12
 msgid "name"
 msgstr "назва"
 
@@ -86,13 +102,13 @@ msgid "share capital"
 msgstr "статутний капітал"
 
 #: business_register/models/company_models.py:52
-#: business_register/models/sanction_models.py:107
+#: business_register/models/sanction_models.py:80
 msgid "country"
 msgstr "країна"
 
 #: business_register/models/company_models.py:53
 #: business_register/models/fop_models.py:11
-#: business_register/models/sanction_models.py:80
+#: business_register/models/sanction_models.py:119
 msgid "address"
 msgstr "адреса"
 
@@ -103,7 +119,7 @@ msgstr "статус"
 
 #: business_register/models/company_models.py:70
 #: business_register/models/fop_models.py:13
-#: business_register/models/sanction_models.py:88
+#: business_register/models/sanction_models.py:127
 msgid "registration date"
 msgstr "дата реєстрації"
 
@@ -145,6 +161,7 @@ msgid "our code"
 msgstr "наш код"
 
 #: business_register/models/company_models.py:120
+#: business_register/models/sanction_models.py:70
 msgid "company"
 msgstr "компанія/організація"
 
@@ -343,13 +360,13 @@ msgid "wanted"
 msgstr "розшук"
 
 #: business_register/models/pep_models.py:107
-#: business_register/models/sanction_models.py:65
-#: business_register/models/sanction_models.py:69
+#: business_register/models/sanction_models.py:104
+#: business_register/models/sanction_models.py:108
 msgid "date of birth"
 msgstr "дата народження"
 
 #: business_register/models/pep_models.py:111
-#: business_register/models/sanction_models.py:72
+#: business_register/models/sanction_models.py:111
 msgid "place of birth"
 msgstr "місце народження"
 
@@ -466,172 +483,200 @@ msgstr "зв'язок компанії з публічними діячами"
 msgid "company connections with Peps"
 msgstr "зв'язки компанії з публічними діячами"
 
-#: business_register/models/sanction_models.py:12
+#: business_register/models/sanction_models.py:14
 msgid "name of the type of sanctions applied"
 msgstr "назва застосованої санкції"
 
-#: business_register/models/sanction_models.py:15
+#: business_register/models/sanction_models.py:17
 msgid "law used"
 msgstr "на підставі закону"
 
-#: business_register/models/sanction_models.py:20
+#: business_register/models/sanction_models.py:22
 msgid "law used to impose sanctions"
 msgstr "закон, на підставі якого застосована санкція"
 
-#: business_register/models/sanction_models.py:24
+#: business_register/models/sanction_models.py:26
 msgid "Sanction type"
 msgstr "Тип санкції"
 
-#: business_register/models/sanction_models.py:25
+#: business_register/models/sanction_models.py:27
 msgid "Sanction types"
 msgstr "Типи санкцій"
 
-#: business_register/models/sanction_models.py:33
+#: business_register/models/sanction_models.py:35
 msgid "Person"
 msgstr "Особа"
 
-#: business_register/models/sanction_models.py:34
+#: business_register/models/sanction_models.py:36
 #, fuzzy
 #| msgid "company"
 msgid "Company"
 msgstr "компанія/організація"
 
-#: business_register/models/sanction_models.py:35
+#: business_register/models/sanction_models.py:37
 msgid "State"
 msgstr "Держава"
 
-#: business_register/models/sanction_models.py:39
+#: business_register/models/sanction_models.py:40
 msgid "type of object"
 msgstr "тип об'єкта"
 
-#: business_register/models/sanction_models.py:42
+#: business_register/models/sanction_models.py:43
 msgid "type of the object under sanctions"
 msgstr "тип об'єкта санкцій"
 
-#: business_register/models/sanction_models.py:45
+#: business_register/models/sanction_models.py:46
 msgid "is foreign"
 msgstr "є іноземним"
 
-#: business_register/models/sanction_models.py:47
+#: business_register/models/sanction_models.py:48
 msgid "is foreign or Ukrainian"
 msgstr "є іноземним або українським"
 
-#: business_register/models/sanction_models.py:50
+#: business_register/models/sanction_models.py:60
+msgid "PEP"
+msgstr "публічний діяч"
+
+#: business_register/models/sanction_models.py:61
+msgid "politically exposed person under this sanction"
+msgstr "публічний діяч за цією санкцією"
+
+#: business_register/models/sanction_models.py:71
+msgid "company or organisation under this sanction"
+msgstr "компанія або організація відповідно до цієї санкції"
+
+#: business_register/models/sanction_models.py:81
+msgid "country under this sanction"
+msgstr "країна під цією санкцією"
+
+#: business_register/models/sanction_models.py:84
+msgid "is_confirmed"
+msgstr "підтверджено"
+
+#: business_register/models/sanction_models.py:86
+msgid "identity of the PEP or company under this sanction is confirmed"
+msgstr "підтверджений звязок з публічним діячем або компанією"
+
+#: business_register/models/sanction_models.py:89
 msgid "object name"
 msgstr "повне ім'я чи назва об'єкта"
 
-#: business_register/models/sanction_models.py:53
+#: business_register/models/sanction_models.py:92
 msgid "name of of the object under sanctions"
 msgstr "повне ім'я чи назва об'єкта санкцій"
 
-#: business_register/models/sanction_models.py:56
+#: business_register/models/sanction_models.py:95
 msgid "object origin name"
 msgstr "оригінальне повне ім'я чи назва об'єкта санкцій"
 
-#: business_register/models/sanction_models.py:62
+#: business_register/models/sanction_models.py:101
 msgid ""
 "name of the object under sanctions in the language of the country of origin"
 msgstr "повне ім'я чи назва об'єкта санкцій на мові його країни"
 
-#: business_register/models/sanction_models.py:77
+#: business_register/models/sanction_models.py:116
 msgid "place of birth of the person under sanctions"
 msgstr "місце народження об'єкта санкцій"
 
-#: business_register/models/sanction_models.py:85
+#: business_register/models/sanction_models.py:124
 msgid ""
 "place of registration or residence of the person or company under sanctions"
 msgstr "місце реєстрації або проживання об'єкта санкцій"
 
-#: business_register/models/sanction_models.py:92
+#: business_register/models/sanction_models.py:131
 msgid "date of registration of the company under sanctions"
 msgstr "дата реєстрації компанії під санкціями"
 
-#: business_register/models/sanction_models.py:95
+#: business_register/models/sanction_models.py:134
 msgid "registration number"
 msgstr "номер реєстрації"
 
-#: business_register/models/sanction_models.py:100
+#: business_register/models/sanction_models.py:139
 msgid "number of registration of the company under sanctions"
 msgstr "номер реєстрації компанії під санкціями"
 
-#: business_register/models/sanction_models.py:108
+#: business_register/models/sanction_models.py:146
+msgid "country of origin"
+msgstr "країна з джерела"
+
+#: business_register/models/sanction_models.py:147
 msgid ""
 "country of citizenship/registration of the person or company under sanctions"
 msgstr "країна громадянства або реєстрації об'єкта санкцій"
 
-#: business_register/models/sanction_models.py:110
+#: business_register/models/sanction_models.py:149
 msgid "position"
 msgstr "посада"
 
-#: business_register/models/sanction_models.py:115
+#: business_register/models/sanction_models.py:154
 msgid "position or professional activity of the person under sanctions"
 msgstr "посада або вид діяльності особи під санкціями"
 
-#: business_register/models/sanction_models.py:119
+#: business_register/models/sanction_models.py:158
 msgid "id cards info"
 msgstr "інформація про документи"
 
-#: business_register/models/sanction_models.py:124
+#: business_register/models/sanction_models.py:163
 msgid "id cards info of the person under sanctions"
 msgstr "інформація про документи особи під санкціями"
 
-#: business_register/models/sanction_models.py:127
+#: business_register/models/sanction_models.py:166
 msgid "taxpayer number"
 msgstr "номер платника податків"
 
-#: business_register/models/sanction_models.py:133
+#: business_register/models/sanction_models.py:172
 msgid "taxpayer number of the person or company under sanctions"
 msgstr "номер платника податків особи або компанії під санкціями"
 
-#: business_register/models/sanction_models.py:138
+#: business_register/models/sanction_models.py:177
 #, fuzzy
 #| msgid "type of sanctions"
 msgid "types of sanctions"
 msgstr "тип санкцій"
 
-#: business_register/models/sanction_models.py:139
+#: business_register/models/sanction_models.py:178
 #, fuzzy
 #| msgid "name of the type of sanctions applied"
 msgid "types of sanctions applied"
 msgstr "назва застосованої санкції"
 
-#: business_register/models/sanction_models.py:143
+#: business_register/models/sanction_models.py:182
 msgid "imposed by"
 msgstr "хто запровадив"
 
-#: business_register/models/sanction_models.py:145
+#: business_register/models/sanction_models.py:184
 msgid "institution that imposed sanctions"
 msgstr "інституція, яка запровадила санкції"
 
-#: business_register/models/sanction_models.py:148
+#: business_register/models/sanction_models.py:187
 msgid "start date"
 msgstr "дата початку"
 
-#: business_register/models/sanction_models.py:149
+#: business_register/models/sanction_models.py:188
 msgid "date of imposing sanctions"
 msgstr "дата початку санкцій"
 
-#: business_register/models/sanction_models.py:152
+#: business_register/models/sanction_models.py:191
 msgid "end date"
 msgstr "дата завершення"
 
-#: business_register/models/sanction_models.py:153
+#: business_register/models/sanction_models.py:192
 msgid "end date of sanctions"
 msgstr "дата завершення санкцій"
 
-#: business_register/models/sanction_models.py:156
+#: business_register/models/sanction_models.py:195
 msgid "reasoning"
 msgstr "обгрунтування"
 
-#: business_register/models/sanction_models.py:161
+#: business_register/models/sanction_models.py:200
 msgid "reasoning of imposing sanctions"
 msgstr "обгрунтування санкцій"
 
-#: business_register/models/sanction_models.py:165
+#: business_register/models/sanction_models.py:204
 msgid "Sanction"
 msgstr "Санкція"
 
-#: business_register/models/sanction_models.py:166
+#: business_register/models/sanction_models.py:205
 msgid "Sanctions"
 msgstr "Санкції"
 

@@ -71,7 +71,7 @@ SchemaView = get_schema_view(
             'to the data, using the Rest API for software developers.<br>Зручний доступ до даних за допомогою Rest API '
             'для розробників програмного забезпечення.<p/><p style="font-style: normal; cursor: default; color: #000000">'
             f'Download API samples Postman collection: <a download target=\'_blank\' href=\'{settings.STATIC_URL}'
-            f'DataOcean - pep_list v.3.postman_collection.json\' class=\'sc-fzobTh cbdZGY\'>Download</a><p/>'
+            f'DataOcean - pep_list v4.postman_collection.json\' class=\'sc-fzobTh cbdZGY\'>Download</a><p/>'
             '<p style="font-style: normal; cursor: default; color: #000000">For former <a href=\'https://pep.org.ua/\'>'
             f'pep.org.ua</a> users: <a download target=\'_blank\' href=\'{settings.STATIC_URL}For former pep.org.ua '
             'users.zip\'class=\'sc-fzobTh cbdZGY\'>Download</a><p/>'
@@ -121,6 +121,7 @@ class DOAutoSchemaClass(SwaggerAutoSchema):
         example_curl = None
         example_python = None
         example_php = None
+        example_java = None
         if operation_keys[-1] == 'list':
             example_curl = f"curl -X GET -H 'Authorization: DataOcean {{token}}' \\\n{settings.BACKEND_SITE_URL}/" \
                            f"api/{'/'.join(operation_keys[:-1])}/"
@@ -134,6 +135,16 @@ class DOAutoSchemaClass(SwaggerAutoSchema):
                           f"\n\t\t\t    'Host: {str(settings.BACKEND_SITE_URL)[8:]}'\n\t]\n];\n$context = stream_" \
                           f"context_create($opts);\n$response = file_get_contents('{settings.BACKEND_SITE_URL}/api/" \
                           f"{'/'.join(operation_keys[:-1])}', false, $context);\nvar_dump($response);"
+            example_java = "HttpRequest request = HttpRequest.newBuilder()\n" \
+                           f"\t.uri(new URI('{settings.BACKEND_SITE_URL}/api/{'/'.join(operation_keys[:-1])}/'))\n" \
+                           "\t.header('Authorization', 'DataOcean {token}')\n" \
+                           "\t.GET()\n" \
+                           "\t.build();\n" \
+                           "HttpResponse<String> response = HttpClient\n" \
+                           "\t.newBuilder()\n" \
+                           "\t.build();\n" \
+                           "\t.send(request, HttpResponse.BodyHandler.asString());"
+
         elif operation_keys[-1] == 'read':
             example_curl = f"curl -X GET -H 'Authorization: DataOcean {{token}}' \\\n{settings.BACKEND_SITE_URL}/" \
                            f"api/{'/'.join(operation_keys[:-1])}/{{id}}/"
@@ -146,6 +157,16 @@ class DOAutoSchemaClass(SwaggerAutoSchema):
                           f"\n\t\t\t    'Host: {str(settings.BACKEND_SITE_URL)[8:]}'\n\t]\n];\n$context = stream_" \
                           f"context_create($opts);\n$response = file_get_contents('{settings.BACKEND_SITE_URL}/api/" \
                           f"{'/'.join(operation_keys[:-1])}/{{id}}', false, $context);\nvar_dump($response);"
+            example_java = "HttpRequest request = HttpRequest.newBuilder()\n" \
+                           f"\t.uri(new URI('{settings.BACKEND_SITE_URL}/api/{'/'.join(operation_keys[:-1])}/{{id}}/'))\n" \
+                           "\t.header('Authorization', 'DataOcean {token}')\n" \
+                           "\t.GET()\n" \
+                           "\t.build();\n" \
+                           "HttpResponse<String> response = HttpClient\n" \
+                           "\t.newBuilder()\n" \
+                           "\t.build()\n" \
+                           "\t.send(request, HttpResponse.BodyHandler.asString());"
+
         if example_curl:
             operation.update({
                 'x-code-samples': [
@@ -161,6 +182,10 @@ class DOAutoSchemaClass(SwaggerAutoSchema):
                         "lang": "php",
                         "source": example_php
                     },
+                    {
+                        "lang": "java",
+                        'source': example_java
+                    }
                 ],
             })
         return operation

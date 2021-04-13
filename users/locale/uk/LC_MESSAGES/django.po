@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-04-05 17:42+0300\n"
+"POT-Creation-Date: 2021-04-09 08:52+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -227,15 +227,15 @@ msgstr "Назва компанії необхідна для юридичної
 msgid "Registration address is required for Legal entity"
 msgstr "Адреса реєстрації необхідна для юридичної особи"
 
-#: users/serializers.py:76
+#: users/serializers.py:80
 msgid "First Name"
 msgstr "Ім'я"
 
-#: users/serializers.py:77
+#: users/serializers.py:81
 msgid "Last Name"
 msgstr "Прізвище"
 
-#: users/serializers.py:82
+#: users/serializers.py:86
 msgid "Your password can’t be too similar to"
 msgstr "Ваш пароль не може бути надто схожим на"
 

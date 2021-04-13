@@ -144,6 +144,13 @@ BUSINESS_PEP_AUTH_USER = ''
 BUSINESS_PEP_AUTH_PASSWORD = ''
 BUSINESS_PEP_SOURCE_URL = 'https://pep.org.ua/opendata/persons/json'
 
+# AWS S3 configuration and credentials
+AWS_S3_ACCESS_KEY_ID = ''
+AWS_S3_SECRET_ACCESS_KEY = ''
+AWS_S3_REGION_NAME = 'eu-central-1'
+AWS_S3_BUCKET_NAME = 'do-export'
+
+
 # PEP use SSH for connection
 PEP_SOURCE_USE_SSH = False
 # ssh params
@@ -293,10 +300,3 @@ ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 PEP_SCHEMA_TOKENS = {
     'google.com': 'mThmM2Q1MTU1MoVlNGRkNjdkOTcyYTk2YmE5Njc2YjdmYWQzMj',
 }
-
-# AWS S3 configuration and credentials
-# region where Data_converter deployed as aws region code. For example: 'eu-central-1'
-PROJECT_SERVER_AWS_REGION_NAME = ''
-# credentials
-AWS_ACCESS_KEY_ID = ''
-AWS_SECRET_ACCESS_KEY = ''

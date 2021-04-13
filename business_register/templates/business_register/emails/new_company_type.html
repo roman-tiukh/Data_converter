@@ -1,11 +1,9 @@
 {% extends "data_ocean/emails/_base.html" %}
+{% load i18n %}
 
 {% block content %}
-
-    <p style="font-family: Roboto;font-weight: normal;font-size: 16px;line-height: 24px;margin-bottom: 30px;"> Вітаємо!
-        <br>
-        <br>
-        New company type with id {{ company_type.id }} was added. Please, provide the translation.
+    <p style="font-family: Roboto;font-weight: normal;font-size: 16px;line-height: 24px;margin-bottom: 30px;">
+      <br>
+      Новий тип компанії з id {{ company_type.id }} було додано
     </p>
-    <p style="font-family: Roboto;font-weight: normal;font-size: 16px;line-height: 24px;">З повагою, <br>Data Ocean</p>
 {% endblock content %}

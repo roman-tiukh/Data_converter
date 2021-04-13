@@ -48,6 +48,7 @@ class CustomRegistrationView(views.APIView):
             first_name=serializer.validated_data.get('first_name'),
             last_name=serializer.validated_data.get('last_name'),
             language=user_language,
+            phone=serializer.validated_data.get('phone', ''),
         )
 
         # check if this email is among existing users
@@ -121,6 +122,7 @@ class CustomRegistrationConfirmView(views.APIView):
             first_name=user.first_name,
             last_name=user.last_name,
             language=user.language,
+            phone=user.phone,
         )
 
         # send mail

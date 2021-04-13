@@ -1,0 +1,25 @@
+{% extends "data_ocean/emails/_base.html" %}
+
+{% block content %}
+  <table border="1" style="border-collapse: collapse">
+    <tr><td><b>Should complete:</b></td> <td>{{should_complete_invoices|length}}</td></tr>
+    <tr><td><b>Was overdue:</b></td> <td>{{was_overdue_invoices|length}}</td></tr>
+    <tr><td><b>Was overdue grace period:</b></td> <td>{{was_overdue_grace_period_invoices|length}}</td></tr>
+    <tr><td><b>Was complete:</b></td> <td>{{was_complete_invoices|length}}</td></tr>
+  </table>
+    <tr>
+      <br>
+        Should complete:
+        {% include 'payment_system/emails/invoices_table.html' with invoices=should_complete_invoices %}
+      <br>
+        Was overdue:
+        {% include 'payment_system/emails/invoices_table.html' with invoices=was_overdue_invoices %}
+      <br>
+        Was overdue grace period:
+        {% include 'payment_system/emails/invoices_table.html' with invoices=was_overdue_grace_period_invoices %}
+      <br>
+        Was complete:
+        {% include 'payment_system/emails/invoices_table.html' with invoices=was_complete_invoices %}
+      <br>
+    </tr>
+{% endblock content %}

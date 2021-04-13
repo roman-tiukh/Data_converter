@@ -19,7 +19,7 @@ coreschema==0.0.4
 cryptography==3.3.2
 cssselect2==0.4.1
 defusedxml==0.6.0
-Django==3.1.7
+Django==3.1.8
 django-admin-rangefilter==0.6.3
 django-allauth==0.42.0
 django-celery-beat==2.0.0
