@@ -2,7 +2,7 @@ from __future__ import absolute_import, unicode_literals
 
 from celery import shared_task
 
-from payment_system.models import ProjectSubscription, InvoiceDailyReport
+from payment_system.models import ProjectSubscription, InvoiceReport
 
 
 @shared_task
@@ -22,5 +22,5 @@ def create_daily_report():
     print('*  Create daily payment report  *')
     print('*********************************')
 
-    InvoiceDailyReport.create_daily_report()
+    InvoiceReport.create_daily_report()
     print('*** Created daily payment report ***')
