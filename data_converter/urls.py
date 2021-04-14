@@ -30,7 +30,9 @@ from business_register.views.company_views import (CompanyViewSet, CompanyUkrVie
 from business_register.views.fop_views import FopViewSet
 from business_register.views.kved_views import KvedViewSet
 from business_register.views.pep_views import PepViewSet
-from business_register.views.sanction_views import SanctionViewSet
+from business_register.views.sanction_views import (CountrySanctionViewSet,
+                                                    PersonSanctionViewSet,
+                                                    CompanySanctionViewSet)
 from data_ocean.views import RegisterView, SchemaView
 from location_register.views.drv_views import DrvBuildingViewSet
 from location_register.views.ratu_views import (RatuRegionView, RatuCityView, RatuStreetView,
@@ -74,7 +76,9 @@ router.register(r'historical-signer', HistoricalSignerView, basename='historical
 router.register(r'historical-termination-started', HistoricalTerminationStartedView,
                 basename='historical_termination_started')
 router.register(r'pep', PepViewSet, basename='pep')
-router.register(r'sanction', SanctionViewSet, basename='sanction')
+router.register('sanction/country', CountrySanctionViewSet, basename='sanction_country')
+router.register('sanction/person', PersonSanctionViewSet, basename='sanction_person')
+router.register('sanction/company', CompanySanctionViewSet, basename='sanction_company')
 
 urlpatterns = [
     path('api/stats/', include('stats.urls')),

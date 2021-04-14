@@ -1,28 +1,63 @@
 from rest_framework import serializers
-from business_register.models.sanction_models import SanctionType, Sanction
+from drf_dynamic_fields import DynamicFieldsMixin
+from business_register.models.sanction_models import SanctionType, PersonSanction, CompanySanction, CountrySanction
 
 
-class SanctionTypeSerializer(serializers.ModelSerializer):
+class SanctionTypeSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     class Meta:
         model = SanctionType
         fields = ('name', 'law')
 
 
-class SanctionSerializer(serializers.ModelSerializer):
+class CountrySanctionSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
+    country = serializers.StringRelatedField(
+        help_text=CountrySanction._meta.get_field('country').help_text
+    )
     types_of_sanctions = SanctionTypeSerializer(
         many=True, help_text=SanctionType._meta.get_field('name').help_text
     )
-    country = serializers.StringRelatedField(
-        help_text=Sanction._meta.get_field('country').help_text
+
+    class Meta:
+        model = CountrySanction
+        fields = (
+            'country',
+            'types_of_sanctions', 'start_date', 'end_date', 'reasoning'
+        )
+
+
+class PersonSanctionSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
+    countries_of_citizenship = serializers.StringRelatedField(
+        many=True, help_text=PersonSanction._meta.get_field('countries_of_citizenship').help_text
+    )
+    types_of_sanctions = SanctionTypeSerializer(
+        many=True, help_text=SanctionType._meta.get_field('name').help_text
     )
 
     class Meta:
-        model = Sanction
+        model = PersonSanction
         fields = (
-            'object_type', 'pep', 'country', 'company', 'is_foreign',
-            'object_name', 'object_origin_name',
-            'country_of_origin', 'date_of_birth', 'place_of_birth', 'address',
-            'registration_date', 'registration_number', 'taxpayer_number',
-            'position', 'id_card',
-            'types_of_sanctions', 'imposed_by', 'start_date', 'end_date', 'reasoning'
+            'is_foreign', 'pep',
+            'full_name', 'full_name_original_transcription',
+            'date_of_birth', 'place_of_birth', 'address', 'countries_of_citizenship',
+            'occupation', 'id_card', 'taxpayer_number',
+            'types_of_sanctions', 'start_date', 'end_date', 'reasoning'
+        )
+
+
+class CompanySanctionSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
+    country_of_registration = serializers.StringRelatedField(
+        help_text=CompanySanction._meta.get_field('country_of_registration').help_text
+    )
+    types_of_sanctions = SanctionTypeSerializer(
+        many=True, help_text=SanctionType._meta.get_field('name').help_text
+    )
+
+    class Meta:
+        model = CompanySanction
+        fields = (
+            'is_foreign', 'company',
+            'name', 'name_original_transcription',
+            'address', 'registration_date', 'registration_number', 'country_of_registration',
+            'taxpayer_number',
+            'types_of_sanctions', 'start_date', 'end_date', 'reasoning'
         )
