@@ -7,6 +7,8 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.filters import SearchFilter
+
+from data_converter.pagination import CachedCountPagination
 from data_ocean.permissions import IsAuthenticatedAndPaidSubscription
 from rest_framework.response import Response
 
@@ -29,6 +31,7 @@ class PepViewSet(RegisterViewMixin,
                  CachedViewSetMixin,
                  viewsets.ReadOnlyModelViewSet):
     permission_classes = [RegisterViewMixin.permission_classes[0] | PepSchemaToken]
+    pagination_class = CachedCountPagination
     queryset = Pep.objects.all()
     serializer_class = PepListSerializer
     filter_backends = (DODjangoFilterBackend, SearchFilter)
