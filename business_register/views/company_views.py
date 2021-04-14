@@ -16,6 +16,7 @@ from business_register.serializers.company_and_pep_serializers import (
     HistoricalExchangeDataCompanySerializer, HistoricalFounderSerializer, HistoricalSignerSerializer,
     HistoricalTerminationStartedSerializer
 )
+from data_converter.pagination import CachedCountPagination
 from data_ocean.views import CachedViewSetMixin, RegisterViewMixin
 
 HistoricalAssignee = apps.get_model('business_register', 'HistoricalAssignee')
@@ -36,6 +37,7 @@ class CompanyViewSet(RegisterViewMixin,
                      CachedViewSetMixin,
                      viewsets.ReadOnlyModelViewSet):
     permission_classes = [RegisterViewMixin.permission_classes[0] | PepSchemaToken]
+    pagination_class = CachedCountPagination
     queryset = Company.objects.select_related(
         'parent', 'company_type', 'status', 'authority', 'bylaw', 'country',
     ).prefetch_related(
@@ -59,6 +61,7 @@ class CompanyUkrViewSet(RegisterViewMixin,
                         CachedViewSetMixin,
                         viewsets.ReadOnlyModelViewSet):
     permission_classes = [RegisterViewMixin.permission_classes[0] | PepSchemaToken]
+    pagination_class = CachedCountPagination
     queryset = Company.objects.filter(
         source=Company.UKRAINE_REGISTER
     ).select_related(
@@ -84,6 +87,7 @@ class CompanyUkViewSet(RegisterViewMixin,
                        CachedViewSetMixin,
                        viewsets.ReadOnlyModelViewSet):
     permission_classes = [RegisterViewMixin.permission_classes[0] | PepSchemaToken]
+    pagination_class = CachedCountPagination
     queryset = Company.objects.filter(
         source=Company.GREAT_BRITAIN_REGISTER
     ).select_related(
