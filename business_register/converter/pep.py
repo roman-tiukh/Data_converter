@@ -14,6 +14,7 @@ from data_ocean.converter import Converter
 from data_ocean.downloader import Downloader
 from data_ocean.utils import to_lower_string_if_exists
 from location_register.converter.address import AddressConverter
+from stats.tasks import endpoints_cache_warm_up
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -750,7 +751,7 @@ class PepDownloader(Downloader):
         self.report.save()
 
         self.vacuum_analyze(table_list=['business_register_pep', ])
-
+        endpoints_cache_warm_up(endpoints=['/api/pep/'])
         self.report.update_status = True
         peps_total_records = Pep.objects.all().count()
         if peps_total_records != converter.peps_total_records_from_source:

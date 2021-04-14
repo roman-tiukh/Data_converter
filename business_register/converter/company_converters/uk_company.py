@@ -12,6 +12,8 @@ from data_ocean.downloader import Downloader
 from data_ocean.utils import format_date_to_yymmdd, to_lower_string_if_exists
 
 # Standard instance of a logger with __name__
+from stats.tasks import endpoints_cache_warm_up
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
@@ -127,7 +129,11 @@ class UkCompanyDownloader(Downloader):
         self.vacuum_analyze(table_list=['business_register_company', ])
 
         self.remove_file()
-
+        endpoints_cache_warm_up(endpoints=[
+            '/api/company/',
+            '/api/company/uk/',
+            '/api/company/ukr/',
+        ])
         new_total_records = Company.objects.filter(source=Company.GREAT_BRITAIN_REGISTER).count()
         self.update_register_field(settings.UK_COMPANY_REGISTER_LIST, 'total_records', new_total_records)
         logger.info(f'{self.reg_name}: Update total records finished successfully.')
