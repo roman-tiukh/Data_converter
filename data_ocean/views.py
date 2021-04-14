@@ -16,7 +16,7 @@ from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from data_ocean.serializers import RegisterSerializer
 from rest_framework.permissions import IsAuthenticated
-from payment_system.permissions import AccessFromProjectToken
+from payment_system.permissions import AccessFromProjectToken, ServiceTokenPermission
 
 
 class CachedViewMixin:
@@ -36,7 +36,7 @@ class CachedViewSetMixin:
 
 
 class RegisterViewMixin:
-    permission_classes = [AccessFromProjectToken]
+    permission_classes = [AccessFromProjectToken | ServiceTokenPermission]
 
     def get_permissions(self):
         if settings.DEBUG:

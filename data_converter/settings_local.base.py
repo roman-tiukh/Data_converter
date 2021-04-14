@@ -179,14 +179,23 @@ CACHES = {
         # 'BACKEND': 'django_redis.cache.RedisCache',
         # 'LOCATION': 'redis://127.0.0.1:6379/1',
         # 'OPTIONS': {
-        #     "IGNORE_EXCEPTIONS": True,
+        #     'IGNORE_EXCEPTIONS': True,
         #     # 'PASSWORD': f'{REDIS_PASSWORD}',
         #     'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         # },
 
         # Dummy Cache for developing
-        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',  # use this cashe for developing
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',  # use this cache for developing
     },
+    # 'counts': {
+    #     'BACKEND': 'django_redis.cache.RedisCache',
+    #     'LOCATION': 'redis://127.0.0.1:6379/3',
+    #     'OPTIONS': {
+    #         'IGNORE_EXCEPTIONS': True,
+    #         # 'PASSWORD': f'{REDIS_PASSWORD}',
+    #         'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+    #     },
+    # }
 }
 
 LOGIN_REDIRECT_URL = '/'
@@ -300,3 +309,6 @@ ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 PEP_SCHEMA_TOKENS = {
     'google.com': 'mThmM2Q1MTU1MoVlNGRkNjdkOTcyYTk2YmE5Njc2YjdmYWQzMj',
 }
+
+# < /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-80};echo;
+SERVICE_TOKEN = '2JMV2GQ2_vBoP8r5TZAvH6gAeQp_etxey19126QPdcyy9O9b73oyhQ-kEc7N1bUtlTy7FOHz2CeBLM6W'
