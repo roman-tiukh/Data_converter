@@ -20,6 +20,7 @@ from data_ocean.downloader import Downloader
 from data_ocean.utils import (cut_first_word, format_date_to_yymmdd, get_first_word,
                               to_lower_string_if_exists)
 from location_register.converter.address import AddressConverter
+from stats.tasks import endpoints_cache_warm_up
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -1110,7 +1111,11 @@ class UkrCompanyFullDownloader(Downloader):
         self.vacuum_analyze(table_list=['business_register_company', ])
 
         self.remove_file()
-
+        endpoints_cache_warm_up(endpoints=[
+            '/api/company/',
+            '/api/company/uk/',
+            '/api/company/ukr/',
+        ])
         new_total_records = Company.objects.filter(source=Company.UKRAINE_REGISTER).count()
         self.update_register_field(settings.UKR_COMPANY_REGISTER_LIST, 'total_records', new_total_records)
         logger.info(f'{self.reg_name}: Update total records finished successfully.')

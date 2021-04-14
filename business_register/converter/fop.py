@@ -11,6 +11,7 @@ from django.conf import settings
 from data_ocean.converter import BulkCreateManager
 from data_ocean.models import Register
 from data_ocean.utils import get_first_word, cut_first_word, format_date_to_yymmdd
+from stats.tasks import endpoints_cache_warm_up
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -384,7 +385,7 @@ class FopDownloader(Downloader):
         self.vacuum_analyze(table_list=['business_register_fop', ])
 
         self.remove_file()
-
+        endpoints_cache_warm_up(endpoints=['/api/fop/'])
         new_total_records = Fop.objects.count()
         self.update_register_field(settings.FOP_REGISTER_LIST, 'total_records', new_total_records)
         logger.info(f'{self.reg_name}: Update total records finished successfully.')
