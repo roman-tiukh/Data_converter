@@ -4,7 +4,7 @@ from business_register.models.company_models import Company
 from business_register.models.fop_models import Fop
 from business_register.models.kved_models import Kved
 from business_register.models.pep_models import Pep
-from business_register.models.sanction_models import SanctionType, Sanction
+from business_register.models.sanction_models import SanctionType, PersonSanction, CompanySanction, CountrySanction
 from data_ocean.admin import RegisterModelAdmin
 
 
@@ -36,34 +36,81 @@ class SanctionTypeAdmin(RegisterModelAdmin):
         return self.has_module_permission(request)
 
 
-@admin.register(Sanction)
-class SanctionAdmin(RegisterModelAdmin):
+@admin.register(CountrySanction)
+class CountrySanctionAdmin(RegisterModelAdmin):
+    list_display = ('country',)
+    search_fields = (
+        'country__name',
+        'types_of_sanctions__name',
+    )
+    ordering = ('start_date',)
+    list_filter = ('types_of_sanctions__name',)
+
+    def has_change_permission(self, request, obj=None):
+        return self.has_module_permission(request)
+
+    def has_add_permission(self, request, obj=None):
+        return self.has_module_permission(request)
+
+    def has_delete_permission(self, request, obj=None):
+        return self.has_module_permission(request)
+
+
+@admin.register(PersonSanction)
+class PersonSanctionAdmin(RegisterModelAdmin):
     list_display = (
-        'object_name',
-        'pep',
-        'company',
-        'country',
-        'taxpayer_number',
+        'full_name',
         'taxpayer_number',
         'end_date',
     )
+    autocomplete_fields = ['pep',]
     search_fields = (
-        'name',
-        'object_origin_name',
-        'registration_number',
+        'full_name',
+        'full_name_original_transcription',
         'taxpayer_number',
         'address',
         'place_of_birth',
         'types_of_sanctions__name',
         'position',
-        'country__name'
     )
-    ordering = ('start_date', 'country')
+    ordering = ('start_date', 'countries_of_citizenship')
     list_filter = (
-        'object_type',
         'is_foreign',
         'types_of_sanctions__name',
-        'country__name',
+        'countries_of_citizenship__name',
+    )
+
+    def has_change_permission(self, request, obj=None):
+        return self.has_module_permission(request)
+
+    def has_add_permission(self, request, obj=None):
+        return self.has_module_permission(request)
+
+    def has_delete_permission(self, request, obj=None):
+        return self.has_module_permission(request)
+
+
+@admin.register(CompanySanction)
+class CompanySanctionAdmin(RegisterModelAdmin):
+    list_display = (
+        'name',
+        'taxpayer_number',
+        'end_date',
+    )
+    autocomplete_fields = ['company',]
+    search_fields = (
+        'name',
+        'name_original_transcription',
+        'number',
+        'address',
+        'country_of_registration',
+        'types_of_sanctions__name',
+    )
+    ordering = ('start_date', 'country_of_registration')
+    list_filter = (
+        'is_foreign',
+        'types_of_sanctions__name',
+        'country_of_registration__name',
     )
 
     def has_change_permission(self, request, obj=None):
