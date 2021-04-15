@@ -159,43 +159,43 @@ msgstr "ФОП"
 msgid "Legal entity"
 msgstr "Юридична особа"
 
-#: users/models.py:66 users/models.py:136
+#: users/models.py:66 users/models.py:134
 msgid "email address"
 msgstr "адреса електронної пошти"
 
-#: users/models.py:72 users/models.py:142
+#: users/models.py:72 users/models.py:140
 msgid "language"
 msgstr "мова"
 
-#: users/models.py:120
+#: users/models.py:118
 msgid "You have not paid the invoice"
 msgstr "У Вас не сплачений рахунок"
 
-#: users/models.py:137
+#: users/models.py:135
 msgid "password"
 msgstr "пароль"
 
-#: users/models.py:138
+#: users/models.py:136
 msgid "first name"
 msgstr "ім'я"
 
-#: users/models.py:139
+#: users/models.py:137
 msgid "last name"
 msgstr "прізвище"
 
-#: users/models.py:148
+#: users/models.py:146
 msgid "expire at"
 msgstr "діє до"
 
-#: users/models.py:164
+#: users/models.py:162
 msgid "question"
 msgstr "запитання"
 
-#: users/models.py:165
+#: users/models.py:163
 msgid "questions"
 msgstr "запитання"
 
-#: users/models.py:182
+#: users/models.py:180
 #, fuzzy
 #| msgid "Notification"
 msgid "notification"

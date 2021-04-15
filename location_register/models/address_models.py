@@ -9,3 +9,5 @@ class Country(DataOceanModel):
 
     class Meta:
         verbose_name = _('country')
+        verbose_name_plural = _('countries')
+        ordering = ('name',)
