@@ -1,10 +1,21 @@
 from django.contrib import admin
 
 from data_ocean.admin import RegisterModelAdmin
+from location_register.models.address_models import Country
 from location_register.models.koatuu_models import (KoatuuFirstLevel, KoatuuSecondLevel,
                                                     KoatuuThirdLevel, KoatuuFourthLevel)
 from location_register.models.ratu_models import RatuStreet
 from location_register.models.drv_models import DrvBuilding
+
+
+@admin.register(Country)
+class CountryAdmin(RegisterModelAdmin):
+    list_display = ('name',)
+    search_fields = ('name',)
+    ordering = ('name',)
+
+    def has_add_permission(self, request, obj=None):
+        return self.has_module_permission(request)
 
 
 @admin.register(KoatuuFirstLevel)
