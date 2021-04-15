@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-04-15 10:14+0000\n"
+"POT-Creation-Date: 2021-04-15 10:34+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -159,43 +159,43 @@ msgstr "ФОП"
 msgid "Legal entity"
 msgstr "Юридична особа"
 
-#: users/models.py:66 users/models.py:134
+#: users/models.py:66 users/models.py:136
 msgid "email address"
 msgstr "адреса електронної пошти"
 
-#: users/models.py:72 users/models.py:140
+#: users/models.py:72 users/models.py:142
 msgid "language"
 msgstr "мова"
 
-#: users/models.py:118
+#: users/models.py:120
 msgid "You have not paid the invoice"
 msgstr "У Вас не сплачений рахунок"
 
-#: users/models.py:135
+#: users/models.py:137
 msgid "password"
 msgstr "пароль"
 
-#: users/models.py:136
+#: users/models.py:138
 msgid "first name"
 msgstr "ім'я"
 
-#: users/models.py:137
+#: users/models.py:139
 msgid "last name"
 msgstr "прізвище"
 
-#: users/models.py:146
+#: users/models.py:148
 msgid "expire at"
 msgstr "діє до"
 
-#: users/models.py:162
+#: users/models.py:164
 msgid "question"
 msgstr "запитання"
 
-#: users/models.py:163
+#: users/models.py:165
 msgid "questions"
 msgstr "запитання"
 
-#: users/models.py:180
+#: users/models.py:182
 #, fuzzy
 #| msgid "Notification"
 msgid "notification"
@@ -278,19 +278,19 @@ msgstr "Ви замовили скидання пароля у системі Da
 msgid "Reset password"
 msgstr "Скинути пароль"
 
-#: users/validators.py:8
+#: users/validators.py:7
 msgid "Only alphanumeric characters, digits, and '-. are allowed"
 msgstr "Дозволено лише літери, цифри та символи'-. "
 
-#: users/validators.py:14
+#: users/validators.py:13
 msgid "No more than 2 identical symbols in a row are allowed"
 msgstr "Допускається не більше 2 однакових символів поспіль"
 
-#: users/validators.py:19
+#: users/validators.py:18
 msgid "Wrong IBAN format"
 msgstr "Неправильний формат IBAN"
 
-#: users/validators.py:24
+#: users/validators.py:23
 msgid "Wrong MFO format"
 msgstr "Неправильний формат МФО"
 
