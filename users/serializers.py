@@ -30,15 +30,15 @@ class DataOceanUserSerializer(serializers.ModelSerializer):
 
         if person_status in (DataOceanUser.INDIVIDUAL_ENTREPRENEUR, DataOceanUser.LEGAL_ENTITY):
             if not iban:
-                raise required('iban')
+                required('iban')
             if not identification_code:
-                raise required('identification_code')
+                required('identification_code')
             if not company_name:
-                raise required('name_company')
+                required('name_company')
             if not company_address:
-                raise required('company_address')
+                required('company_address')
             if not mfo:
-                raise required('mfo')
+                required('mfo')
 
             if identification_code:
                 if person_status == DataOceanUser.INDIVIDUAL_ENTREPRENEUR:
