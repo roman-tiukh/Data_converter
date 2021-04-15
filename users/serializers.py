@@ -17,21 +17,40 @@ from .validators import name_symbols_validator, two_in_row_validator
 class DataOceanUserSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
+        errors = {}
+        person_status = data.get('person_status')
+        iban = data.get('iban')
+        identification_code = data.get('identification_code')
+        company_name = data.get('company_name')
+        company_address = data.get('company_address')
+        mfo = data.get('mfo')
 
-        """validate fop and legal_entity fields"""
+        def required(field):
+            errors[field] = _('This field is required')
 
-        if data.get('person_status') in ('individual_entrepreneur', 'legal_entity'):
-            if not data.get('iban'):
-              raise serializers.ValidationError({'iban':_(f"IBAN is required for %(person_status)s" % {
-                  'person_status': data.get('person_status').replace('_', ' '),
-              })})
-        if data.get('person_status') == DataOceanUser.LEGAL_ENTITY:
-            if not data.get('edrpou'):
-                raise serializers.ValidationError({'edrpou':_("EDRPOU is required for Legal entity")})
-            if not data.get('company_name'):
-                raise serializers.ValidationError({'name_company':_("Company name is required for Legal entity")})
-            if not data.get('registration_address'):
-                raise serializers.ValidationError({'registration_address':_("Registration address is required for Legal entity")})
+        if person_status in (DataOceanUser.INDIVIDUAL_ENTREPRENEUR, DataOceanUser.LEGAL_ENTITY):
+            if not iban:
+                raise required('iban')
+            if not identification_code:
+                raise required('identification_code')
+            if not company_name:
+                raise required('name_company')
+            if not company_address:
+                raise required('company_address')
+            if not mfo:
+                raise required('mfo')
+
+            if identification_code:
+                if person_status == DataOceanUser.INDIVIDUAL_ENTREPRENEUR:
+                    if not re.match('^\d{10}$', identification_code):
+                        errors['identification_code'] = _('Wrong ITN format')
+
+                if person_status == DataOceanUser.LEGAL_ENTITY:
+                    if not re.match('^\d{8}$', identification_code):
+                        errors['identification_code'] = _('Wrong EDRPOU format')
+
+        if errors:
+            raise serializers.ValidationError(errors)
 
         return data
 
@@ -40,8 +59,8 @@ class DataOceanUserSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'last_name', 'first_name', 'email',
             'organization', 'position', 'date_of_birth', 'language',
-            'person_status', 'iban', 'company_name', 'registration_address',
-            'edrpou', 'phone',
+            'person_status', 'iban', 'company_name', 'company_address',
+            'identification_code', 'mfo',
         )
 
 

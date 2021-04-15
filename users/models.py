@@ -5,7 +5,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from rest_framework.authtoken.models import Token
 from data_ocean.models import DataOceanModel
-from users.validators import iban_validator, edrpou_validator, name_symbols_validator, two_in_row_validator
+from users.validators import iban_validator, mfo_validator, name_symbols_validator, two_in_row_validator
 
 
 class DataOceanUserManager(BaseUserManager):
@@ -77,10 +77,12 @@ class DataOceanUser(AbstractUser):
     )
 
     person_status = models.CharField(choices=PERSON_STATUS, default=INDIVIDUAL, max_length=23, blank=True)
-    iban = models.CharField(max_length=29, default='', blank=True, validators=[iban_validator])
-    company_name = models.CharField(max_length=150, default='', blank=True)
-    registration_address = models.CharField(max_length=150, default='', blank=True)
-    edrpou = models.CharField(max_length=8, default='', blank=True, validators=[edrpou_validator])
+    iban = models.CharField('IBAN', max_length=29, default='', blank=True, validators=[iban_validator])
+    company_name = models.CharField('Company name', max_length=300, default='', blank=True)
+    company_address = models.CharField('Company registration address', max_length=150, default='', blank=True)
+    identification_code = models.CharField('EDRPOU/ITN', max_length=10, default='', blank=True)
+    mfo = models.CharField('MFO', max_length=6, default='', blank=True, validators=[mfo_validator])
+
     # Permissions
     datasets_admin = models.BooleanField(blank=True, default=False)
     users_viewer = models.BooleanField(blank=True, default=False)

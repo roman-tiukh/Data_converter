@@ -15,11 +15,11 @@ two_in_row_validator = RegexValidator(
 )
 
 iban_validator = RegexValidator(
-    regex='^[A-Za-z]{2}\d{27}$',
-    message = _('Wrong IBAN format')
+    regex=r'^[A-Za-z]{2}\d{27}$',
+    message=_('Wrong IBAN format')
 )
 
-edrpou_validator = RegexValidator(
-    regex='^\d{8}$',
-    message = _('This field must contain 8 characters, only numbers')
+mfo_validator = RegexValidator(
+    regex=r'^\d{6}$',
+    message=_('Wrong MFO format')
 )
