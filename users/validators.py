@@ -2,7 +2,6 @@ from django.core.validators import RegexValidator
 from django.utils.translation import gettext_lazy as _
 
 
-
 name_symbols_validator = RegexValidator(
     regex=r"^[a-zA-Zа-яА-Я0-9 'іїёєґЄЇҐІЭ.`-]*$",
     message=_("Only alphanumeric characters, digits, and '-. are allowed")
