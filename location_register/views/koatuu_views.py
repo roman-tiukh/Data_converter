@@ -64,5 +64,5 @@ class KoatuuFourthLevelViewSet(RegisterViewMixin,
         'first_level', 'second_level', 'third_level', 'category').all()
     serializer_class = KoatuuFourthLevelSerializer
     filter_backends = (DjangoFilterBackend, SearchFilter)
-    filterset = KoatuuFourthLevelFilterSet
+    filterset_class = KoatuuFourthLevelFilterSet
     search_fields = ('code', 'name')
