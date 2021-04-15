@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-04-13 17:03+0300\n"
+"POT-Creation-Date: 2021-04-15 11:47+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -161,49 +161,49 @@ msgstr "ФОП"
 msgid "Legal entity"
 msgstr "Юридична особа"
 
-#: users/models.py:66 users/models.py:133
+#: users/models.py:66 users/models.py:134
 msgid "email address"
 msgstr "адреса електронної пошти"
 
-#: users/models.py:71 users/models.py:138
+#: users/models.py:72 users/models.py:140
 msgid "language"
 msgstr "мова"
 
-#: users/models.py:117
+#: users/models.py:118
 msgid "You have not paid the invoice"
 msgstr "У Вас не сплачений рахунок"
 
-#: users/models.py:134
+#: users/models.py:135
 msgid "password"
 msgstr "пароль"
 
-#: users/models.py:135
+#: users/models.py:136
 msgid "first name"
 msgstr "ім'я"
 
-#: users/models.py:136
+#: users/models.py:137
 msgid "last name"
 msgstr "прізвище"
 
-#: users/models.py:144
+#: users/models.py:146
 msgid "expire at"
 msgstr "діє до"
 
-#: users/models.py:160
+#: users/models.py:162
 msgid "question"
 msgstr "запитання"
 
-#: users/models.py:161
+#: users/models.py:163
 msgid "questions"
 msgstr "запитання"
 
-#: users/models.py:178
+#: users/models.py:180
 #, fuzzy
 #| msgid "Notification"
 msgid "notification"
 msgstr "сповіщення"
 
-#: users/models.py:179
+#: users/models.py:181
 #, fuzzy
 #| msgid "Notifications"
 msgid "notifications"
@@ -227,15 +227,15 @@ msgstr "Назва компанії необхідна для юридичної
 msgid "Registration address is required for Legal entity"
 msgstr "Адреса реєстрації необхідна для юридичної особи"
 
-#: users/serializers.py:80
+#: users/serializers.py:81
 msgid "First Name"
 msgstr "Ім'я"
 
-#: users/serializers.py:81
+#: users/serializers.py:82
 msgid "Last Name"
 msgstr "Прізвище"
 
-#: users/serializers.py:86
+#: users/serializers.py:87
 msgid "Your password can’t be too similar to"
 msgstr "Ваш пароль не може бути надто схожим на"
 
@@ -302,22 +302,22 @@ msgstr "Неправильний формат IBAN"
 msgid "This field must contain 8 characters, only numbers"
 msgstr "Це поле має містити 8 символів, лише цифри"
 
-#: users/views.py:55
+#: users/views.py:56
 msgid "User with this email is already exists"
 msgstr "Користувач з цією електронною поштою вже існує"
 
-#: users/views.py:94 users/views.py:110
+#: users/views.py:95 users/views.py:111
 msgid "Confirmation link is broken"
 msgstr "Посилання на підтвердження пошкоджено."
 
-#: users/views.py:98
+#: users/views.py:99
 msgid "Confirmation link is expired."
 msgstr "Дія посилання на підтвердження закінчилась."
 
-#: users/views.py:114
+#: users/views.py:115
 msgid "The link is invalid, the email address was confirmed earlier"
 msgstr "Посилання недійсне, електронна адреса була підтверджена раніше"
 
-#: users/views.py:150 users/views.py:156
+#: users/views.py:152 users/views.py:158
 msgid "Email not sent. Try again later."
 msgstr "Лист на електронну пошту не надіслано. Спробуйте ще раз пізніше."
