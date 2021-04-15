@@ -23,11 +23,21 @@
         <tr>
           <th>Одержувач</th>
           <td>
-            {% if user.organization %}
-              <div>{{ user.organization }},</div>
+            {% if user.person_status == 'individual' %}
+              <div>{{ user.get_person_status_display }}</div>
+              <div><strong>{{ user.get_full_name }}</strong></div>
+              <div>{{ user.email }}</div>
+            {% else %}
+              <div><strong>{{ user.company_name }}</strong></div>
+              {% if user.person_status == 'individual_entrepreneur' %}
+                <div>ІПН: {{ user.identification_code }}</div>
+              {% elif user.person_status == 'legal_entity' %}
+                <div>ЄДПРОУ: {{ user.identification_code }}</div>
+              {% endif %}
+              <div>{{ user.company_address }}</div>
+              <div>IBAN: {{ user.iban }}</div>
+              <div>МФО: {{ user.mfo }}</div>
             {% endif %}
-            <div>{{ user.get_full_name }},</div>
-            <div>{{ user.email }}</div>
           </td>
         </tr>
         <tr>
