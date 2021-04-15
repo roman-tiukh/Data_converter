@@ -18,7 +18,7 @@ class PepAdmin(RegisterModelAdmin):
     ordering = ('updated_at',)
     list_filter = ('is_pep', 'pep_type', 'is_dead')
 
-
+# lower, horisontal and autocomplete for types and countries, country&registration number in display
 @admin.register(SanctionType)
 class SanctionTypeAdmin(RegisterModelAdmin):
     list_display = ('name', 'law')
@@ -43,6 +43,8 @@ class CountrySanctionAdmin(RegisterModelAdmin):
         'country__name',
         'types_of_sanctions__name',
     )
+    filter_horisontal = ('types_of_sanctions', )
+    autocomplete_fields = ['types_of_sanctions',]
     ordering = ('start_date',)
     list_filter = ('types_of_sanctions__name',)
 
@@ -63,7 +65,8 @@ class PersonSanctionAdmin(RegisterModelAdmin):
         'taxpayer_number',
         'end_date',
     )
-    autocomplete_fields = ['pep',]
+    filter_horizontal = ('types_of_sanctions', 'countries_of_citizenship')
+    autocomplete_fields = ['pep', 'countries_of_citizenship', 'types_of_sanctions']
     search_fields = (
         'full_name',
         'full_name_original_transcription',
@@ -94,10 +97,12 @@ class PersonSanctionAdmin(RegisterModelAdmin):
 class CompanySanctionAdmin(RegisterModelAdmin):
     list_display = (
         'name',
-        'taxpayer_number',
+        'country_of_registration',
+        'registration_number',
         'end_date',
     )
-    autocomplete_fields = ['company',]
+    filter_horisontal = ('types_of_sanctions', 'country_of_registration')
+    autocomplete_fields = ('company', 'country_of_registration', 'types_of_sanctions')
     search_fields = (
         'name',
         'name_original_transcription',

@@ -58,5 +58,5 @@ class RatuStreetView(RegisterViewMixin,
     ).all()
     serializer_class = RatuStreetSerializer
     filter_backends = (DjangoFilterBackend, SearchFilter)
-    filterset = RatuStreetFilterSet
+    filterset_class = RatuStreetFilterSet
     search_fields = ('name',)
