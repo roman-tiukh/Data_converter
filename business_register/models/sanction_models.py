@@ -31,9 +31,8 @@ class Sanction(DataOceanModel):
         _('start date'),
         help_text=_('date of imposing sanctions')
     )
-    cancellation_condition = models.CharField(
+    cancellation_condition = models.TextField(
         _('cancellation condition'),
-        max_length=250,
         blank=True,
         default='',
         help_text=_('condition of the cancellation of sanctions')
