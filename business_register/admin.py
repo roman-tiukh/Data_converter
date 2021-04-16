@@ -74,7 +74,6 @@ class PersonSanctionAdmin(RegisterModelAdmin):
         'address',
         'place_of_birth',
         'types_of_sanctions__name',
-        'position',
     )
     ordering = ('start_date', 'countries_of_citizenship')
     list_filter = (
