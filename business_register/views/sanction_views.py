@@ -11,8 +11,8 @@ from data_converter.filter import DODjangoFilterBackend
 from data_ocean.views import CachedViewSetMixin, RegisterViewMixin
 
 
-@method_decorator(name='retrieve', decorator=swagger_auto_schema(tags=['sanction_country']))
-@method_decorator(name='list', decorator=swagger_auto_schema(tags=['sanction_country']))
+@method_decorator(name='retrieve', decorator=swagger_auto_schema(tags=['sanction_country'], auto_schema=None))
+@method_decorator(name='list', decorator=swagger_auto_schema(tags=['sanction_country'], auto_schema=None))
 class CountrySanctionViewSet(RegisterViewMixin,
                              CachedViewSetMixin,
                              viewsets.ReadOnlyModelViewSet):
@@ -25,8 +25,8 @@ class CountrySanctionViewSet(RegisterViewMixin,
     )
 
 
-@method_decorator(name='retrieve', decorator=swagger_auto_schema(tags=['sanction_person']))
-@method_decorator(name='list', decorator=swagger_auto_schema(tags=['sanction_person']))
+@method_decorator(name='retrieve', decorator=swagger_auto_schema(tags=['sanction_person'], auto_schema=None))
+@method_decorator(name='list', decorator=swagger_auto_schema(tags=['sanction_person'], auto_schema=None))
 class PersonSanctionViewSet(RegisterViewMixin,
                             CachedViewSetMixin,
                             viewsets.ReadOnlyModelViewSet):
@@ -45,8 +45,8 @@ class PersonSanctionViewSet(RegisterViewMixin,
     )
 
 
-@method_decorator(name='retrieve', decorator=swagger_auto_schema(tags=['sanction_company']))
-@method_decorator(name='list', decorator=swagger_auto_schema(tags=['sanction_company']))
+@method_decorator(name='retrieve', decorator=swagger_auto_schema(tags=['sanction_company'], auto_schema=None))
+@method_decorator(name='list', decorator=swagger_auto_schema(tags=['sanction_company'], auto_schema=None))
 class CompanySanctionViewSet(RegisterViewMixin,
                              CachedViewSetMixin,
                              viewsets.ReadOnlyModelViewSet):
