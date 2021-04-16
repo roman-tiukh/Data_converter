@@ -204,15 +204,13 @@ class CompanySanction(Sanction):
         verbose_name=_('company'),
         help_text=_('company or organisation under this sanction')
     )
-    name = models.CharField(
+    name = models.TextField(
         _('company name'),
-        max_length=100,
         db_index=True,
         help_text=_('name of the company under sanctions')
     )
-    name_original_transcription = models.CharField(
+    name_original_transcription = models.TextField(
         _('original transcription of the name'),
-        max_length=100,
         db_index=True,
         blank=True,
         default='',
