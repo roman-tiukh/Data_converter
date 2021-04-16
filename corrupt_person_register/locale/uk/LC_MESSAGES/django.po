@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-04-15 16:26+0300\n"
+"POT-Creation-Date: 2021-04-16 13:29+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -39,178 +39,176 @@ msgstr "Судове рішення"
 msgid "Disciplinary action"
 msgstr "Дисциплінарне стягнення"
 
-#: corrupt_person_register/models.py:33
-msgid "Individual"
-msgstr "Фізична особа"
-
-#: corrupt_person_register/models.py:34
-msgid "Legal entity"
-msgstr "Юридична особа"
-
-#: corrupt_person_register/models.py:37
+#: corrupt_person_register/models.py:31
 #, fuzzy
 #| msgid "the identifier of the region/city"
 msgid "the NAZK identifier of person"
 msgstr "ідентифікатор регіону/міста"
 
-#: corrupt_person_register/models.py:41
+#: corrupt_person_register/models.py:35
 msgid "punishment type"
 msgstr "тип покарання"
 
-#: corrupt_person_register/models.py:47
-msgid "entity type"
-msgstr "тип особи"
-
-#: corrupt_person_register/models.py:53
+#: corrupt_person_register/models.py:41
 #, fuzzy
 #| msgid "the identifier of the region/city"
 msgid "the NAZK identifier of offense"
 msgstr "ідентифікатор регіону/міста"
 
-#: corrupt_person_register/models.py:59
+#: corrupt_person_register/models.py:47
 #, fuzzy
 #| msgid "the name of the court"
 msgid "the name of offense"
 msgstr "Назва суду"
 
-#: corrupt_person_register/models.py:65
+#: corrupt_person_register/models.py:53
 msgid "punishment"
 msgstr "покарання"
 
-#: corrupt_person_register/models.py:71
+#: corrupt_person_register/models.py:59
 msgid "decree date"
 msgstr "дата наказу"
 
-#: corrupt_person_register/models.py:77
+#: corrupt_person_register/models.py:65
 msgid "decree number"
 msgstr "номер наказу"
 
-#: corrupt_person_register/models.py:84
+#: corrupt_person_register/models.py:72
 msgid "court case number"
 msgstr "номер судової справи "
 
-#: corrupt_person_register/models.py:91
+#: corrupt_person_register/models.py:79
 msgid "sentence date"
 msgstr "дата судового рішення "
 
-#: corrupt_person_register/models.py:97
+#: corrupt_person_register/models.py:85
 msgid "sentence number"
 msgstr "номер судового рішення"
 
-#: corrupt_person_register/models.py:104
+#: corrupt_person_register/models.py:92
 msgid "punishment start"
 msgstr "початок дії судового рішння"
 
-#: corrupt_person_register/models.py:111
+#: corrupt_person_register/models.py:99
 msgid "codex articles"
 msgstr "статті"
 
-#: corrupt_person_register/models.py:115
+#: corrupt_person_register/models.py:103
 #, fuzzy
 #| msgid "the identifier of the region/city"
 msgid "the NAZK identifier of court"
 msgstr "ідентифікатор регіону/міста"
 
-#: corrupt_person_register/models.py:121
+#: corrupt_person_register/models.py:109
 #, fuzzy
 #| msgid "the name of the court"
 msgid "the name of court"
 msgstr "Назва суду"
 
-#: corrupt_person_register/models.py:134
+#: corrupt_person_register/models.py:122
 msgid "postcode"
 msgstr "поштовий індекс"
 
-#: corrupt_person_register/models.py:141
+#: corrupt_person_register/models.py:129
 #, fuzzy
 #| msgid "the identifier of the region/city"
 msgid "the NAZK identifier of country"
 msgstr "ідентифікатор регіону/міста"
 
-#: corrupt_person_register/models.py:147
+#: corrupt_person_register/models.py:135
 msgid "country"
 msgstr "країна"
 
-#: corrupt_person_register/models.py:154
+#: corrupt_person_register/models.py:142
 msgid "the identifier of the region/city"
 msgstr "ідентифікатор регіону/міста"
 
-#: corrupt_person_register/models.py:161
+#: corrupt_person_register/models.py:149
 msgid "the name of the region/city"
 msgstr "назва регіону/міста"
 
-#: corrupt_person_register/models.py:169
+#: corrupt_person_register/models.py:157
 msgid "full address"
 msgstr "повна адреса"
 
-#: corrupt_person_register/models.py:177
+#: corrupt_person_register/models.py:165
 msgid "short name of the legal entity"
 msgstr "скорочена назва юридичної особи"
 
-#: corrupt_person_register/models.py:185
+#: corrupt_person_register/models.py:173
 msgid "the name of the legal entity"
 msgstr "повна назва юридичної особи"
 
-#: corrupt_person_register/models.py:193
+#: corrupt_person_register/models.py:181
 msgid "EDRPOU"
 msgstr "ЄДРПОУ"
 
-#: corrupt_person_register/models.py:201
+#: corrupt_person_register/models.py:189
 #, fuzzy
 #| msgid "the identifier of the region/city"
 msgid "the NAZK identifier of legal form"
 msgstr "ідентифікатор регіону/міста"
 
-#: corrupt_person_register/models.py:207
+#: corrupt_person_register/models.py:195
 #, fuzzy
 #| msgid "the name of the court"
 msgid "the name of legal form"
 msgstr "Назва суду"
 
-#: corrupt_person_register/models.py:215
+#: corrupt_person_register/models.py:203
 #, fuzzy
 #| msgid "Persons who have committed corruption or corruption-related offenses"
 msgid ""
 "Legal entity who have committed corruption or corruption-related offenses"
 msgstr "Особи, які вчинили корупцію або пов'язані з корупцією правопорушення"
 
-#: corrupt_person_register/models.py:220
+#: corrupt_person_register/models.py:208
 msgid "last name"
 msgstr "прізвище"
 
-#: corrupt_person_register/models.py:228
+#: corrupt_person_register/models.py:216
 msgid "first name"
 msgstr "ім'я"
 
-#: corrupt_person_register/models.py:236
+#: corrupt_person_register/models.py:224
 msgid "middle name"
 msgstr "по батькові"
 
-#: corrupt_person_register/models.py:244
+#: corrupt_person_register/models.py:232
 msgid "place of work"
 msgstr "місце роботи"
 
-#: corrupt_person_register/models.py:251
+#: corrupt_person_register/models.py:239
 msgid "occupation"
 msgstr "посада"
 
-#: corrupt_person_register/models.py:258
+#: corrupt_person_register/models.py:246
 #, fuzzy
 #| msgid "the identifier of the region/city"
 msgid "the NAZK identifier of activity sphere"
 msgstr "ідентифікатор регіону/міста"
 
-#: corrupt_person_register/models.py:264
+#: corrupt_person_register/models.py:252
 #, fuzzy
 #| msgid "Activity sphere"
 msgid "the name of activity sphere"
 msgstr "Сфера діяльності"
 
-#: corrupt_person_register/models.py:272
+#: corrupt_person_register/models.py:260
 #, fuzzy
 #| msgid "Persons who have committed corruption or corruption-related offenses"
 msgid "Individual who have committed corruption or corruption-related offenses"
-msgstr "Фізичні особи, які вчинили корупцію або пов'язані з корупцією правопорушення"
+msgstr ""
+"Фізичні особи, які вчинили корупцію або пов'язані з корупцією правопорушення"
+
+#~ msgid "Individual"
+#~ msgstr "Фізична особа"
+
+#~ msgid "Legal entity"
+#~ msgstr "Юридична особа"
+
+#~ msgid "entity type"
+#~ msgstr "тип особи"
 
 #~ msgid "Court"
 #~ msgstr "Суд"

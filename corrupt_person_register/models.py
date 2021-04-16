@@ -1,5 +1,5 @@
 from django.db import models
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from data_ocean.models import DataOceanModel
 from location_register.models.address_models import Country
 from location_register.models.drv_models import ZipCode, DrvStreet, DrvRegion
@@ -27,12 +27,6 @@ class BaseCorruptPerson(DataOceanModel):
         (COURT_DECISION, _('Court decision')),
         (DISCIPLINARY_ACTION, _('Disciplinary action'))
     )
-    INDIVIDUAL = 'I'
-    LEGAL_ENTITY = 'LE'
-    ENTITY_TYPES = (
-        (INDIVIDUAL, _('Individual')),
-        (LEGAL_ENTITY, _('Legal entity'))
-    )
     person_id = models.PositiveIntegerField(
         _('the NAZK identifier of person'),
         help_text='identifier of the person in the NAZK database.'
@@ -42,12 +36,6 @@ class BaseCorruptPerson(DataOceanModel):
         choices=PUNISHMENT_TYPES,
         max_length=2,
         help_text='Punishment type. Can be \'Court decision\' or \'Disciplinary action\'.'
-    )
-    entity_type = models.CharField(
-        _('entity type'),
-        choices=ENTITY_TYPES,
-        max_length=2,
-        help_text='Entity type. Can be \'Individual\' or \'Legal entity\'.'
     )
     offense_id = models.PositiveIntegerField(
         _('the NAZK identifier of offense'),
