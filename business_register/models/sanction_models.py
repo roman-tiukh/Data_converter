@@ -8,9 +8,9 @@ from location_register.models.address_models import Country
 
 
 class SanctionType(DataOceanModel):
-    name = models.CharField(
+    name = models.TextField(
         _('name'),
-        max_length=500,
+        unique=True,
         help_text=_('name of the type of sanctions applied')
     )
     law = models.CharField(
