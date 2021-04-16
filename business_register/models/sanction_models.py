@@ -248,7 +248,7 @@ class CompanySanction(Sanction):
         help_text=_('country of registration of the company under sanctions'))
     taxpayer_number = models.CharField(
         _('company taxpayer number'),
-        max_length=8,
+        max_length=15,
         db_index=True,
         blank=True,
         default='',
