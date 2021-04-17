@@ -733,7 +733,6 @@ class InvoiceReports(models.Model):
 
     @classmethod
     def create_daily_report(cls):
-        current_date = timezone.localdate()
 
         should_complete_counter = 0
         was_complete_counter = 0
@@ -749,7 +748,7 @@ class InvoiceReports(models.Model):
             email = invoice.project_subscription.project.owner.email
             line = str(invoice.project_subscription) + ' | ' + invoice.project_name + ' | ' + str(
                 invoice.id) + ' | ' + email + '<br>'
-
+            current_date = timezone.localdate()
             if invoice.paid_at is None:
                 if invoice.start_date == current_date:
                     should_complete_counter += 1
