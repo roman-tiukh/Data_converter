@@ -372,6 +372,14 @@ class Invoice(DataOceanModel):
     is_custom_subscription = models.BooleanField(_("is subscription custom"), )
     price = models.IntegerField(_("price"))
 
+    iban = models.TextField(blank=True)
+    person_status = models.TextField(blank=True)
+    company_address = models.TextField(blank=True)
+    identification_code = models.TextField(blank=True)
+    mfo = models.TextField(blank=True)
+    company_name = models.TextField(blank=True)
+
+
     @property
     def link(self):
         return reverse('payment_system:invoice_pdf', args=[self.id, self.token])
@@ -420,6 +428,19 @@ class Invoice(DataOceanModel):
                     self.grace_period_block = False
                     emails.payment_confirmed(p2s)
                 self.payment_registration_date = timezone.localdate()
+
+                if self.project_subscription.project.owner.person_status == 'individual':
+                    self.company_address = self.project_subscription.project.owner.email
+                    self.company_name = self.project_subscription.project.owner.get_full_name()
+                    self.person_status = self.project_subscription.project.owner.get_person_status_display()
+                else:
+                    self.iban = self.project_subscription.project.owner.iban
+                    self.person_status = self.project_subscription.project.owner.person_status
+                    self.company_address = self.project_subscription.project.owner.company_address
+                    self.identification_code = self.project_subscription.project.owner.identification_code
+                    self.mfo = self.project_subscription.project.owner.mfo
+                    self.company_name = self.project_subscription.project.owner.company_name
+
             # else:
             #     if self.grace_period_block and not invoice_old.grace_period_block:
             #         p2s.is_grace_period = False
