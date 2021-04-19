@@ -44,9 +44,8 @@ class Sanction(DataOceanModel):
         default=None,
         help_text=_('end date of sanctions'),
     )
-    reasoning = models.CharField(
+    reasoning = models.TextField(
         _('reasoning'),
-        max_length=500,
         blank=True,
         default='',
         help_text=_('reasoning of imposing sanctions')
