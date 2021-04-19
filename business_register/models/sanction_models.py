@@ -138,9 +138,8 @@ class PersonSanction(Sanction):
         default='',
         help_text=_('place of birth of the person under sanctions')
     )
-    address = models.CharField(
+    address = models.TextField(
         _('address'),
-        max_length=100,
         blank=True,
         default='',
         help_text=_('place of registration or residence of the person under sanctions')
@@ -216,9 +215,8 @@ class CompanySanction(Sanction):
         default='',
         help_text=_('original transcription of the company name in the language of the country of registration')
     )
-    address = models.CharField(
+    address = models.TextField(
         _('address'),
-        max_length=100,
         blank=True,
         default='',
         help_text=_('address of registration or the main office of the company under sanctions')
