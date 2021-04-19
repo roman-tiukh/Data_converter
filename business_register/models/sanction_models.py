@@ -31,8 +31,17 @@ class Sanction(DataOceanModel):
         _('start date'),
         help_text=_('date of imposing sanctions')
     )
+    cancellation_condition = models.TextField(
+        _('cancellation condition'),
+        blank=True,
+        default='',
+        help_text=_('condition of the cancellation of sanctions')
+    )
     end_date = models.DateField(
         _('end date'),
+        null=True,
+        blank=True,
+        default=None,
         help_text=_('end date of sanctions'),
     )
     reasoning = models.CharField(
@@ -61,7 +70,6 @@ class CountrySanction(Sanction):
         verbose_name=_('types of sanctions'),
         help_text=_('types of sanctions applied')
     )
-
 
     class Meta:
         verbose_name = _('Sanction against country')
