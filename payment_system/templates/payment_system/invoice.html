@@ -42,8 +42,8 @@
             {% else %}
               {% if invoice.person_status == 'Individual' %}
                 <div>Фізична особа</div>
-                <div><strong>{{ invoice.company_name }}</strong></div>
-                <div>{{ invoice.company_address  }}</div>
+                <div><strong>{{ invoice.full_name }}</strong></div>
+                <div>{{ invoice.email  }}</div>
               {% else %}
                 <div><strong>{{ invoice.company_name }}</strong></div>
                 {% if invoice.person_status == 'individual_entrepreneur' %}
