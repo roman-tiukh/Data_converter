@@ -432,18 +432,6 @@ class Invoice(DataOceanModel):
                     emails.payment_confirmed(p2s)
                 self.payment_registration_date = timezone.localdate()
 
-                if self.project_subscription.project.owner.person_status == DataOceanUser.INDIVIDUAL:
-                    self.email = self.project_subscription.project.owner.email
-                    self.full_name = self.project_subscription.project.owner.get_full_name()
-                    self.person_status = self.project_subscription.project.owner.get_person_status_display()
-                else:
-                    self.iban = self.project_subscription.project.owner.iban
-                    self.person_status = self.project_subscription.project.owner.person_status
-                    self.company_address = self.project_subscription.project.owner.company_address
-                    self.identification_code = self.project_subscription.project.owner.identification_code
-                    self.mfo = self.project_subscription.project.owner.mfo
-                    self.company_name = self.project_subscription.project.owner.company_name
-
             # else:
             #     if self.grace_period_block and not invoice_old.grace_period_block:
             #         p2s.is_grace_period = False
@@ -470,6 +458,17 @@ class Invoice(DataOceanModel):
         current_date = timezone.localdate()
         if self.is_overdue:
             self.start_date = current_date
+
+        if not self.is_paid:
+            self.email = self.project_subscription.project.owner.email
+            self.full_name = self.project_subscription.project.owner.get_full_name()
+            self.iban = self.project_subscription.project.owner.iban
+            self.person_status = self.project_subscription.project.owner.person_status
+            self.company_address = self.project_subscription.project.owner.company_address
+            self.identification_code = self.project_subscription.project.owner.identification_code
+            self.mfo = self.project_subscription.project.owner.mfo
+            self.company_name = self.project_subscription.project.owner.company_name
+            self.save()
 
         with translation.override('uk'):
             html_string = render_to_string('payment_system/invoice.html', {
