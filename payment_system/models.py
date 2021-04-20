@@ -448,8 +448,22 @@ class Invoice(DataOceanModel):
             self.project_name = p2s.project.name
             self.price = p2s.subscription.price
             self.is_custom_subscription = p2s.subscription.is_custom
+            self.update_payer_info()
             super().save(*args, **kwargs)
             emails.new_invoice(self, p2s.project)
+
+    def update_payer_info(self, user=None):
+        if user is None:
+            user = self.project_subscription.project.owner
+
+        self.email = user.email
+        self.full_name = user.get_full_name()
+        self.iban = user.iban
+        self.person_status = user.person_status
+        self.company_address = user.company_address
+        self.identification_code = user.identification_code
+        self.mfo = user.mfo
+        self.company_name = user.company_name
 
     def get_pdf(self, user=None) -> io.BytesIO:
         if user is None:
@@ -460,14 +474,7 @@ class Invoice(DataOceanModel):
             self.start_date = current_date
 
         if not self.is_paid:
-            self.email = self.project_subscription.project.owner.email
-            self.full_name = self.project_subscription.project.owner.get_full_name()
-            self.iban = self.project_subscription.project.owner.iban
-            self.person_status = self.project_subscription.project.owner.person_status
-            self.company_address = self.project_subscription.project.owner.company_address
-            self.identification_code = self.project_subscription.project.owner.identification_code
-            self.mfo = self.project_subscription.project.owner.mfo
-            self.company_name = self.project_subscription.project.owner.company_name
+            self.update_payer_info()
             self.save()
 
         with translation.override('uk'):
