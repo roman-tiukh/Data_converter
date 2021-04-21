@@ -127,7 +127,7 @@ class Report(DataOceanModel):
     @staticmethod
     def collect_last_day_reports():
         day_ago = timezone.now() - timezone.timedelta(hours=24)
-        return list(Report.objects.filter(created_at__gt=day_ago))
+        return list(Report.objects.filter(updated_at__gt=day_ago))
 
     def __str__(self):
         return self.registry_name

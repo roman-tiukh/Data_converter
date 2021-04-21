@@ -244,6 +244,7 @@ class Converter:
                     traceback.print_exc()
                     print(msg)
                     raise Exception('Error!', msg)
+                    return False
                 records.clear()
 
                 # http://lxml.de/parsing.html#modifying-the-tree
@@ -266,6 +267,7 @@ class Converter:
             self.delete_outdated()
         del elements
         print('All the records have been rewritten.')
+        return True
 
     print('Converter has imported.')
 
