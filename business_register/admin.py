@@ -105,9 +105,9 @@ class CompanySanctionAdmin(RegisterModelAdmin):
     search_fields = (
         'name',
         'name_original_transcription',
-        'number',
+        'registration_number',
         'address',
-        'country_of_registration',
+        'country_of_registration__name',
         'types_of_sanctions__name',
     )
     ordering = ('start_date', 'country_of_registration')
