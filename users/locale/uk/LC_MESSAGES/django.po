@@ -149,7 +149,7 @@ msgstr "У суперкористувача повинно бути встано
 
 #: users/models.py:53
 msgid "Individual"
-msgstr "Физична особа"
+msgstr "Фізична особа"
 
 #: users/models.py:54
 msgid "Individual entrepreneur"

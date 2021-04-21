@@ -16,6 +16,7 @@ from data_ocean.models import DataOceanModel
 from data_ocean.utils import generate_key
 
 from payment_system import emails
+from users.models import DataOceanUser
 from users.validators import name_symbols_validator, two_in_row_validator
 
 
@@ -372,6 +373,16 @@ class Invoice(DataOceanModel):
     is_custom_subscription = models.BooleanField(_("is subscription custom"), )
     price = models.IntegerField(_("price"))
 
+    iban = models.CharField(blank=True, max_length=29)
+    person_status = models.CharField(blank=True, max_length=23)
+    company_address = models.CharField(blank=True, max_length=150)
+    identification_code = models.CharField(blank=True, max_length=10)
+    mfo = models.CharField(blank=True, max_length=6)
+    company_name = models.CharField(blank=True, max_length=300)
+    email = models.EmailField(blank=True)
+    full_name = models.CharField(blank=True, max_length=300)
+
+
     @property
     def link(self):
         return reverse('payment_system:invoice_pdf', args=[self.id, self.token])
@@ -420,6 +431,7 @@ class Invoice(DataOceanModel):
                     self.grace_period_block = False
                     emails.payment_confirmed(p2s)
                 self.payment_registration_date = timezone.localdate()
+
             # else:
             #     if self.grace_period_block and not invoice_old.grace_period_block:
             #         p2s.is_grace_period = False
@@ -436,8 +448,22 @@ class Invoice(DataOceanModel):
             self.project_name = p2s.project.name
             self.price = p2s.subscription.price
             self.is_custom_subscription = p2s.subscription.is_custom
+            self.update_payer_info()
             super().save(*args, **kwargs)
             emails.new_invoice(self, p2s.project)
+
+    def update_payer_info(self, user=None):
+        if user is None:
+            user = self.project_subscription.project.owner
+
+        self.email = user.email
+        self.full_name = user.get_full_name()
+        self.iban = user.iban
+        self.person_status = user.person_status
+        self.company_address = user.company_address
+        self.identification_code = user.identification_code
+        self.mfo = user.mfo
+        self.company_name = user.company_name
 
     def get_pdf(self, user=None) -> io.BytesIO:
         if user is None:
@@ -446,6 +472,10 @@ class Invoice(DataOceanModel):
         current_date = timezone.localdate()
         if self.is_overdue:
             self.start_date = current_date
+
+        if not self.is_paid:
+            self.update_payer_info()
+            self.save()
 
         with translation.override('uk'):
             html_string = render_to_string('payment_system/invoice.html', {

@@ -172,6 +172,14 @@ class InvoiceAdmin(PaymentSystemModelAdmin):
             'price',
             'is_custom_subscription',
             'payment_registration_date',
+            'iban',
+            'person_status',
+            'company_address',
+            'identification_code',
+            'mfo',
+            'company_name',
+            'email',
+            'full_name',
         }
         if obj:
             if timezone.localdate() < obj.project_subscription.expiring_date:
