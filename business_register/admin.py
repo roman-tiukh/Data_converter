@@ -80,6 +80,7 @@ class CountrySanctionAdmin(RegisterModelAdmin):
 
 @admin.register(PersonSanction)
 class PersonSanctionAdmin(RegisterModelAdmin):
+    save_as = True
     form = get_sanction_form(PersonSanction)
     list_display = (
         'full_name',
@@ -115,6 +116,7 @@ class PersonSanctionAdmin(RegisterModelAdmin):
 
 @admin.register(CompanySanction)
 class CompanySanctionAdmin(RegisterModelAdmin):
+    save_as = True
     form = get_sanction_form(CompanySanction)
     list_display = (
         'name',
