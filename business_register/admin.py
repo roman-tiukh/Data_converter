@@ -1,4 +1,6 @@
+from django import forms
 from django.contrib import admin
+from django.contrib.admin.widgets import AutocompleteSelectMultiple
 
 from business_register.models.company_models import Company
 from business_register.models.fop_models import Fop
@@ -17,6 +19,23 @@ class PepAdmin(RegisterModelAdmin):
     search_fields = ('fullname',)
     ordering = ('updated_at',)
     list_filter = ('is_pep', 'pep_type', 'is_dead')
+
+
+def get_sanction_form(model):
+    class SanctionAdminForm(forms.ModelForm):
+        class Meta:
+            widgets = {
+                'types_of_sanctions': AutocompleteSelectMultiple(
+                    model._meta.get_field('types_of_sanctions').remote_field,
+                    admin.site,
+                    attrs={
+                        'data-dropdown-auto-width': 'true',
+                        'data-width': '624px',
+                    }
+                ),
+            }
+    return SanctionAdminForm
+
 
 # lower, horisontal and autocomplete for types and countries, country&registration number in display
 @admin.register(SanctionType)
@@ -38,6 +57,7 @@ class SanctionTypeAdmin(RegisterModelAdmin):
 
 @admin.register(CountrySanction)
 class CountrySanctionAdmin(RegisterModelAdmin):
+    form = get_sanction_form(CountrySanction)
     list_display = ('country',)
     search_fields = (
         'country__name',
@@ -60,6 +80,7 @@ class CountrySanctionAdmin(RegisterModelAdmin):
 
 @admin.register(PersonSanction)
 class PersonSanctionAdmin(RegisterModelAdmin):
+    form = get_sanction_form(PersonSanction)
     list_display = (
         'full_name',
         'taxpayer_number',
@@ -94,6 +115,7 @@ class PersonSanctionAdmin(RegisterModelAdmin):
 
 @admin.register(CompanySanction)
 class CompanySanctionAdmin(RegisterModelAdmin):
+    form = get_sanction_form(CompanySanction)
     list_display = (
         'name',
         'country_of_registration',
