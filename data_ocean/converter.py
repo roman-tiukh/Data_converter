@@ -243,7 +243,6 @@ class Converter:
                     logger.error(msg)
                     traceback.print_exc()
                     print(msg)
-                    raise Exception('Error!', msg)
                     return False
                 records.clear()
 
