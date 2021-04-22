@@ -7,7 +7,7 @@ from business_register.models.fop_models import Fop
 from business_register.models.kved_models import Kved
 from business_register.models.pep_models import Pep
 from business_register.models.sanction_models import SanctionType, PersonSanction, CompanySanction, CountrySanction
-from data_ocean.admin import RegisterModelAdmin
+from data_ocean.admin import RegisterModelAdmin, input_filter
 
 
 @admin.register(Pep)
@@ -66,7 +66,9 @@ class CountrySanctionAdmin(RegisterModelAdmin):
     filter_horisontal = ('types_of_sanctions', )
     autocomplete_fields = ['types_of_sanctions',]
     ordering = ('start_date',)
-    list_filter = ('types_of_sanctions__name',)
+    list_filter = (
+        input_filter('types_of_sanctions', 'types of sanctions', ['types_of_sanctions__name']),
+    )
 
     def has_change_permission(self, request, obj=None):
         return self.has_module_permission(request)
@@ -97,11 +99,13 @@ class PersonSanctionAdmin(RegisterModelAdmin):
         'place_of_birth',
         'types_of_sanctions__name',
     )
-    ordering = ('start_date', 'countries_of_citizenship')
+    ordering = ('start_date',)
     list_filter = (
+        input_filter('types_of_sanctions', 'types of sanctions', ['types_of_sanctions__name']),
+        input_filter('countries_of_citizenship', 'countries of citizenship name', ['countries_of_citizenship__name']),
         'is_foreign',
-        'types_of_sanctions__name',
-        'countries_of_citizenship__name',
+        # 'types_of_sanctions__name',
+        # 'countries_of_citizenship__name',
     )
 
     def has_change_permission(self, request, obj=None):
@@ -134,11 +138,11 @@ class CompanySanctionAdmin(RegisterModelAdmin):
         'country_of_registration__name',
         'types_of_sanctions__name',
     )
-    ordering = ('start_date', 'country_of_registration')
+    ordering = ('start_date',)
     list_filter = (
+        input_filter('types_of_sanctions', 'types of sanctions', ['types_of_sanctions__name']),
+        input_filter('country_of_registration', 'countries of registration name', ['country_of_registration__name']),
         'is_foreign',
-        'types_of_sanctions__name',
-        'country_of_registration__name',
     )
 
     def has_change_permission(self, request, obj=None):
