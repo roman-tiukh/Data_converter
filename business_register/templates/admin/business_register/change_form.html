@@ -6,7 +6,7 @@
   <script>
     (function ($) {
       $(document).on('keydown', function (e) {
-        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+        if ((e.ctrlKey || e.metaKey) && e.keyCode === 83) {
           if (e.shiftKey) {
             const saveAsNew = $('input[name="_saveasnew"]');
             if (saveAsNew.length) {
