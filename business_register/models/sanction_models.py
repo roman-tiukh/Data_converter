@@ -70,6 +70,9 @@ class CountrySanction(Sanction):
         help_text=_('types of sanctions applied')
     )
 
+    def __str__(self):
+        return f'Sanction against {self.country.name} from {self.start_date}'
+
     class Meta:
         verbose_name = _('Sanction against country')
         verbose_name_plural = _('Sanctions against countries')
@@ -178,6 +181,9 @@ class PersonSanction(Sanction):
         help_text=_('types of sanctions applied')
     )
 
+    def __str__(self):
+        return f'Sanction against {self.full_name} from {self.start_date}'
+
     class Meta:
         verbose_name = _('Sanction against person')
         verbose_name_plural = _('Sanctions against persons')
@@ -255,6 +261,9 @@ class CompanySanction(Sanction):
         verbose_name=_('types of sanctions'),
         help_text=_('types of sanctions applied')
     )
+
+    def __str__(self):
+        return f'Sanction against {self.name} from {self.start_date}'
 
     class Meta:
         verbose_name = _('Sanction against company')
