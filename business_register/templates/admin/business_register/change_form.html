@@ -1,0 +1,27 @@
+{% extends 'admin/change_form.html' %}
+
+{% block admin_change_form_document_ready %}
+  {{ block.super }}
+
+  <script>
+    (function ($) {
+      $(document).on('keydown', function (e) {
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+          if (e.shiftKey) {
+            const saveAsNew = $('input[name="_saveasnew"]');
+            if (saveAsNew.length) {
+              e.preventDefault();
+              saveAsNew.click();
+            }
+          } else {
+            const save = $('input[name="_save"]');
+            if (save.length) {
+              e.preventDefault();
+              save.click();
+            }
+          }
+        }
+      });
+    })(django.jQuery);
+  </script>
+{% endblock %}

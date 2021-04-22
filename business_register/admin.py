@@ -40,6 +40,7 @@ def get_sanction_form(model):
 # lower, horisontal and autocomplete for types and countries, country&registration number in display
 @admin.register(SanctionType)
 class SanctionTypeAdmin(RegisterModelAdmin):
+    save_as = True
     list_display = ('name', 'law')
     search_fields = ('name', 'law')
     ordering = ('created_at',)
@@ -57,6 +58,7 @@ class SanctionTypeAdmin(RegisterModelAdmin):
 
 @admin.register(CountrySanction)
 class CountrySanctionAdmin(RegisterModelAdmin):
+    save_as = True
     form = get_sanction_form(CountrySanction)
     list_display = ('country',)
     search_fields = (
