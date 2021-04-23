@@ -105,7 +105,6 @@ class PersonSanctionAdmin(RegisterModelAdmin):
     list_filter = (
         input_filter('types_of_sanctions', 'types of sanctions', ['types_of_sanctions__name']),
         input_filter('countries_of_citizenship', 'countries of citizenship name', ['countries_of_citizenship__name']),
-        'is_foreign',
         # 'types_of_sanctions__name',
         # 'countries_of_citizenship__name',
     )
@@ -144,7 +143,6 @@ class CompanySanctionAdmin(RegisterModelAdmin):
     list_filter = (
         input_filter('types_of_sanctions', 'types of sanctions', ['types_of_sanctions__name']),
         input_filter('country_of_registration', 'countries of registration name', ['country_of_registration__name']),
-        'is_foreign',
     )
 
     def has_change_permission(self, request, obj=None):
