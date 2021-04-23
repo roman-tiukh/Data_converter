@@ -80,13 +80,6 @@ class CountrySanction(Sanction):
 
 
 class PersonSanction(Sanction):
-    is_foreign = models.BooleanField(
-        _('is foreign'),
-        blank=True,
-        default=True,
-        db_index=True,
-        help_text=_('is foreign or Ukrainian')
-    )
     pep = models.ForeignKey(
         Pep,
         on_delete=models.CASCADE,
@@ -191,13 +184,6 @@ class PersonSanction(Sanction):
 
 
 class CompanySanction(Sanction):
-    is_foreign = models.BooleanField(
-        _('is foreign'),
-        blank=True,
-        default=True,
-        db_index=True,
-        help_text=_('is foreign or Ukrainian')
-    )
     company = models.ForeignKey(
         Company,
         on_delete=models.CASCADE,

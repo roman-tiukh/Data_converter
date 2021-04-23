@@ -36,7 +36,7 @@ class PersonSanctionSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     class Meta:
         model = PersonSanction
         fields = (
-            'is_foreign', 'pep',
+            'pep',
             'full_name', 'full_name_original_transcription',
             'date_of_birth', 'place_of_birth', 'address', 'countries_of_citizenship',
             'occupation', 'id_card', 'taxpayer_number',
@@ -55,7 +55,7 @@ class CompanySanctionSerializer(DynamicFieldsMixin, serializers.ModelSerializer)
     class Meta:
         model = CompanySanction
         fields = (
-            'is_foreign', 'company',
+            'company',
             'name', 'name_original_transcription',
             'address', 'registration_date', 'registration_number', 'country_of_registration',
             'taxpayer_number',
