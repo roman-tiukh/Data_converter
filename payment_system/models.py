@@ -563,6 +563,7 @@ class ProjectSubscription(DataOceanModel):
     start_day = models.SmallIntegerField()
     start_date = models.DateField()
     expiring_date = models.DateField()
+    renewal_date = models.DateField()
     is_grace_period = models.BooleanField(blank=True, default=True)
 
     requests_left = models.IntegerField()
@@ -577,26 +578,37 @@ class ProjectSubscription(DataOceanModel):
     pep_checks_count_per_minute = models.PositiveSmallIntegerField(default=0)
     pep_checks_minute = models.PositiveIntegerField(default=0)
 
-    def generate_expiring_date(self):
-        year = self.start_date.year
-        month = self.start_date.month
-        if self.periodicity == Subscription.MONTH_PERIOD:
+    @staticmethod
+    def increase_term(date, start_day, period='month'):
+        assert 1 <= start_day <= 31
+
+        year = date.year
+        month = date.month
+        if period == 'month':
             if month == 12:
                 year += 1
                 month = 1
             else:
                 month += 1
-        elif self.periodicity == Subscription.YEAR_PERIOD:
+        elif period == 'year':
             year += 1
         else:
-            raise ValueError(f'periodicity = "{self.periodicity}" not supported!')
+            raise ValueError(f'period = "{period}" not supported!')
 
         last_day_of_month = monthrange(year, month)[1]
-        if self.start_day > last_day_of_month:
+        if start_day > last_day_of_month:
             day = last_day_of_month
         else:
-            day = self.start_day
-        return self.start_date.replace(year, month, day)
+            day = start_day
+        return date.replace(year, month, day)
+
+    def generate_expiring_date(self):
+        if self.periodicity == Subscription.MONTH_PERIOD:
+            return self.increase_term(self.start_date, self.start_day, 'month')
+        elif self.periodicity == Subscription.YEAR_PERIOD:
+            return self.increase_term(self.start_date, self.start_day, 'year')
+        else:
+            raise ValueError(f'periodicity = "{self.periodicity}" not supported!')
 
     def update_expiring_date(self):
         if self.subscription.is_default:
@@ -658,6 +670,18 @@ class ProjectSubscription(DataOceanModel):
         self.grace_period = self.subscription.grace_period
         self.start_date = self.expiring_date
         self.update_expiring_date()
+        self.renewal_date = self.increase_term(self.start_date, self.start_day, 'month')
+
+    def renewal(self):
+        if self.periodicity == Subscription.MONTH_PERIOD:
+            return
+
+        self.renewal_date = self.increase_term(self.renewal_date, self.start_day, 'month')
+        self.requests_left = self.subscription.requests_limit
+        self.requests_used = 0
+        self.platform_requests_left = self.subscription.platform_requests_limit
+        self.platform_requests_used = 0
+        self.save()
 
     def expire(self):
         try:
@@ -701,19 +725,38 @@ class ProjectSubscription(DataOceanModel):
     @classmethod
     def update_expire_subscriptions(cls) -> str:
         cls.send_tomorrow_payment_emails()
-        project_subscriptions_for_update = cls.objects.filter(
-            expiring_date__lte=timezone.localdate(),
+        today = timezone.localdate()
+        project_subscriptions_for_expire = cls.objects.filter(
+            expiring_date__lte=today,
             status=ProjectSubscription.ACTIVE,
         )
 
-        if not project_subscriptions_for_update:
-            return 'No project_subscriptions to update'
-
         i = 0
-        for current_p2s in project_subscriptions_for_update:
-            current_p2s.expire()
+        for p2s in project_subscriptions_for_expire:
+            p2s.expire()
             i += 1
-        return f'Success! {i} subscriptions updated'
+
+        msg = ''
+        if i == 0:
+            msg += 'No subscriptions to expire'
+        else:
+            msg += f'{i} subscriptions expired'
+
+        project_subscriptions_for_renewal = cls.objects.filter(
+            renewal_date__lte=today,
+            status=ProjectSubscription.ACTIVE,
+        )
+        i = 0
+        for p2s in project_subscriptions_for_renewal:
+            p2s.renewal()
+            i += 1
+
+        if i == 0:
+            msg += '\nNo subscriptions to renewal'
+        else:
+            msg += f'\n{i} subscriptions renewed'
+
+        return msg
 
     def save(self, *args, **kwargs):
         if not getattr(self, 'id', None):
@@ -724,6 +767,7 @@ class ProjectSubscription(DataOceanModel):
             self.periodicity = self.subscription.periodicity
             self.grace_period = self.subscription.grace_period
             self.update_expiring_date()
+            self.renewal_date = self.increase_term(self.start_date, self.start_day, 'month')
         self.validate_unique()
         super().save(*args, **kwargs)
 
