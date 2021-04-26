@@ -19,10 +19,10 @@ class Command(BaseCommand):
         )
         ws = wb['Sheet']
         for i, row in enumerate(ws):
-            self.stdout.write(f'Process: {i + 1}', ending='\r')
+            self.stdout.write(f'Process row #{i + 1}', ending='\r')
             if i == 0:
                 continue
-            row = [x.value for x in row]
+            row = [cell.value for cell in row]
             person = PersonSanction.objects.create(
                 first_name=row[2],
                 last_name=row[3],
@@ -40,8 +40,6 @@ class Command(BaseCommand):
 
             for country in row[5].split('&&'):
                 country = country.strip().lower()
-                if country == 'ukraine':
-                    person.is_foreign = False
                 person.countries_of_citizenship.add(Country.objects.get(name=country))
 
             for sanction_type_name in row[8].split('&&'):
