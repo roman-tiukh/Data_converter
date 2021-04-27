@@ -126,6 +126,13 @@ class Pep(DataOceanModel):
     source_id = models.PositiveIntegerField(
         _("id from ANTACs DB"), unique=True, null=True, blank=True
     )
+    nacp_id = models.PositiveIntegerField(
+        _('id from NACP'),
+        unique=True,
+        null=True,
+        blank=True,
+        help_text=_('id from the National agency on corruption prevention')
+    )
     history = HistoricalRecords(excluded_fields=['url', 'code'])
 
     @property

@@ -39,6 +39,7 @@ class SubscriptionToProjectSerializer(serializers.ModelSerializer):
             'price', 'requests_limit', 'periodicity', 'grace_period',
             'requests_left', 'requests_used', 'is_paid',
             'payment_date', 'payment_overdue_days', 'is_default',
+            'renewal_date',
         ]
         read_only_fields = fields
 
