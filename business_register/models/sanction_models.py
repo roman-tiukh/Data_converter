@@ -167,6 +167,12 @@ class PersonSanction(Sanction):
         default='',
         help_text=_('taxpayer number of the person under sanctions')
     )
+    additional_info = models.TextField(
+        _('additional info'),
+        blank=True,
+        default='',
+        help_text=_('additional info about the person under sanctions')
+    )
     types_of_sanctions = models.ManyToManyField(
         SanctionType,
         related_name='persons_under_sanction',
@@ -240,6 +246,12 @@ class CompanySanction(Sanction):
         blank=True,
         default='',
         help_text=_('taxpayer number of the company under sanctions')
+    )
+    additional_info = models.TextField(
+        _('additional info'),
+        blank=True,
+        default='',
+        help_text=_('additional info about the company under sanctions')
     )
     types_of_sanctions = models.ManyToManyField(
         SanctionType,
