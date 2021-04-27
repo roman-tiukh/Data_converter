@@ -152,9 +152,8 @@ class PersonSanction(Sanction):
         help_text=_('occupation or professional activity of the person under sanctions'),
 
     )
-    id_card = models.CharField(
+    id_card = models.TextField(
         _('id cards info'),
-        max_length=180,
         blank=True,
         default='',
         help_text=_('id cards info of the person under sanctions')
