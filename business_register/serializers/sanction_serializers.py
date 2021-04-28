@@ -39,7 +39,7 @@ class PersonSanctionSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
             'pep',
             'full_name', 'full_name_original_transcription',
             'date_of_birth', 'place_of_birth', 'address', 'countries_of_citizenship',
-            'occupation', 'id_card', 'taxpayer_number',
+            'occupation', 'id_card', 'taxpayer_number', 'additional_info',
             'types_of_sanctions', 'start_date', 'end_date', 'cancellation_condition', 'reasoning'
         )
 
@@ -58,6 +58,6 @@ class CompanySanctionSerializer(DynamicFieldsMixin, serializers.ModelSerializer)
             'company',
             'name', 'name_original_transcription',
             'address', 'registration_date', 'registration_number', 'country_of_registration',
-            'taxpayer_number',
+            'taxpayer_number', 'additional_info',
             'types_of_sanctions', 'start_date', 'end_date', 'cancellation_condition', 'reasoning'
         )
