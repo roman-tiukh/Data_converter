@@ -224,7 +224,6 @@ class Project(DataOceanModel):
                 is_grace_period=True,
             )
             if invoice:
-                invoice.is_paid = True
                 invoice.project_subscription = new_p2s
                 invoice.project_subscription.is_grace_period = True
                 invoice.project_subscription.paid_up()
@@ -426,6 +425,7 @@ class Invoice(DataOceanModel):
         date_now = timezone.localdate()
         if self.is_overdue and self.start_date <= date_now:
             self.start_date = self.created_at = date_now
+            self.project_subscription.start_date = date_now
             self.end_date = self.project_subscription.generate_expiring_date()
             self.save()
 
