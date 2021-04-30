@@ -3,5 +3,6 @@ from business_register.models import (
     fop_models,
     kved_models,
     pep_models,
-    sanction_models
+    sanction_models,
+    declaration_models,
 )
