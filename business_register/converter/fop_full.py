@@ -1,8 +1,16 @@
+import codecs
+import os
+import re
+import tempfile
+from time import sleep
+import requests
+from django.utils import timezone
 import logging
 from business_register.converter.business_converter import BusinessConverter
 from business_register.models.fop_models import (ExchangeDataFop, Fop,
                                                  FopToKved)
 from django.conf import settings
+from data_ocean.downloader import Downloader
 from data_ocean.converter import BulkCreateManager
 from data_ocean.utils import get_first_word, cut_first_word, format_date_to_yymmdd
 
@@ -14,8 +22,8 @@ class FopFullConverter(BusinessConverter):
 
     def __init__(self):
         self.LOCAL_FOLDER = settings.LOCAL_FOLDER
-        self.LOCAL_FILE_NAME = settings.LOCAL_FILE_NAME_FOP
-        self.CHUNK_SIZE = settings.CHUNK_SIZE_FOP
+        self.LOCAL_FILE_NAME = settings.LOCAL_FILE_NAME_FOP_FULL
+        self.CHUNK_SIZE = settings.CHUNK_SIZE_FOP_FULL
         self.RECORD_TAG = 'SUBJECT'
         self.bulk_manager = BulkCreateManager()
         self.new_fops_foptokveds = {}
@@ -186,7 +194,13 @@ class FopFullConverter(BusinessConverter):
                 terminated_info = cut_first_word(termination_text)
             termination_cancel_info = record.xpath('TERMINATION_CANCEL_INFO')[0].text
             contact_info = record.xpath('CONTACTS')[0].text
+            if contact_info:
+                if len(contact_info) > 200:
+                    contact_info = contact_info[:199]
             vp_dates = record.xpath('VP_DATES')[0].text
+            if vp_dates:
+                if len(vp_dates) > 340:
+                    print(vp_dates)
             if record.xpath('CURRENT_AUTHORITY')[0].text:
                 authority = self.save_or_get_authority(record.xpath('CURRENT_AUTHORITY')[0].text)
             else:
@@ -280,4 +294,85 @@ class FopFullConverter(BusinessConverter):
         self.bulk_manager.queues['business_register.FopToKved'] = []
         self.bulk_manager.queues['business_register.ExchangeDataFop'] = []
 
-    print("For storing run FopConverter().process()")
+    print("For storing run FopFullConverter().process()")
+
+
+class FopFullDownloader(Downloader):
+    chunk_size = 16 * 1024 * 1024
+    reg_name = 'business_fop'
+    zip_required_file_sign = 'ufop_full'
+    unzip_required_file_sign = 'EDR_FOP_FULL'
+    unzip_after_download = True
+    source_dataset_url = settings.BUSINESS_FOP_SOURCE_PACKAGE
+    LOCAL_FILE_NAME = settings.LOCAL_FILE_NAME_FOP_FULL
+
+    def get_source_file_url(self):
+
+        r = requests.get(self.source_dataset_url)
+        if r.status_code != 200:
+            print(f'Request error to {self.source_dataset_url}')
+            return
+
+        for i in r.json()['result']['resources']:
+            if self.zip_required_file_sign in i['url']:
+                return i['url']
+
+    def get_source_file_name(self):
+        return self.url.split('/')[-1]
+
+    def remove_unreadable_characters(self):
+        file = self.local_path + self.LOCAL_FILE_NAME
+        logger.info(f'{self.reg_name}: remove_unreadable_characters for {file} started ...')
+        tmp = tempfile.mkstemp()
+        with codecs.open(file, 'r', 'Windows-1251') as fd1, codecs.open(tmp[1], 'w', 'UTF-8') as fd2:
+            for line in fd1:
+                line = line.replace('&quot;', '"')\
+                    .replace('windows-1251', 'UTF-8')\
+                    .replace('&#3;', '')\
+                    .replace('&#30;', '')
+                fd2.write(line)
+        os.rename(tmp[1], file)
+        logger.info(f'{self.reg_name}: remove_unreadable_characters finished.')
+
+    def update(self):
+
+        logger.info(f'{self.reg_name}: Update started...')
+
+        self.report_init()
+        self.download()
+
+        self.LOCAL_FILE_NAME = self.file_name
+        self.remove_unreadable_characters()
+
+        self.report.update_start = timezone.now()
+        self.report.save()
+
+        logger.info(f'{self.reg_name}: process() with {self.file_path} started ...')
+        ukr_company_full = UkrCompanyFullConverter()
+        ukr_company_full.LOCAL_FILE_NAME = self.file_name
+
+        sleep(5)
+        ukr_company_full.process()
+        logger.info(f'{self.reg_name}: process() with {self.file_path} finished successfully.')
+
+        self.report.update_finish = timezone.now()
+        self.report.update_status = True
+        self.report.save()
+
+        sleep(5)
+        self.vacuum_analyze(table_list=['business_register_company', ])
+
+        self.remove_file()
+        endpoints_cache_warm_up(endpoints=[
+            '/api/company/',
+            '/api/company/uk/',
+            '/api/company/ukr/',
+        ])
+        new_total_records = Company.objects.filter(source=Company.UKRAINE_REGISTER).count()
+        self.update_register_field(settings.UKR_COMPANY_REGISTER_LIST, 'total_records', new_total_records)
+        logger.info(f'{self.reg_name}: Update total records finished successfully.')
+
+        self.measure_company_changes(Company.UKRAINE_REGISTER)
+        logger.info(f'{self.reg_name}: Report created successfully.')
+
+        logger.info(f'{self.reg_name}: Update finished successfully.')
