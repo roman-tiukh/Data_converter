@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
-class FopConverter(BusinessConverter):
+class FopFullConverter(BusinessConverter):
 
     def __init__(self):
         self.LOCAL_FOLDER = settings.LOCAL_FOLDER
