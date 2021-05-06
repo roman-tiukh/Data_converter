@@ -1103,8 +1103,6 @@ class UkrCompanyFullDownloader(Downloader):
         if ukr_company_full.process():
             logger.info(f'{self.reg_name}: process() with {self.file_path} finished successfully.')
             self.report.update_status = True
-            self.report.update_finish = timezone.now()
-            self.report.save()
 
             sleep(5)
             self.vacuum_analyze(table_list=['business_register_company', ])
@@ -1123,8 +1121,5 @@ class UkrCompanyFullDownloader(Downloader):
             logger.info(f'{self.reg_name}: Report created successfully.')
 
             logger.info(f'{self.reg_name}: Update finished successfully.')
-        else:
-            self.report.update_finish = timezone.now()
-            self.report.save()
-
-
+        self.report.update_finish = timezone.now()
+        self.report.save()
