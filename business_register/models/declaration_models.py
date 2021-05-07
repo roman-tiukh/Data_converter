@@ -37,7 +37,6 @@ class Declaration(DataOceanModel):
     )
     nacp_declarant_id = models.PositiveIntegerField(
         _('NACP id of the declarant'),
-        unique=True,
         db_index=True
     )
     pep = models.ForeignKey(
@@ -53,17 +52,25 @@ class Declaration(DataOceanModel):
         blank=True,
         help_text=_('date of birth of the declarant')
     )
-    registration_address = models.TextField(
-        _('address of registration'),
+    city_of_registration = models.ForeignKey(
+        RatuCity,
+        on_delete=models.PROTECT,
+        null=True,
         blank=True,
-        default='',
-        help_text=_('address of registration of the declarant')
+        default=None,
+        related_name='declared_pep_registration',
+        verbose_name=_('city of registration'),
+        help_text=_('city where the PEP is registered')
     )
-    residence_address = models.TextField(
-        _('address of residence'),
+    city_of_residence = models.ForeignKey(
+        RatuCity,
+        on_delete=models.PROTECT,
+        null=True,
         blank=True,
-        default='',
-        help_text=_('address of residence of the declarant')
+        default=None,
+        related_name='declared_pep_residence',
+        verbose_name=_('city of residence'),
+        help_text=_('city where the PEP lives')
     )
     last_job_title = models.TextField(
         _('last job title'),
@@ -160,7 +167,7 @@ class Liability(DataOceanModel):
         help_text=_('politically exposed person that has the liability')
     )
 
-
+# Monetary assets
 class Money(DataOceanModel):
     BANK_ACCOUNT = 1
     CASH = 2
@@ -327,6 +334,7 @@ class Securities(DataOceanModel):
         verbose_name=_('trustee'),
         help_text=_('trustee of securities')
     )
+    # quantity
     amount = models.PositiveIntegerField(
         _('amount'),
         blank=True,
@@ -346,7 +354,7 @@ class Securities(DataOceanModel):
         help_text=_('valuation')
     )
 
-
+# Vehicle
 class Car(DataOceanModel):
     CAR = 1
     TRUCK = 2
@@ -419,6 +427,7 @@ class LuxuryItem(DataOceanModel):
         choices=ITEM_TYPES,
         help_text=_('type of the item')
     )
+    # add about the type
     additional_info = models.TextField(
         _('additional info'),
         blank=True,
@@ -484,12 +493,14 @@ class Property(DataOceanModel):
         choices=PROPERTY_TYPES,
         help_text=_('type of the property')
     )
+    # add about the type
     additional_info = models.TextField(
         _('additional info'),
         blank=True,
         default='',
         help_text=_('additional info about the property')
     )
+    # square meters of the property
     area = models.FloatField(
         'square',
         null=True,
