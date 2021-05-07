@@ -187,13 +187,7 @@ class FopFullConverter(BusinessConverter):
                 terminated_info = cut_first_word(termination_text)
             termination_cancel_info = record.xpath('TERMINATION_CANCEL_INFO')[0].text
             contact_info = record.xpath('CONTACTS')[0].text
-            if contact_info:
-                if len(contact_info) > 200:
-                    contact_info = contact_info[:199]
             vp_dates = record.xpath('VP_DATES')[0].text
-            if vp_dates:
-                if len(vp_dates) > 340:
-                    vp_dates = vp_dates[:339]
             if record.xpath('CURRENT_AUTHORITY')[0].text:
                 authority = self.save_or_get_authority(record.xpath('CURRENT_AUTHORITY')[0].text)
             else:
