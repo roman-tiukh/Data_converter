@@ -71,7 +71,7 @@ class Company(DataOceanModel):  # constraint for not null in both name & short_n
                                          help_text='Registration date as string in YYYY-MM-DD format')
     registration_info = models.CharField(_('registration info'), max_length=450, null=True,
                                          help_text='Registration info of the company')
-    contact_info = models.CharField(_('contacts'), max_length=1100, null=True, help_text='Info about contacts')
+    contact_info = models.TextField(_('contacts'), null=True, help_text='Info about contacts')
     authority = models.ForeignKey(Authority, on_delete=models.CASCADE, null=True,
                                   verbose_name=_('registration authority'),
                                   help_text='Authorized state agency which register the company')
@@ -207,17 +207,14 @@ class ExchangeDataCompany(DataOceanModel):
 class Founder(DataOceanModel):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='founders',
                                 verbose_name='owner', help_text='Company name')
-    info = models.CharField('info', max_length=2015, help_text='Info')
-    info_additional = models.CharField('additional info', max_length=2015, null=True,
-                                       help_text='Additional info')
-    info_beneficiary = models.CharField('beneficiary info', max_length=2015, null=True,
-                                        help_text='Beneficiary Info')
+    info = models.TextField('info', help_text='Info')
+    info_additional = models.TextField('additional info', null=True, help_text='Additional info')
+    info_beneficiary = models.TextField('beneficiary info', null=True, help_text='Beneficiary Info')
     name = models.TextField("name or full name", db_index=True, help_text='Founder name in Ukrainian')
     edrpou = models.CharField('number', max_length=9, null=True, blank=True, default='',
                                db_index=True, help_text='EDRPOU number as string')
     equity = models.FloatField('equity', null=True, blank=True, help_text='Equity')
-    address = models.CharField('address', max_length=2015, null=True, blank=True, default='',
-                               help_text='Founder address in Ukrainian')
+    address = models.TextField('address', null=True, blank=True, default='', help_text='Founder address in Ukrainian')
     country = models.CharField('country', max_length=100, null=True, blank=True, default='',
                                help_text='Country of origin')
     is_beneficiary = models.BooleanField('is beneficiary', blank=True, default=False,
