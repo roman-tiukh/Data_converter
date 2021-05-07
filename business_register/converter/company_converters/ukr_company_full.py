@@ -1077,7 +1077,8 @@ class UkrCompanyFullDownloader(Downloader):
                 line = line.replace('&quot;', '"')\
                     .replace('windows-1251', 'UTF-8')\
                     .replace('&#3;', '')\
-                    .replace('&#30;', '')
+                    .replace('&#30;', '')\
+                    .replace('&#31;', '')
                 fd2.write(line)
         os.rename(tmp[1], file)
         logger.info(f'{self.reg_name}: remove_unreadable_characters finished.')
