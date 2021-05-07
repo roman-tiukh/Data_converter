@@ -1101,27 +1101,26 @@ class UkrCompanyFullDownloader(Downloader):
         ukr_company_full.LOCAL_FILE_NAME = self.file_name
 
         sleep(5)
-        ukr_company_full.process()
-        logger.info(f'{self.reg_name}: process() with {self.file_path} finished successfully.')
+        if ukr_company_full.process():
+            logger.info(f'{self.reg_name}: process() with {self.file_path} finished successfully.')
+            self.report.update_status = True
 
+            sleep(5)
+            self.vacuum_analyze(table_list=['business_register_company', ])
+
+            self.remove_file()
+            endpoints_cache_warm_up(endpoints=[
+                '/api/company/',
+                '/api/company/uk/',
+                '/api/company/ukr/',
+            ])
+            new_total_records = Company.objects.filter(source=Company.UKRAINE_REGISTER).count()
+            self.update_register_field(settings.UKR_COMPANY_REGISTER_LIST, 'total_records', new_total_records)
+            logger.info(f'{self.reg_name}: Update total records finished successfully.')
+
+            self.measure_company_changes(Company.UKRAINE_REGISTER)
+            logger.info(f'{self.reg_name}: Report created successfully.')
+
+            logger.info(f'{self.reg_name}: Update finished successfully.')
         self.report.update_finish = timezone.now()
-        self.report.update_status = True
         self.report.save()
-
-        sleep(5)
-        self.vacuum_analyze(table_list=['business_register_company', ])
-
-        self.remove_file()
-        endpoints_cache_warm_up(endpoints=[
-            '/api/company/',
-            '/api/company/uk/',
-            '/api/company/ukr/',
-        ])
-        new_total_records = Company.objects.filter(source=Company.UKRAINE_REGISTER).count()
-        self.update_register_field(settings.UKR_COMPANY_REGISTER_LIST, 'total_records', new_total_records)
-        logger.info(f'{self.reg_name}: Update total records finished successfully.')
-
-        self.measure_company_changes(Company.UKRAINE_REGISTER)
-        logger.info(f'{self.reg_name}: Report created successfully.')
-
-        logger.info(f'{self.reg_name}: Update finished successfully.')
