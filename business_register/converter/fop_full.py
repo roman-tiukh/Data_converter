@@ -200,7 +200,7 @@ class FopFullConverter(BusinessConverter):
             vp_dates = record.xpath('VP_DATES')[0].text
             if vp_dates:
                 if len(vp_dates) > 340:
-                    print(vp_dates)
+                    vp_dates = vp_dates[:339]
             if record.xpath('CURRENT_AUTHORITY')[0].text:
                 authority = self.save_or_get_authority(record.xpath('CURRENT_AUTHORITY')[0].text)
             else:
