@@ -71,7 +71,7 @@ class Company(DataOceanModel):  # constraint for not null in both name & short_n
                                          help_text='Registration date as string in YYYY-MM-DD format')
     registration_info = models.CharField(_('registration info'), max_length=450, null=True,
                                          help_text='Registration info of the company')
-    contact_info = models.CharField(_('contacts'), max_length=310, null=True, help_text='Info about contacts')
+    contact_info = models.CharField(_('contacts'), max_length=1100, null=True, help_text='Info about contacts')
     authority = models.ForeignKey(Authority, on_delete=models.CASCADE, null=True,
                                   verbose_name=_('registration authority'),
                                   help_text='Authorized state agency which register the company')
