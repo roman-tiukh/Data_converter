@@ -1,11 +1,19 @@
+import codecs
 import logging
+import os
+import requests
+import tempfile
+from time import sleep
 
 from django.conf import settings
+from django.utils import timezone
 
 from business_register.converter.business_converter import BusinessConverter
 from business_register.models.fop_models import (ExchangeDataFop, Fop, FopToKved)
 from data_ocean.converter import BulkCreateManager
+from data_ocean.downloader import Downloader
 from data_ocean.utils import get_first_word, cut_first_word, format_date_to_yymmdd
+from stats.tasks import endpoints_cache_warm_up
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -290,3 +298,80 @@ class FopFullConverter(BusinessConverter):
         self.bulk_manager.queues['business_register.ExchangeDataFop'] = []
 
     print("For storing run FopFullConverter().process()")
+
+
+class FopFullDownloader(Downloader):
+    chunk_size = 16 * 1024 * 1024
+    reg_name = 'business_fop'
+    zip_required_file_sign = 'ufop_full'
+    unzip_required_file_sign = 'EDR_FOP_FULL'
+    unzip_after_download = True
+    source_dataset_url = settings.BUSINESS_FOP_SOURCE_PACKAGE
+    LOCAL_FILE_NAME = settings.LOCAL_FILE_NAME_FOP_FULL
+
+    def get_source_file_url(self):
+
+        r = requests.get(self.source_dataset_url)
+        if r.status_code != 200:
+            print(f'Request error to {self.source_dataset_url}')
+            return
+
+        for i in r.json()['result']['resources']:
+            if self.zip_required_file_sign in i['url']:
+                return i['url']
+
+    def get_source_file_name(self):
+        return self.url.split('/')[-1]
+
+    def remove_unreadable_characters(self):
+        file = self.local_path + self.LOCAL_FILE_NAME
+        logger.info(f'{self.reg_name}: remove_unreadable_characters for {file} started ...')
+        tmp = tempfile.mkstemp()
+        with codecs.open(file, 'r', 'Windows-1251') as fd1, codecs.open(tmp[1], 'w', 'UTF-8') as fd2:
+            for line in fd1:
+                line = line.replace('&quot;', '"')\
+                    .replace('windows-1251', 'UTF-8')\
+                    .replace('&#3;', '')\
+                    .replace('&#30;', '')\
+                    .replace('&#31;', '')
+                fd2.write(line)
+        os.rename(tmp[1], file)
+        logger.info(f'{self.reg_name}: remove_unreadable_characters finished.')
+
+    def update(self):
+
+        logger.info(f'{self.reg_name}: Update started...')
+
+        self.report_init()
+        self.download()
+
+        self.LOCAL_FILE_NAME = self.file_name
+        self.remove_unreadable_characters()
+
+        self.report.update_start = timezone.now()
+        self.report.save()
+
+        logger.info(f'{self.reg_name}: process() with {self.file_path} started ...')
+        fop_full = FopFullConverter()
+        fop_full.LOCAL_FILE_NAME = self.file_name
+
+        sleep(5)
+        if fop_full.process():
+            logger.info(f'{self.reg_name}: process() with {self.file_path} finished successfully.')
+            self.report.update_status = True
+
+            sleep(5)
+            self.vacuum_analyze(table_list=['business_register_fop', ])
+
+            self.remove_file()
+            endpoints_cache_warm_up(endpoints=['/api/fop/'])
+            new_total_records = Fop.objects.count()
+            self.update_register_field(settings.FOP_REGISTER_LIST, 'total_records', new_total_records)
+            logger.info(f'{self.reg_name}: Update total records finished successfully.')
+
+            self.measure_changes('business_register', 'Fop')
+            logger.info(f'{self.reg_name}: Report created successfully.')
+
+            logger.info(f'{self.reg_name}: Update finished successfully.')
+        self.report.update_finish = timezone.now()
+        self.report.save()
