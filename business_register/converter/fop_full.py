@@ -122,9 +122,12 @@ class FopFullConverter(BusinessConverter):
             if (not authority and not taxpayer_type and not start_date
                     and not start_number and not end_date and not end_number):
                 continue
-            exchange_data = ExchangeDataFop(authority=authority, taxpayer_type=taxpayer_type,
-                                            start_date=start_date, start_number=start_number,
-                                            end_date=end_date, end_number=end_number)
+            exchange_data = ExchangeDataFop(authority=authority,
+                                            taxpayer_type=taxpayer_type,
+                                            start_date=start_date,
+                                            start_number=start_number,
+                                            end_date=end_date,
+                                            end_number=end_number)
             all_fop_exchangedata.append(exchange_data)
         if len(all_fop_exchangedata):
             self.new_fops_exchange_data[code] = all_fop_exchangedata
@@ -148,10 +151,14 @@ class FopFullConverter(BusinessConverter):
                     already_stored = True
                     break
             if not already_stored:
-                exchange_data = ExchangeDataFop(fop=fop, authority=authority,
+                exchange_data = ExchangeDataFop(fop=fop,
+                                                authority=authority,
                                                 taxpayer_type=taxpayer_type,
-                                                start_date=start_date, start_number=start_number,
-                                                end_date=end_date, end_number=end_number)
+                                                start_date=start_date,
+                                                start_number=start_number,
+                                                end_date=end_date,
+                                                end_number=end_number
+                                                )
                 self.bulk_manager.add(exchange_data)
 
     def save_to_db(self, records):
