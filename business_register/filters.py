@@ -120,6 +120,16 @@ class FopFilterSet(filters.FilterSet):
         fields = {}
 
 
+class FopExportFilterSet(filters.FilterSet):
+    updated_at = filters.DateFromToRangeFilter()
+    is_pep = filters.BooleanFilter()
+
+    class Meta:
+        model = Pep
+        fields = {}
+        form = PepExportForm
+
+
 class KvedFilterSet(filters.FilterSet):
     code = filters.CharFilter(lookup_expr='icontains', help_text='Filter by code of the type of economic activity.')
     name = filters.CharFilter(lookup_expr='icontains', help_text='Filter by name of the type of economic activity.')
