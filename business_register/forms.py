@@ -4,6 +4,23 @@ from django import forms
 from django.utils.translation import ugettext_lazy as _
 
 
+class FopExportForm(forms.Form):
+
+    def clean(self):
+        cleaned_data = super().clean()
+        registration_date = cleaned_data.get('registration_date', None)
+        if registration_date is None or registration_date.start is None or registration_date.stop is None:
+            raise forms.ValidationError({
+                'updated_at': [_('Period for updated_at is not provided.')]
+            })
+        elif not timedelta(days=0) < registration_date.stop - registration_date.start <= timedelta(days=30):
+            raise forms.ValidationError({
+                'updated_at': [_('Period for updated_at not matches restrictions.')]
+            })
+        else:
+            return cleaned_data
+
+
 class PepExportForm(forms.Form):
 
     def clean(self):

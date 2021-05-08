@@ -2,11 +2,12 @@ from django.utils.translation import gettext_lazy as _
 from django.db.models import Q
 from django_filters import rest_framework as filters
 
-from business_register.forms import PepExportForm, PepCheckFilterForm
+from business_register.forms import FopExportForm, PepExportForm, PepCheckFilterForm
 from business_register.models.company_models import Company
 from business_register.models.fop_models import Fop
 from business_register.models.pep_models import Pep, CompanyLinkWithPep
 from data_ocean.filters import ValidatedBooleanWidget
+from data_ocean.models import Status
 from .models.kved_models import Kved
 
 
@@ -121,13 +122,13 @@ class FopFilterSet(filters.FilterSet):
 
 
 class FopExportFilterSet(filters.FilterSet):
-    updated_at = filters.DateFromToRangeFilter()
-    is_pep = filters.BooleanFilter()
+    registration_date = filters.DateFromToRangeFilter()
+    status = filters.ModelChoiceFilter(queryset=Status.objects.all())
 
     class Meta:
-        model = Pep
+        model = Fop
         fields = {}
-        form = PepExportForm
+        form = FopExportForm
 
 
 class KvedFilterSet(filters.FilterSet):

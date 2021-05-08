@@ -3,7 +3,10 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets
 from rest_framework.decorators import action
-from business_register.filters import FopFilterSet
+from rest_framework.exceptions import ValidationError
+from rest_framework.response import Response
+
+from business_register.filters import FopFilterSet, FopExportFilterSet
 from business_register.models.fop_models import Fop
 from business_register.serializers.fop_serializers import FopSerializer
 from data_converter.pagination import CachedCountPagination
@@ -31,4 +34,25 @@ class FopViewSet(RegisterViewMixin,
 
     @action(detail=False, url_path='xlsx', permission_classes=[IsAuthenticatedAndPaidSubscription])
     def export_to_xlsx(self, request):
-        filterset =
+        filterset = FopExportFilterSet(request.GET, self.get_queryset())
+        if not filterset.is_valid():
+            raise ValidationError(filterset.errors)
+        export_dict = {
+            'ID': ['pk', 9],
+            'Full Name': ['fullname', 30],
+            'Status': ['status', 14],
+            'Address': ['address', 33],
+            'Registration Date': ['registration_date', 18],
+            'Termination Date': ['termination_date', 18],
+            'Created Date': ['created_at', 19],
+            'Updated Date': ['updated_at', 19],
+            'Authority': ['authority', 36]
+        }
+        from data_ocean.tasks import export_to_s3
+        export_to_s3.delay(request.GET, export_dict, 'business_register.Fop',
+                           'business_register.filters.FopExportFilterSet', request.user.id)
+        from django.utils.translation import gettext_lazy as _
+        return Response(
+            {"detail": _("Generation of .xlsx file has begin. Expect an email with downloading link.")},
+            status=200
+        )
