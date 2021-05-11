@@ -167,6 +167,7 @@ class Liability(DataOceanModel):
         help_text=_('politically exposed person that has the liability')
     )
 
+
 # Monetary assets
 class Money(DataOceanModel):
     BANK_ACCOUNT = 1
@@ -334,12 +335,11 @@ class Securities(DataOceanModel):
         verbose_name=_('trustee'),
         help_text=_('trustee of securities')
     )
-    # quantity
-    amount = models.PositiveIntegerField(
-        _('amount'),
+    quantity = models.PositiveIntegerField(
+        _('quantity'),
         blank=True,
         null=True,
-        help_text=_('amount of securities')
+        help_text=_('quantity of securities')
     )
     nominal_value = models.PositiveIntegerField(
         _('nominal value'),
@@ -354,8 +354,8 @@ class Securities(DataOceanModel):
         help_text=_('valuation')
     )
 
-# Vehicle
-class Car(DataOceanModel):
+
+class Vehicle(DataOceanModel):
     CAR = 1
     TRUCK = 2
     ITEM_TYPES = (
@@ -365,14 +365,14 @@ class Car(DataOceanModel):
     declaration = models.ForeignKey(
         Declaration,
         on_delete=models.PROTECT,
-        related_name='cars',
+        related_name='vehicles',
         verbose_name=_('declaration')
     )
 
     type = models.PositiveSmallIntegerField(
         _('type'),
         choices=ITEM_TYPES,
-        help_text=_('type of the car')
+        help_text=_('type of the vehicle')
     )
     is_luxury = models.BooleanField(
         _('is luxury'),
@@ -427,7 +427,7 @@ class LuxuryItem(DataOceanModel):
         choices=ITEM_TYPES,
         help_text=_('type of the item')
     )
-    # add about the type
+    # please, use this field when the type == OTHER
     additional_info = models.TextField(
         _('additional info'),
         blank=True,
@@ -471,15 +471,23 @@ class LuxuryItem(DataOceanModel):
 
 class Property(DataOceanModel):
     HOUSE = 1
-    LAND = 2
-    GARAGE = 3
-    UNFINISHED_CONSTRUCTION = 4
-    OTHER = 5
+    SUMMER_HOUSE = 2
+    APARTMENT = 3
+    ROOM = 4
+    GARAGE = 5
+    UNFINISHED_CONSTRUCTION = 6
+    LAND = 7
+    OFFICE = 8
+    OTHER = 9
     PROPERTY_TYPES = (
         (HOUSE, _('House')),
-        (LAND, _('Land')),
+        (SUMMER_HOUSE, _('Summer house')),
+        (APARTMENT, _('Apartment')),
+        (ROOM, _('Room')),
         (GARAGE, _('Garage')),
         (UNFINISHED_CONSTRUCTION, _('Unfinished construction')),
+        (LAND, _('Land')),
+        (OFFICE, _('Office')),
         (OTHER, _('Other')),
     )
     declaration = models.ForeignKey(
@@ -493,19 +501,18 @@ class Property(DataOceanModel):
         choices=PROPERTY_TYPES,
         help_text=_('type of the property')
     )
-    # add about the type
+    # please, use this field when the type == OTHER
     additional_info = models.TextField(
         _('additional info'),
         blank=True,
         default='',
         help_text=_('additional info about the property')
     )
-    # square meters of the property
     area = models.FloatField(
         'square',
         null=True,
         blank=True,
-        help_text=_('square of the property in square meters')
+        help_text=_('square meters of the property')
 
     )
     country = models.ForeignKey(
@@ -616,13 +623,13 @@ class SecuritiesRight(BaseRight):
     )
 
 
-class CarRight(BaseRight):
+class VehicleRight(BaseRight):
     car = models.ForeignKey(
-        Car,
+        Vehicle,
         on_delete=models.PROTECT,
         related_name='rights',
-        verbose_name=_('car_right'),
-        help_text=_('right to the car')
+        verbose_name=_('vehicle_right'),
+        help_text=_('right to the vehicle')
     )
 
 
