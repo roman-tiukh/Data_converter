@@ -109,7 +109,7 @@ class Project(DataOceanModel):
         if not created:
             invitation.deleted_at = None
             invitation.save(update_fields=['deleted_at', 'updated_at'])
-            invitation.send()
+        invitation.send()
 
     def _check_user_invitation(self, user):
         try:
