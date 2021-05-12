@@ -1,32 +1,35 @@
 import re
 from datetime import timedelta
 from django import forms
+from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
 
-class ExportForm(forms.Form):
+class PeriodLimitationForm(forms.Form):
+    selection_field = None
+    days_limit = None
+
     def clean(self):
-        selection_fields = (
-            'updated_at',
-            'registration_date'
-        )
+        assert self.selection_field
+        assert self.days_limit
         cleaned_data = super().clean()
-        if cleaned_data.keys() and list(cleaned_data.keys())[0] in selection_fields:
-            selection_field = list(cleaned_data.keys())[0]
-        else:
-            selection_field = None
-        selection_date = cleaned_data.get(selection_field, None)
+        selection_date = cleaned_data.get(self.selection_field, None)
         if selection_date is None or selection_date.start is None or selection_date.stop is None:
-            if selection_field:
+            if self.selection_field:
                 raise forms.ValidationError({
-                    selection_field: [_('Period for {} is not provided.').format(selection_field)]
+                    self.selection_field: [_('Period for {} is not provided.').format(self.selection_field)]
                 })
-        elif not timedelta(days=0) < selection_date.stop - selection_date.start <= timedelta(days=30):
+        elif not timedelta(days=0) < selection_date.stop - selection_date.start <= timedelta(days=self.days_limit):
             raise forms.ValidationError({
-                selection_field: [_('Period for {} not matches restrictions.').format(selection_field)]
+                self.selection_field: [_('Period for {} not matches restrictions.').format(self.selection_field)]
             })
         else:
             return cleaned_data
+
+
+class PepExportForm(PeriodLimitationForm):
+    selection_field = 'updated_at'
+    days_limit = settings.PEP_EXPORT_XLSX_DAYS_LIMIT
 
 
 class PepCheckFilterForm(forms.Form):

@@ -1,14 +1,14 @@
+from django.conf import settings
 from django.utils.decorators import method_decorator
 from django.utils.translation import gettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import ValidationError
 from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
 
-from business_register.filters import FopFilterSet, FopExportFilterSet
+from business_register.filters import FopFilterSet
 from business_register.models.fop_models import Fop
 from business_register.serializers.fop_serializers import FopSerializer
 from data_converter.pagination import CachedCountPagination
@@ -36,9 +36,12 @@ class FopViewSet(RegisterViewMixin,
 
     @action(detail=False, url_path='xlsx', permission_classes=[IsAuthenticatedAndPaidSubscription])
     def export_to_xlsx(self, request):
-        filterset = FopExportFilterSet(request.GET, self.get_queryset())
-        if not filterset.is_valid():
-            raise ValidationError(filterset.errors)
+        queryset = self.filter_queryset(self.get_queryset())
+        if queryset.count() > settings.FOP_TO_XLSX_LIMIT:
+            return Response(
+                {"detail": _("Too many results for export in .xlsx. Try reduce filter conditions")},
+                status=416
+            )
         export_dict = {
             'ID': ['pk', 9],
             'Full Name': ['fullname', 30],
@@ -51,7 +54,7 @@ class FopViewSet(RegisterViewMixin,
             'Authority': ['authority', 36]
         }
         export_to_s3.delay(request.GET, export_dict, 'business_register.Fop',
-                           'business_register.filters.FopExportFilterSet', request.user.id)
+                           'business_register.filters.FopFilterSet', request.user.id)
         return Response(
             {"detail": _("Generation of .xlsx file has begin. Expect an email with downloading link.")},
             status=200
