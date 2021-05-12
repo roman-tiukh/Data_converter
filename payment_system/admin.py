@@ -4,7 +4,8 @@ from django import forms
 from django.utils import timezone
 
 from data_ocean.admin import input_filter
-from .models import Subscription, Invoice, ProjectSubscription, Project, CustomSubscriptionRequest, Invitation
+from .models import Subscription, Invoice, ProjectSubscription, Project, CustomSubscriptionRequest, Invitation, \
+    UserProject
 from rangefilter.filter import DateRangeFilter
 
 
@@ -222,6 +223,38 @@ class ProjectForm(forms.ModelForm):
         fields = ('subscription',)
 
 
+class UserProjectInline(admin.TabularInline):
+    model = UserProject
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_view_permission(self, request, obj=None):
+        return True
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_add_permission(self, request, obj):
+        return False
+
+
+class ProjectSubscriptionInline(admin.TabularInline):
+    model = ProjectSubscription
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_view_permission(self, request, obj=None):
+        return True
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_add_permission(self, request, obj):
+        return False
+
+
 @admin.register(Project)
 class ProjectAdmin(PaymentSystemModelAdmin):
     def get_expiring_date(self, obj: Project):
@@ -270,6 +303,8 @@ class ProjectAdmin(PaymentSystemModelAdmin):
         'get_is_paid',
     )
     form = ProjectForm
+
+    inlines = [UserProjectInline, ProjectSubscriptionInline]
 
     def save_model(self, request, obj, form, change):
         return obj
