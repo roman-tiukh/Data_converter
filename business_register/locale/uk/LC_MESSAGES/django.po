@@ -29,23 +29,15 @@ msgstr "Варіанти написання прізвища англійськ�
 msgid "Associated company`s number (provide a number)"
 msgstr "Пов'язана компанія має код ЄДРПОУ (введіть код)"
 
-#: business_register/forms.py:14
-msgid "Period for registration_date is not provided."
-msgstr "Не вказано період для registration_date."
+#: business_register/forms.py:22
+msgid "Period for {} is not provided."
+msgstr "Не вказано період для {}."
 
-#: business_register/forms.py:18
-msgid "Period for registration_date not matches restrictions."
-msgstr "Період для registration_date не відповідає вимогам."
+#: business_register/forms.py:27
+msgid "Period for {} not matches restrictions."
+msgstr "Період для {} не відповідає вимогам."
 
-#: business_register/forms.py:31
-msgid "Period for updated_at is not provided."
-msgstr "Не вказано період для updated_at."
-
-#: business_register/forms.py:35
-msgid "Period for updated_at not matches restrictions."
-msgstr "Період для updated_at не відповідає вимогам."
-
-#: business_register/forms.py:50
+#: business_register/forms.py:41
 msgid ""
 "Use first_name + last_name + middle_name or fullname_transcription fields "
 "for check person"
@@ -53,11 +45,11 @@ msgstr ""
 "Використовуйте поля first_name + last_name + second_name або "
 "fullname_transcription для перевірки особи"
 
-#: business_register/forms.py:57 business_register/forms.py:59
+#: business_register/forms.py:48 business_register/forms.py:50
 msgid "This field is required"
 msgstr "Це поле є обовязковим"
 
-#: business_register/forms.py:64
+#: business_register/forms.py:55
 msgid "The length of the field value must be 2 or more words"
 msgstr "Довжина значення поля має бути 2 або більше слів"
 
