@@ -99,13 +99,13 @@ class DeclarationConverter(BusinessConverter):
     # TODO: extract registration data
     def find_city(self, registration_data):
         city, region, district = self.normalized_registration_data(registration_data)
-        city_of_registration = None
+        city_of_registration = ''
         ratu_region = RatuRegion.objects.filter(name=region).first()
         if not ratu_region:
             logger.error(f'cannot find region {region}')
         else:
-            if region == 'київ' or region == 'севастополь':
-                city_of_registration = ratu_region
+            if region == city:
+                city_of_registration = RatuCity.objects.get(name=city, region_id=ratu_region.id)
             elif region and city and district:
                 ratu_district = RatuDistrict.objects.filter(name=district, region_id=ratu_region.id).first()
                 if not ratu_district:
@@ -119,13 +119,22 @@ class DeclarationConverter(BusinessConverter):
         return city_of_registration
 
     def normalized_registration_data(self, registration_data):
-        region = str(re.findall(r'\w*-?\w* [Оо]бласть|^Київ|^Севастополь', registration_data)).strip('[]\' \"').lower()
-        district = str(re.findall(r'\w*\'? ?-?\w* ?-?\w* [Рр]айон', registration_data)).strip('[]\' \"').lower()
-        city = str(
-            re.findall(
-                r'(?!Київ|Україна|Севастополь|^\w* [Рр]айон|^\w* [Оо]бласть)^\w*\'? ?-?\w* ?-?\w*', registration_data
-            )
-        ).strip('[]\' \"').lower()
+        parts = registration_data.lower().split(' / ')
+        region = district = city = ''
+        country = parts[len(parts) - 1]
+        parts = parts[:-1]
+        city_region = ['київ', 'севастополь']
+        for part in parts:
+            if '/' in part:
+                part = part.split('/')[0]
+            if 'район' in part:
+                district = part
+            elif 'область' in part:
+                region = part
+            elif part in city_region:
+                city = region = part
+            else:
+                city = part
         return city, region, district
 
     # TODO: save family data with NACP id
