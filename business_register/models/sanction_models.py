@@ -144,13 +144,11 @@ class PersonSanction(Sanction):
         related_name='sanctions_against_citizens',
         verbose_name=_('country of citizenship'),
         help_text=_('country of citizenship of the person under sanctions'))
-    occupation = models.CharField(
+    occupation = models.TextField(
         _('occupation'),
-        max_length=500,
         blank=True,
         default='',
         help_text=_('occupation or professional activity of the person under sanctions'),
-
     )
     id_card = models.TextField(
         _('id cards info'),
