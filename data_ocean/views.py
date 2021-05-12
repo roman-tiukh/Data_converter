@@ -1,8 +1,11 @@
+from collections import OrderedDict
+
 from django.views.decorators.cache import cache_page
 from django.utils.decorators import method_decorator
 from drf_dynamic_fields import DynamicFieldsMixin
 from drf_yasg.generators import OpenAPISchemaGenerator, EndpointEnumerator
 from drf_yasg.inspectors import SwaggerAutoSchema
+from drf_yasg.openapi import Schema, SchemaRef
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
@@ -17,6 +20,8 @@ from django_filters.rest_framework import DjangoFilterBackend
 from data_ocean.serializers import RegisterSerializer
 from rest_framework.permissions import IsAuthenticated
 from payment_system.permissions import AccessFromProjectToken, ServiceTokenPermission
+from rest_framework_xml.renderers import XMLRenderer
+import lxml.etree as etree
 
 
 class CachedViewMixin:
@@ -190,70 +195,139 @@ class DOAutoSchemaClass(SwaggerAutoSchema):
             })
         return operation
 
+    def resolve_schema(self, schema: Schema):
+        if not (isinstance(schema, (Schema, SchemaRef)) or type(schema) == OrderedDict):
+            return schema
+        if isinstance(schema, SchemaRef):
+            schema = schema.resolve(self.components)
+            self.resolve_schema(schema)
+        for key, value in schema.items():
+            if isinstance(value, Schema) or type(value) == OrderedDict:
+                self.resolve_schema(value)
+            elif isinstance(value, SchemaRef):
+                schema[key] = value.resolve(self.components)
+                self.resolve_schema(schema[key])
+        return schema
+
+    def schema_to_example(self, schema: Schema):
+        if schema['type'] == openapi.TYPE_OBJECT:
+            example = {}
+            for key, value in schema['properties'].items():
+                example[key] = self.schema_to_example(value)
+            return example
+        elif schema['type'] == openapi.TYPE_ARRAY:
+            return [self.schema_to_example(schema['items'])]
+        elif schema['type'] == openapi.TYPE_STRING:
+            if 'format' in schema:
+                if schema['format'] == openapi.FORMAT_DATETIME:
+                    return '2019-08-24T14:15:22Z'
+                if schema['format'] == openapi.FORMAT_DATE:
+                    return '2019-08-24'
+            if 'enum' in schema:
+                return schema['enum'][0]
+            return 'string'
+        elif schema['type'] == openapi.TYPE_NUMBER:
+            return 0
+        elif schema['type'] == openapi.TYPE_INTEGER:
+            return 0
+        elif schema['type'] == openapi.TYPE_BOOLEAN:
+            return True
+
+    def prettify_xml_example(self, xml_string):
+        tree = etree.XML(xml_string.encode('utf-8'))
+        string = etree.tostring(tree, encoding='utf-8', pretty_print=True, xml_declaration=True)
+        return string.decode('utf-8')
+
+    def parse_xml(self, schema):
+        return self.prettify_xml_example(XMLRenderer().render(self.schema_to_example(self.resolve_schema(schema))))
+
     def get_responses(self):
         responses = super().get_responses()
+        responses['200'].examples = {
+            'application/xml': self.parse_xml(responses['200'].schema),
+        }
         responses.update({
-            400: {
-                'description': "Bad Request",
-                'schema': {
-                    'type': openapi.TYPE_OBJECT,
-                    'properties': {
-                        'error': {
-                            'type': openapi.TYPE_STRING,
-                            'description': 'Response status code indicates that the server cannot or will not process'
-                                           ' the request due to something that is perceived to be a client error (e.g., '
-                                           'malformed request syntax, invalid request message framing, or deceptive'
-                                           ' request routing).',
-                        }
+            400: openapi.Response(
+                description='Bad Request',
+                schema=Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': Schema(
+                            type=openapi.TYPE_STRING,
+                            description='Response status code indicates that the server cannot or will not process'
+                            ' the request due to something that is perceived to be a client error (e.g., '
+                            'malformed request syntax, invalid request message framing, or deceptive'
+                            ' request routing).',
+                        ),
                     },
-                    'examples': [{'detail': 'Bad Request'}],
-                },
-            },
-            403: {
-                'description': 'Forbidden',
-                'schema': {
-                    'type': openapi.TYPE_OBJECT,
-                    'properties': {
-                        'error': {
-                            'type': openapi.TYPE_STRING,
-                            'description': 'Client error status response code indicates that the server understood the'
-                                           ' request but refuses to authorize it. This status is similar to 401, but in'
-                                           ' this case, re-authenticating will make no difference. The access is'
-                                           ' permanently forbidden and tied to the application logic, such as'
-                                           ' insufficient rights to a resource.',
-                        },
+                ),
+                examples={
+                    'application/json': {'detail': 'Bad Request'},
+                    'application/xml':
+                        '<?xml version="1.0" encoding="utf-8"?>\n'
+                        '<root>\n  <detail>Bad Request</detail>\n</root>'
+                }
+            ),
+            403: openapi.Response(
+                description='Forbidden',
+                schema=Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': Schema(
+                            type=openapi.TYPE_STRING,
+                            description='Client error status response code indicates that the server understood the'
+                                ' request but refuses to authorize it. This status is similar to 401, but in'
+                                ' this case, re-authenticating will make no difference. The access is'
+                                ' permanently forbidden and tied to the application logic, such as'
+                                ' insufficient rights to a resource.',
+                        ),
                     },
-                    'examples': [{"detail": 'Authentication credentials were not provided.'}],
+                ),
+                examples={
+                    'application/json': {'detail': 'Authentication credentials were not provided.'},
+                    'application/xml':
+                        '<?xml version="1.0" encoding="utf-8"?>\n'
+                        '<root>\n  <detail>Authentication credentials were not provided.</detail>\n</root>'
                 },
-            },
-            404: {
-                'description': 'Not Found',
-                'schema': {
-                    'type': openapi.TYPE_OBJECT,
-                    'properties': {
-                        'error': {
-                            'type': openapi.TYPE_STRING,
-                            'description': 'The requested resource could not be found but may be available again in the'
-                                           ' future. Subsequent requests by the client are permissible.',
-                        }
+            ),
+            404: openapi.Response(
+                description='Not Found',
+                schema=Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': Schema(
+                            type=openapi.TYPE_STRING,
+                            description='The requested resource could not be found but may be available again in the'
+                                        ' future. Subsequent requests by the client are permissible.',
+                        )
                     },
-                    'examples': [{"detail": 'Not found.'}],
+                ),
+                examples={
+                    'application/json': {'detail': 'Not found.'},
+                    'application/xml':
+                        '<?xml version="1.0" encoding="utf-8"?>\n'
+                        '<root>\n  <detail>Not found.</detail>\n</root>'
                 },
-            },
-            500: {
-                'description': 'Internal Server Error',
-                'schema': {
-                    'type': openapi.TYPE_OBJECT,
-                    'properties': {
-                        'error': {
-                            'type': openapi.TYPE_STRING,
-                            'description': 'Server error response code indicates that the server encountered an '
-                                           'unexpected condition that prevented it from fulfilling the request.',
-                        },
+            ),
+            500: openapi.Response(
+                description='Internal Server Error',
+                schema=Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': Schema(
+                            type=openapi.TYPE_STRING,
+                            description='Server error response code indicates that the server encountered an '
+                                        'unexpected condition that prevented it from fulfilling the request.',
+                        ),
                     },
-                    'examples': [{"detail": 'Server Error (500)'}],
+                ),
+                examples={
+                    'application/json': {'detail': 'Server Error (500)'},
+                    'application/xml':
+                        '<?xml version="1.0" encoding="utf-8"?>\n'
+                        '<root>\n  <detail>Server Error (500)</detail>\n</root>'
                 },
-            },
+            )
         })
         return responses
 

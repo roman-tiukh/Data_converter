@@ -288,3 +288,8 @@ KVED_REGISTER_LIST = '/api/kved/'
 UKR_COMPANY_REGISTER_LIST = '/api/company/ukr/'
 UK_COMPANY_REGISTER_LIST = '/api/company/uk/'
 DRVBUILDING_REGISTER_LIST = '/api/drvbuilding/'
+
+# NACP`s API endpoint for declarations
+NACP_DECLARATION_RETRIEVE = 'https://public-api.nazk.gov.ua/v2/documents/'
+NACP_DECLARATION_LIST = 'https://public-api.nazk.gov.ua/v2/documents/list/'
+

@@ -16,7 +16,6 @@ class Command(BaseCommand):
     help = 'fetch and store Peps id from the National agency on corruption prevention'
 
     def __init__(self, *args, **kwargs):
-        self.NACP_URL = 'https://public-api.nazk.gov.ua/v2/documents/'
         self.host = settings.PEP_SOURCE_HOST
         self.port = settings.PEP_SOURCE_PORT
         self.database = settings.PEP_SOURCE_DATABASE
@@ -26,7 +25,7 @@ class Command(BaseCommand):
             SELECT p.id, MAX(d.declaration_id)
             FROM core_person p
             LEFT JOIN core_declaration d on p.id = d.person_id
-            WHERE is_pep = True AND d.nacp_declaration = True
+            WHERE is_pep = True AND d.nacp_declaration = True AND d.confirmed="a"
             GROUP BY p.id
         """)
         self.all_peps = {getattr(pep, 'source_id'): pep for pep in Pep.objects.filter(is_pep=True)}
@@ -57,9 +56,9 @@ class Command(BaseCommand):
                 if pep.nacp_id:
                     continue
                 declaration_id = pep_data[1].replace('nacp_', '')
-                response = requests.get(self.NACP_URL + declaration_id)
+                response = requests.get(settings.NACP_DECLARATION_RETRIEVE + declaration_id)
                 if (response.status_code != 200):
-                    logger.error('cannot find the declaration with id: {declaration_id}')
+                    logger.error(f'cannot find the declaration with id: {declaration_id}')
                     continue
                 pep_nacp_id = json.loads(response.text)['user_declarant_id']
                 if pep_nacp_id not in self.all_nacp_id:

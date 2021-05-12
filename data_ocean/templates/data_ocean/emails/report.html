@@ -29,7 +29,15 @@
         {% for report in reports %}
             <tr>
                 <td>{{ report.registry_name }}</td>
-                <td>{{ report.update_status }}</td>
+                {% if report.registry_name == 'business_ukr_company' or report.registry_name == 'business_fop' %}
+                    {% if report.update_finish %}
+                        <td>{{ report.update_status }}</td>
+                    {% else %}
+                        <td>In progress</td>
+                    {% endif %}
+                {% else %}
+                    <td>{{ report.update_status }}</td>
+                {% endif %}
                 <td>{{ report.created_at }} </td>
                 <td>{{ report.updated_at }} </td>
                 <td>{{ report.records_added }} </td>
