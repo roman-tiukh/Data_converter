@@ -17,7 +17,7 @@ class Fop(DataOceanModel):
     terminated_info = models.CharField(_('termination info'), max_length=300, null=True, blank=True)
     termination_cancel_info = models.CharField(_('termination cancellation info'),
                                                max_length=275, null=True, blank=True)
-    contact_info = models.CharField(_('contacts'), max_length=250, null=True, blank=True)
+    contact_info = models.TextField(_('contacts'), null=True, blank=True)
     vp_dates = models.CharField(max_length=400, null=True, blank=True)
     authority = models.ForeignKey(Authority, on_delete=models.CASCADE,
                                   verbose_name=_('registration authority'), null=True, blank=True)
