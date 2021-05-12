@@ -1,9 +1,11 @@
 from django.utils.decorators import method_decorator
+from django.utils.translation import gettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
+from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
 
 from business_register.filters import FopFilterSet, FopExportFilterSet
@@ -11,8 +13,8 @@ from business_register.models.fop_models import Fop
 from business_register.serializers.fop_serializers import FopSerializer
 from data_converter.pagination import CachedCountPagination
 from data_ocean.permissions import IsAuthenticatedAndPaidSubscription
+from data_ocean.tasks import export_to_s3
 from data_ocean.views import CachedViewSetMixin, RegisterViewMixin
-from rest_framework.filters import SearchFilter
 
 
 @method_decorator(name='retrieve', decorator=swagger_auto_schema(tags=['business register']))
@@ -48,10 +50,8 @@ class FopViewSet(RegisterViewMixin,
             'Updated Date': ['updated_at', 19],
             'Authority': ['authority', 36]
         }
-        from data_ocean.tasks import export_to_s3
         export_to_s3.delay(request.GET, export_dict, 'business_register.Fop',
                            'business_register.filters.FopExportFilterSet', request.user.id)
-        from django.utils.translation import gettext_lazy as _
         return Response(
             {"detail": _("Generation of .xlsx file has begin. Expect an email with downloading link.")},
             status=200

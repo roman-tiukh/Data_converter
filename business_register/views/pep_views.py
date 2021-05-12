@@ -1,15 +1,13 @@
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
+from django.utils.translation import gettext_lazy as _
 from django.views.decorators.cache import cache_page
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.filters import SearchFilter
-
-from data_converter.pagination import CachedCountPagination
-from data_ocean.permissions import IsAuthenticatedAndPaidSubscription
 from rest_framework.response import Response
 
 from business_register.filters import PepFilterSet, PepExportFilterSet, PepCheckFilterSet
@@ -19,6 +17,9 @@ from business_register.serializers.company_and_pep_serializers import (
     PepListSerializer, PepDetailSerializer, PepDetailWithoutCheckCompaniesSerializer
 )
 from data_converter.filter import DODjangoFilterBackend
+from data_converter.pagination import CachedCountPagination
+from data_ocean.permissions import IsAuthenticatedAndPaidSubscription
+from data_ocean.tasks import export_to_s3
 from data_ocean.views import CachedViewSetMixin, RegisterViewMixin
 from payment_system.permissions import PepChecksPermission
 
@@ -70,10 +71,8 @@ class PepViewSet(RegisterViewMixin,
             'Last Job Title': ['last_job_title', 20],
             'Last Employer': ['last_employer', 20]
         }
-        from data_ocean.tasks import export_to_s3
         export_to_s3.delay(request.GET, export_dict, 'business_register.Pep',
                            'business_register.filters.PepExportFilterSet', request.user.id)
-        from django.utils.translation import gettext_lazy as _
         return Response(
             {"detail": _("Generation of .xlsx file has begin. Expect an email with downloading link.")},
             status=200
