@@ -7,7 +7,7 @@ from django.utils import timezone
 from rest_framework.authtoken.models import Token
 from django.utils.translation import gettext_lazy as _
 
-from payment_system.models import Project, Subscription, ProjectSubscription
+from payment_system.models import Subscription, ProjectSubscription, UserProject
 from users.models import DataOceanUser, Question
 
 
@@ -52,7 +52,7 @@ class ProjectsInlineForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if getattr(self.instance, 'id'):
-            self.p2s = self.instance.active_p2s
+            self.p2s = self.instance.project.active_p2s
             if not self.p2s.is_grace_period or self.p2s.subscription.is_default:
                 self.fields['expiring_date'].widget.attrs['readonly'] = True
 
@@ -68,7 +68,7 @@ class ProjectsInlineForm(forms.ModelForm):
         cleaned_data = super().clean()
         if 'subscription' in self.changed_data and self.is_valid():
             # TODO: move saving to save method
-            self.instance.add_subscription(cleaned_data['subscription'])
+            self.instance.project.add_subscription(cleaned_data['subscription'])
             self.p2s = ProjectSubscription.objects.get(pk=self.p2s.pk)
         return cleaned_data
 
@@ -98,33 +98,37 @@ class ProjectsInlineForm(forms.ModelForm):
         return instance
 
     class Meta:
-        model = Project
+        model = UserProject
         fields = ('requests_left', 'platform_requests_left')
 
 
 class ProjectsInline(admin.TabularInline):
     form = ProjectsInlineForm
+    active_p2s = None
 
-    def subscription(self, obj: Project):
-        return obj.active_subscription.name
+    def get_active_p2s(self, obj):
+        return self.active_p2s or obj.project.active_p2s
 
-    def requests_left(self, obj: Project):
-        return obj.active_p2s.requests_left
+    def subscription(self, obj: UserProject):
+        return obj.project.active_subscription.name
 
-    def requests_used(self, obj: Project):
-        return obj.active_p2s.requests_used
+    def requests_left(self, obj: UserProject):
+        return self.get_active_p2s(obj).requests_left
 
-    def platform_requests_left(self, obj: Project):
-        return obj.active_p2s.platform_requests_left
+    def requests_used(self, obj: UserProject):
+        return self.get_active_p2s(obj).requests_used
 
-    def platform_requests_used(self, obj: Project):
-        return obj.active_p2s.platform_requests_used
+    def platform_requests_left(self, obj: UserProject):
+        return self.get_active_p2s(obj).platform_requests_left
 
-    def expiring_date(self, obj: Project):
-        return obj.active_p2s.expiring_date
+    def platform_requests_used(self, obj: UserProject):
+        return self.get_active_p2s(obj).platform_requests_used
 
-    def is_grace_period(self, obj: Project):
-        return obj.active_p2s.is_grace_period
+    def expiring_date(self, obj: UserProject):
+        return self.get_active_p2s(obj).expiring_date
+
+    def is_grace_period(self, obj: UserProject):
+        return self.get_active_p2s(obj).is_grace_period
 
     can_delete = False
     extra = 0
@@ -143,7 +147,7 @@ class ProjectsInline(admin.TabularInline):
         'platform_requests_used',
         'is_grace_period',
     )
-    model = Project
+    model = UserProject
 
     def has_add_permission(self, request, obj):
         return False

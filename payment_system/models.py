@@ -537,7 +537,7 @@ class UserProject(DataOceanModel):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f'User {self.user.get_full_name()} in Project {self.project.name}'
+        return f'User {self.user.get_full_name()} in Project {self.project.name} of {self.project.owner}'
 
     class Meta:
         unique_together = [['user', 'project']]
