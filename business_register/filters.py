@@ -2,7 +2,7 @@ from django.utils.translation import gettext_lazy as _
 from django.db.models import Q
 from django_filters import rest_framework as filters
 
-from business_register.forms import FopExportForm, PepExportForm, PepCheckFilterForm
+from business_register.forms import ExportForm, PepCheckFilterForm
 from business_register.models.company_models import Company
 from business_register.models.fop_models import Fop
 from business_register.models.pep_models import Pep, CompanyLinkWithPep
@@ -128,7 +128,7 @@ class FopExportFilterSet(filters.FilterSet):
     class Meta:
         model = Fop
         fields = {}
-        form = FopExportForm
+        form = ExportForm
 
 
 class KvedFilterSet(filters.FilterSet):
@@ -253,7 +253,7 @@ class PepExportFilterSet(filters.FilterSet):
     class Meta:
         model = Pep
         fields = {}
-        form = PepExportForm
+        form = ExportForm
 
 
 class PepCheckFilterSet(filters.FilterSet):

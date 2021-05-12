@@ -4,19 +4,27 @@ from django import forms
 from django.utils.translation import ugettext_lazy as _
 
 
-class FopExportForm(forms.Form):
+class ExportForm(forms.Form):
 
     def clean(self):
+        selection_fields = (
+            'updated_at',
+            'registration_date'
+        )
         cleaned_data = super().clean()
-        print(cleaned_data)
-        registration_date = cleaned_data.get('registration_date', None)
-        if registration_date is None or registration_date.start is None or registration_date.stop is None:
+        if cleaned_data.keys() and list(cleaned_data.keys())[0] in selection_fields:
+            selection_field = list(cleaned_data.keys())[0]
+        else:
+            selection_field = None
+        selection_date = cleaned_data.get(selection_field, None)
+        if selection_date is None or selection_date.start is None or selection_date.stop is None:
+            if selection_field:
+                raise forms.ValidationError({
+                    selection_field: [_('Period for {} is not provided.').format(selection_field)]
+                })
+        elif not timedelta(days=0) < selection_date.stop - selection_date.start <= timedelta(days=30):
             raise forms.ValidationError({
-                'registration_date': [_('Period for registration_date is not provided.')]
-            })
-        elif not timedelta(days=0) < registration_date.stop - registration_date.start <= timedelta(days=30):
-            raise forms.ValidationError({
-                'registration_date': [_('Period for registration_date not matches restrictions.')]
+                selection_field: [_('Period for {} not matches restrictions.').format(selection_field)]
             })
         else:
             return cleaned_data
