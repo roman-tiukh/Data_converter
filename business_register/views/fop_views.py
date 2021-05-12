@@ -39,7 +39,7 @@ class FopViewSet(RegisterViewMixin,
         queryset = self.filter_queryset(self.get_queryset())
         if queryset.count() > settings.FOP_TO_XLSX_LIMIT:
             return Response(
-                {"detail": _("Too many results for export in .xlsx. Try reduce filter conditions")},
+                {"detail": _("Too many results for export in .xlsx. Try reduce filter conditions.")},
                 status=416
             )
         export_dict = {
