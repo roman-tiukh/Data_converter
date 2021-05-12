@@ -1,6 +1,8 @@
+import codecs
 import logging
 import os
 import subprocess
+import tempfile
 import zipfile
 from abc import ABC
 
@@ -217,5 +219,20 @@ class Downloader(ABC):
         ).count()
         self.report.save()
 
-
-
+    def remove_unreadable_characters(self):
+        file = self.local_path + self.file_name
+        logger.info(f'{self.reg_name}: remove_unreadable_characters for {file} started ...')
+        tmp = tempfile.mkstemp()
+        with codecs.open(file, 'r', 'Windows-1251') as fd1, codecs.open(tmp[1], 'w', 'UTF-8') as fd2:
+            for line in fd1:
+                line = line.replace('&quot;', '"')\
+                    .replace('windows-1251', 'UTF-8')\
+                    .replace('&#3;', '')\
+                    .replace('&#14;', '')\
+                    .replace('&#16;', '')\
+                    .replace('&#24;', '')\
+                    .replace('&#30;', '')\
+                    .replace('&#31;', '')
+                fd2.write(line)
+        os.rename(tmp[1], file)
+        logger.info(f'{self.reg_name}: remove_unreadable_characters finished.')
