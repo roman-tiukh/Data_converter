@@ -5,13 +5,13 @@ from openpyxl.styles import Alignment, fonts, PatternFill
 from openpyxl.utils.cell import get_column_letter
 
 from django.apps import apps
+from django.db import models
 from django.utils import translation
 from django.utils.module_loading import import_string
 from django.utils.translation import gettext
 
 from data_ocean import s3bucket
 from data_ocean.emails import send_export_url_file_path_message
-from data_ocean.models import Authority, Status
 from users.models import DataOceanUser
 
 
@@ -45,7 +45,7 @@ class ExportToXlsx:
                 cell_value = getattr(record, column_properties[0])
                 if isinstance(cell_value, datetime):
                     cell_value = cell_value.replace(tzinfo=None)
-                elif isinstance(cell_value, (Authority, Status)):
+                elif isinstance(cell_value, models.Model):
                     cell_value = str(cell_value)
                 cell.value = cell_value
         export_file_name = model + '_{0}.xlsx'.format(datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
