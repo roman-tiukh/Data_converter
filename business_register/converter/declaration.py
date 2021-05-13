@@ -2,7 +2,6 @@ from business_register.converter.business_converter import BusinessConverter
 from business_register.models.pep_models import Pep
 from business_register.models.declaration_models import Declaration, Property
 from location_register.models.ratu_models import RatuRegion, RatuDistrict, RatuCity
-import re
 import requests
 import logging
 
@@ -101,21 +100,13 @@ class DeclarationConverter(BusinessConverter):
         city, region, district = self.normalized_registration_data(registration_data)
         city_of_registration = ''
         ratu_region = RatuRegion.objects.filter(name=region).first()
-        if not ratu_region:
+        ratu_district = RatuDistrict.objects.filter(name=district, region=ratu_region).first()
+        if region and not ratu_region:
             logger.error(f'cannot find region {region}')
+        if district and not ratu_district:
+            logger.error(f'cannot find district {district}')
         else:
-            if region == city:
-                city_of_registration = RatuCity.objects.get(name=city, region_id=ratu_region.id)
-            elif region and city and district:
-                ratu_district = RatuDistrict.objects.filter(name=district, region_id=ratu_region.id).first()
-                if not ratu_district:
-                    logger.error(f'cannot find district {district}')
-                else:
-                    city_of_registration = RatuCity.objects.filter(
-                        name=city, region_id=ratu_region.id, district_id=ratu_district.id
-                    ).first()
-            elif region and city:
-                city_of_registration = RatuCity.objects.filter(name=city, region_id=ratu_region.id).first()
+            city_of_registration = RatuCity.objects.filter(name=city, region=ratu_region, district=ratu_district).first()
         return city_of_registration
 
     def normalized_registration_data(self, registration_data):
