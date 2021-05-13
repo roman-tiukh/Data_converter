@@ -11,6 +11,8 @@ class Fop(DataOceanModel):
     address = models.CharField(_('address'), max_length=500, null=True)
     status = models.ForeignKey(Status, on_delete=models.CASCADE, verbose_name=_('status'))
     registration_date = models.DateField(_('registration date'), null=True, blank=True)
+    registration_date_second = models.DateField(_('registration date second'), null=True, blank=True)
+    registration_number = models.CharField(_('registration number'), max_length=17, null=True, blank=True)
     registration_info = models.CharField(_('registration info'), max_length=300, null=True, blank=True)
     estate_manager = models.CharField(max_length=125, null=True, blank=True)
     termination_date = models.DateField(_('termination date'), null=True, blank=True)
