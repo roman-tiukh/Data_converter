@@ -29,15 +29,15 @@ msgstr "Варіанти написання прізвища англійськ�
 msgid "Associated company`s number (provide a number)"
 msgstr "Пов'язана компанія має код ЄДРПОУ (введіть код)"
 
-#: business_register/forms.py:14
-msgid "Period for updated_at is not provided."
-msgstr "Не вказано період для updated_at."
+#: business_register/forms.py:20
+msgid "Period for {} is not provided."
+msgstr "Не вказано період для {}."
 
-#: business_register/forms.py:18
-msgid "Period for updated_at not matches restrictions."
-msgstr "Період для updated_at не відповідає вимогам."
+#: business_register/forms.py:24
+msgid "Period for {} not matches restrictions."
+msgstr "Період для {} не відповідає вимогам."
 
-#: business_register/forms.py:33
+#: business_register/forms.py:44
 msgid ""
 "Use first_name + last_name + middle_name or fullname_transcription fields "
 "for check person"
@@ -45,11 +45,11 @@ msgstr ""
 "Використовуйте поля first_name + last_name + second_name або "
 "fullname_transcription для перевірки особи"
 
-#: business_register/forms.py:40 business_register/forms.py:42
+#: business_register/forms.py:51 business_register/forms.py:53
 msgid "This field is required"
 msgstr "Це поле є обовязковим"
 
-#: business_register/forms.py:47
+#: business_register/forms.py:58
 msgid "The length of the field value must be 2 or more words"
 msgstr "Довжина значення поля має бути 2 або більше слів"
 
@@ -700,9 +700,16 @@ msgstr "Санкції щодо компанії"
 msgid "Sanctions against companies"
 msgstr "Санкції щодо компаній"
 
-#: business_register/views/pep_views.py:78
+#: business_register/views/pep_views.py:77
+#: business_register/views/fop_views.py:59
 msgid ""
 "Generation of .xlsx file has begin. Expect an email with downloading link."
 msgstr ""
 "Розпочато генерацію .xlsx файла. Очікуйте на email із посиланням для "
 "загрузки файла."
+
+#: business_register/views/fop_views.py:42
+msgid ""
+"Too many results for export in .xlsx. Try reduce filter conditions."
+msgstr ""
+"Забагато результатів для експорту в .xlsx. Спробуйте змінити параметри фільтрації"

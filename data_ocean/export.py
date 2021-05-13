@@ -1,5 +1,3 @@
-import boto3
-from botocore.config import Config
 from datetime import datetime
 from io import BytesIO
 from openpyxl import Workbook
@@ -7,12 +5,12 @@ from openpyxl.styles import Alignment, fonts, PatternFill
 from openpyxl.utils.cell import get_column_letter
 
 from django.apps import apps
-from django.conf import settings
+from django.db import models
 from django.utils import translation
 from django.utils.module_loading import import_string
 from django.utils.translation import gettext
-from data_ocean import s3bucket
 
+from data_ocean import s3bucket
 from data_ocean.emails import send_export_url_file_path_message
 from users.models import DataOceanUser
 
@@ -41,13 +39,14 @@ class ExportToXlsx:
             cell.font = fonts.Font(b=True, color='00FFFFFF')
             cell.fill = PatternFill(bgColor='0033CCCC', fill_type="solid")
             for record in queryset:
-
                 row_num += 1
                 cell = worksheet.cell(row=row_num, column=col_num)
                 cell.alignment = Alignment(vertical='top', wrap_text=True)
                 cell_value = getattr(record, column_properties[0])
                 if isinstance(cell_value, datetime):
                     cell_value = cell_value.replace(tzinfo=None)
+                elif isinstance(cell_value, models.Model):
+                    cell_value = str(cell_value)
                 cell.value = cell_value
         export_file_name = model + '_{0}.xlsx'.format(datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
         data = BytesIO()
