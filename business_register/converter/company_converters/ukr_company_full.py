@@ -1,14 +1,11 @@
-import codecs
 import logging
-import os
 import re
-import tempfile
-from time import sleep
 import requests
+from time import sleep
+
 from django.conf import settings
 from django.utils import timezone
 
-from data_ocean.models import Authority
 from business_register.converter.company_converters.company import CompanyConverter
 from business_register.models.company_models import (
     Assignee, BancruptcyReadjustment, Bylaw, Company, CompanyDetail, CompanyToKved,
@@ -1060,28 +1057,11 @@ class UkrCompanyFullDownloader(Downloader):
             return
 
         for i in r.json()['result']['resources']:
-            # 17-ufop_25-11-2020.zip
-            # 17-ufop_full_07-08-2020.zip  <---
             if self.zip_required_file_sign in i['url']:
                 return i['url']
 
     def get_source_file_name(self):
         return self.url.split('/')[-1]
-
-    def remove_unreadable_characters(self):
-        file = self.local_path + self.LOCAL_FILE_NAME
-        logger.info(f'{self.reg_name}: remove_unreadable_characters for {file} started ...')
-        tmp = tempfile.mkstemp()
-        with codecs.open(file, 'r', 'Windows-1251') as fd1, codecs.open(tmp[1], 'w', 'UTF-8') as fd2:
-            for line in fd1:
-                line = line.replace('&quot;', '"')\
-                    .replace('windows-1251', 'UTF-8')\
-                    .replace('&#3;', '')\
-                    .replace('&#30;', '')\
-                    .replace('&#31;', '')
-                fd2.write(line)
-        os.rename(tmp[1], file)
-        logger.info(f'{self.reg_name}: remove_unreadable_characters finished.')
 
     def update(self):
 

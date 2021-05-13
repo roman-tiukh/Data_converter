@@ -1,8 +1,5 @@
-import codecs
 import logging
-import os
 import requests
-import tempfile
 from time import sleep
 
 from django.conf import settings
@@ -322,21 +319,6 @@ class FopFullDownloader(Downloader):
 
     def get_source_file_name(self):
         return self.url.split('/')[-1]
-
-    def remove_unreadable_characters(self):
-        file = self.local_path + self.LOCAL_FILE_NAME
-        logger.info(f'{self.reg_name}: remove_unreadable_characters for {file} started ...')
-        tmp = tempfile.mkstemp()
-        with codecs.open(file, 'r', 'Windows-1251') as fd1, codecs.open(tmp[1], 'w', 'UTF-8') as fd2:
-            for line in fd1:
-                line = line.replace('&quot;', '"')\
-                    .replace('windows-1251', 'UTF-8')\
-                    .replace('&#3;', '')\
-                    .replace('&#30;', '')\
-                    .replace('&#31;', '')
-                fd2.write(line)
-        os.rename(tmp[1], file)
-        logger.info(f'{self.reg_name}: remove_unreadable_characters finished.')
 
     def update(self):
 
