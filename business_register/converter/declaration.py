@@ -1,6 +1,7 @@
 from business_register.converter.business_converter import BusinessConverter
 from business_register.models.pep_models import Pep
 from business_register.models.declaration_models import Declaration, Property
+from location_register.models.ratu_models import RatuRegion, RatuDistrict, RatuCity
 import requests
 import logging
 
@@ -96,7 +97,36 @@ class DeclarationConverter(BusinessConverter):
 
     # TODO: extract registration data
     def find_city(self, registration_data):
-        pass
+        city, region, district = self.normalized_registration_data(registration_data)
+        city_of_registration = ''
+        ratu_region = RatuRegion.objects.filter(name=region).first()
+        ratu_district = RatuDistrict.objects.filter(name=district, region=ratu_region).first()
+        if region and not ratu_region:
+            logger.error(f'cannot find region {region}')
+        if district and not ratu_district:
+            logger.error(f'cannot find district {district}')
+        else:
+            city_of_registration = RatuCity.objects.filter(name=city, region=ratu_region, district=ratu_district).first()
+        return city_of_registration
+
+    def normalized_registration_data(self, registration_data):
+        parts = registration_data.lower().split(' / ')
+        region = district = city = ''
+        country = parts[len(parts) - 1]
+        parts = parts[:-1]
+        city_region = ['київ', 'севастополь']
+        for part in parts:
+            if '/' in part:
+                part = part.split('/')[0]
+            if 'район' in part:
+                district = part
+            elif 'область' in part:
+                region = part
+            elif part in city_region:
+                city = region = part
+            else:
+                city = part
+        return city, region, district
 
     # TODO: save family data with NACP id
     def save_family_data(self, relatives_data, declaration):
