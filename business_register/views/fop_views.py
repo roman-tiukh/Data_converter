@@ -29,7 +29,7 @@ class FopViewSet(RegisterViewMixin,
     ).prefetch_related(
         'kveds', 'exchange_data'
     ).all()
-    filter_backends = (DjangoFilterBackend, SearchFilter)
+    filter_backends = (DjangoFilterBackend, FullWordSearchFilter)
     serializer_class = FopSerializer
     filterset_class = FopFilterSet
     search_fields = ('fullname', 'address', 'status__name')

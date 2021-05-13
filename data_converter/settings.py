@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'rest_framework.authtoken',
+    'rest_framework_word_filter',
     'rest_framework_xml',
     'rest_auth',
     # 'rest_auth.registration',
