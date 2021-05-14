@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from business_register.converter.fop import FopConverter
+from business_register.converter.fop_full import FopFullConverter
 
 
 class Command(BaseCommand):
@@ -9,4 +9,4 @@ class Command(BaseCommand):
         parser.add_argument('start_index', nargs='?', type=int, default=0)
 
     def handle(self, *args, **options):
-        FopConverter().process(options['start_index'])
+        FopFullConverter().process(options['start_index'])
