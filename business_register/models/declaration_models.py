@@ -35,7 +35,7 @@ class Declaration(DataOceanModel):
         db_index=True,
         help_text=_('NACP id of the declaration'),
     )
-    nacp_declarant_id = models.PositiveIntegerField(
+    nacp_declarant_id = models.PositiveBigIntegerField(
         _('NACP id of the declarant'),
         db_index=True
     )
