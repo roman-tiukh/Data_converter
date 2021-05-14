@@ -1,6 +1,7 @@
 from django.utils.translation import gettext_lazy as _
 from django.db.models import Q
 from django_filters import rest_framework as filters
+from rest_framework.filters import SearchFilter
 
 from business_register.forms import PepExportForm, PepCheckFilterForm
 from business_register.models.company_models import Company
@@ -279,3 +280,8 @@ class PepCheckFilterSet(filters.FilterSet):
 
 class HistoricalCompanyRelatedFilterSet(filters.FilterSet):
     history_date = filters.DateFromToRangeFilter()
+
+
+class FullWordSearchFilter(SearchFilter):
+    def get_search_terms(self, request):
+        return [request.query_params.get(self.search_param, '')]
