@@ -15,9 +15,8 @@
                     {% elif not report.update_status %}
                         Під час оновлення {{ report.registry_name }} виникла проблема: "{{ report.update_message }}".
                     {% endif %}
-                {% else %}
-                    {% elif not report.update_status %}
-                        Під час оновлення {{ report.registry_name }} виникла проблема: "{{ report.update_message }}".
+                {% elif not report.update_status %}
+                    Під час оновлення {{ report.registry_name }} виникла проблема: "{{ report.update_message }}".
                 {% endif %}
             {% endfor %}
         </tr>
