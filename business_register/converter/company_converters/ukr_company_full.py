@@ -1041,7 +1041,6 @@ class UkrCompanyFullConverter(CompanyConverter):
 
 
 class UkrCompanyFullDownloader(Downloader):
-    chunk_size = 16 * 1024 * 1024
     reg_name = 'business_ukr_company'
     zip_required_file_sign = 'ufop_full'
     unzip_required_file_sign = 'EDR_UO_FULL'
