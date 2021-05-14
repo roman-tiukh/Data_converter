@@ -189,16 +189,10 @@ class FopFullConverter(BusinessConverter):
             if registration_text:
                 registration_info = registration_text
                 registration_text = registration_text.split()
-                if 3 != len(registration_text):
-                    print(record.xpath('REGISTRATION')[0].text)
-                else:
-                    registration_number = registration_text[2]
-                    if len(registration_number) > 17:
-                        print(registration_number)
-
                 registration_date = format_date_to_yymmdd(registration_text[0])
                 registration_date_second = format_date_to_yymmdd(registration_text[1])
-
+                if 3 <= len(registration_text):
+                    registration_number = registration_text[2]
             estate_manager = record.xpath('ESTATE_MANAGER')[0].text
             termination_text = record.xpath('TERMINATED_INFO')[0].text
             termination_date = None
