@@ -9,7 +9,7 @@ from business_register.converter.business_converter import BusinessConverter
 from business_register.models.fop_models import (ExchangeDataFop, Fop, FopToKved)
 from data_ocean.converter import BulkCreateManager
 from data_ocean.downloader import Downloader
-from data_ocean.utils import get_first_word, cut_first_word, format_date_to_yymmdd
+from data_ocean.utils import get_first_word, cut_first_word, format_date_to_yymmdd, to_lower_string_if_exists
 from stats.tasks import endpoints_cache_warm_up
 
 logger = logging.getLogger(__name__)
@@ -185,11 +185,13 @@ class FopFullConverter(BusinessConverter):
             status = self.save_or_get_status(record.xpath('STAN')[0].text)
             registration_text = record.xpath('REGISTRATION')[0].text
             # first getting date, then registration info if REGISTRATION.text exists
-            registration_date = None
-            registration_info = None
+            registration_date, registration_date_second, registration_number, registration_info = None, None, None, None
             if registration_text:
-                registration_date = format_date_to_yymmdd(get_first_word(registration_text))
-                registration_info = cut_first_word(registration_text)
+                registration_info = registration_text
+                registration_text = registration_text.split()
+                registration_date = format_date_to_yymmdd(registration_text[0])
+                registration_date_second = format_date_to_yymmdd(registration_text[1])
+                registration_number = format_date_to_yymmdd(registration_text[2])
             estate_manager = record.xpath('ESTATE_MANAGER')[0].text
             termination_text = record.xpath('TERMINATED_INFO')[0].text
             termination_date = None
@@ -213,6 +215,8 @@ class FopFullConverter(BusinessConverter):
                     address=address,
                     status=status,
                     registration_date=registration_date,
+                    registration_date_second=registration_date_second,
+                    registration_number=registration_number,
                     registration_info=registration_info,
                     estate_manager=estate_manager,
                     termination_date=termination_date,
@@ -234,9 +238,15 @@ class FopFullConverter(BusinessConverter):
                 if fop.status != status:
                     fop.status = status
                     update_fields.append('status')
-                if fop.registration_date and str(fop.registration_date) != registration_date:
+                if to_lower_string_if_exists(fop.registration_date) != registration_date:
                     fop.registration_date = registration_date
                     update_fields.append('registration_date')
+                if to_lower_string_if_exists(fop.registration_date_second) != registration_date_second:
+                    fop.registration_date_second = registration_date_second
+                    update_fields.append('registration_date_second')
+                if fop.registration_number != registration_number:
+                    fop.registration_number = registration_number
+                    update_fields.append('registration_number')
                 if fop.registration_info != registration_info:
                     fop.registration_info = registration_info
                     update_fields.append('registration_info')
