@@ -90,6 +90,7 @@ CSRF_TRUSTED_ORIGINS = [
     '127.0.0.1',
 ]
 
+
 LOCAL_FOLDER = 'unzipped_xml/'
 
 DATA_GOV_UA_DATASETS_URL = 'https://data.gov.ua/dataset/'
