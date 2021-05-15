@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-04-15 15:57+0300\n"
+"POT-Creation-Date: 2021-05-15 10:29+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -34,11 +34,15 @@ msgstr ""
 msgid "name"
 msgstr "назва"
 
-#: location_register/models/address_models.py:11
+#: location_register/models/address_models.py:9
+msgid "ukrainian name"
+msgstr "назва українською"
+
+#: location_register/models/address_models.py:12
 msgid "country"
 msgstr "країна"
 
-#: location_register/models/address_models.py:12
+#: location_register/models/address_models.py:13
 msgid "countries"
 msgstr "країни"
 
