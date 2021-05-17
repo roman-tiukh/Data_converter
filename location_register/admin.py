@@ -10,11 +10,14 @@ from location_register.models.drv_models import DrvBuilding
 
 @admin.register(Country)
 class CountryAdmin(RegisterModelAdmin):
-    list_display = ('name',)
-    search_fields = ('name',)
+    list_display = ('name', 'name_uk')
+    search_fields = ('name', 'name_uk')
     ordering = ('name',)
 
     def has_add_permission(self, request, obj=None):
+        return self.has_module_permission(request)
+
+    def has_change_permission(self, request, obj=None):
         return self.has_module_permission(request)
 
 
