@@ -339,6 +339,8 @@ class FopFullDownloader(Downloader):
         logger.info(f'{self.reg_name}: Update started...')
 
         self.report_init()
+        self.report.long_time_converter = True
+        self.report.save()
         self.download()
 
         self.LOCAL_FILE_NAME = self.file_name
