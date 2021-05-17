@@ -16,14 +16,26 @@ def update_pep():
 
 @shared_task
 def update_fop():
-    print('********************')
-    print('*    Update FOP    *')
-    print('********************')
+    print('***************************')
+    print('*    Update FOP (SHORT)   *')
+    print('***************************')
 
     from business_register.converter.fop import FopDownloader
     FopDownloader().update()
 
     print('*** Task update_fop is done. ***')
+
+
+@shared_task
+def update_fop_full():
+    print('***************************')
+    print('*    Update FOP (FULL)    *')
+    print('***************************')
+
+    from business_register.converter.fop_full import FopFullDownloader
+    FopFullDownloader().update()
+
+    print('*** Task update_fop_full is done. ***')
 
 
 @shared_task
