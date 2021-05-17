@@ -701,7 +701,7 @@ msgid "Sanctions against companies"
 msgstr "Санкції щодо компаній"
 
 #: business_register/views/pep_views.py:77
-#: business_register/views/fop_views.py:58
+#: business_register/views/fop_views.py:59
 msgid ""
 "Generation of .xlsx file has begin. Expect an email with downloading link."
 msgstr ""
