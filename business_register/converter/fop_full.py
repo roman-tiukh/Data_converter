@@ -185,7 +185,10 @@ class FopFullConverter(BusinessConverter):
             status = self.save_or_get_status(record.xpath('STAN')[0].text)
             registration_text = record.xpath('REGISTRATION')[0].text
             # first getting date, then registration info if REGISTRATION.text exists
-            registration_date, registration_date_second, registration_number, registration_info = None, None, None, None
+            registration_date = None
+            registration_date_second = None
+            registration_number = None
+            registration_info = None
             if registration_text:
                 registration_info = registration_text
                 registration_text = registration_text.split()
