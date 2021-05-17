@@ -7,10 +7,11 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from business_register.filters import FopFilterSet, FullWordSearchFilter
+from business_register.filters import FopFilterSet
 from business_register.models.fop_models import Fop
 from business_register.serializers.fop_serializers import FopSerializer
 from data_converter.pagination import CachedCountPagination
+from data_ocean.filters import FullWordSearchFilter
 from data_ocean.permissions import IsAuthenticatedAndPaidSubscription
 from data_ocean.tasks import export_to_s3
 from data_ocean.views import CachedViewSetMixin, RegisterViewMixin
