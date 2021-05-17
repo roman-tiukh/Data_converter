@@ -248,9 +248,9 @@ class FopFullConverter(BusinessConverter):
             else:
                 # TODO: make a decision: our algorithm when Fop changes fullname or address?
                 update_fields = []
-                if fop.status != status:
-                    fop.status = status
-                    update_fields.append('status')
+                if fop.status_id != status.id:
+                    fop.status_id = status.id
+                    update_fields.append('status_id')
                 if to_lower_string_if_exists(fop.registration_date) != registration_date:
                     fop.registration_date = registration_date
                     update_fields.append('registration_date')
@@ -281,9 +281,10 @@ class FopFullConverter(BusinessConverter):
                 if fop.vp_dates != vp_dates:
                     fop.vp_dates = vp_dates
                     update_fields.append('vp_dates')
-                if fop.authority != authority:
-                    fop.authority = authority
-                    update_fields.append('authority')
+                if fop.authority_id != authority.id:
+                    fop.authority_id = authority.id
+                    update_fields.append('authority_id')
+                self.time_it('compare fops\t\t')
                 if len(update_fields):
                     update_fields.append('updated_at')
                     fop.save(update_fields=update_fields)
