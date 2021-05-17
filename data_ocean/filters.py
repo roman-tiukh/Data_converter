@@ -1,8 +1,9 @@
 import django_filters
 from django.utils.translation import ugettext_lazy as _
 from django.utils.text import format_lazy
-from rest_framework.exceptions import ValidationError
 from django_filters.widgets import BooleanWidget
+from rest_framework.exceptions import ValidationError
+from rest_framework.filters import SearchFilter
 
 from .models import Register
 
@@ -42,3 +43,10 @@ class RegisterFilter(django_filters.FilterSet):
     class Meta:
         model = Register
         fields = ()
+
+
+class FullWordSearchFilter(SearchFilter):
+    def get_search_terms(self, request):
+        params = request.query_params.get(self.search_param, '')
+        params = params.replace('\x00', '')
+        return params

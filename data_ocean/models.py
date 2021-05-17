@@ -118,6 +118,7 @@ class Report(DataOceanModel):
     update_finish = models.DateTimeField(null=True, blank=True)
     update_status = models.BooleanField(blank=True, default=False)
     update_message = models.CharField(max_length=300, null=True, blank=True)
+    long_time_converter = models.BooleanField(blank=True, default=False)
 
     records_added = models.IntegerField(blank=True, default=0)
     records_changed = models.IntegerField(blank=True, default=0)

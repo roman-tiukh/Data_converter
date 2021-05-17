@@ -25,7 +25,7 @@ class Downloader(ABC):
     data = {}
     headers = {}
     local_path = settings.LOCAL_FOLDER
-    chunk_size = 8 * 1024 * 1024
+    chunk_size = 16 * 1024
     stream = True
     reg_name = ''
     file_name = ''

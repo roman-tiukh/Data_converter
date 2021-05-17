@@ -5,10 +5,9 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets
 from rest_framework.decorators import action
-from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
 
-from business_register.filters import FopFilterSet
+from business_register.filters import FopFilterSet, FullWordSearchFilter
 from business_register.models.fop_models import Fop
 from business_register.serializers.fop_serializers import FopSerializer
 from data_converter.pagination import CachedCountPagination
@@ -29,7 +28,7 @@ class FopViewSet(RegisterViewMixin,
     ).prefetch_related(
         'kveds', 'exchange_data'
     ).all()
-    filter_backends = (DjangoFilterBackend, SearchFilter)
+    filter_backends = (DjangoFilterBackend, FullWordSearchFilter)
     serializer_class = FopSerializer
     filterset_class = FopFilterSet
     search_fields = ('fullname', 'address', 'status__name')
