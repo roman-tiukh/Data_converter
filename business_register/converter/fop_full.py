@@ -17,7 +17,8 @@ logger.setLevel(logging.INFO)
 
 
 class FopFullConverter(BusinessConverter):
-    timing = True
+    # Uncomment for switch Timer ON.
+    # timing = True
 
     def __init__(self):
         self.LOCAL_FOLDER = settings.LOCAL_FOLDER
@@ -143,9 +144,11 @@ class FopFullConverter(BusinessConverter):
     # putting all exchange data into a list
     def update_fop_exchange_data(self, exchange_data, fop):
         already_stored_exchange_data = ExchangeDataFop.objects.filter(fop_id=fop.id)
+        self.time_it('trying get exchange_data')
         for answer in exchange_data:
             authority, taxpayer_type, start_date, start_number, end_date, end_number \
                 = self.extract_exchange_data(answer)
+            self.time_it('getting exchange_data from record')
             if (not authority and not taxpayer_type and not start_date
                     and not start_number and not end_date and not end_number):
                 continue
@@ -349,6 +352,8 @@ class FopFullDownloader(Downloader):
         logger.info(f'{self.reg_name}: Update started...')
 
         self.report_init()
+        self.report.long_time_converter = True
+        self.report.save()
         self.download()
 
         self.LOCAL_FILE_NAME = self.file_name
