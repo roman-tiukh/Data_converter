@@ -1,13 +1,15 @@
-from business_register.converter.business_converter import BusinessConverter
-from business_register.models.pep_models import Pep
-from business_register.models.declaration_models import Declaration, Property
-from location_register.models.ratu_models import RatuRegion, RatuDistrict, RatuCity
-import requests
 import logging
 
+import requests
 from django.conf import settings
 
+from business_register.converter.business_converter import BusinessConverter
+from business_register.models.declaration_models import Declaration, Property
+from business_register.models.pep_models import Pep, RelatedPersonsLink
 from data_ocean.utils import format_date_to_yymmdd
+from location_register.models.ratu_models import RatuRegion, RatuDistrict, RatuCity
+
+from business_register.management.commands.fetch_peps_nacp_id import is_same_full_name
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -16,7 +18,10 @@ logger.setLevel(logging.INFO)
 class DeclarationConverter(BusinessConverter):
 
     def __init__(self):
-        self.only_peps = {pep.source_id: pep for pep in Pep.objects.filter(is_pep=True)}
+        self.only_peps = {pep.nacp_id: pep for pep in Pep.objects.filter(
+            is_pep=True,
+            nacp_id__isnull=False
+        )}
         self.all_declarations = self.put_objects_to_dict(
             'nacp_declaration_id',
             'business_register',
@@ -25,8 +30,9 @@ class DeclarationConverter(BusinessConverter):
         self.NO_DATA = ['[Не застосовується]', '[Не відомо]', '[Член сім\'ї не надав інформацію]']
         self.keys = set()
 
-    def save_property_right(self, property, acquisition_date, right_data):
-        pass
+    def save_property_right(self, property, acquisition_date, rights_data):
+        for data in rights_data:
+            data
 
     def save_property(self, property_data, declaration):
         TYPES = {
@@ -40,23 +46,31 @@ class DeclarationConverter(BusinessConverter):
             'Офіс': Property.OFFICE
         }
         # this is for future documentation))
-        possible_keys = {'ua_street_extendedstatus', 'postCode_extendedstatus', 'regNumber_extendedstatus',
-         'costDate_extendedstatus', 'ua_apartmentsNum_extendedstatus', 'regNumber', 'cityPath', 'person',
-         'owningDate', 'ua_houseNum_extendedstatus', 'region_extendedstatus', 'costDate', 'district',
-         'costAssessment_extendedstatus', 'district_extendedstatus', 'cost_date_assessment_extendedstatus',
-         'sources', 'rights', 'ua_apartmentsNum', 'ua_street', 'objectType', 'otherObjectType', 'ua_cityType',
-         'costAssessment', 'ua_postCode_extendedstatus', 'ua_postCode', 'owningDate_extendedstatus',
-         'ua_housePartNum_extendedstatus', 'ua_housePartNum', 'loc_engLivingAddress_extendedstatus', 'iteration',
-         'ua_buildType', 'loc_engLivingAddress', 'cost_date_assessment', 'city', 'postCode', 'ua_streetType',
-         'loc_ukrLivingAddress_extendedstatus', 'totalArea', 'loc_ukrLivingAddress', 'country', 'ua_houseNum',
-         'city_extendedstatus', 'ua_streetType_extendedstatus', 'region', 'totalArea_extendedstatus'}
+        # possible_keys = [
+        #     'ua_street_extendedstatus', 'postCode_extendedstatus', 'regNumber_extendedstatus',
+        #     'costDate_extendedstatus', 'ua_apartmentsNum_extendedstatus', 'regNumber', 'cityPath',
+        #     'person',
+        #     'owningDate', 'ua_houseNum_extendedstatus', 'region_extendedstatus', 'costDate', 'district',
+        #     'costAssessment_extendedstatus', 'district_extendedstatus',
+        #     'cost_date_assessment_extendedstatus',
+        #     'sources', 'rights', 'ua_apartmentsNum', 'ua_street', 'objectType', 'otherObjectType',
+        #     'ua_cityType',
+        #     'costAssessment', 'ua_postCode_extendedstatus', 'ua_postCode', 'owningDate_extendedstatus',
+        #     'ua_housePartNum_extendedstatus', 'ua_housePartNum', 'loc_engLivingAddress_extendedstatus',
+        #     'iteration',
+        #     'ua_buildType', 'loc_engLivingAddress', 'cost_date_assessment', 'city', 'postCode',
+        #     'ua_streetType',
+        #     'loc_ukrLivingAddress_extendedstatus', 'totalArea', 'loc_ukrLivingAddress', 'country',
+        #     'ua_houseNum',
+        #     'city_extendedstatus', 'ua_streetType_extendedstatus', 'region', 'totalArea_extendedstatus'
+        # ]
 
         for data in property_data:
             property_type = TYPES.get(data['objectType'])
             if property_type == Property.OTHER:
-                additional_info = data
+                property_additional_info = data
             else:
-                additional_info = ''
+                property_additional_info = ''
             # TODO: add country
             property_country = self.find_country(data['country'])
             property_location = data.get('ua_cityType')
@@ -70,7 +84,7 @@ class DeclarationConverter(BusinessConverter):
                 if not property_valuation or property_valuation in self.NO_DATA:
                     property_valuation = data.get('cost_date_assessment')
             if property_valuation and property_valuation not in self.NO_DATA:
-                    property_valuation = int(property_valuation)
+                property_valuation = int(property_valuation)
             else:
                 property_valuation = None
             property_area = data.get('totalArea')
@@ -82,7 +96,7 @@ class DeclarationConverter(BusinessConverter):
             property = Property.objects.create(
                 declaration=declaration,
                 type=property_type,
-                additional_info=additional_info,
+                additional_info=property_additional_info,
                 area=property_area,
                 country=property_country,
                 city=property_city,
@@ -95,22 +109,8 @@ class DeclarationConverter(BusinessConverter):
     def find_country(self, property_country_data):
         pass
 
-    # TODO: extract registration data
-    def find_city(self, registration_data):
-        city, region, district = self.normalized_registration_data(registration_data)
-        city_of_registration = ''
-        ratu_region = RatuRegion.objects.filter(name=region).first()
-        ratu_district = RatuDistrict.objects.filter(name=district, region=ratu_region).first()
-        if region and not ratu_region:
-            logger.error(f'cannot find region {region}')
-        if district and not ratu_district:
-            logger.error(f'cannot find district {district}')
-        else:
-            city_of_registration = RatuCity.objects.filter(name=city, region=ratu_region, district=ratu_district).first()
-        return city_of_registration
-
-    def normalized_registration_data(self, registration_data):
-        parts = registration_data.lower().split(' / ')
+    def split_address_data(self, address_data):
+        parts = address_data.lower().split(' / ')
         region = district = city = ''
         country = parts[len(parts) - 1]
         parts = parts[:-1]
@@ -128,12 +128,72 @@ class DeclarationConverter(BusinessConverter):
                 city = part
         return city, region, district
 
-    # TODO: save family data with NACP id
-    def save_family_data(self, relatives_data, declaration):
+    def find_city(self, address_data):
+        city, region, district = self.split_address_data(address_data)
+        city_of_registration = None
+        ratu_region = RatuRegion.objects.filter(name=region).first()
+        ratu_district = RatuDistrict.objects.filter(name=district, region=ratu_region).first()
+        if region and not ratu_region:
+            logger.error(f'cannot find region {region}')
+        if district and not ratu_district:
+            logger.error(f'cannot find district {district}')
+        else:
+            city_of_registration = RatuCity.objects.filter(
+                name=city,
+                region=ratu_region,
+                district=ratu_district
+            ).first()
+        return city_of_registration
+
+    # possible_keys = [
+    #     'previous_eng_middlename_extendedstatus', 'street_extendedstatus', 'eng_full_address',
+    #     'district_extendedstatus', 'birthday_extendedstatus', 'housePartNum', 'district', 'country_extendedstatus',
+    #     'ukr_full_name', 'taxNumber_extendedstatus', 'eng_middlename_extendedstatus', 'middlename_extendedstatus',
+    #     'eng_full_name', 'citizenship_extendedstatus', 'id', 'previous_lastname', 'previous_eng_lastname',
+    #     'unzr_extendedstatus', 'eng_identification_code_extendedstatus', 'eng_middlename', 'region',
+    #     'identificationCode_extendedstatus', 'postCode_extendedstatus', 'city_extendedstatus',
+    #     'apartmentsNum_extendedstatus', 'ukr_full_address_extendedstatus', 'unzr', 'previous_eng_firstname', 'usage',
+    #     'eng_full_address_extendedstatus', 'eng_identification_code', 'cityType', 'lastname',
+    #     'houseNum_extendedstatus', 'eng_lastname', 'changedName', 'country', 'housePartNum_extendedstatus', 'cityPath',
+    #     'firstname', 'passportCode', 'ukr_full_address', 'taxNumber', 'eng_firstname', 'previous_middlename',
+    #     'houseNum', 'apartmentsNum', 'previous_middlename_extendedstatus', 'previous_firstname', 'passport',
+    #     'identificationCode', 'no_taxNumber', 'region_extendedstatus', 'street', 'birthday', 'streetType',
+    #     'middlename', 'previous_eng_middlename', 'subjectRelation', 'citizenship', 'city', 'streetType_extendedstatus',
+    #     'postCode', 'passport_extendedstatus'
+    # ]
+    # TODO: maybe we should simplify spouse to CharField with full name
+    def save_spouse(self, relatives_data, pep, declaration):
+        SPOUSE_TYPES = ['дружина', 'чоловік']
+        # TODO: decide should we store new Pep that not spouse from relatives_data
         for relative_data in relatives_data:
-            relative = relative_data.get('subjectRelation')
-            if relative in ['дружина', 'чоловік']:
+            to_person_relationship_type = relative_data.get('subjectRelation')
+            if to_person_relationship_type in SPOUSE_TYPES:
                 spouse = None
+                nacp_id = relative_data.get('id')
+                if nacp_id:
+                    spouse = Pep.objects.filter(nacp_id=nacp_id).first()
+                if not spouse:
+                    link_from_our_db = RelatedPersonsLink.objects.filter(
+                        from_person=pep,
+                        to_person_relationship_type=to_person_relationship_type,
+                    ).first()
+                    if not link_from_our_db:
+                        # TODO: decide should we store new Pep here
+                        break
+                    else:
+                        spouse_from_our_db = link_from_our_db.to_person
+                        if not is_same_full_name(
+                                relative_data,
+                                spouse_from_our_db,
+                                declaration.id
+                        ):
+                            break
+                        else:
+                            spouse = spouse_from_our_db
+                if spouse:
+                    declaration.spouse = spouse
+                    declaration.save()
+                    break
 
     def save_or_update_declaration(self):
         for nacp_declarant_id in self.only_peps:
@@ -141,22 +201,26 @@ class DeclarationConverter(BusinessConverter):
             response = requests.get(
                 f'{settings.NACP_DECLARATION_LIST}?user_declarant_id={nacp_declarant_id}'
             )
-            if response.status_code != 200:
+            declarations_data = response.json().get('data')
+            if response.status_code != 200 or not declarations_data:
                 logger.error(
                     f'cannot find declarations of the PEP with nacp_declarant_id: {nacp_declarant_id}'
                 )
                 continue
-            for declaration_data in response.json()['data']:
+            pep = self.only_peps[nacp_declarant_id]
+            for declaration_data in declarations_data:
                 declaration_id = declaration_data['id']
                 declaration = self.all_declarations.get(declaration_id)
                 # TODO: predict storing changes from the declarant
-                if not declaration:
+                if declaration:
+                    continue
+                else:
                     declaration = Declaration.objects.create(
                         type=declaration_data['declaration_type'],
                         year=declaration_data['declaration_year'],
                         nacp_declaration_id=declaration_id,
                         nacp_declarant_id=nacp_declarant_id,
-                        pep=self.only_peps[nacp_declarant_id],
+                        pep=pep,
                     )
 
                 # getting full declaration data
@@ -169,26 +233,44 @@ class DeclarationConverter(BusinessConverter):
                 detailed_declaration_data = response.json()['data']
 
                 # 'Step_1' - declarant`s personal data
-                last_job_title = detailed_declaration_data['step_1']['data'].get('workPost')
-                last_employer = detailed_declaration_data['step_1']['data'].get('workPlace')
-                registration_data = detailed_declaration_data['step_1']['data'].get('cityType')
-                if registration_data:
-                    city_of_registration = self.find_city(registration_data)
+                # possible_keys = [
+                #     'actual_streetType', 'actual_apartmentsNum_extendedstatus', 'actual_apartmentsNum', 'country',
+                #     'actual_country', 'previous_middlename', 'lastname', 'sameRegLivingAddress',
+                #     'housePartNum_extendedstatus', 'actual_district', 'actual_street', 'postType',
+                #     'actual_housePartNum_extendedstatus', 'previous_lastname', 'apartmentsNum_extendedstatus',
+                #     'changedName', 'passport_extendedstatus', 'middlename', 'previous_middlename_extendedstatus',
+                #     'streetType', 'actual_street_extendedstatus', 'public_person', 'district', 'actual_region',
+                #     'actual_houseNum', 'ukr_actualAddress', 'actual_houseNum_extendedstatus', 'street',
+                #     'actual_housePartNum', 'actual_cityType', 'unzr_extendedstatus', 'unzr', 'apartmentsNum',
+                #     'workPlace', 'firstname', 'cityType', 'actual_buildType', 'houseNum', 'actual_postCode',
+                #     'housePartNum', 'actual_cityPath', 'previous_firstname', 'actual_city', 'cityPath', 'postCategory',
+                #     'region', 'passport', 'city', 'postType_extendedstatus', 'postCode', 'birthday', 'buildType',
+                #     'workPost', 'taxNumber', 'houseNum_extendedstatus', 'city_extendedstatus', 'responsiblePosition',
+                #     'public_person_extendedstatus', 'actual_streetType_extendedstatus', 'eng_actualPostCode',
+                #     'corruptionAffected', 'eng_actualAddress', 'streetType_extendedstatus',
+                #     'postCategory_extendedstatus'
+                # ]
+                declaration.last_employer = detailed_declaration_data['step_1']['data'].get('workPlace')
+                city_of_registration_data = detailed_declaration_data['step_1']['data'].get('cityType')
+                if city_of_registration_data:
+                    city_of_registration = self.find_city(city_of_registration_data)
                 else:
                     city_of_registration = None
+                declaration.city_of_registration = city_of_registration
                 # TODO: make a method for extracting residence data
+                # TODO: investigate the date of birth data
+                declaration.last_job_title = detailed_declaration_data['step_1']['data'].get('workPost')
+                declaration.save()
 
                 # 'Step_2' - declarant`s family
-                if (detailed_declaration_data['step_2']
-                        and not detailed_declaration_data['step_2'].get('isNotApplicable')):
-                    self.save_family_data(detailed_declaration_data['step_2']['data'], declaration)
+                if (
+                        not declaration.spouse
+                        and detailed_declaration_data['step_2']
+                        and not detailed_declaration_data['step_2'].get('isNotApplicable')
+                ):
+                    self.save_spouse(detailed_declaration_data['step_2']['data'], pep, declaration)
 
                 # 'Step_3' - declarant`s family`s properties
                 if (detailed_declaration_data['step_3']
                         and not detailed_declaration_data['step_3'].get('isNotApplicable')):
                     self.save_property(detailed_declaration_data['step_3']['data'], declaration)
-
-                declaration.last_job_title = last_job_title
-                declaration.last_employer = last_employer
-                declaration.city_of_registration = city_of_registration
-                # declaration.save()

@@ -11,6 +11,7 @@ from business_register.models.pep_models import Pep, RelatedPersonsLink
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
+
 # possible_keys = ['previous_eng_middlename_extendedstatus', 'street_extendedstatus', 'eng_full_address',
 #  'district_extendedstatus', 'birthday_extendedstatus', 'housePartNum', 'district', 'country_extendedstatus',
 #  'ukr_full_name', 'taxNumber_extendedstatus', 'eng_middlename_extendedstatus', 'middlename_extendedstatus',
@@ -52,7 +53,9 @@ def is_same_full_name(relative_data, pep, declaration_id):
             if len(splitted_names) == 3:
                 middle_name = splitted_names[2]
     if not last_name or not first_name:
-        print(relative_data)
+        logger.error(f'Check related person data ({relative_data}) from declaration '
+                     f'with NACP id {declaration_id}')
+        return False
     if not middle_name:
         middle_name = ''
 
@@ -63,6 +66,7 @@ def is_same_full_name(relative_data, pep, declaration_id):
     )
 
 
+# TODO: investigate PEPs without nacp_id
 class Command(BaseCommand):
     help = 'fetch and store Peps id from the National agency on corruption prevention'
 
@@ -79,7 +83,10 @@ class Command(BaseCommand):
             WHERE is_pep = True AND d.nacp_declaration = True AND d.confirmed='a'
             GROUP BY p.id
         """)
-        self.all_peps = {getattr(pep, 'source_id'): pep for pep in Pep.objects.filter(is_pep=True)}
+        self.peps_without_nacp_id = {getattr(pep, 'source_id'): pep for pep in Pep.objects.filter(
+            is_pep=True,
+            nacp_id__isnull=True
+        )}
         self.all_nacp_id = [getattr(pep, 'nacp_id') for pep in Pep.objects.filter(is_pep=True)]
         self.check_peps = []
 
@@ -103,7 +110,7 @@ class Command(BaseCommand):
         with connection.cursor() as cursor:
             cursor.execute(self.PEP_QUERY)
             for pep_data in cursor.fetchall():
-                pep = self.all_peps.get(pep_data[0])
+                pep = self.peps_without_nacp_id.get(pep_data[0])
                 declaration_id = pep_data[1].replace('nacp_', '')
                 response = requests.get(settings.NACP_DECLARATION_RETRIEVE + declaration_id)
                 if response.status_code != 200:
@@ -111,36 +118,36 @@ class Command(BaseCommand):
                     continue
                 declaration_data = json.loads(response.text)
 
-                if not pep.nacp_id:
-                    # storing PEP nacp_id from declarations list
-                    pep_nacp_id = declaration_data['user_declarant_id']
-                    if not isinstance(pep_nacp_id, int) or pep_nacp_id == 0:
-                        logger.error(f'Check invalid declarant NACP id ({relative_data}) from declaration '
-                                     f'with NACP id {declaration_id}')
-                    else:
-                        pep.nacp_id = pep_nacp_id
-                        pep.save()
+                # storing PEP nacp_id from declarations list
+                pep_nacp_id = declaration_data['user_declarant_id']
+                if not isinstance(pep_nacp_id, int) or pep_nacp_id == 0:
+                    logger.error(f'Check invalid declarant NACP id ({relative_data}) from declaration '
+                                 f'with NACP id {declaration_id}')
+                else:
+                    pep.nacp_id = pep_nacp_id
+                    pep.save()
 
-                    # additional check of matching PEP`s last_name and first_name
-                    # last_name = declaration_data['data']['step_1']['data'].get('lastname')
-                    # first_name = declaration_data['data']['step_1']['data'].get('firstname')
-                    # if (
-                    #         pep.last_name != last_name.lower()
-                    #         or pep.first_name != first_name.lower()
-                    # ):
-                    #     logger.error(
-                    #         f'PEP data from our DB with id {pep.id}: {pep.last_name} {pep.first_name}, '
-                    #         f'from declaration: {last_name} {first_name}')
-                    #     self.check_peps.append(
-                    #         f'PEP data from our DB with id {pep.id}: {pep.last_name} {pep.first_name}, '
-                    #         f'from declaration: {last_name} {first_name}')
-                    #     continue
-                # TODO: investigate PEPs without nacp_id
+                # additional check of matching PEP`s last_name and first_name
+                # last_name = declaration_data['data']['step_1']['data'].get('lastname')
+                # first_name = declaration_data['data']['step_1']['data'].get('firstname')
+                # if (
+                #         pep.last_name != last_name.lower()
+                #         or pep.first_name != first_name.lower()
+                # ):
+                #     logger.error(
+                #         f'PEP data from our DB with id {pep.id}: {pep.last_name} {pep.first_name}, '
+                #         f'from declaration: {last_name} {first_name}')
+                #     self.check_peps.append(
+                #         f'PEP data from our DB with id {pep.id}: {pep.last_name} {pep.first_name}, '
+                #         f'from declaration: {last_name} {first_name}')
+                #     continue
 
                 # storing RelatedPerson (not PEP) NACP id from PEP declaration
                 detailed_declaration_data = declaration_data['data']
-                if (detailed_declaration_data['step_2']
-                        and not detailed_declaration_data['step_2'].get('isNotApplicable')):
+                if (
+                        detailed_declaration_data['step_2']
+                        and not detailed_declaration_data['step_2'].get('isNotApplicable')
+                ):
                     for relative_data in detailed_declaration_data['step_2']['data']:
                         to_person_relationship_type = relative_data.get('subjectRelation')
                         related_person_links = RelatedPersonsLink.objects.filter(
@@ -158,8 +165,9 @@ class Command(BaseCommand):
                             ):
                                 related_person_nacp_id = relative_data.get('id')
                                 if not isinstance(related_person_nacp_id, int) or related_person_nacp_id == 0:
-                                    logger.error(f'Check invalid declarant NACP id ({related_person_nacp_id}) from declaration '
-                                                 f'with NACP id {declaration_id}')
+                                    logger.error(
+                                        f'Check invalid declarant NACP id ({related_person_nacp_id}) from declaration '
+                                        f'with NACP id {declaration_id}')
                                 else:
                                     related_person.nacp_id = related_person_nacp_id
                                     related_person.save()
