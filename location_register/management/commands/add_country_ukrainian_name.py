@@ -1,9 +1,5 @@
-import logging
 from django.core.management import BaseCommand
 from location_register.models.address_models import Country
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 
 class Command(BaseCommand):
@@ -19,7 +15,9 @@ class Command(BaseCommand):
                 name=country_en, defaults={'nacp_id': nacp_id, 'name_uk': country_uk}
             )
             if created:
-                logger.info(f'New country {country_en}')
+                self.stdout.write(f'New country {country_en}')
+        self.stdout.write('Done!')
+
 
 
 def countries_dict():
