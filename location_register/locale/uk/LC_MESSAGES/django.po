@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-04-15 15:57+0300\n"
+"POT-Creation-Date: 2021-05-18 11:12+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -22,23 +22,22 @@ msgstr ""
 "(n % 100 >=11 && n % 100 <=14 )) ? 2: 3);\n"
 
 #: location_register/models/address_models.py:8
-#: location_register/models/koatuu_models.py:16
-#: location_register/models/koatuu_models.py:30
-#: location_register/models/koatuu_models.py:46
-#: location_register/models/koatuu_models.py:70
-#: location_register/models/ratu_models.py:9
-#: location_register/models/ratu_models.py:19
-#: location_register/models/ratu_models.py:35
-#: location_register/models/ratu_models.py:53
-#: location_register/models/ratu_models.py:71
-msgid "name"
-msgstr "назва"
+msgid "english name"
+msgstr "назва англійською"
 
-#: location_register/models/address_models.py:11
+#: location_register/models/address_models.py:9
+msgid "ukrainian name"
+msgstr "назва українською"
+
+#: location_register/models/address_models.py:10
+msgid "NACP id of country"
+msgstr "НАЗК id країни"
+
+#: location_register/models/address_models.py:13
 msgid "country"
 msgstr "країна"
 
-#: location_register/models/address_models.py:12
+#: location_register/models/address_models.py:14
 msgid "countries"
 msgstr "країни"
 
@@ -100,6 +99,18 @@ msgstr "будинки"
 #: location_register/models/koatuu_models.py:69
 msgid "category"
 msgstr "категорія"
+
+#: location_register/models/koatuu_models.py:16
+#: location_register/models/koatuu_models.py:30
+#: location_register/models/koatuu_models.py:46
+#: location_register/models/koatuu_models.py:70
+#: location_register/models/ratu_models.py:9
+#: location_register/models/ratu_models.py:19
+#: location_register/models/ratu_models.py:35
+#: location_register/models/ratu_models.py:53
+#: location_register/models/ratu_models.py:71
+msgid "name"
+msgstr "назва"
 
 #: location_register/models/koatuu_models.py:20
 msgid "first level (region or city with special status)"
