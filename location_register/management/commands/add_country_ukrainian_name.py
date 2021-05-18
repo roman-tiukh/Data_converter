@@ -12,10 +12,11 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         countries = countries_dict()
         for country in countries:
+            nacp_id = country
             country_uk = countries[country][0]
             country_en = countries[country][1]
             country, created = Country.objects.update_or_create(
-                name=country_en, defaults={'name_uk': country_uk}
+                name=country_en, defaults={'nacp_id': nacp_id, 'name_uk': country_uk}
             )
             if created:
                 logger.info(f'New country {country_en}')
@@ -90,7 +91,7 @@ def countries_dict():
         '66': ['джибуті', 'djibouti'],
         '67': ['домініка', 'dominica'],
         '68': ['домініканська республіка', 'dominican republic'],
-        '64': ['др конго', 'congo (democratic republic of)'],
+        '64': ['др конго', 'congo'],
         '70': ['еквадор', 'ecuador'],
         '71': ['екваторіальна гвінея', 'equatorial guinea'],
         '72': ['еритрея', 'eritrea'],

@@ -12,7 +12,8 @@ from location_register.models.drv_models import DrvBuilding
 class CountryAdmin(RegisterModelAdmin):
     list_display = ('name', 'name_uk')
     search_fields = ('name', 'name_uk')
-    ordering = ('name',)
+    ordering = ('name', 'name_uk')
+    readonly_fields = ['nacp_id']
 
     def has_add_permission(self, request, obj=None):
         return self.has_module_permission(request)
