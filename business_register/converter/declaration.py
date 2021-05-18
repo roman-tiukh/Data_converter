@@ -7,6 +7,7 @@ from business_register.converter.business_converter import BusinessConverter
 from business_register.models.declaration_models import Declaration, Property
 from business_register.models.pep_models import Pep, RelatedPersonsLink
 from data_ocean.utils import format_date_to_yymmdd
+from location_register.models.address_models import Country
 from location_register.models.ratu_models import RatuRegion, RatuDistrict, RatuCity
 
 from business_register.management.commands.fetch_peps_nacp_id import is_same_full_name
@@ -107,7 +108,9 @@ class DeclarationConverter(BusinessConverter):
 
     # TODO: retrieve country from Country DB
     def find_country(self, property_country_data):
-        pass
+        country_id = property_country_data
+        country = Country.objects.get(nacp_id=country_id)
+        return country
 
     def split_address_data(self, address_data):
         parts = address_data.lower().split(' / ')
@@ -130,7 +133,6 @@ class DeclarationConverter(BusinessConverter):
 
     def find_city(self, address_data):
         city, region, district = self.split_address_data(address_data)
-        city_of_registration = None
         ratu_region = RatuRegion.objects.filter(name=region).first()
         ratu_district = RatuDistrict.objects.filter(name=district, region=ratu_region).first()
         if region and not ratu_region:
@@ -143,7 +145,8 @@ class DeclarationConverter(BusinessConverter):
                 region=ratu_region,
                 district=ratu_district
             ).first()
-        return city_of_registration
+            return city_of_registration
+        logger.error('Cannot find city')
 
     # possible_keys = [
     #     'previous_eng_middlename_extendedstatus', 'street_extendedstatus', 'eng_full_address',
