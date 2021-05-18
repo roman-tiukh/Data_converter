@@ -19,7 +19,6 @@ class Command(BaseCommand):
         self.stdout.write('Done!')
 
 
-
 def countries_dict():
     return {
         '1': ['україна', 'ukraine'],
@@ -89,7 +88,7 @@ def countries_dict():
         '66': ['джибуті', 'djibouti'],
         '67': ['домініка', 'dominica'],
         '68': ['домініканська республіка', 'dominican republic'],
-        '64': ['др конго', 'congo'],
+        '64': ['др конго', 'congo, (republic of)'],
         '70': ['еквадор', 'ecuador'],
         '71': ['екваторіальна гвінея', 'equatorial guinea'],
         '72': ['еритрея', 'eritrea'],
@@ -126,7 +125,7 @@ def countries_dict():
         '103': ['кокосові острови (кілінг)', 'cocos (keeling) islands'],
         '104': ['колумбія', 'colombia'],
         '105': ['коморські острови', 'comoros'],
-        '106': ['конго', 'конго'],
+        '106': ['конго', 'congo'],
         '107': ['коста-рика', 'costa rica'],
         '108': ['кот-д\'івуар', 'cote d\'ivoire'],
         '109': ['куба', 'cuba'],
