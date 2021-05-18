@@ -108,8 +108,7 @@ class DeclarationConverter(BusinessConverter):
 
     # TODO: retrieve country from Country DB
     def find_country(self, property_country_data):
-        country_id = property_country_data
-        country = Country.objects.get(nacp_id=country_id)
+        country = Country.objects.get(nacp_id=property_country_data)
         return country
 
     def split_address_data(self, address_data):
