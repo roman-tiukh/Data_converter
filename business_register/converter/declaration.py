@@ -108,8 +108,14 @@ class DeclarationConverter(BusinessConverter):
 
     # TODO: retrieve country from Country DB
     def find_country(self, property_country_data):
-        country = Country.objects.get(nacp_id=property_country_data)
-        return country
+        if property_country_data.isdigit():
+            country = Country.objects.filter(nacp_id=property_country_data).first()
+            if country:
+                return country
+            else:
+                logger.error(f'Cannot find country id {property_country_data}')
+        else:
+            logger.error(f'Invalid value {property_country_data}')
 
     def split_address_data(self, address_data):
         parts = address_data.lower().split(' / ')
