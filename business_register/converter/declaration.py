@@ -79,7 +79,7 @@ class DeclarationConverter(BusinessConverter):
             additional_info = data.get('otherOwnership', '')
             country_of_citizenship_info = data.get('citizen')
             # TODO: return country
-            country_of_citizenship = self.find_country(country_of_citizenship_info, declaration)
+            country_of_citizenship = self.find_country(country_of_citizenship_info, declaration.nacp_declaration_id)
             last_name = data.get('ua_lastname')
             first_name = data.get('ua_firstname')
             middle_name = data.get('ua_middlename')
@@ -155,7 +155,7 @@ class DeclarationConverter(BusinessConverter):
             else:
                 property_additional_info = ''
             # TODO: add country
-            property_country = self.find_country(data['country'], declaration)
+            property_country = self.find_country(data['country'], declaration.nacp_declaration_id)
             property_city = None
             property_location = data.get('ua_cityType')
             # TODO: add property_city
@@ -196,8 +196,7 @@ class DeclarationConverter(BusinessConverter):
                 self.save_property_right(property, acquisition_date, rights_data, declaration)
 
     # TODO: retrieve country from Country DB
-    def find_country(self, property_country_data, declaration):
-        print(declaration.nacp_declaration_id)
+    def find_country(self, property_country_data, nacp_declaration_id):
         if property_country_data.isdigit():
             country = Country.objects.filter(nacp_id=property_country_data).first()
             if country:
@@ -205,11 +204,11 @@ class DeclarationConverter(BusinessConverter):
             else:
                 logger.error(
                     f'Cannot find country id {property_country_data} in '
-                    f'nacp_declaration_id {declaration.nacp_declaration_id}'
+                    f'nacp_declaration_id {nacp_declaration_id}'
                 )
         else:
             logger.error(
-                f'Invalid value {property_country_data} in nacp_declaration_id {declaration.nacp_declaration_id}'
+                f'Invalid value {property_country_data} in nacp_declaration_id {nacp_declaration_id}'
             )
 
     def split_address_data(self, address_data):
@@ -231,22 +230,23 @@ class DeclarationConverter(BusinessConverter):
                 city = part
         return city, region, district
 
-    def find_city(self, address_data, declaration):
+    def find_city(self, address_data, nacp_declaration_id):
         city, region, district = self.split_address_data(address_data)
         ratu_region = RatuRegion.objects.filter(name=region).first()
         ratu_district = RatuDistrict.objects.filter(name=district, region=ratu_region).first()
         if region and not ratu_region:
-            logger.error(f'cannot find region {region} in nacp_declaration_id {declaration.nacp_declaration_id}')
+            logger.error(f'cannot find region {region} in nacp_declaration_id {nacp_declaration_id}')
         if district and not ratu_district:
-            logger.error(f'cannot find district {district} in nacp_declaration_id {declaration.nacp_declaration_id}')
+            logger.error(f'cannot find district {district} in nacp_declaration_id {nacp_declaration_id}')
         else:
             city_of_registration = RatuCity.objects.filter(
                 name=city,
                 region=ratu_region,
                 district=ratu_district
             ).first()
+            print(city_of_registration)
             return city_of_registration
-        logger.error(f'Cannot find city in nacp_declaration_id {declaration.nacp_declaration_id}')
+        logger.error(f'Cannot find city in nacp_declaration_id {nacp_declaration_id}')
 
     # possible_keys = [
     #     'previous_eng_middlename_extendedstatus', 'street_extendedstatus', 'eng_full_address',
@@ -318,7 +318,7 @@ class DeclarationConverter(BusinessConverter):
         declaration.last_employer = declarant_data.get('workPlace')
         city_of_registration_data = declarant_data.get('cityType')
         if city_of_registration_data:
-            city_of_registration = self.find_city(city_of_registration_data, declaration)
+            city_of_registration = self.find_city(city_of_registration_data, declaration.nacp_declaration_id)
         else:
             city_of_registration = None
         declaration.city_of_registration = city_of_registration
