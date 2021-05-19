@@ -73,10 +73,10 @@ class DeclarationConverter(BusinessConverter):
             else:
                 property_additional_info = ''
             # TODO: add country
-            property_country = self.find_country(data['country'])
+            property_country = self.find_country(data['country'], declaration)
             property_location = data.get('ua_cityType')
             # TODO: add property_city
-            property_city = self.find_city(property_location)
+            property_city = self.find_city(property_location, declaration)
             property_valuation = data.get('costAssessment')
             if not property_valuation and property_valuation in self.NO_DATA:
                 # In 2015 there was a separate field 'costDate' or 'cost_date_assessment' with the
@@ -107,15 +107,21 @@ class DeclarationConverter(BusinessConverter):
             self.save_property_right(property, acquisition_date, data['rights'])
 
     # TODO: retrieve country from Country DB
-    def find_country(self, property_country_data):
+    def find_country(self, property_country_data, declaration):
+        print(declaration.nacp_declaration_id)
         if property_country_data.isdigit():
             country = Country.objects.filter(nacp_id=property_country_data).first()
             if country:
                 return country
             else:
-                logger.error(f'Cannot find country id {property_country_data}')
+                logger.error(
+                    f'Cannot find country id {property_country_data} in '
+                    f'nacp_declaration_id {declaration.nacp_declaration_id}'
+                )
         else:
-            logger.error(f'Invalid value {property_country_data}')
+            logger.error(
+                f'Invalid value {property_country_data} in nacp_declaration_id {declaration.nacp_declaration_id}'
+            )
 
     def split_address_data(self, address_data):
         parts = address_data.lower().split(' / ')
@@ -136,14 +142,14 @@ class DeclarationConverter(BusinessConverter):
                 city = part
         return city, region, district
 
-    def find_city(self, address_data):
+    def find_city(self, address_data, declaration):
         city, region, district = self.split_address_data(address_data)
         ratu_region = RatuRegion.objects.filter(name=region).first()
         ratu_district = RatuDistrict.objects.filter(name=district, region=ratu_region).first()
         if region and not ratu_region:
-            logger.error(f'cannot find region {region}')
+            logger.error(f'cannot find region {region} in nacp_declaration_id {declaration.nacp_declaration_id}')
         if district and not ratu_district:
-            logger.error(f'cannot find district {district}')
+            logger.error(f'cannot find district {district} in nacp_declaration_id {declaration.nacp_declaration_id}')
         else:
             city_of_registration = RatuCity.objects.filter(
                 name=city,
@@ -151,7 +157,7 @@ class DeclarationConverter(BusinessConverter):
                 district=ratu_district
             ).first()
             return city_of_registration
-        logger.error('Cannot find city')
+        logger.error(f'Cannot find city in nacp_declaration_id {declaration.nacp_declaration_id}')
 
     # possible_keys = [
     #     'previous_eng_middlename_extendedstatus', 'street_extendedstatus', 'eng_full_address',
