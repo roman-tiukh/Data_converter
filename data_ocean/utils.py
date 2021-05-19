@@ -6,6 +6,7 @@ import binascii
 import datetime
 import os
 import re
+import sys
 
 # changing to lowercase, deleting 'р.', 'м.', 'с.', 'смт.', 'смт', 'сщ.', 'с/рада.', 'сщ/рада.', /
 # 'вул.' from a string
@@ -64,7 +65,10 @@ def format_date_to_yymmdd(str_ddmmyy):
         if '/' in str_ddmmyy:
             str_ddmmyy = str_ddmmyy.replace("/", ".")
         try:
-            date = datetime.datetime.strptime(str_ddmmyy, "%d.%m.%Y").strftime("%4Y-%m-%d")
+            if sys.platform.startswith('linux'):
+                date = datetime.datetime.strptime(str_ddmmyy, "%d.%m.%Y").strftime("%4Y-%m-%d")
+            else:
+                date = datetime.datetime.strptime(str_ddmmyy, "%d.%m.%Y").strftime("%Y-%m-%d")
         except ValueError:
             return None
         return date
