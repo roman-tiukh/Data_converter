@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib import admin
 from django.contrib.admin.widgets import AutocompleteSelectMultiple
+from rangefilter.filter import DateRangeFilter
 
 from business_register.models.company_models import Company
 from business_register.models.fop_models import Fop
@@ -84,12 +85,19 @@ class CountrySanctionAdmin(RegisterModelAdmin):
 
 @admin.register(PersonSanction)
 class PersonSanctionAdmin(RegisterModelAdmin):
+    def get_countries(self, obj: PersonSanction):
+        return ', '.join(obj.countries_of_citizenship.values_list('name', flat=True))
+    get_countries.short_description = 'Countries of citizenship'
+
     save_as = True
     form = get_sanction_form(PersonSanction)
     list_display = (
         'full_name',
-        'taxpayer_number',
+        'date_of_birth',
+        'start_date',
         'end_date',
+        'taxpayer_number',
+        'get_countries',
     )
     filter_horizontal = ('types_of_sanctions', 'countries_of_citizenship')
     autocomplete_fields = ['pep', 'countries_of_citizenship', 'types_of_sanctions']
@@ -105,8 +113,14 @@ class PersonSanctionAdmin(RegisterModelAdmin):
     list_filter = (
         input_filter('types_of_sanctions', 'types of sanctions', ['types_of_sanctions__name']),
         input_filter('countries_of_citizenship', 'countries of citizenship name', ['countries_of_citizenship__name']),
-        # 'types_of_sanctions__name',
-        # 'countries_of_citizenship__name',
+        input_filter('taxpayer_number', 'taxpayer number', ['taxpayer_number']),
+        input_filter('occupation', 'occupation', ['occupation']),
+        input_filter('id_card', 'id card', ['id_card']),
+        ('date_of_birth', DateRangeFilter),
+        ('start_date', DateRangeFilter),
+        ('end_date', DateRangeFilter),
+        input_filter('reasoning', 'reasoning', ['reasoning']),
+        input_filter('additional_info', 'additional_info', ['additional_info']),
     )
 
     def has_change_permission(self, request, obj=None):
@@ -125,9 +139,11 @@ class CompanySanctionAdmin(RegisterModelAdmin):
     form = get_sanction_form(CompanySanction)
     list_display = (
         'name',
-        'country_of_registration',
-        'registration_number',
+        'start_date',
         'end_date',
+        'registration_number',
+        'taxpayer_number',
+        'country_of_registration',
     )
     filter_horisontal = ('types_of_sanctions', 'country_of_registration')
     autocomplete_fields = ('company', 'country_of_registration', 'types_of_sanctions')
@@ -141,8 +157,15 @@ class CompanySanctionAdmin(RegisterModelAdmin):
     )
     ordering = ('start_date',)
     list_filter = (
+        input_filter('name', 'name', ['name']),
+        input_filter('registration_number', 'registration number', ['registration_number']),
+        input_filter('taxpayer_number', 'taxpayer number', ['taxpayer_number']),
         input_filter('types_of_sanctions', 'types of sanctions', ['types_of_sanctions__name']),
         input_filter('country_of_registration', 'countries of registration name', ['country_of_registration__name']),
+        ('start_date', DateRangeFilter),
+        ('end_date', DateRangeFilter),
+        input_filter('reasoning', 'reasoning', ['reasoning']),
+        input_filter('additional_info', 'additional_info', ['additional_info']),
     )
 
     def has_change_permission(self, request, obj=None):
