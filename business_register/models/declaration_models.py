@@ -545,19 +545,37 @@ class Property(DataOceanModel):
 # abstract model for establishing specific ManyToOne rights
 class BaseRight(DataOceanModel):
     OWNERSHIP = 1
-    JOINT_OWNERSHIP = 2
-    RENT = 3
-    USAGE = 4
-    PROPERTY_TYPES = (
+    BENEFICIAL_OWNERSHIP = 2
+    JOINT_OWNERSHIP = 3
+    COMMON_PROPERTY = 4
+    RENT = 5
+    USAGE = 6
+    OTHER_USAGE_RIGHT = 7
+    OWNER_IS_ANOTHER_PERSON = 10
+    NO_INFO_FROM_FAMILY_MEMBER = 11
+
+    RIGHT_TYPES = (
         (OWNERSHIP, _('Ownership')),
+        (BENEFICIAL_OWNERSHIP, _('Beneficial ownership')),
         (JOINT_OWNERSHIP, _('Joint ownership')),
+        (COMMON_PROPERTY, _('Common property')),
         (RENT, _('Rent')),
-        (USAGE, _('Usage'))
+        (USAGE, _('Usage')),
+        (OTHER_USAGE_RIGHT, _('Other right of usage')),
+        (OWNER_IS_ANOTHER_PERSON, _('Owner is another person')),
+        (NO_INFO_FROM_FAMILY_MEMBER, _('Family member did not provide the information')),
     )
     type = models.PositiveSmallIntegerField(
         _('type'),
-        choices=PROPERTY_TYPES,
+        choices=RIGHT_TYPES,
         help_text=_('type of the right')
+    )
+    # please, use this field when the type == OTHER_USAGE_RIGHT
+    additional_info = models.TextField(
+        _('additional info'),
+        blank=True,
+        default='',
+        help_text=_('additional info about the right')
     )
     acquisition_date = models.DateField(
         _('acquisition date'),
@@ -565,7 +583,7 @@ class BaseRight(DataOceanModel):
         blank=True,
         help_text=_('date of acquisition of the right')
     )
-    share = models.PositiveIntegerField(
+    share = models.FloatField(
         _('share of the right'),
         blank=True,
         null=True,
