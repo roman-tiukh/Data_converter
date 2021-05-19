@@ -244,7 +244,6 @@ class DeclarationConverter(BusinessConverter):
                 region=ratu_region,
                 district=ratu_district
             ).first()
-            print(city_of_registration)
             return city_of_registration
         logger.error(f'Cannot find city in nacp_declaration_id {nacp_declaration_id}')
 
