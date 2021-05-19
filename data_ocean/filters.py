@@ -49,4 +49,4 @@ class FullWordSearchFilter(SearchFilter):
     def get_search_terms(self, request):
         params = request.query_params.get(self.search_param, '')
         params = params.replace('\x00', '')
-        return params
+        return [params]
