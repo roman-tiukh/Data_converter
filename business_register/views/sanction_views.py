@@ -40,7 +40,7 @@ class PersonSanctionViewSet(RegisterViewMixin,
         'address',
         'place_of_birth',
         'types_of_sanctions__name',
-        'position',
+        'occupation',
         'countries_of_citizenship__name'
     )
 
