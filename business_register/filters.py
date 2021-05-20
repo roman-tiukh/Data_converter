@@ -211,6 +211,7 @@ class PepFilterSet(filters.FilterSet):
             ('pep_type', 'pep_type'),
             ('last_job_title', 'last_job_title'),
             ('last_employer', 'last_employer'),
+            ('updated_at', 'updated_at')
         ),
         help_text='Sort by fields: fullname, is_pep, pep_type, last_job_title, last_employer.'
     )

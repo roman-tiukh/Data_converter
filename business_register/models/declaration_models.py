@@ -35,7 +35,7 @@ class Declaration(DataOceanModel):
         db_index=True,
         help_text=_('NACP id of the declaration'),
     )
-    nacp_declarant_id = models.PositiveIntegerField(
+    nacp_declarant_id = models.PositiveBigIntegerField(
         _('NACP id of the declarant'),
         db_index=True
     )
@@ -104,7 +104,7 @@ class Declaration(DataOceanModel):
 
 class Liability(DataOceanModel):
     LOAN = 1
-    OTHER = 2
+    OTHER = 10
     LIABILITY_TYPES = (
         (LOAN, _('Loan')),
         (OTHER, _('Other')),
@@ -245,7 +245,7 @@ class Income(DataOceanModel):
     DIVIDENDS = 3
     PROPERTY_SALE = 4
     SECURITIES_SALE = 5
-    OTHER = 6
+    OTHER = 10
     INCOME_TYPES = (
         (SALARY, _('Salary')),
         (INTEREST, _('Interest')),
@@ -298,7 +298,7 @@ class Income(DataOceanModel):
 class Securities(DataOceanModel):
     SHARE = 1
     CORPORATE_RIGHTS = 2
-    OTHER = 3
+    OTHER = 10
     ITEM_TYPES = (
         (SHARE, _('Share')),
         (CORPORATE_RIGHTS, _('Corporate right')),
@@ -411,9 +411,17 @@ class Vehicle(DataOceanModel):
 
 class LuxuryItem(DataOceanModel):
     ART = 1
-    OTHER = 2
+    ELECTRONIC_DEVICES = 2
+    ANTIQUES = 3
+    CLOTHES = 4
+    JEWELRY = 5
+    OTHER = 10
     ITEM_TYPES = (
         (ART, _('Art')),
+        (ELECTRONIC_DEVICES, _('Personal or home electronic devices')),
+        (ANTIQUES, _('Antiques')),
+        (CLOTHES, _('Clothes')),
+        (JEWELRY, _('Jewelry')),
         (OTHER, _('Other')),
     )
     declaration = models.ForeignKey(
@@ -448,9 +456,8 @@ class LuxuryItem(DataOceanModel):
         default='',
         help_text=_('trademark of the item')
     )
-    producer = models.CharField(
+    producer = models.TextField(
         _('producer'),
-        max_length=20,
         blank=True,
         default='',
         help_text=_('producer of the item')
@@ -478,7 +485,7 @@ class Property(DataOceanModel):
     UNFINISHED_CONSTRUCTION = 6
     LAND = 7
     OFFICE = 8
-    OTHER = 9
+    OTHER = 10
     PROPERTY_TYPES = (
         (HOUSE, _('House')),
         (SUMMER_HOUSE, _('Summer house')),
@@ -545,19 +552,37 @@ class Property(DataOceanModel):
 # abstract model for establishing specific ManyToOne rights
 class BaseRight(DataOceanModel):
     OWNERSHIP = 1
-    JOINT_OWNERSHIP = 2
-    RENT = 3
-    USAGE = 4
-    PROPERTY_TYPES = (
+    BENEFICIAL_OWNERSHIP = 2
+    JOINT_OWNERSHIP = 3
+    COMMON_PROPERTY = 4
+    RENT = 5
+    USAGE = 6
+    OWNER_IS_ANOTHER_PERSON = 7
+    NO_INFO_FROM_FAMILY_MEMBER = 8
+    OTHER_USAGE_RIGHT = 10
+
+    RIGHT_TYPES = (
         (OWNERSHIP, _('Ownership')),
+        (BENEFICIAL_OWNERSHIP, _('Beneficial ownership')),
         (JOINT_OWNERSHIP, _('Joint ownership')),
+        (COMMON_PROPERTY, _('Common property')),
         (RENT, _('Rent')),
-        (USAGE, _('Usage'))
+        (USAGE, _('Usage')),
+        (OTHER_USAGE_RIGHT, _('Other right of usage')),
+        (OWNER_IS_ANOTHER_PERSON, _('Owner is another person')),
+        (NO_INFO_FROM_FAMILY_MEMBER, _('Family member did not provide the information')),
     )
     type = models.PositiveSmallIntegerField(
         _('type'),
-        choices=PROPERTY_TYPES,
+        choices=RIGHT_TYPES,
         help_text=_('type of the right')
+    )
+    # please, use this field when the type == OTHER_USAGE_RIGHT
+    additional_info = models.TextField(
+        _('additional info'),
+        blank=True,
+        default='',
+        help_text=_('additional info about the right')
     )
     acquisition_date = models.DateField(
         _('acquisition date'),
@@ -565,7 +590,7 @@ class BaseRight(DataOceanModel):
         blank=True,
         help_text=_('date of acquisition of the right')
     )
-    share = models.PositiveIntegerField(
+    share = models.FloatField(
         _('share of the right'),
         blank=True,
         null=True,

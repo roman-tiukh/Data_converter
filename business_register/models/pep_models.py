@@ -126,7 +126,7 @@ class Pep(DataOceanModel):
     source_id = models.PositiveIntegerField(
         _("id from ANTACs DB"), unique=True, null=True, blank=True
     )
-    nacp_id = models.PositiveIntegerField(
+    nacp_id = models.PositiveBigIntegerField(
         _('id from NACP'),
         unique=True,
         null=True,

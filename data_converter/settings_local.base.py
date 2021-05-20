@@ -92,7 +92,6 @@ CSRF_TRUSTED_ORIGINS = [
 
 LOCAL_FOLDER = 'unzipped_xml/'
 
-
 DATA_GOV_UA_DATASETS_URL = 'https://data.gov.ua/dataset/'
 DATA_GOV_UA_SOURCE_PACKAGE = 'https://data.gov.ua/api/3/action/package_show?id='
 
@@ -170,7 +169,6 @@ PEP_SOURCE_USER = ''
 PEP_SOURCE_PASSWORD = ''
 # PEP_LOCAL_SOURCE_HOST = '0.0.0.0'
 # PEP_LOCAL_SOURCE_PORT = 8080
-
 
 REDIS_PASSWORD = 'You_Redis_Password'
 

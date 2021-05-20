@@ -1,8 +1,5 @@
-import codecs
 import logging
-import os
 import requests
-import tempfile
 from time import sleep
 
 from django.conf import settings
@@ -12,7 +9,7 @@ from business_register.converter.business_converter import BusinessConverter
 from business_register.models.fop_models import (ExchangeDataFop, Fop, FopToKved)
 from data_ocean.converter import BulkCreateManager
 from data_ocean.downloader import Downloader
-from data_ocean.utils import get_first_word, cut_first_word, format_date_to_yymmdd
+from data_ocean.utils import get_first_word, cut_first_word, format_date_to_yymmdd, to_lower_string_if_exists
 from stats.tasks import endpoints_cache_warm_up
 
 logger = logging.getLogger(__name__)
@@ -20,6 +17,8 @@ logger.setLevel(logging.INFO)
 
 
 class FopFullConverter(BusinessConverter):
+    # Uncomment for switch Timer ON.
+    # timing = True
 
     def __init__(self):
         self.LOCAL_FOLDER = settings.LOCAL_FOLDER
@@ -59,6 +58,7 @@ class FopFullConverter(BusinessConverter):
     # putting all kveds into a list
     def update_fop_kveds(self, fop_kveds_from_record, fop):
         already_stored_foptokveds = list(FopToKved.objects.filter(fop_id=fop.id))
+        self.time_it('trying get kveds\t')
         for activity in fop_kveds_from_record:
             code_info = activity.xpath('CODE')
             if not code_info:
@@ -78,10 +78,10 @@ class FopFullConverter(BusinessConverter):
             else:
                 is_primary = False
             alredy_stored = False
+            self.time_it('getting data kveds from record')
             if len(already_stored_foptokveds):
                 for stored_foptokved in already_stored_foptokveds:
-                    if (stored_foptokved.kved.code == kved.code
-                            and stored_foptokved.kved.name == kved.name):
+                    if stored_foptokved.kved_id == kved.id:
                         alredy_stored = True
                         if stored_foptokved.primary_kved != is_primary:
                             stored_foptokved.primary_kved = is_primary
@@ -91,6 +91,7 @@ class FopFullConverter(BusinessConverter):
             if not alredy_stored:
                 fop_to_kved = FopToKved(fop=fop, kved=kved, primary_kved=is_primary)
                 self.bulk_manager.add(fop_to_kved)
+            self.time_it('update kveds\t\t')
         if len(already_stored_foptokveds):
             for outdated_foptokved in already_stored_foptokveds:
                 outdated_foptokved.soft_delete()
@@ -143,17 +144,19 @@ class FopFullConverter(BusinessConverter):
     # putting all exchange data into a list
     def update_fop_exchange_data(self, exchange_data, fop):
         already_stored_exchange_data = ExchangeDataFop.objects.filter(fop_id=fop.id)
+        self.time_it('trying get exchange_data')
         for answer in exchange_data:
             authority, taxpayer_type, start_date, start_number, end_date, end_number \
                 = self.extract_exchange_data(answer)
+            self.time_it('getting exchange_data from record')
             if (not authority and not taxpayer_type and not start_date
                     and not start_number and not end_date and not end_number):
                 continue
             already_stored = False
             for stored_exchange_data in already_stored_exchange_data:
                 # ToDo: find way to check dates
-                if (stored_exchange_data.authority == authority
-                        and stored_exchange_data.taxpayer_type == taxpayer_type
+                if (stored_exchange_data.authority_id == authority.id if authority else None
+                        and stored_exchange_data.taxpayer_type_id == taxpayer_type.id if taxpayer_type else None
                         and stored_exchange_data.start_number == start_number
                         and stored_exchange_data.end_number == end_number):
                     already_stored = True
@@ -189,10 +192,16 @@ class FopFullConverter(BusinessConverter):
             registration_text = record.xpath('REGISTRATION')[0].text
             # first getting date, then registration info if REGISTRATION.text exists
             registration_date = None
+            registration_date_second = None
+            registration_number = None
             registration_info = None
             if registration_text:
-                registration_date = format_date_to_yymmdd(get_first_word(registration_text))
-                registration_info = cut_first_word(registration_text)
+                registration_info = registration_text
+                registration_text = registration_text.split()
+                registration_date = format_date_to_yymmdd(registration_text[0])
+                registration_date_second = format_date_to_yymmdd(registration_text[1])
+                if 3 <= len(registration_text):
+                    registration_number = registration_text[2]
             estate_manager = record.xpath('ESTATE_MANAGER')[0].text
             termination_text = record.xpath('TERMINATED_INFO')[0].text
             termination_date = None
@@ -209,13 +218,17 @@ class FopFullConverter(BusinessConverter):
                 authority = None
             fop_kveds = record.xpath('ACTIVITY_KINDS')[0]
             exchange_data = record.xpath('EXCHANGE_DATA')[0]
+            self.time_it('getting data from record')
             fop = Fop.objects.filter(code=code).first()
+            self.time_it('trying get fops\t\t')
             if not fop:
                 fop = Fop(
                     fullname=fullname,
                     address=address,
                     status=status,
                     registration_date=registration_date,
+                    registration_date_second=registration_date_second,
+                    registration_number=registration_number,
                     registration_info=registration_info,
                     estate_manager=estate_manager,
                     termination_date=termination_date,
@@ -231,15 +244,22 @@ class FopFullConverter(BusinessConverter):
                     self.add_fop_kveds_to_dict(fop_kveds, code)
                 if len(exchange_data):
                     self.add_fop_exchange_data_to_dict(exchange_data, code)
+                self.time_it('save fops\t\t')
             else:
                 # TODO: make a decision: our algorithm when Fop changes fullname or address?
                 update_fields = []
-                if fop.status != status:
-                    fop.status = status
-                    update_fields.append('status')
-                if fop.registration_date and str(fop.registration_date) != registration_date:
+                if fop.status_id != status.id:
+                    fop.status_id = status.id
+                    update_fields.append('status_id')
+                if to_lower_string_if_exists(fop.registration_date) != registration_date:
                     fop.registration_date = registration_date
                     update_fields.append('registration_date')
+                if to_lower_string_if_exists(fop.registration_date_second) != registration_date_second:
+                    fop.registration_date_second = registration_date_second
+                    update_fields.append('registration_date_second')
+                if fop.registration_number != registration_number:
+                    fop.registration_number = registration_number
+                    update_fields.append('registration_number')
                 if fop.registration_info != registration_info:
                     fop.registration_info = registration_info
                     update_fields.append('registration_info')
@@ -261,16 +281,20 @@ class FopFullConverter(BusinessConverter):
                 if fop.vp_dates != vp_dates:
                     fop.vp_dates = vp_dates
                     update_fields.append('vp_dates')
-                if fop.authority != authority:
-                    fop.authority = authority
-                    update_fields.append('authority')
+                if fop.authority_id != authority.id:
+                    fop.authority_id = authority.id
+                    update_fields.append('authority_id')
+                self.time_it('compare fops\t\t')
                 if len(update_fields):
                     update_fields.append('updated_at')
                     fop.save(update_fields=update_fields)
+                self.time_it('update fops\t\t')
                 if len(fop_kveds):
                     self.update_fop_kveds(fop_kveds, fop)
+                self.time_it('delete outdated kveds\t')
                 if len(exchange_data):
                     self.update_fop_exchange_data(exchange_data, fop)
+                self.time_it('update exchange_data\t')
         if len(self.bulk_manager.queues['business_register.Fop']):
             self.bulk_manager.commit(Fop)
         for fop in self.bulk_manager.queues['business_register.Fop']:
@@ -296,6 +320,7 @@ class FopFullConverter(BusinessConverter):
             self.bulk_manager.commit(ExchangeDataFop)
         self.bulk_manager.queues['business_register.FopToKved'] = []
         self.bulk_manager.queues['business_register.ExchangeDataFop'] = []
+        self.time_it('save others\t\t')
 
     print("For storing run FopFullConverter().process()")
 
@@ -323,26 +348,13 @@ class FopFullDownloader(Downloader):
     def get_source_file_name(self):
         return self.url.split('/')[-1]
 
-    def remove_unreadable_characters(self):
-        file = self.local_path + self.LOCAL_FILE_NAME
-        logger.info(f'{self.reg_name}: remove_unreadable_characters for {file} started ...')
-        tmp = tempfile.mkstemp()
-        with codecs.open(file, 'r', 'Windows-1251') as fd1, codecs.open(tmp[1], 'w', 'UTF-8') as fd2:
-            for line in fd1:
-                line = line.replace('&quot;', '"')\
-                    .replace('windows-1251', 'UTF-8')\
-                    .replace('&#3;', '')\
-                    .replace('&#30;', '')\
-                    .replace('&#31;', '')
-                fd2.write(line)
-        os.rename(tmp[1], file)
-        logger.info(f'{self.reg_name}: remove_unreadable_characters finished.')
-
     def update(self):
 
         logger.info(f'{self.reg_name}: Update started...')
 
         self.report_init()
+        self.report.long_time_converter = True
+        self.report.save()
         self.download()
 
         self.LOCAL_FILE_NAME = self.file_name

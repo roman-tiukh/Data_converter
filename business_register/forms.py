@@ -1,24 +1,35 @@
 import re
 from datetime import timedelta
 from django import forms
+from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
 
-class PepExportForm(forms.Form):
+class PeriodLimitationForm(forms.Form):
+    selection_field = None
+    days_limit = None
 
     def clean(self):
+        assert self.selection_field
+        assert self.days_limit
         cleaned_data = super().clean()
-        updated_at = cleaned_data.get('updated_at', None)
-        if updated_at is None or updated_at.start is None or updated_at.stop is None:
+        selection_date = cleaned_data.get(self.selection_field, None)
+        if selection_date is None or selection_date.start is None or selection_date.stop is None:
+            if self.selection_field:
+                raise forms.ValidationError({
+                    self.selection_field: [_('Period for {} is not provided.').format(self.selection_field)]
+                })
+        elif not timedelta(days=0) < selection_date.stop - selection_date.start <= timedelta(days=self.days_limit):
             raise forms.ValidationError({
-                'updated_at': [_('Period for updated_at is not provided.')]
-            })
-        elif not timedelta(days=0) < updated_at.stop - updated_at.start <= timedelta(days=30):
-            raise forms.ValidationError({
-                'updated_at': [_('Period for updated_at not matches restrictions.')]
+                self.selection_field: [_('Period for {} not matches restrictions.').format(self.selection_field)]
             })
         else:
             return cleaned_data
+
+
+class PepExportForm(PeriodLimitationForm):
+    selection_field = 'updated_at'
+    days_limit = settings.PEP_EXPORT_XLSX_DAYS_LIMIT
 
 
 class PepCheckFilterForm(forms.Form):

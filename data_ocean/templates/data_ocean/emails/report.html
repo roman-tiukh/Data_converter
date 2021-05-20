@@ -7,7 +7,15 @@
         </tr>
         <tr>
             {% for report in reports %}
-                {% if not report.update_status %}
+                {% if report.long_time_converter %}
+                    {% if not report.download_status %}
+                        Під час оновлення {{ report.registry_name }} виникла проблема: "{{ report.download_message }}".
+                    {% elif not report.unzip_status %}
+                        Під час оновлення {{ report.registry_name }} виникла проблема: "{{ report.unzip_message }}".
+                    {% elif not report.update_status %}
+                        Під час оновлення {{ report.registry_name }} виникла проблема: "{{ report.update_message }}".
+                    {% endif %}
+                {% elif not report.update_status %}
                     Під час оновлення {{ report.registry_name }} виникла проблема: "{{ report.update_message }}".
                 {% endif %}
             {% endfor %}
@@ -28,18 +36,27 @@
         <tbody>
         {% for report in reports %}
             <tr>
-                <td>{{ report.registry_name }}</td>
-                {% if report.registry_name == 'business_ukr_company' or report.registry_name == 'business_fop' %}
+                {% if report.long_time_converter %}
+                    <td>{{ report.registry_name }}</td>
                     {% if report.update_finish %}
                         <td>{{ report.update_status }}</td>
-                    {% else %}
+                    {% elif report.unzip_status %}
                         <td>In progress</td>
+                    {% else %}
+                        <td>{{ report.update_status }}</td>
+                    {% endif %}
+                    <td>{{ report.created_at }} </td>
+                    {% if not report.update_finish and report.unzip_status %}
+                        <td>In progress</td>
+                    {% else %}
+                        <td>{{ report.updated_at }} </td>
                     {% endif %}
                 {% else %}
+                    <td>{{ report.registry_name }}</td>
                     <td>{{ report.update_status }}</td>
+                    <td>{{ report.created_at }} </td>
+                    <td>{{ report.updated_at }} </td>
                 {% endif %}
-                <td>{{ report.created_at }} </td>
-                <td>{{ report.updated_at }} </td>
                 <td>{{ report.records_added }} </td>
                 <td>{{ report.records_changed }} </td>
                 <td>{{ report.records_deleted }} </td>

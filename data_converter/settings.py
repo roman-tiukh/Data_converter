@@ -293,3 +293,5 @@ DRVBUILDING_REGISTER_LIST = '/api/drvbuilding/'
 NACP_DECLARATION_RETRIEVE = 'https://public-api.nazk.gov.ua/v2/documents/'
 NACP_DECLARATION_LIST = 'https://public-api.nazk.gov.ua/v2/documents/list/'
 
+FOP_TO_XLSX_LIMIT = 5000
+PEP_EXPORT_XLSX_DAYS_LIMIT = 30

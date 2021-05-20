@@ -21,7 +21,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         converter_module = ('business_register.converter.company_converters.ukr_company_full.UkrCompanyFullConverter'
                             if options['source'] == 'uo' else
-                            'business_register.converter.fop.FopConverter' if options['source'] == 'fop' else
+                            'business_register.converter.fop_full.FopFullConverter' if options['source'] == 'fop' else
                             'business_register.converter.company_converters.ukr_company.UkrCompanyConverter'
                             if options['source'] == 'uos' else
                             'location_register.converter.ratu.RatuConverter' if options['source'] == 'ratu' else
