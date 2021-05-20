@@ -6,7 +6,9 @@ from django.conf import settings
 from business_register.converter.business_converter import BusinessConverter
 from business_register.models.declaration_models import (Declaration,
                                                          Property,
-                                                         PropertyRight)
+                                                         PropertyRight,
+                                                         LuxuryItem,
+                                                         LuxuryItemRight)
 from business_register.models.pep_models import Pep, RelatedPersonsLink
 from location_register.models.address_models import Country
 from business_register.models.company_models import Company
@@ -32,10 +34,72 @@ class DeclarationConverter(BusinessConverter):
             'Declaration'
         )
         self.NO_DATA = {None, '[Не застосовується]', '[Не відомо]', "[Член сім'ї не надав інформацію]", }
+        self.BOOLEAN_VALUES = {
+            '1': True,
+            '0': False,
+            "Майно набуто ДО ПОЧАТКУ ПЕРІОДУ здійснення суб'єктом декларування діяльності із "
+            "виконання функцій держави або місцевого самоврядування": True,
+            "Майно набуто У ПЕРІОД здійснення суб'єктом декларування діяльності із виконання "
+            "функцій держави або місцевого самоврядування": False,
+        }
         self.keys = set()
 
-    def save_luxuries(self, luxuries_data, declaration):
+    def save_luxury_right(self, luxury_item, acquisition_date, rights_data):
         pass
+
+    possible_keys = {
+        'otherObjectType', 'costDateUse_extendedstatus', 'dateUse', 'manufacturerName',
+        'manufacturerName_extendedstatus', 'dateUse_extendedstatus', 'propertyDescr_extendedstatus',
+        'acqPeriod', 'objectType', 'rights', 'trademark_extendedstatus', 'trademark', 'costDateUse',
+        'acqBeforeFD', 'person', 'iteration', 'propertyDescr', 'otherObjectType_extendedstatus'
+    }
+
+    def save_luxuries(self, luxuries_data, declaration):
+        TYPES = {
+            'Твір мистецтва (картина тощо)': LuxuryItem.ART,
+            'Персональні або домашні електронні пристрої': LuxuryItem.ELECTRONIC_DEVICES,
+            'Антикварний виріб': LuxuryItem.ANTIQUES,
+            'Одяг': LuxuryItem.CLOTHES,
+            'Ювелірні вироби': LuxuryItem.JEWELRY,
+            'Інше': LuxuryItem.OTHER
+        }
+        for data in luxuries_data:
+            luxury_type = TYPES.get(data.get('objectType'))
+            additional_info = data.get('otherObjectType', '')
+            acquired_before_first_declaration = self.BOOLEAN_VALUES.get(data.get('acqBeforeFD'))
+            if acquired_before_first_declaration is None and acquisition_period:
+                acquisition_period = data.get('acqPeriod')
+                print('acqPeriod:' + acquisition_period)
+                acquired_before_first_declaration = self.BOOLEAN_VALUES.get(acquisition_period)
+
+            if data.get('acqBeforeFD') not in self.BOOLEAN_VALUES:
+                print('acqBeforeFD:' + data.get('acqBeforeFD'))
+            trademark = data.get('trademark', '')
+            producer = data.get('manufacturerName', '')
+            description = data.get('propertyDescr', '')
+            valuation = data.get('costDateUse')
+            if valuation not in self.NO_DATA:
+                valuation = int(valuation)
+            else:
+                valuation = None
+            luxury_item = LuxuryItem.objects.create(
+                declaration=declaration,
+                type=luxury_type,
+                additional_info=additional_info,
+                acquired_before_first_declaration=acquired_before_first_declaration,
+                trademark=trademark,
+                producer=producer,
+                description=description,
+                valuation=valuation
+            )
+
+            acquisition_date = simple_format_date_to_yymmdd(data.get('dateUse'))
+
+            # TODO: store  'person'
+            person = data.get('person')
+            rights_data = data.get('rights')
+            if rights_data:
+                self.save_luxury_right(luxury_item, acquisition_date, rights_data)
 
     # TODO: implement as save_property()
     def save_unfinished_construction(self, unfinished_construction_data, declaration):
@@ -150,10 +214,7 @@ class DeclarationConverter(BusinessConverter):
         }
         for data in property_data:
             property_type = TYPES.get(data['objectType'])
-            if property_type == Property.OTHER:
-                property_additional_info = data.get('otherObjectType')
-            else:
-                property_additional_info = ''
+            additional_info = data.get('otherObjectType', '')
             # TODO: add country
             property_country = self.find_country(data['country'], declaration.nacp_declaration_id)
             property_city = None
@@ -181,7 +242,7 @@ class DeclarationConverter(BusinessConverter):
             property = Property.objects.create(
                 declaration=declaration,
                 type=property_type,
-                additional_info=property_additional_info,
+                additional_info=additional_info,
                 area=property_area,
                 # country=property_country,
                 # city=property_city,

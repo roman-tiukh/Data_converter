@@ -104,7 +104,7 @@ class Declaration(DataOceanModel):
 
 class Liability(DataOceanModel):
     LOAN = 1
-    OTHER = 2
+    OTHER = 10
     LIABILITY_TYPES = (
         (LOAN, _('Loan')),
         (OTHER, _('Other')),
@@ -245,7 +245,7 @@ class Income(DataOceanModel):
     DIVIDENDS = 3
     PROPERTY_SALE = 4
     SECURITIES_SALE = 5
-    OTHER = 6
+    OTHER = 10
     INCOME_TYPES = (
         (SALARY, _('Salary')),
         (INTEREST, _('Interest')),
@@ -298,7 +298,7 @@ class Income(DataOceanModel):
 class Securities(DataOceanModel):
     SHARE = 1
     CORPORATE_RIGHTS = 2
-    OTHER = 3
+    OTHER = 10
     ITEM_TYPES = (
         (SHARE, _('Share')),
         (CORPORATE_RIGHTS, _('Corporate right')),
@@ -411,9 +411,17 @@ class Vehicle(DataOceanModel):
 
 class LuxuryItem(DataOceanModel):
     ART = 1
-    OTHER = 2
+    ELECTRONIC_DEVICES = 2
+    ANTIQUES = 3
+    CLOTHES = 4
+    JEWELRY = 5
+    OTHER = 10
     ITEM_TYPES = (
         (ART, _('Art')),
+        (ELECTRONIC_DEVICES, _('Personal or home electronic devices')),
+        (ANTIQUES, _('Antiques')),
+        (CLOTHES, _('Clothes')),
+        (JEWELRY, _('Jewelry')),
         (OTHER, _('Other')),
     )
     declaration = models.ForeignKey(
@@ -448,9 +456,8 @@ class LuxuryItem(DataOceanModel):
         default='',
         help_text=_('trademark of the item')
     )
-    producer = models.CharField(
+    producer = models.TextField(
         _('producer'),
-        max_length=20,
         blank=True,
         default='',
         help_text=_('producer of the item')
@@ -478,7 +485,7 @@ class Property(DataOceanModel):
     UNFINISHED_CONSTRUCTION = 6
     LAND = 7
     OFFICE = 8
-    OTHER = 9
+    OTHER = 10
     PROPERTY_TYPES = (
         (HOUSE, _('House')),
         (SUMMER_HOUSE, _('Summer house')),
@@ -550,9 +557,9 @@ class BaseRight(DataOceanModel):
     COMMON_PROPERTY = 4
     RENT = 5
     USAGE = 6
-    OTHER_USAGE_RIGHT = 7
-    OWNER_IS_ANOTHER_PERSON = 10
-    NO_INFO_FROM_FAMILY_MEMBER = 11
+    OWNER_IS_ANOTHER_PERSON = 7
+    NO_INFO_FROM_FAMILY_MEMBER = 8
+    OTHER_USAGE_RIGHT = 10
 
     RIGHT_TYPES = (
         (OWNERSHIP, _('Ownership')),
