@@ -133,6 +133,14 @@ class Pep(DataOceanModel):
         blank=True,
         help_text=_('id from the National agency on corruption prevention')
     )
+    pep_org_ua_link = models.URLField(
+        _('link to pep.org.ua profile'),
+        max_length=35,
+        unique=True,
+        null=True,
+        blank=True,
+        help_text=_('URL address of PEP\'s profile in pep.org.ua')
+    )
     history = HistoricalRecords(excluded_fields=['url', 'code'])
 
     @property
