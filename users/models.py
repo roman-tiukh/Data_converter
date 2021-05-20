@@ -137,6 +137,7 @@ class CandidateUserModel(models.Model):
     password = models.CharField(_('password'), max_length=128)
     first_name = models.CharField(_('first name'), max_length=150)
     last_name = models.CharField(_('last name'), max_length=150)
+    organization = models.CharField(_('organization'), max_length=255, default='not indicated')
     phone = models.CharField(max_length=16, default='', blank=True)
     language = models.CharField(
         _('language'),
