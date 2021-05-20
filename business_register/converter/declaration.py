@@ -43,6 +43,10 @@ class DeclarationConverter(BusinessConverter):
             "функцій держави або місцевого самоврядування": False,
         }
         self.keys = set()
+        self.current_declaration = None
+
+    def log_error(self, message):
+        logger.error(f'Declaration id {self.current_declaration.nacp_declaration_id} : {message}')
 
     def save_luxury_right(self, luxury_item, acquisition_date, rights_data):
         pass
@@ -112,7 +116,7 @@ class DeclarationConverter(BusinessConverter):
     #      'percent-ownership_extendedstatus', 'seller', 'ua_middlename', 'rightBelongs', 'ua_company_code',
     #      'ua_company_name', 'ua_firstname', 'ua_livingAddressFull_extendedstatus', 'rights_id'}
     # ]
-    def save_property_right(self, property, acquisition_date, rights_data, declaration):
+    def save_property_right(self, property, acquisition_date, rights_data):
         TYPES = {
             'Власність': PropertyRight.OWNERSHIP,
             'Спільна власність': PropertyRight.JOINT_OWNERSHIP,
@@ -143,7 +147,7 @@ class DeclarationConverter(BusinessConverter):
             additional_info = data.get('otherOwnership', '')
             country_of_citizenship_info = data.get('citizen')
             # TODO: return country
-            country_of_citizenship = self.find_country(country_of_citizenship_info, declaration.nacp_declaration_id)
+            country_of_citizenship = self.find_country(country_of_citizenship_info)
             last_name = data.get('ua_lastname')
             first_name = data.get('ua_firstname')
             middle_name = data.get('ua_middlename')
@@ -216,7 +220,7 @@ class DeclarationConverter(BusinessConverter):
             property_type = TYPES.get(data['objectType'])
             additional_info = data.get('otherObjectType', '')
             # TODO: add country
-            property_country = self.find_country(data['country'], declaration.nacp_declaration_id)
+            property_country = self.find_country(data['country'])
             property_city = None
             property_location = data.get('ua_cityType')
             # TODO: add property_city
@@ -254,23 +258,20 @@ class DeclarationConverter(BusinessConverter):
             person = data.get('person')
             rights_data = data.get('rights')
             if rights_data:
-                self.save_property_right(property, acquisition_date, rights_data, declaration)
+                self.save_property_right(property, acquisition_date, rights_data)
 
     # TODO: retrieve country from Country DB
-    def find_country(self, property_country_data, nacp_declaration_id):
+    def find_country(self, property_country_data):
         if property_country_data.isdigit():
             country = Country.objects.filter(nacp_id=property_country_data).first()
             if country:
                 return country
             else:
-                logger.error(
-                    f'Cannot find country id {property_country_data} in '
-                    f'nacp_declaration_id {nacp_declaration_id}'
+                self.log_error(
+                    f'Cannot find country id {property_country_data}'
                 )
         else:
-            logger.error(
-                f'Invalid value {property_country_data} in nacp_declaration_id {nacp_declaration_id}'
-            )
+            self.log_error(f'Invalid value {property_country_data}')
 
     def split_address_data(self, address_data):
         parts = address_data.lower().split(' / ')
@@ -291,14 +292,14 @@ class DeclarationConverter(BusinessConverter):
                 city = part
         return city, region, district
 
-    def find_city(self, address_data, nacp_declaration_id):
+    def find_city(self, address_data):
         city, region, district = self.split_address_data(address_data)
         ratu_region = RatuRegion.objects.filter(name=region).first()
         ratu_district = RatuDistrict.objects.filter(name=district, region=ratu_region).first()
         if region and not ratu_region:
-            logger.error(f'cannot find region {region} in nacp_declaration_id {nacp_declaration_id}')
+            self.log_error(f'Cannot find region {region}')
         if district and not ratu_district:
-            logger.error(f'cannot find district {district} in nacp_declaration_id {nacp_declaration_id}')
+            self.log_error(f'Cannot find district {district}')
         else:
             city_of_registration = RatuCity.objects.filter(
                 name=city,
@@ -306,7 +307,7 @@ class DeclarationConverter(BusinessConverter):
                 district=ratu_district
             ).first()
             return city_of_registration
-        logger.error(f'Cannot find city in nacp_declaration_id {nacp_declaration_id}')
+        self.log_error(f'Cannot find city')
 
     # possible_keys = [
     #     'previous_eng_middlename_extendedstatus', 'street_extendedstatus', 'eng_full_address',
@@ -378,7 +379,7 @@ class DeclarationConverter(BusinessConverter):
         declaration.last_employer = declarant_data.get('workPlace')
         city_of_registration_data = declarant_data.get('cityType')
         if city_of_registration_data:
-            city_of_registration = self.find_city(city_of_registration_data, declaration.nacp_declaration_id)
+            city_of_registration = self.find_city(city_of_registration_data)
         else:
             city_of_registration = None
         declaration.city_of_registration = city_of_registration
@@ -395,9 +396,7 @@ class DeclarationConverter(BusinessConverter):
             )
             declarations_data = response.json().get('data')
             if response.status_code != 200 or not declarations_data:
-                logger.error(
-                    f'cannot find declarations of the PEP with nacp_declarant_id: {nacp_declarant_id}'
-                )
+                self.log_error(f'cannot find declarations of the PEP')
                 continue
 
             pep = self.only_peps[nacp_declarant_id]
@@ -418,18 +417,17 @@ class DeclarationConverter(BusinessConverter):
                         nacp_declarant_id=nacp_declarant_id,
                         pep=pep,
                     )
+                self.current_declaration = declaration
 
                 # getting full declaration data
                 response = requests.get(settings.NACP_DECLARATION_RETRIEVE + declaration_id)
                 if response.status_code != 200:
-                    logger.error(
-                        f'cannot find declarations with nacp_declaration_id: {declaration_id}'
-                    )
+                    self.log_error(f'cannot find declarations')
                     continue
                 detailed_declaration_data = response.json()['data']
 
-                # 'Step_1' - declarant`s personal data
-                # self.save_declarant_data(detailed_declaration_data['step_1']['data'], pep, declaration)
+                #'Step_1' - declarant`s personal data
+                self.save_declarant_data(detailed_declaration_data['step_1']['data'], pep, declaration)
 
                 # # 'Step_2' - declarant`s family
                 # if (
@@ -450,6 +448,6 @@ class DeclarationConverter(BusinessConverter):
                 #     self.save_unfinished_construction(detailed_declaration_data['step_4']['data'], declaration)
 
                 # 'Step_5' - declarant`s family`s unfinished construction
-                if (detailed_declaration_data['step_5']
-                        and not detailed_declaration_data['step_5'].get('isNotApplicable')):
-                    self.save_luxuries(detailed_declaration_data['step_5']['data'], declaration)
+                # if (detailed_declaration_data['step_5']
+                #         and not detailed_declaration_data['step_5'].get('isNotApplicable')):
+                #     self.save_luxuries(detailed_declaration_data['step_5']['data'], declaration)
