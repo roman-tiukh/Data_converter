@@ -40,7 +40,7 @@ class PersonSanctionViewSet(RegisterViewMixin,
         'address',
         'place_of_birth',
         'types_of_sanctions__name',
-        'position',
+        'occupation',
         'countries_of_citizenship__name'
     )
 
@@ -56,7 +56,8 @@ class CompanySanctionViewSet(RegisterViewMixin,
     search_fields = (
         'name',
         'name_original_transcription',
-        'number',
+        'registration_number',
+        'taxpayer_number',
         'address',
         'types_of_sanctions__name',
         'country_of_registration__name'
