@@ -42,10 +42,13 @@ def get_sanction_form(model):
 @admin.register(SanctionType)
 class SanctionTypeAdmin(RegisterModelAdmin):
     save_as = True
-    list_display = ('name', 'law')
+    list_display = ('id', 'name', 'law')
     search_fields = ('name', 'law')
     ordering = ('created_at',)
-    list_filter = ('law',)
+    list_filter = (
+        input_filter('id', 'id', ['id'], 'exact'),
+        'law',
+    )
 
     def has_change_permission(self, request, obj=None):
         return self.has_module_permission(request)
@@ -61,7 +64,7 @@ class SanctionTypeAdmin(RegisterModelAdmin):
 class CountrySanctionAdmin(RegisterModelAdmin):
     save_as = True
     form = get_sanction_form(CountrySanction)
-    list_display = ('country',)
+    list_display = ('id', 'country',)
     search_fields = (
         'country__name',
         'types_of_sanctions__name',
@@ -92,6 +95,7 @@ class PersonSanctionAdmin(RegisterModelAdmin):
     save_as = True
     form = get_sanction_form(PersonSanction)
     list_display = (
+        'id',
         'full_name',
         'date_of_birth',
         'start_date',
@@ -111,6 +115,7 @@ class PersonSanctionAdmin(RegisterModelAdmin):
     )
     ordering = ('start_date',)
     list_filter = (
+        input_filter('id', 'id', ['id'], 'exact'),
         input_filter('types_of_sanctions', 'types of sanctions', ['types_of_sanctions__name']),
         input_filter('countries_of_citizenship', 'countries of citizenship name', ['countries_of_citizenship__name']),
         input_filter('taxpayer_number', 'taxpayer number', ['taxpayer_number']),
@@ -138,6 +143,7 @@ class CompanySanctionAdmin(RegisterModelAdmin):
     save_as = True
     form = get_sanction_form(CompanySanction)
     list_display = (
+        'id',
         'name',
         'start_date',
         'end_date',
@@ -157,6 +163,7 @@ class CompanySanctionAdmin(RegisterModelAdmin):
     )
     ordering = ('start_date',)
     list_filter = (
+        input_filter('id', 'id', ['id'], 'exact'),
         input_filter('name', 'name', ['name']),
         input_filter('registration_number', 'registration number', ['registration_number']),
         input_filter('taxpayer_number', 'taxpayer number', ['taxpayer_number']),
