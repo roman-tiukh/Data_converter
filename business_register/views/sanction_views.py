@@ -56,7 +56,8 @@ class CompanySanctionViewSet(RegisterViewMixin,
     search_fields = (
         'name',
         'name_original_transcription',
-        'number',
+        'registration_number',
+        'taxpayer_number',
         'address',
         'types_of_sanctions__name',
         'country_of_registration__name'
