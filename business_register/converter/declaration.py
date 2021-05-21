@@ -427,7 +427,7 @@ class DeclarationConverter(BusinessConverter):
                 detailed_declaration_data = response.json()['data']
 
                 #'Step_1' - declarant`s personal data
-                self.save_declarant_data(detailed_declaration_data['step_1']['data'], pep, declaration)
+                # self.save_declarant_data(detailed_declaration_data['step_1']['data'], pep, declaration)
 
                 # # 'Step_2' - declarant`s family
                 # if (
@@ -448,6 +448,6 @@ class DeclarationConverter(BusinessConverter):
                 #     self.save_unfinished_construction(detailed_declaration_data['step_4']['data'], declaration)
 
                 # 'Step_5' - declarant`s family`s unfinished construction
-                # if (detailed_declaration_data['step_5']
-                #         and not detailed_declaration_data['step_5'].get('isNotApplicable')):
-                #     self.save_luxuries(detailed_declaration_data['step_5']['data'], declaration)
+                if (detailed_declaration_data['step_5']
+                        and not detailed_declaration_data['step_5'].get('isNotApplicable')):
+                    self.save_luxuries(detailed_declaration_data['step_5']['data'], declaration)
