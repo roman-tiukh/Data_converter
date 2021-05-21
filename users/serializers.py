@@ -105,8 +105,7 @@ class CustomRegisterSerializer(RegisterSerializer):
         cmp_attrs = {
             'email': 'Email',
             'first_name': _('First Name'),
-            'last_name': _('Last Name'),
-            'organization': _('Organization')
+            'last_name': _('Last Name')
         }
 
         for k, v in cmp_attrs.items():
