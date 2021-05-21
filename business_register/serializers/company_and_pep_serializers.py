@@ -157,7 +157,7 @@ class PepShortSerializer(serializers.ModelSerializer):
         model = Pep
         fields = (
             'id', 'fullname', 'last_job_title', 'last_employer',
-            'is_pep', 'pep_type'
+            'is_pep', 'pep_type', 'pep_org_ua_link'
         )
 
 

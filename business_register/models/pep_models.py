@@ -35,6 +35,7 @@ class Pep(DataOceanModel):
         (PEP_ASSOCIATED_PERSON, _("Associated person")),
         (PEP_FAMILY_MEMBER, _("Family member")),
     )
+    PEP_ORG_UA_PROFILE_URL = 'https://pep.org.ua/uk/person/'
 
     code = models.CharField(max_length=15, unique=True, db_index=True)
     first_name = models.CharField(
@@ -133,14 +134,6 @@ class Pep(DataOceanModel):
         blank=True,
         help_text=_('id from the National agency on corruption prevention')
     )
-    pep_org_ua_link = models.URLField(
-        _('link to pep.org.ua profile'),
-        max_length=35,
-        unique=True,
-        null=True,
-        blank=True,
-        help_text=_('URL address of PEP\'s profile in pep.org.ua')
-    )
     history = HistoricalRecords(excluded_fields=['url', 'code'])
 
     @property
@@ -157,6 +150,10 @@ class Pep(DataOceanModel):
             if founder.company_id not in related_companies_id:
                 possibly_founded_companies.append(founder.company)
         return possibly_founded_companies
+
+    @property
+    def pep_org_ua_link(self):
+        return self.PEP_ORG_UA_PROFILE_URL + str(self.source_id)
 
     class Meta:
         indexes = [
