@@ -224,8 +224,8 @@ class DeclarationConverter(BusinessConverter):
             property_city = None
             property_location = data.get('ua_cityType')
             # TODO: add property_city
-            # if property_location:
-            #     property_city = self.find_city(property_location, declaration)
+            if property_location:
+                property_city = self.find_city(property_location)
             property_valuation = data.get('costAssessment')
             if property_valuation in self.NO_DATA:
                 # In 2015 there was a separate field 'costDate' or 'cost_date_assessment' with the
@@ -267,9 +267,7 @@ class DeclarationConverter(BusinessConverter):
             if country:
                 return country
             else:
-                self.log_error(
-                    f'Cannot find country id {property_country_data}'
-                )
+                self.log_error(f'Cannot find country id {property_country_data}')
         else:
             self.log_error(f'Invalid value {property_country_data}')
 
@@ -396,7 +394,7 @@ class DeclarationConverter(BusinessConverter):
             )
             declarations_data = response.json().get('data')
             if response.status_code != 200 or not declarations_data:
-                self.log_error(f'cannot find declarations of the PEP')
+                self.log_error('No data on the declaration or has wrong value')
                 continue
 
             pep = self.only_peps[nacp_declarant_id]
@@ -426,7 +424,7 @@ class DeclarationConverter(BusinessConverter):
                     continue
                 detailed_declaration_data = response.json()['data']
 
-                #'Step_1' - declarant`s personal data
+                # 'Step_1' - declarant`s personal data
                 # self.save_declarant_data(detailed_declaration_data['step_1']['data'], pep, declaration)
 
                 # # 'Step_2' - declarant`s family
