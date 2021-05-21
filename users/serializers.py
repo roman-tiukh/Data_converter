@@ -78,11 +78,18 @@ class CustomRegisterSerializer(RegisterSerializer):
         max_length=150,
         validators=[name_symbols_validator, two_in_row_validator]
     )
+    organization = serializers.CharField(
+        required=True,
+        write_only=True,
+        max_length=255,
+        validators=[name_symbols_validator]
+    )
 
     def get_cleaned_data(self):
         return {
             'first_name': self.validated_data.get('first_name', ''),
             'last_name': self.validated_data.get('last_name', ''),
+            'organization': self.validated_data.get('organization', ''),
             'email': self.validated_data.get('email', ''),
             'password1': self.validated_data.get('password1', ''),
             'password2': self.validated_data.get('password2', ''),
@@ -98,7 +105,7 @@ class CustomRegisterSerializer(RegisterSerializer):
         cmp_attrs = {
             'email': 'Email',
             'first_name': _('First Name'),
-            'last_name': _('Last Name'),
+            'last_name': _('Last Name')
         }
 
         for k, v in cmp_attrs.items():

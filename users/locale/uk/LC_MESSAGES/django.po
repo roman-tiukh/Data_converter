@@ -183,25 +183,29 @@ msgstr "ім'я"
 msgid "last name"
 msgstr "прізвище"
 
-#: users/models.py:148
+#: users/models.py:140
+msgid "organization"
+msgstr "організація"
+
+#: users/models.py:149
 msgid "expire at"
 msgstr "діє до"
 
-#: users/models.py:164
+#: users/models.py:165
 msgid "question"
 msgstr "запитання"
 
-#: users/models.py:165
+#: users/models.py:166
 msgid "questions"
 msgstr "запитання"
 
-#: users/models.py:182
+#: users/models.py:183
 #, fuzzy
 #| msgid "Notification"
 msgid "notification"
 msgstr "сповіщення"
 
-#: users/models.py:183
+#: users/models.py:184
 #, fuzzy
 #| msgid "Notifications"
 msgid "notifications"
@@ -219,15 +223,15 @@ msgstr "Неправильний формат ІПН"
 msgid "Wrong EDRPOU format"
 msgstr "Неправильний формат ЄДРПОУ"
 
-#: users/serializers.py:100
+#: users/serializers.py:107
 msgid "First Name"
 msgstr "Ім'я"
 
-#: users/serializers.py:101
+#: users/serializers.py:108
 msgid "Last Name"
 msgstr "Прізвище"
 
-#: users/serializers.py:106
+#: users/serializers.py:113
 msgid "Your password can’t be too similar to"
 msgstr "Ваш пароль не може бути надто схожим на"
 
@@ -294,22 +298,22 @@ msgstr "Неправильний формат IBAN"
 msgid "Wrong MFO format"
 msgstr "Неправильний формат МФО"
 
-#: users/views.py:56
+#: users/views.py:57
 msgid "User with this email is already exists"
 msgstr "Користувач з цією електронною поштою вже існує"
 
-#: users/views.py:95 users/views.py:111
+#: users/views.py:96 users/views.py:112
 msgid "Confirmation link is broken"
 msgstr "Посилання на підтвердження пошкоджено."
 
-#: users/views.py:99
+#: users/views.py:100
 msgid "Confirmation link is expired."
 msgstr "Дія посилання на підтвердження закінчилась."
 
-#: users/views.py:115
+#: users/views.py:116
 msgid "The link is invalid, the email address was confirmed earlier"
 msgstr "Посилання недійсне, електронна адреса була підтверджена раніше"
 
-#: users/views.py:152 users/views.py:158
+#: users/views.py:154 users/views.py:160
 msgid "Email not sent. Try again later."
 msgstr "Лист на електронну пошту не надіслано. Спробуйте ще раз пізніше."

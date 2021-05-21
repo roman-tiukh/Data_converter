@@ -6,6 +6,7 @@ import binascii
 import datetime
 import os
 import re
+import sys
 
 # changing to lowercase, deleting 'р.', 'м.', 'с.', 'смт.', 'смт', 'сщ.', 'с/рада.', 'сщ/рада.', /
 # 'вул.' from a string
@@ -56,7 +57,7 @@ def cut_first_word(string):
     return " ".join(words_after_first)
 
 
-# deleting ';' from a string, then converting it to the datetime format 'Y-m-d'
+# deleting ';' from a string, changing '/' to '.', then converting it to the datetime format 'Y-m-d'
 def format_date_to_yymmdd(str_ddmmyy):
     if str_ddmmyy:
         if ';' in str_ddmmyy:
@@ -64,10 +65,22 @@ def format_date_to_yymmdd(str_ddmmyy):
         if '/' in str_ddmmyy:
             str_ddmmyy = str_ddmmyy.replace("/", ".")
         try:
-            date = datetime.datetime.strptime(str_ddmmyy, "%d.%m.%Y").strftime("%4Y-%m-%d")
+            if sys.platform.startswith('linux'):
+                date = datetime.datetime.strptime(str_ddmmyy, "%d.%m.%Y").strftime("%4Y-%m-%d")
+            else:
+                date = datetime.datetime.strptime(str_ddmmyy, "%d.%m.%Y").strftime("%Y-%m-%d")
         except ValueError:
             return None
         return date
+
+
+#  converting datetime format from '%d.%m.%Y' to 'Y-m-d'
+def simple_format_date_to_yymmdd(str_ddmmyy):
+    try:
+        date = datetime.datetime.strptime(str_ddmmyy, "%d.%m.%Y").strftime("%Y-%m-%d")
+    except ValueError:
+        return None
+    return date
 
 
 # checking if exists, then converting to string
