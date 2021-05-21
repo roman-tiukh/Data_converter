@@ -358,9 +358,17 @@ class Securities(DataOceanModel):
 class Vehicle(DataOceanModel):
     CAR = 1
     TRUCK = 2
+    MOTORBIKE = 3
+    BOAT = 4
+    AGRICULTURAL_MACHINERY = 5
+    OTHER = 10
+
     ITEM_TYPES = (
         (CAR, _('Car')),
         (TRUCK, _('Truck')),
+        (BOAT, _('Boat')),
+        (AGRICULTURAL_MACHINERY, _('Agricultural machinery')),
+        (OTHER, _('Other')),
     )
     declaration = models.ForeignKey(
         Declaration,
@@ -374,12 +382,12 @@ class Vehicle(DataOceanModel):
         choices=ITEM_TYPES,
         help_text=_('type of the vehicle')
     )
-    is_luxury = models.BooleanField(
-        _('is luxury'),
-        null=True,
+    # please, use this field when the type == OTHER
+    additional_info = models.TextField(
+        _('additional info'),
         blank=True,
-        default=None,
-        help_text=_('is luxury'),
+        default='',
+        help_text=_('additional info about the vehicle')
     )
     brand = models.CharField(
         _('brand'),
@@ -390,7 +398,7 @@ class Vehicle(DataOceanModel):
     )
     model = models.CharField(
         _('model'),
-        max_length=20,
+        max_length=75,
         blank=True,
         default='',
         help_text=_('model')
@@ -400,6 +408,13 @@ class Vehicle(DataOceanModel):
         null=True,
         blank=True,
         help_text=_('year of manufacture')
+    )
+    is_luxury = models.BooleanField(
+        _('is luxury'),
+        null=True,
+        blank=True,
+        default=None,
+        help_text=_('is luxury'),
     )
     valuation = models.PositiveIntegerField(
         _('valuation'),
