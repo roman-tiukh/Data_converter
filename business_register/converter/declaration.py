@@ -452,7 +452,9 @@ class DeclarationConverter(BusinessConverter):
             )
             declarations_data = response.json().get('data')
             if response.status_code != 200 or not declarations_data:
-                self.log_error('No data on the declaration or has wrong value')
+                logger.error(
+                    f'cannot find declarations of the PEP with nacp_declarant_id: {nacp_declarant_id}'
+                )
                 continue
 
             pep = self.only_peps[nacp_declarant_id]
