@@ -35,7 +35,6 @@ class Pep(DataOceanModel):
         (PEP_ASSOCIATED_PERSON, _("Associated person")),
         (PEP_FAMILY_MEMBER, _("Family member")),
     )
-    PEP_ORG_UA_PROFILE_URL = 'https://pep.org.ua/uk/person/'
 
     code = models.CharField(max_length=15, unique=True, db_index=True)
     first_name = models.CharField(
@@ -153,7 +152,7 @@ class Pep(DataOceanModel):
 
     @property
     def pep_org_ua_link(self):
-        return self.PEP_ORG_UA_PROFILE_URL + str(self.source_id)
+        return 'https://pep.org.ua/uk/person/' + str(self.source_id)
 
     class Meta:
         indexes = [
