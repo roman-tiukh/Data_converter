@@ -1,4 +1,6 @@
 from django.db import models, connection
+from django.db.models import Max
+from django.urls import resolve
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
@@ -92,6 +94,14 @@ class Register(DataOceanModel):
     total_records = models.PositiveIntegerField(_('total records'), default=1, blank=True)
     status = models.CharField(_('status'), max_length=15, choices=STATUSES, default=RELEVANT,
                               blank=True)
+
+    @staticmethod
+    def actualize_updates():
+        for register in Register.objects.all():
+            queryset = resolve(register.api_list).func.cls.queryset
+            total_records = queryset.count()
+            updated_at = queryset.aggregate(Max('updated_at'))['updated_at__max']
+            Register.objects.filter(pk=register.pk).update(total_records=total_records, updated_at=updated_at)
 
     class Meta:
         ordering = ['id']
