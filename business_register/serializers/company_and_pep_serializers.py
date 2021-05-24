@@ -157,7 +157,7 @@ class PepShortSerializer(serializers.ModelSerializer):
         model = Pep
         fields = (
             'id', 'fullname', 'last_job_title', 'last_employer',
-            'is_pep', 'pep_type'
+            'is_pep', 'pep_type', 'pep_org_ua_link'
         )
 
 
@@ -447,7 +447,7 @@ class PepDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
             'is_pep', 'pep_type', 'info', 'sanctions', 'criminal_record', 'assets_info',
             'criminal_proceedings', 'wanted', 'date_of_birth', 'place_of_birth', 'is_dead',
             'termination_date', 'reason_of_termination', 'to_person_links', 'from_person_links',
-            'related_companies', 'check_companies', 'created_at', 'updated_at',
+            'related_companies', 'check_companies', 'pep_org_ua_link', 'created_at', 'updated_at',
         )
 
 
@@ -525,7 +525,7 @@ class PepListSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
             'is_pep', 'pep_type', 'info', 'sanctions', 'criminal_record', 'assets_info',
             'criminal_proceedings', 'wanted', 'date_of_birth', 'place_of_birth', 'is_dead',
             'termination_date', 'reason_of_termination', 'from_person_links', 'to_person_links',
-            'related_companies', 'created_at', 'updated_at',
+            'related_companies', 'pep_org_ua_link', 'created_at', 'updated_at',
         )
 
 # class PepListFreemiumSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
