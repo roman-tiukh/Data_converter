@@ -29,12 +29,14 @@ class Company(DataOceanModel):  # constraint for not null in both name & short_n
     UKRAINE_REGISTER = 'ukr'
     GREAT_BRITAIN_REGISTER = 'gb'
     ANTAC = 'antac'
+    DECLARATIONS = 'decl'
     SOURCES = (
         (UKRAINE_REGISTER,
          _(
              'The United State Register of Legal Entities, Individual Entrepreneurs and Public Organizations of Ukraine')),
         (GREAT_BRITAIN_REGISTER, _('Company House (UK companies` register)')),
         (ANTAC, _('ANTAC')),
+        (DECLARATIONS, _('Declarations')),
     )
 
     INVALID = 'invalid'  # constant for empty edrpou fild etc.
@@ -185,7 +187,7 @@ class CompanyToKved(DataOceanModel):  # constraint for only only one truth in pr
 
 class ExchangeDataCompany(DataOceanModel):
     company = company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='exchange_data',
-                            help_text='Company name')
+                                          help_text='Company name')
     authority = models.ForeignKey(Authority, on_delete=models.CASCADE,
                                   verbose_name='registration authority',
                                   help_text='Authorized state agency which register the company')
@@ -212,7 +214,7 @@ class Founder(DataOceanModel):
     info_beneficiary = models.TextField('beneficiary info', null=True, help_text='Beneficiary Info')
     name = models.TextField("name or full name", db_index=True, help_text='Founder name in Ukrainian')
     edrpou = models.CharField('number', max_length=9, null=True, blank=True, default='',
-                               db_index=True, help_text='EDRPOU number as string')
+                              db_index=True, help_text='EDRPOU number as string')
     equity = models.FloatField('equity', null=True, blank=True, help_text='Equity')
     address = models.TextField('address', null=True, blank=True, default='', help_text='Founder address in Ukrainian')
     country = models.CharField('country', max_length=100, null=True, blank=True, default='',

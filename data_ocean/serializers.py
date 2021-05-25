@@ -39,5 +39,6 @@ class RegisterSerializer(serializers.ModelSerializer):
             'api_list',
             'api_detail',
             'status',
-            'total_records'
+            'total_records',
+            'updated_at'
         ]

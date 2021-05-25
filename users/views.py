@@ -47,6 +47,7 @@ class CustomRegistrationView(views.APIView):
             password=make_password(serializer.validated_data.get('password1')),  # hash
             first_name=serializer.validated_data.get('first_name'),
             last_name=serializer.validated_data.get('last_name'),
+            organization=serializer.validated_data.get('organization'),
             language=user_language,
             phone=serializer.validated_data.get('phone', ''),
         )
@@ -121,6 +122,7 @@ class CustomRegistrationConfirmView(views.APIView):
             password=user.password,
             first_name=user.first_name,
             last_name=user.last_name,
+            organization=user.organization,
             language=user.language,
             phone=user.phone,
         )

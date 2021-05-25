@@ -27,3 +27,4 @@ download
 *.zip
 db.sqlite3
 /export/
+logfile

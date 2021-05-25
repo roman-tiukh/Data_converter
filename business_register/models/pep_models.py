@@ -150,6 +150,10 @@ class Pep(DataOceanModel):
                 possibly_founded_companies.append(founder.company)
         return possibly_founded_companies
 
+    @property
+    def pep_org_ua_link(self):
+        return 'https://pep.org.ua/uk/person/' + str(self.source_id)
+
     class Meta:
         indexes = [
             models.Index(fields=['updated_at']),

@@ -245,14 +245,46 @@ class Income(DataOceanModel):
     DIVIDENDS = 3
     PROPERTY_SALE = 4
     SECURITIES_SALE = 5
+    BUSINESS = 6
+    GIFT_IN_CASH = 7
+    GIFT = 8
+    FEES = 9
     OTHER = 10
+    RENTING_PROPERTY = 11
+    PENSION = 12
+    INSURANCE_PAYMENTS = 13
+    SALE_OF_SECURITIES = 14
+    PRIZE = 15
+    CHARITY = 16
+    SALE_OF_PROPERTY = 17
+    LEGACY = 18
+    PART_TIME_SALARY = 19
+    SALE_OF_LUXURIES = 20
+    SELF_EMPLOYMENT = 21
+
     INCOME_TYPES = (
         (SALARY, _('Salary')),
         (INTEREST, _('Interest')),
         (DIVIDENDS, _('Dividends')),
         (PROPERTY_SALE, _('From sale of property')),
         (SECURITIES_SALE, _('From sale of securities or corporate rights')),
+        (BUSINESS, _('Business')),
+        (GIFT_IN_CASH, _('Gift in cash')),
+        (GIFT, _('Gift')),
+        (FEES, _('Fees and other payments')),
         (OTHER, _('Other')),
+        (RENTING_PROPERTY, _('Income from renting property')),
+        (PENSION, _('Pension')),
+        (INSURANCE_PAYMENTS, _('Insurance payments')),
+        (SALE_OF_SECURITIES, _('Sale of securities and corporate rights')),
+        (PRIZE, _('Prize')),
+        (CHARITY, _('Charity')),
+        (SALE_OF_PROPERTY, _('Sale of property')),
+        (LEGACY, _('Legacy')),
+        (PART_TIME_SALARY, _('Salary from part-time job')),
+        (SALE_OF_LUXURIES, _('Sale of luxuries')),
+        (SELF_EMPLOYMENT, _('Self-employment')),
+
     )
     declaration = models.ForeignKey(
         Declaration,
@@ -264,6 +296,13 @@ class Income(DataOceanModel):
         _('type'),
         choices=INCOME_TYPES,
         help_text=_('type of income')
+    )
+    # please, use this field when the type == OTHER
+    additional_info = models.TextField(
+        _('additional info'),
+        blank=True,
+        default='',
+        help_text=_('additional info about the income')
     )
     amount = models.PositiveIntegerField(
         _('amount'),
@@ -284,7 +323,14 @@ class Income(DataOceanModel):
         max_length=75,
         blank=True,
         default='',
-        help_text='full name of the person that paid'
+        help_text=_('full name of the person that paid')
+    )
+    from_info = models.CharField(
+        _('info about citizenship or registration'),
+        max_length=55,
+        blank=True,
+        default='',
+        help_text=_('info about citizenship or registration of the person or company that paid')
     )
     recipient = models.ForeignKey(
         Pep,
@@ -358,9 +404,17 @@ class Securities(DataOceanModel):
 class Vehicle(DataOceanModel):
     CAR = 1
     TRUCK = 2
+    MOTORBIKE = 3
+    BOAT = 4
+    AGRICULTURAL_MACHINERY = 5
+    OTHER = 10
+
     ITEM_TYPES = (
         (CAR, _('Car')),
         (TRUCK, _('Truck')),
+        (BOAT, _('Boat')),
+        (AGRICULTURAL_MACHINERY, _('Agricultural machinery')),
+        (OTHER, _('Other')),
     )
     declaration = models.ForeignKey(
         Declaration,
@@ -374,12 +428,12 @@ class Vehicle(DataOceanModel):
         choices=ITEM_TYPES,
         help_text=_('type of the vehicle')
     )
-    is_luxury = models.BooleanField(
-        _('is luxury'),
-        null=True,
+    # please, use this field when the type == OTHER
+    additional_info = models.TextField(
+        _('additional info'),
         blank=True,
-        default=None,
-        help_text=_('is luxury'),
+        default='',
+        help_text=_('additional info about the vehicle')
     )
     brand = models.CharField(
         _('brand'),
@@ -390,7 +444,7 @@ class Vehicle(DataOceanModel):
     )
     model = models.CharField(
         _('model'),
-        max_length=20,
+        max_length=75,
         blank=True,
         default='',
         help_text=_('model')
@@ -400,6 +454,13 @@ class Vehicle(DataOceanModel):
         null=True,
         blank=True,
         help_text=_('year of manufacture')
+    )
+    is_luxury = models.BooleanField(
+        _('is luxury'),
+        null=True,
+        blank=True,
+        default=None,
+        help_text=_('is luxury'),
     )
     valuation = models.PositiveIntegerField(
         _('valuation'),
