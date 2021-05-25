@@ -528,8 +528,8 @@ class PepConverterFromDB(Converter):
                     company.antac_id = company_antac_id
                     company.save(update_fields=['antac_id', 'updated_at'])
             if not company:
-                company = Company.objects.create(name=company_name, name_en=company_name_en, edrpou=edrpou, country=country,
-                                                 code=company_name + edrpou, source=Company.ANTAC,
+                company = Company.objects.create(name=company_name, name_en=company_name_en, edrpou=edrpou,
+                                                 country=country, code=company_name + edrpou, source=Company.ANTAC,
                                                  antac_id=company_antac_id, from_antac_only=True)
                 self.create_company_link_with_pep(company, pep, category, start_date,
                                                   confirmation_date, end_date, is_state_company,
@@ -562,6 +562,9 @@ class PepConverterFromDB(Converter):
                     if already_stored_link.source_id != source_id:
                         already_stored_link.source_id = source_id
                         update_fields.append('source_id')
+                    if already_stored_link.company_name_en != company_name_en:
+                        already_stored_link.company_name_en = company_name_en
+                        update_fields.append('company_name_en')
                     if update_fields:
                         update_fields.append('updated_at')
                         already_stored_link.save(update_fields=update_fields)
