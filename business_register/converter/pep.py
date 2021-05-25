@@ -562,9 +562,6 @@ class PepConverterFromDB(Converter):
                     if already_stored_link.source_id != source_id:
                         already_stored_link.source_id = source_id
                         update_fields.append('source_id')
-                    if already_stored_link.company_name_en != company_name_en:
-                        already_stored_link.company_name_en = company_name_en
-                        update_fields.append('company_name_en')
                     if update_fields:
                         update_fields.append('updated_at')
                         already_stored_link.save(update_fields=update_fields)

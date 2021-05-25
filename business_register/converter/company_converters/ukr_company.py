@@ -419,6 +419,7 @@ class UkrCompanyConverter(CompanyConverter):
     def save_detail_company_to_db(self, records):
         for record in records:
             name = record.xpath('NAME')[0].text.lower()
+            name_en = record.xpath('NAME_EN')[0].text.lower()
             short_name = record.xpath('SHORT_NAME')[0].text
             if short_name:
                 short_name = short_name.lower()
@@ -487,6 +488,7 @@ class UkrCompanyConverter(CompanyConverter):
             if not company:
                 company = Company(
                     name=name,
+                    name_en=name_en,
                     short_name=short_name,
                     company_type=company_type,
                     edrpou=edrpou,
@@ -506,6 +508,9 @@ class UkrCompanyConverter(CompanyConverter):
                 if company.name != name:
                     company.name = name
                     update_fields.append('name')
+                if company.name_en != name_en:
+                    company.name_en = name_en
+                    update_fields.append('name_en')
                 if company.short_name != short_name:
                     company.short_name = short_name
                     update_fields.append('short_name')
@@ -686,6 +691,7 @@ class UkrCompanyConverter(CompanyConverter):
                 self.report.invalid_data += 1
                 continue
             name = record.xpath('NAME')[0].text.lower()
+            name_en = record.xpath('NAME_EN')[0].text.lower()
             short_name = record.xpath('SHORT_NAME')[0].text
             if short_name:
                 short_name = short_name.lower()
@@ -706,6 +712,7 @@ class UkrCompanyConverter(CompanyConverter):
             if not company:
                 company = Company.objects.create(
                     name=name,
+                    name_en=name_en,
                     short_name=short_name,
                     edrpou=edrpou,
                     address=address,
@@ -720,6 +727,9 @@ class UkrCompanyConverter(CompanyConverter):
                 if company.name != name:
                     company.name = name
                     update_fields.append('name')
+                if company.name_en != name_en:
+                    company.name_en = name_en
+                    update_fields.append('name_en')
                 if company.short_name != short_name:
                     company.short_name = short_name
                     update_fields.append('short_name')
