@@ -17,22 +17,10 @@ class Command(BaseCommand):
         main_st: SanctionType = SanctionType.objects.get(id=main)
         duplicates_st: [SanctionType] = SanctionType.objects.filter(id__in=duplicates)
 
-        moved_cs = 0
-        moved_ps = 0
+        moved_persons, moved_companies, moved_countries = main_st.relink_duplicates(duplicates_st)
+        deleted_sanction_types = SanctionType.clean_empty()
 
-        for st in duplicates_st:
-            for cs in list(st.companies_under_sanction.all()):
-                cs.types_of_sanctions.remove(st)
-                cs.types_of_sanctions.add(main_st)
-                moved_cs += 1
-                self.stdout.write(f'\rMoved CS - {moved_cs}; Moved PS - {moved_ps}')
-            for ps in list(st.persons_under_sanction.all()):
-                ps.types_of_sanctions.remove(st)
-                ps.types_of_sanctions.add(main_st)
-                moved_ps += 1
-                self.stdout.write(f'\rMoved CS - {moved_cs}; Moved PS - {moved_ps}')
-            for country_sanction in list(st.countries_under_sanction.all()):
-                country_sanction.types_of_sanctions.remove(st)
-                country_sanction.types_of_sanctions.add(main_st)
-                self.stdout.write(f'\rMoved CS - {moved_cs}; Moved PS - {moved_ps}')
-        self.stdout.write()
+        self.stdout.write(f'Moved person sanctions - {moved_persons}')
+        self.stdout.write(f'Moved company sanctions - {moved_companies}')
+        self.stdout.write(f'Moved country sanctions - {moved_countries}')
+        self.stdout.write(f'Deleted sanction types - {deleted_sanction_types}')
