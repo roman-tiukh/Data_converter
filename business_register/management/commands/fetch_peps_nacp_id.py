@@ -1,6 +1,4 @@
 import json
-from sys import stdout
-
 import psycopg2
 import requests
 from django.conf import settings
@@ -23,44 +21,6 @@ from business_register.models.pep_models import Pep, RelatedPersonsLink
 #  'identificationCode', 'no_taxNumber', 'region_extendedstatus', 'street', 'birthday', 'streetType',
 #  'middlename', 'previous_eng_middlename', 'subjectRelation', 'citizenship', 'city', 'streetType_extendedstatus',
 #  'postCode', 'passport_extendedstatus']
-
-
-def is_same_full_name(relative_data, pep, declaration_id):
-    last_name = relative_data.get('lastname')
-    first_name = relative_data.get('firstname')
-    middle_name = relative_data.get('middlename')
-    if not last_name:
-        last_name = relative_data.get('eng_lastname')
-    if not first_name:
-        first_name = relative_data.get('eng_firstname')
-    if not middle_name:
-        middle_name = relative_data.get('eng_middlename')
-    if not last_name and not first_name:
-        full_name = relative_data.get('ukr_full_name')
-        if not full_name:
-            full_name = relative_data.get('eng_full_name')
-        if full_name:
-            splitted_names = full_name.split(' ')
-            if len(splitted_names) < 2:
-                stdout.write(f'Check related person data ({relative_data}) from declaration '
-                             f'with NACP id {declaration_id}')
-                return False
-            last_name = splitted_names[0]
-            first_name = splitted_names[1]
-            if len(splitted_names) == 3:
-                middle_name = splitted_names[2]
-    if not last_name or not first_name:
-        stdout.write(f'Check related person data ({relative_data}) from declaration '
-                     f'with NACP id {declaration_id}')
-        return False
-    if not middle_name:
-        middle_name = ''
-
-    return (
-            pep.last_name.capitalize() == last_name
-            and pep.first_name.capitalize() == first_name
-            and pep.middle_name.capitalize() == middle_name
-    )
 
 
 # TODO: investigate PEPs without nacp_id
@@ -88,6 +48,43 @@ class Command(BaseCommand):
         self.check_peps = []
 
         super().__init__(*args, **kwargs)
+
+    def is_same_full_name(self, relative_data, pep, declaration_id):
+        last_name = relative_data.get('lastname')
+        first_name = relative_data.get('firstname')
+        middle_name = relative_data.get('middlename')
+        if not last_name:
+            last_name = relative_data.get('eng_lastname')
+        if not first_name:
+            first_name = relative_data.get('eng_firstname')
+        if not middle_name:
+            middle_name = relative_data.get('eng_middlename')
+        if not last_name and not first_name:
+            full_name = relative_data.get('ukr_full_name')
+            if not full_name:
+                full_name = relative_data.get('eng_full_name')
+            if full_name:
+                splitted_names = full_name.split(' ')
+                if len(splitted_names) < 2:
+                    self.stdout.write(f'Check related person data ({relative_data}) from declaration '
+                                      f'with NACP id {declaration_id}')
+                    return False
+                last_name = splitted_names[0]
+                first_name = splitted_names[1]
+                if len(splitted_names) == 3:
+                    middle_name = splitted_names[2]
+        if not last_name or not first_name:
+            self.stdout.write(f'Check related person data ({relative_data}) from declaration '
+                              f'with NACP id {declaration_id}')
+            return False
+        if not middle_name:
+            middle_name = ''
+
+        return (
+                pep.last_name.capitalize() == last_name
+                and pep.first_name.capitalize() == first_name
+                and pep.middle_name.capitalize() == middle_name
+        )
 
     def add_arguments(self, parser):
         pass
@@ -155,7 +152,7 @@ class Command(BaseCommand):
                             if link.to_person.nacp_id:
                                 continue
                             related_person = link.to_person
-                            if is_same_full_name(
+                            if self.is_same_full_name(
                                     relative_data,
                                     related_person,
                                     declaration_id
