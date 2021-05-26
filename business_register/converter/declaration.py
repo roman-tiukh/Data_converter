@@ -13,6 +13,7 @@ from business_register.models.declaration_models import (Declaration,
                                                          VehicleRight,
                                                          Income)
 from business_register.models.pep_models import Pep, RelatedPersonsLink
+from location_register.models.address_models import Country
 from business_register.models.company_models import Company
 from data_ocean.utils import simple_format_date_to_yymmdd
 from location_register.models.ratu_models import RatuRegion, RatuDistrict, RatuCity
@@ -53,6 +54,10 @@ class DeclarationConverter(BusinessConverter):
         }
         self.ENIGMA = {'1', 'j'}
         self.keys = set()
+        self.current_declaration = None
+
+    def log_error(self, message):
+        logger.error(f'Declaration id {self.current_declaration.nacp_declaration_id} : {message}')
 
     # TODO: implement
     def save_income_right(self, income, rights_data):
@@ -478,6 +483,53 @@ class DeclarationConverter(BusinessConverter):
             if rights_data:
                 self.save_property_right(property, acquisition_date, rights_data)
 
+    # TODO: retrieve country from Country DB
+    def find_country(self, property_country_data):
+        if property_country_data.isdigit():
+            country = Country.objects.filter(nacp_id=property_country_data).first()
+            if country:
+                return country
+            else:
+                self.log_error(f'Cannot find country id {property_country_data}')
+        else:
+            self.log_error(f'Invalid value {property_country_data}')
+
+    def split_address_data(self, address_data):
+        parts = address_data.lower().split(' / ')
+        region = district = city = ''
+        country = parts[len(parts) - 1]
+        parts = parts[:-1]
+        city_region = ['київ', 'севастополь']
+        for part in parts:
+            if '/' in part:
+                part = part.split('/')[0]
+            if 'район' in part:
+                district = part
+            elif 'область' in part:
+                region = part
+            elif part in city_region:
+                city = region = part
+            else:
+                city = part
+        return city, region, district
+
+    def find_city(self, address_data):
+        city, region, district = self.split_address_data(address_data)
+        ratu_region = RatuRegion.objects.filter(name=region).first()
+        ratu_district = RatuDistrict.objects.filter(name=district, region=ratu_region).first()
+        if region and not ratu_region:
+            self.log_error(f'Cannot find region {region}')
+        if district and not ratu_district:
+            self.log_error(f'Cannot find district {district}')
+        else:
+            city_of_registration = RatuCity.objects.filter(
+                name=city,
+                region=ratu_region,
+                district=ratu_district
+            ).first()
+            return city_of_registration
+        self.log_error(f'Cannot find city')
+
     # possible_keys = [
     #     'previous_eng_middlename_extendedstatus', 'street_extendedstatus', 'eng_full_address',
     #     'district_extendedstatus', 'birthday_extendedstatus', 'housePartNum', 'district', 'country_extendedstatus',
@@ -527,46 +579,6 @@ class DeclarationConverter(BusinessConverter):
                     declaration.spouse = spouse
                     declaration.save()
                     break
-
-    # TODO: retrieve country from Country DB
-    def find_country(self, country_data):
-        pass
-
-    def split_address_data(self, address_data):
-        parts = address_data.lower().split(' / ')
-        region = district = city = ''
-        country = parts[len(parts) - 1]
-        parts = parts[:-1]
-        city_region = ['київ', 'севастополь']
-        for part in parts:
-            if '/' in part:
-                part = part.split('/')[0]
-            if 'район' in part:
-                district = part
-            elif 'область' in part:
-                region = part
-            elif part in city_region:
-                city = region = part
-            else:
-                city = part
-        return city, region, district
-
-    def find_city(self, address_data):
-        city, region, district = self.split_address_data(address_data)
-        city_of_registration = None
-        ratu_region = RatuRegion.objects.filter(name=region).first()
-        ratu_district = RatuDistrict.objects.filter(name=district, region=ratu_region).first()
-        if region and not ratu_region:
-            logger.error(f'cannot find region {region}')
-        if district and not ratu_district:
-            logger.error(f'cannot find district {district}')
-        else:
-            city_of_registration = RatuCity.objects.filter(
-                name=city,
-                region=ratu_region,
-                district=ratu_district
-            ).first()
-        return city_of_registration
 
     # possible_keys = [
     #     'actual_streetType', 'actual_apartmentsNum_extendedstatus', 'actual_apartmentsNum', 'country',
@@ -634,13 +646,12 @@ class DeclarationConverter(BusinessConverter):
                         nacp_declarant_id=nacp_declarant_id,
                         pep=pep,
                     )
+                self.current_declaration = declaration
 
                 # getting full declaration data
                 response = requests.get(settings.NACP_DECLARATION_RETRIEVE + declaration_id)
                 if response.status_code != 200:
-                    logger.error(
-                        f'cannot find declarations with nacp_declaration_id: {declaration_id}'
-                    )
+                    self.log_error(f'cannot find declarations')
                     continue
                 # possible_keys = {
                 #     'step_9', 'step_13', 'step_3', 'step_14', 'step_16', 'step_11', 'step_17',
