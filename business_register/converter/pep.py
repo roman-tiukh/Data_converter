@@ -536,6 +536,9 @@ class PepConverterFromDB(Converter):
                                                   source_id)
                 is_changed = True
             else:
+                if company.name_en != company_name_en:
+                    company.name_en = company_name_en
+                    company.save(update_fields=['name_en'])
                 already_stored_link = self.peps_companies_dict.get(source_id)
                 if not already_stored_link:
                     self.create_company_link_with_pep(company, pep, category, start_date,
