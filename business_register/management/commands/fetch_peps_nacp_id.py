@@ -1,5 +1,5 @@
 import json
-import logging
+from sys import stdout
 
 import psycopg2
 import requests
@@ -7,9 +7,6 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 
 from business_register.models.pep_models import Pep, RelatedPersonsLink
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 
 # possible_keys = ['previous_eng_middlename_extendedstatus', 'street_extendedstatus', 'eng_full_address',
@@ -45,7 +42,7 @@ def is_same_full_name(relative_data, pep, declaration_id):
         if full_name:
             splitted_names = full_name.split(' ')
             if len(splitted_names) < 2:
-                logger.error(f'Check related person data ({relative_data}) from declaration '
+                stdout.write(f'Check related person data ({relative_data}) from declaration '
                              f'with NACP id {declaration_id}')
                 return False
             last_name = splitted_names[0]
@@ -53,7 +50,7 @@ def is_same_full_name(relative_data, pep, declaration_id):
             if len(splitted_names) == 3:
                 middle_name = splitted_names[2]
     if not last_name or not first_name:
-        logger.error(f'Check related person data ({relative_data}) from declaration '
+        stdout.write(f'Check related person data ({relative_data}) from declaration '
                      f'with NACP id {declaration_id}')
         return False
     if not middle_name:
@@ -114,15 +111,15 @@ class Command(BaseCommand):
                 declaration_id = pep_data[1].replace('nacp_', '')
                 response = requests.get(settings.NACP_DECLARATION_RETRIEVE + declaration_id)
                 if response.status_code != 200:
-                    logger.error(f'cannot find the declaration with id: {declaration_id}')
+                    self.stdout.write(f'cannot find the declaration with id: {declaration_id}')
                     continue
                 declaration_data = json.loads(response.text)
 
                 # storing PEP nacp_id from declarations list
                 pep_nacp_id = declaration_data['user_declarant_id']
                 if not isinstance(pep_nacp_id, int) or pep_nacp_id == 0:
-                    logger.error(f'Check invalid declarant NACP id ({relative_data}) from declaration '
-                                 f'with NACP id {declaration_id}')
+                    self.stdout.write(f'Check invalid declarant NACP id ({relative_data}) from declaration '
+                                      f'with NACP id {declaration_id}')
                 else:
                     pep.nacp_id = pep_nacp_id
                     pep.save()
@@ -134,7 +131,7 @@ class Command(BaseCommand):
                 #         pep.last_name != last_name.lower()
                 #         or pep.first_name != first_name.lower()
                 # ):
-                #     logger.error(
+                #     self.stdout.write(
                 #         f'PEP data from our DB with id {pep.id}: {pep.last_name} {pep.first_name}, '
                 #         f'from declaration: {last_name} {first_name}')
                 #     self.check_peps.append(
@@ -165,7 +162,7 @@ class Command(BaseCommand):
                             ):
                                 related_person_nacp_id = relative_data.get('id')
                                 if not isinstance(related_person_nacp_id, int) or related_person_nacp_id == 0:
-                                    logger.error(
+                                    self.stdout.write(
                                         f'Check invalid declarant NACP id ({related_person_nacp_id}) from declaration '
                                         f'with NACP id {declaration_id}')
                                 else:
