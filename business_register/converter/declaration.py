@@ -11,7 +11,10 @@ from business_register.models.declaration_models import (Declaration,
                                                          LuxuryItemRight,
                                                          Vehicle,
                                                          VehicleRight,
-                                                         Income)
+                                                         Securities,
+                                                         SecuritiesRight,
+                                                         Income,
+                                                         )
 from business_register.models.pep_models import Pep, RelatedPersonsLink
 from location_register.models.address_models import Country
 from business_register.models.company_models import Company
@@ -124,6 +127,7 @@ class DeclarationConverter(BusinessConverter):
             # 'Юридична особа, зареєстрована за кордоном', 'Громадянин України'
             from_info = data.get('source_citizen', '')
 
+            # TODO: store separately from Company object all info of the company that paid
             company = None
             company_code = data.get('source_ua_company_code')
             if company_code not in self.NO_DATA and company_code not in self.ENIGMA:
@@ -132,17 +136,12 @@ class DeclarationConverter(BusinessConverter):
                     source=Company.UKRAINE_REGISTER
                 ).first()
                 if not company:
-                    logger.error(
+                    self.log_error(
                         f'Cannot identify ukrainian company with edrpou {company_code}.'
-                        f'Check income data({data} from declaration with NACP id {declaration.nacp_declaration_id})'
+                        f'Check income data({data})'
                     )
             foreign_company_code = data.get('source_eng_company_code')
             if company_code not in self.NO_DATA and foreign_company_code not in self.ENIGMA:
-                company = Company.objects.filter(
-                    edrpou=foreign_company_code,
-                    source=Company.DECLARATIONS
-                ).first()
-                # storing company with source=Company.DECLARATIONS
                 if not company:
                     Company.objects.create(
                         name=data.get('source_eng_company_name'),
@@ -150,7 +149,6 @@ class DeclarationConverter(BusinessConverter):
                         address=data.get('source_eng_company_address'),
                         source=Company.DECLARATIONS
                     )
-
             full_name = data.get('source_ukr_fullname')
             if not full_name:
                 full_name = data.get('source_eng_fullname')
@@ -179,7 +177,7 @@ class DeclarationConverter(BusinessConverter):
                 full_name = ''
 
             recipient = None
-            #value could be 'j'
+            # value could be 'j'
             recipient_code = data.get('incomeSource')
             if not recipient_code:
                 recipient_code = data.get('person')
@@ -191,9 +189,9 @@ class DeclarationConverter(BusinessConverter):
             else:
                 recipient = Pep.objects.filter(nacp_id=int(recipient_code)).first()
             if not recipient:
-                logger.error(
+                self.log_error(
                     f'Cannot identify recipient with NACP id {recipient_code}.'
-                    f'Check income data({data} from declaration with NACP id {declaration.nacp_declaration_id})'
+                    f'Check income data({data})'
                 )
                 continue
 
@@ -213,6 +211,174 @@ class DeclarationConverter(BusinessConverter):
                 self.save_income_right(income, rights_data)
             # TODO: store  'iteration'. Example of the value '1614443380219'
             iteration = data.get('iteration')
+
+    # TODO: implement
+    def save_securities_right(self, securities, acquisition_date, rights_data):
+        pass
+
+    # looks like data starts from 'emitent_ua_' is the owner of securities data
+    # possible_keys = {
+    #     'cost_extendedstatus', 'emitent_eng_fullname', 'emitent_ukr_company_address',
+    #     'emitent_ua_company_name_extendedstatus', 'persons_eng_company_name', 'typeProperty',
+    #     'persons_eng_company_address', 'emitent_eng_fullname_extendedstatus', 'persons_ua_company_name',
+    #     'emitent_eng_company_address', 'persons_ua_birthday', 'persons_ua_actual_address_extendedstatus',
+    #     'emitent_ua_sameRegLivingAddress', 'persons_ua_reg_address_extendedstatus', 'emitent_ua_taxNumber',
+    #     'persons_eng_company_address_extendedstatus', 'emitent_eng_company_name', 'persons_date', 'emitent_ua_birthday',
+    #     'persons_ukr_company_name', 'emitent_ua_actualAddress', 'persons_ua_reg_address', 'emitent_ua_lastname',
+    #     'subTypeProperty2', 'emitent_ua_company_code_extendedstatus', 'emitent_eng_company_name_extendedstatus',
+    #     'rights', 'person', 'emitent_ukr_company_name_extendedstatus', 'emitent_ukr_company_name',
+    #     'persons_extendedstatus', 'emitent_type', 'emitent_ua_firstname', 'emitent_ua_company_code',
+    #     'persons_ua_middlename', 'persons_ua_firstname', 'cost', 'persons_ua_actual_address',
+    #     'otherObjectType_extendedstatus', 'emitent_ukr_fullname', 'emitent_ukr_company_address_extendedstatus',
+    #     'emitent_ukr_fullname_extendedstatus', 'owningDate_extendedstatus', 'emitent_ua_company_name',
+    #     'emitent_eng_company_code', 'emitent_ua_regAddress', 'subTypeProperty1', 'emitent_ua_middlename',
+    #     'persons_ua_taxNumber', 'persons_ua_birthday_extendedstatus', 'emitent_eng_company_code_extendedstatus',
+    #     'persons_ua_lastname', 'iteration', 'persons_ua_same_address', 'persons_eng_company_code', 'otherObjectType',
+    #     'persons_ukr_company_address', 'persons_type', 'emitent_eng_company_address_extendedstatus', 'owningDate',
+    #     'amount', 'emitent', 'persons', 'persons_date_extendedstatus', 'persons_eng_company_code_extendedstatus',
+    #     'persons_ua_company_code', 'amount_extendedstatus', 'emitent_extendedstatus'
+    # }
+    def save_securities(self, securities_data, declaration):
+        types = {
+            'Іпотечні цінні папери': Securities.MORTGAGE_SECURITIES,
+            'Інше': Securities.OTHER,
+            'Товаророзпорядчі цінні папери': Securities.COMMODITY_SECURITIES,
+            'Акції': Securities.SHARE,
+            'Похідні цінні папери (деривативи)': Securities.DERIVATIVES,
+            'Боргові цінні папери': Securities.DEBT_SECURITIES,
+            'Приватизаційні цінні папери (ваучери тощо)': Securities.PRIVATIZATION_SECURITIES,
+            'Інвестиційні сертифікати': Securities.INVESTMENT_CERTIFICATES,
+            'Чеки': Securities.CHECK
+        }
+        # TODO: decide should we store that
+        # subtype_1 = {
+        #     'Облігації підприємств', "Казначейські зобов'язання", None, 'Державні облігації України',
+        #     'Ощадні (депозитні) сертифікати'
+        # }
+
+        for data in securities_data:
+            securities_type = types.get(data.get('typeProperty'))
+            additional_info = data.get('otherObjectType', '')
+
+            issuer_from_info = data.get('emitent_type', '')
+            issuer_name = data.get('emitent_ua_company_name')
+            if issuer_name in self.NO_DATA:
+                issuer_name = data.get('emitent_ukr_company_name')
+            if issuer_name in self.NO_DATA:
+                issuer_name = ''
+            issuer_name_eng = data.get('emitent_eng_company_name')
+            if issuer_name_eng in self.NO_DATA:
+                issuer_name_eng = ''
+            issuer_address = data.get('emitent_ukr_company_address')
+            if issuer_address in self.NO_DATA:
+                issuer_address = data.get('emitent_eng_company_address')
+            if issuer_address in self.NO_DATA:
+                issuer_address = ''
+            issuer = None
+            issuer_registration_number = data.get('emitent_ua_company_code')
+            if issuer_registration_number not in self.NO_DATA:
+                issuer = Company.objects.filter(
+                    edrpou=issuer_registration_number,
+                    source=Company.UKRAINE_REGISTER
+                ).first()
+                if not issuer:
+                    self.log_error(
+                        f'Cannot identify ukrainian company with edrpou {issuer_registration_number}.'
+                        f'Check income data({data})'
+                    )
+            else:
+                issuer_registration_number = ''
+            issuer_foreign_registration_number = data.get('emitent_eng_company_code')
+            if issuer_foreign_registration_number not in self.NO_DATA:
+                issuer = Company.objects.create(
+                    name=issuer_name_eng,
+                    edrpou=issuer_foreign_registration_number,
+                    address=issuer_address,
+                    source=Company.DECLARATIONS
+                )
+                issuer_registration_number = issuer_foreign_registration_number
+
+            # TODO: Discover what is 'emitent'
+            # example of the value: 'j'
+            # emitent = data.get('emitent')
+            # TODO: Discover what are 'persons_date', 'person', 'persons'
+            # transfer_date = data.get('persons_date')
+            # person = data.get('person')
+            # persons = data.get('persons')
+
+            trustee_from_info = data.get('persons_type', '')
+            trustee_name = data.get('persons_ua_company_name')
+            if trustee_name in self.NO_DATA:
+                trustee_name = data.get('persons_ukr_company_name')
+            if trustee_name in self.NO_DATA:
+                trustee_name = ''
+            trustee_name_eng = data.get('persons_eng_company_name')
+            if trustee_name_eng in self.NO_DATA:
+                trustee_name_eng = ''
+            trustee_address = data.get('persons_ukr_company_address')
+            if trustee_address in self.NO_DATA:
+                trustee_address = data.get('persons_eng_company_address')
+            if trustee_address in self.NO_DATA:
+                trustee_address = ''
+            trustee_registration_number = data.get('persons_ua_company_code')
+            trustee = None
+            if trustee_registration_number not in self.NO_DATA:
+                trustee = Company.objects.filter(
+                    edrpou=trustee_registration_number,
+                    source=Company.UKRAINE_REGISTER
+                ).first()
+                if not trustee:
+                    self.log_error(
+                        f'Cannot identify ukrainian company with edrpou {trustee_registration_number}.'
+                        f'Check income data({data})'
+                    )
+            else:
+                trustee_registration_number = ''
+
+            trustee_foreign_registration_number = data.get('persons_eng_company_code')
+            if trustee_foreign_registration_number not in self.NO_DATA:
+                trustee = Company.objects.create(
+                    name=trustee_name_eng,
+                    edrpou=trustee_foreign_registration_number,
+                    address=trustee_address,
+                    source=Company.DECLARATIONS
+                )
+                trustee_registration_number = trustee_foreign_registration_number
+
+            quantity = data.get('amount')
+            if quantity not in self.NO_DATA:
+                quantity = int(quantity)
+            else:
+                quantity = None
+            nominal_value = data.get('cost')
+            if nominal_value not in self.NO_DATA:
+                nominal_value = float(nominal_value.replace(',', '.'))
+            else:
+                nominal_value = None
+            securities = Securities.objects.create(
+                declaration=declaration,
+                type=securities_type,
+                additional_info=additional_info,
+                issuer_from_info=issuer_from_info,
+                issuer_name=issuer_name,
+                issuer_name_eng=issuer_name_eng,
+                issuer_address=issuer_address,
+                issuer_registration_number=issuer_registration_number,
+                issuer=issuer,
+                trustee_from_info=trustee_from_info,
+                trustee_name=trustee_name,
+                trustee_name_eng=trustee_name_eng,
+                trustee_address=trustee_address,
+                trustee_registration_number=trustee_registration_number,
+                trustee=trustee,
+                quantity=quantity,
+                nominal_value=nominal_value
+            )
+
+            acquisition_date = simple_format_date_to_yymmdd(data.get('owningDate'))
+            rights_data = data.get('rights')
+            if rights_data:
+                self.save_securities_right(securities, acquisition_date, rights_data)
 
     # TODO: implement
     def save_vehicle_right(self, vehicle, acquisition_date, rights_data):
@@ -387,10 +553,9 @@ class DeclarationConverter(BusinessConverter):
                     source=Company.UKRAINE_REGISTER
                 ).first()
                 if not company:
-                    logger.error(
+                    self.log_error(
                         f'Cannot identify ukrainian company with edrpou {company_code}.'
-                        f'Check right data ({data}) to {property.type} from declaration with'
-                        f'NACP id {property.declaration.nacp_declaration_id}'
+                        f'Check right data ({data}) to {property.type}'
                     )
             # TODO: store 'seller', check if this field is only for changes
             # Possible values = ['Продавець']
@@ -660,9 +825,11 @@ class DeclarationConverter(BusinessConverter):
                 # }
                 detailed_declaration_data = response.json()['data']
 
+                # TODO: predict updating
                 # 'Step_1' - declarant`s personal data
                 # self.save_declarant_data(detailed_declaration_data['step_1']['data'], pep, declaration)
 
+                # TODO: predict updating
                 # 'Step_2' - declarant`s family
                 # if (
                 #         not declaration.spouse

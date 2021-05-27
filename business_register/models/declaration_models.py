@@ -326,11 +326,11 @@ class Income(DataOceanModel):
         help_text=_('full name of the person that paid')
     )
     from_info = models.CharField(
-        _('info about citizenship or registration'),
+        _('info about ukrainian citizenship or registration'),
         max_length=55,
         blank=True,
         default='',
-        help_text=_('info about citizenship or registration of the person or company that paid')
+        help_text=_('info about ukrainian citizenship or registration of the person or company that paid')
     )
     recipient = models.ForeignKey(
         Pep,
@@ -344,10 +344,24 @@ class Income(DataOceanModel):
 class Securities(DataOceanModel):
     SHARE = 1
     CORPORATE_RIGHTS = 2
+    MORTGAGE_SECURITIES = 3
+    COMMODITY_SECURITIES = 4
+    DERIVATIVES = 5
+    DEBT_SECURITIES = 6
+    PRIVATIZATION_SECURITIES = 7
+    INVESTMENT_CERTIFICATES = 8
+    CHECK = 9
     OTHER = 10
     ITEM_TYPES = (
         (SHARE, _('Share')),
         (CORPORATE_RIGHTS, _('Corporate right')),
+        (MORTGAGE_SECURITIES, _('Mortgage securities')),
+        (COMMODITY_SECURITIES, _('Commodity securities')),
+        (DERIVATIVES, _('Derivatives')),
+        (DEBT_SECURITIES, _('Debt securities')),
+        (PRIVATIZATION_SECURITIES, _('Privatization securities (vouchers, etc)')),
+        (INVESTMENT_CERTIFICATES, _('Investment certificates)')),
+        (CHECK, _('Check')),
         (OTHER, _('Other')),
     )
     declaration = models.ForeignKey(
@@ -361,6 +375,47 @@ class Securities(DataOceanModel):
         choices=ITEM_TYPES,
         help_text=_('type of securities')
     )
+    # please, use this field when the type == OTHER
+    additional_info = models.TextField(
+        _('additional info'),
+        blank=True,
+        default='',
+        help_text=_('additional info about securities')
+    )
+    issuer_from_info = models.CharField(
+        _('info about ukrainian registration'),
+        max_length=55,
+        blank=True,
+        default='',
+        help_text=_('info about ukrainian registration of the issuer of securities')
+    )
+    issuer_name = models.TextField(
+        _('name of the issuer'),
+        max_length=75,
+        blank=True,
+        default='',
+        help_text=_('name of the issuer of securities')
+    )
+    issuer_name_eng = models.TextField(
+        _('name of the issuer in English'),
+        max_length=75,
+        blank=True,
+        default='',
+        help_text=_('name in English of the issuer of securities')
+    )
+    issuer_address = models.TextField(
+        _('address of the issuer'),
+        blank=True,
+        default='',
+        help_text=_('address of the issuer of securities')
+    )
+    issuer_registration_number = models.CharField(
+        _('registration number of the issuer'),
+        max_length=15,
+        blank=True,
+        default='',
+        help_text=_('number of registration of the issuer of securities')
+    )
     issuer = models.ForeignKey(
         Company,
         on_delete=models.PROTECT,
@@ -370,6 +425,40 @@ class Securities(DataOceanModel):
         default=None,
         verbose_name=_('issuer'),
         help_text=_('issuer of securities')
+    )
+    trustee_from_info = models.CharField(
+        _('info about ukrainian registration'),
+        max_length=55,
+        blank=True,
+        default='',
+        help_text=_('info about ukrainian registration of the trustee of securities')
+    )
+    trustee_name = models.TextField(
+        _('name of the trustee'),
+        max_length=75,
+        blank=True,
+        default='',
+        help_text=_('name of the trustee of securities')
+    )
+    trustee_name_eng = models.TextField(
+        _('name of the trustee in English'),
+        max_length=75,
+        blank=True,
+        default='',
+        help_text=_('name in English of the trustee of securities')
+    )
+    trustee_address = models.TextField(
+        _('address of the trustee'),
+        blank=True,
+        default='',
+        help_text=_('address of the trustee of securities')
+    )
+    trustee_registration_number = models.CharField(
+        _('registration number of the trustee'),
+        max_length=15,
+        blank=True,
+        default='',
+        help_text=_('number of registration of the trustee of securities')
     )
     trustee = models.ForeignKey(
         Company,
@@ -387,17 +476,11 @@ class Securities(DataOceanModel):
         null=True,
         help_text=_('quantity of securities')
     )
-    nominal_value = models.PositiveIntegerField(
+    nominal_value = models.FloatField(
         _('nominal value'),
         blank=True,
         null=True,
         help_text=_('nominal value of securities')
-    )
-    valuation = models.PositiveIntegerField(
-        _('valuation'),
-        blank=True,
-        null=True,
-        help_text=_('valuation')
     )
 
 
