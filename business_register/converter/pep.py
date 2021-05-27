@@ -519,6 +519,7 @@ class PepConverterFromDB(Converter):
             company_name_en = link[12]
             country = address_converter.save_or_get_country(country_name) if country_name else None
             company = Company.include_deleted_objects.filter(antac_id=company_antac_id).first()
+            company_update_fields = []
             if not company and edrpou:
                 company = Company.include_deleted_objects.filter(
                     edrpou=edrpou,
@@ -526,7 +527,7 @@ class PepConverterFromDB(Converter):
                 ).first()
                 if company:
                     company.antac_id = company_antac_id
-                    company.save(update_fields=['antac_id', 'updated_at'])
+                    company_update_fields.append('antac_id')
             if not company:
                 company = Company.objects.create(name=company_name, name_en=company_name_en, edrpou=edrpou,
                                                  country=country, code=company_name + edrpou, source=Company.ANTAC,
@@ -538,7 +539,10 @@ class PepConverterFromDB(Converter):
             else:
                 if company.name_en != company_name_en:
                     company.name_en = company_name_en
-                    company.save(update_fields=['name_en'])
+                    company_update_fields.append('name_en')
+                if company_update_fields:
+                    company_update_fields.append('updated_at')
+                    company.save(update_fields=company_update_fields)
                 already_stored_link = self.peps_companies_dict.get(source_id)
                 if not already_stored_link:
                     self.create_company_link_with_pep(company, pep, category, start_date,
