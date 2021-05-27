@@ -63,6 +63,18 @@
                 <td>{{ report.invalid_data }} </td>
             </tr>
         {% endfor %}
+        {% for registry_name in not_working %}
+            <tr>
+                <td>{{ registry_name }}</td>
+                <td>Shouldn't have started</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        {% endfor %}
         </tbody>
     </table>
     </p>
