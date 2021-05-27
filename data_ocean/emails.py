@@ -9,9 +9,9 @@ from users.models import DataOceanUser
 def send_reports_mail():
     reports = Report.collect_last_day_reports()
     not_updated_registers = []
-    for register in list(Register.objects.exclude(in_daily_report=None).values('in_daily_report')):
-        if all(register['in_daily_report'] != report.registry_name for report in reports):
-            not_updated_registers.append(register['in_daily_report'])
+    for register in list(Register.objects.exclude(name_in_daily_report=None).values('name_in_daily_report')):
+        if all(register['name_in_daily_report'] != report.registry_name for report in reports):
+            not_updated_registers.append(register['name_in_daily_report'])
     send_template_mail(
         to=settings.REPORT_EMAILS,
         subject='Звіт про оновлення реєстрів за останні 24 години',
