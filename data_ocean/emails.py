@@ -8,17 +8,17 @@ from users.models import DataOceanUser
 
 def send_reports_mail():
     reports = Report.collect_last_day_reports()
-    not_working = []
+    not_updated_registers = []
     for register in list(Register.objects.exclude(in_daily_report=None).values('in_daily_report')):
         if all(register['in_daily_report'] != report.registry_name for report in reports):
-            not_working.append(register['in_daily_report'])
+            not_updated_registers.append(register['in_daily_report'])
     send_template_mail(
         to=settings.REPORT_EMAILS,
         subject='Звіт про оновлення реєстрів за останні 24 години',
         template='data_ocean/emails/report.html',
         context={
             'reports': reports,
-            'not_working': not_working
+            'not_updated_registers': not_updated_registers
         }
     )
 
