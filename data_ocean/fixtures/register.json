@@ -12,7 +12,7 @@
       "source_api_address": "https://pep.org.ua/opendata/persons/json",
       "api_list": "/api/pep/",
       "api_detail": "/api/pep/{id}/",
-      "in_daily_report": "business_pep"
+      "name_in_daily_report": "business_pep"
     }
   },
   {
@@ -28,7 +28,7 @@
       "source_api_address": "https://data.gov.ua/api/3/action/package_show?id=1c7f3815-3259-45e0-bdf1-64dca07ddc10",
       "api_list": "/api/company/ukr/",
       "api_detail": "/api/company/ukr/{id}/",
-      "in_daily_report": "business_ukr_company"
+      "name_in_daily_report": "business_ukr_company"
     }
   },
   {
@@ -44,7 +44,7 @@
       "source_api_address": "https://data.gov.ua/api/3/action/package_show?id=1c7f3815-3259-45e0-bdf1-64dca07ddc10",
       "api_list": "/api/fop/",
       "api_detail": "/api/fop/{id}/",
-      "in_daily_report": null
+      "name_in_daily_report": null
     }
   },
   {
@@ -60,7 +60,7 @@
       "source_api_address": "https://data.gov.ua/api/3/action/package_show?id=e1afb81c-70e4-4009-96a0-b240c36e4603",
       "api_list": "/api/kved/",
       "api_detail": "/api/kved/{id}/",
-      "in_daily_report": null
+      "name_in_daily_report": null
     }
   },
   {
@@ -76,7 +76,7 @@
       "source_api_address": "https://data.gov.ua/api/3/action/package_show?id=a2d6c060-e7e6-4471-ac67-42cfa1742a19",
       "api_list": "/api/street/",
       "api_detail": "/api/street/{id}/",
-      "in_daily_report": null
+      "name_in_daily_report": null
     }
   },
   {
@@ -92,7 +92,7 @@
       "source_api_address": "https://data.gov.ua/api/3/action/package_show?id=dc081fb0-f504-4696-916c-a5b24312ab6e",
       "api_list": "/api/koatuu/",
       "api_detail": "/api/koatuu/{id}/",
-      "in_daily_report": null
+      "name_in_daily_report": null
     }
   },
   {
@@ -108,7 +108,7 @@
       "source_api_address": "https://www.drv.gov.ua/ords/svc/personal/API/Opendata",
       "api_list": "/api/drvbuilding/",
       "api_detail": "/api/drvbuilding/{id}/",
-      "in_daily_report": null
+      "name_in_daily_report": null
     }
   },
   {
@@ -124,7 +124,7 @@
       "source_api_address": "",
       "api_list": "/api/company/uk/",
       "api_detail": "/api/company/uk/{id}/",
-      "in_daily_report": "business_uk_company"
+      "name_in_daily_report": "business_uk_company"
     }
   }
 ]
