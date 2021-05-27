@@ -732,14 +732,15 @@ class DeclarationConverter(BusinessConverter):
                         break
                     else:
                         spouse_from_our_db = link_from_our_db.to_person
-                        if not is_same_full_name(
+                        try:
+                            is_same_full_name(
                                 relative_data,
-                                spouse_from_our_db,
-                                declaration.id
-                        ):
-                            break
-                        else:
+                                spouse_from_our_db
+                            )
                             spouse = spouse_from_our_db
+                        except ValueError:
+                            self.log_error(f'Check related person data ({relative_data})')
+                            break
                 if spouse:
                     declaration.spouse = spouse
                     declaration.save()
