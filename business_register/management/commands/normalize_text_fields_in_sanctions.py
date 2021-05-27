@@ -1,8 +1,7 @@
 from django.core.management.base import BaseCommand
-from django.db import IntegrityError
-
 from business_register.models.sanction_models import CompanySanction, PersonSanction, SanctionType
-import re
+from data_ocean.utils import replace_incorrect_symbols
+
 
 general_field = (
     'cancellation_condition',
@@ -11,7 +10,7 @@ general_field = (
 
 company_fields = (
     'name',
-    'name_original_transcription',
+    'name_original',
     'address',
     'registration_number',
     'taxpayer_number',
@@ -23,7 +22,7 @@ person_fields = (
     'middle_name',
     'last_name',
     'full_name',
-    'full_name_original_transcription',
+    'full_name_original',
     'place_of_birth',
     'address',
     'occupation',
@@ -44,54 +43,54 @@ class Command(BaseCommand):
         pass
 
     @staticmethod
-    def remove_symbols(string):
-        string = string \
-            .replace('\t', ' ') \
-            .replace('\r', '') \
-            .replace('\n', ' ') \
-            .replace('’', "'") \
-            .replace('—', '-') \
-            .replace('–', '-') \
-            .replace('−', '-') \
-            .replace('\xa0', ' ') \
-            .replace('«', '"') \
-            .replace('»', '"') \
-            .replace("''", '"')
-        string = re.sub(r'\s+', ' ', string)
-        return string
-
-    def normalize(self, obj, field) -> bool:
+    def normalize(obj, field) -> bool:
         value = getattr(obj, field)
         if not value:
             return False
 
-        new_value = self.remove_symbols(value)
+        new_value = replace_incorrect_symbols(value)
         if value != new_value:
-            setattr(obj, field, self.remove_symbols(value))
+            setattr(obj, field, new_value)
             return True
         return False
 
-    def process_model(self, model, fields):
+    def normalize_sanction_type(self, obj, field) -> bool:
+        value = getattr(obj, field)
+        if not value:
+            return False
+
+        new_value = replace_incorrect_symbols(value)
+        if value != new_value:
+            st: SanctionType = SanctionType.objects.filter(name=new_value).order_by('id').first()
+            if st:
+                self.stdout.write(f'\nDuplicate detected - SanctionType - {st.pk} and {obj.pk}')
+                persons, companies, countries = st.relink_duplicates([obj])
+                self.stdout.write(f'Moved: persons - {persons}, companies - {companies}, countries - {countries}')
+            else:
+                setattr(obj, field, new_value)
+                return True
+        return False
+
+    def process_model(self, model, fields, normalize_method):
         self.stdout.write(f'Start process for model {model}')
         i = 0
         for obj in model.objects.all():
             need_to_save = False
             for field in fields:
-                is_changed = self.normalize(obj, field)
+                is_changed = normalize_method(obj, field)
                 if is_changed:
                     need_to_save = True
             if need_to_save:
-                try:
-                    obj.save()
-                except IntegrityError:
-                    self.stdout.write(f'\nIntegrityError at model {model} object_id - {obj.pk}')
+                obj.save()
             i += 1
             self.stdout.write(f'\rProcessed {i}', ending='')
         self.stdout.write()
         self.stdout.write(f'Finish process for model {model}')
 
     def handle(self, *args, **options):
-        self.process_model(CompanySanction, general_field + company_fields)
-        self.process_model(PersonSanction, general_field + person_fields)
-        self.process_model(SanctionType, sanction_type_fields)
+        self.process_model(CompanySanction, general_field + company_fields, self.normalize)
+        self.process_model(PersonSanction, general_field + person_fields, self.normalize)
+        self.process_model(SanctionType, sanction_type_fields, self.normalize_sanction_type)
+        deleted_st = SanctionType.clean_empty()
+        self.stdout.write(f'Deleted SanctionType - {deleted_st}')
         self.stdout.write('Done!')

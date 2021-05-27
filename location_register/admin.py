@@ -10,7 +10,7 @@ from location_register.models.drv_models import DrvBuilding
 
 @admin.register(Country)
 class CountryAdmin(RegisterModelAdmin):
-    list_display = ('name', 'name_uk')
+    list_display = ('id', 'name', 'name_uk')
     search_fields = ('name', 'name_uk')
     ordering = ('name', 'name_uk')
     readonly_fields = ['nacp_id']
