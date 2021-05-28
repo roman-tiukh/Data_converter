@@ -1,12 +1,7 @@
 from rest_framework import serializers
 from drf_dynamic_fields import DynamicFieldsMixin
 from business_register.models.sanction_models import SanctionType, PersonSanction, CompanySanction, CountrySanction
-
-
-# class SanctionTypeSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
-#     class Meta:
-#         model = SanctionType
-#         fields = ('name', 'law')
+from location_register.serializers.address_serializers import CountrySerializer
 
 
 class CountrySanctionSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
@@ -26,7 +21,7 @@ class CountrySanctionSerializer(DynamicFieldsMixin, serializers.ModelSerializer)
 
 
 class PersonSanctionSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
-    countries_of_citizenship = serializers.StringRelatedField(
+    countries_of_citizenship = CountrySerializer(
         many=True, help_text=PersonSanction._meta.get_field('countries_of_citizenship').help_text
     )
     types_of_sanctions = serializers.StringRelatedField(
@@ -46,7 +41,7 @@ class PersonSanctionSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
 
 
 class CompanySanctionSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
-    country_of_registration = serializers.StringRelatedField(
+    country_of_registration = CountrySerializer(
         help_text=CompanySanction._meta.get_field('country_of_registration').help_text
     )
     types_of_sanctions = serializers.StringRelatedField(
