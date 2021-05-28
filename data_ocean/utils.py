@@ -13,6 +13,9 @@ import sys
 from django.utils import translation
 from num2words import num2words
 
+from business_register.models.company_models import Company, CompanyType
+from location_register.models.address_models import Country
+
 
 def clean_name(name):
     return re.sub(r'р\.|м\.|с\.|смт\.|сщ\.|с/рада\.|сщ/рада\.|вул\.', "", name.lower()).strip()
@@ -151,6 +154,84 @@ def replace_incorrect_symbols(string):
     string = re.sub(r'\s+', ' ', string)
     return string
 
+
+ukr_to_en_first_word = {
+    'а': 'a',
+    'б': 'b',
+    'в': 'v',
+    'г': 'h',
+    'ґ': 'g',
+    'д': 'd',
+    'е': 'e',
+    'є': 'ye',
+    'ё': 'jo',
+    'ж': 'zh',
+    'з': 'z',
+    'и': 'y',
+    'і': 'i',
+    'ї': 'yi',
+    'й': 'y',
+    'к': 'k',
+    'л': 'l',
+    'м': 'm',
+    'н': 'n',
+    'о': 'o',
+    'п': 'p',
+    'р': 'r',
+    'с': 's',
+    'т': 't',
+    'у': 'u',
+    'ф': 'f',
+    'х': 'kh',
+    'ц': 'ts',
+    'ч': 'ch',
+    'ш': 'sh',
+    'щ': 'shch',
+    'ъ': '',
+    'ы': 'y',
+    'ь': '',
+    'э': 'e',
+    'ю': 'yu',
+    'я': 'ya',
+    'А': 'A',
+    'Б': 'B',
+    'В': 'V',
+    'Г': 'H',
+    'Ґ': 'G',
+    'Д': 'D',
+    'Е': 'E',
+    'Ё': 'Jo',
+    'Ж': 'Zh',
+    'З': 'Z',
+    'И': 'Y',
+    'Й': 'Y',
+    'К': 'K',
+    'Л': 'L',
+    'М': 'M',
+    'Н': 'N',
+    'О': 'O',
+    'П': 'P',
+    'Р': 'R',
+    'С': 'S',
+    'Т': 'T',
+    'У': 'U',
+    'Ф': 'F',
+    'Х': 'Kh',
+    'Ц': 'Ts',
+    'Ч': 'Ch',
+    'Ш': 'Sh',
+    'Щ': 'Shch',
+    'Ъ': '',
+    'Ы': 'Y',
+    'Ь': '',
+    'Э': 'E',
+    'Ю': 'Yu',
+    'Я': 'Ya',
+    '’': '',
+    'І': 'I',
+    'Ї': 'Yi',
+    'Є': 'Ye'
+}
 ukr_to_en = {
     'а': 'a',
     'б': 'b',
@@ -230,15 +311,37 @@ ukr_to_en = {
 }
 
 
+def trans_char(char, transliterate_dict):
+    for key in transliterate_dict:
+        if key == char:
+            return transliterate_dict[key]
+        elif key == 'Є':
+            return char
+
+
 def transliterate(string):
-    string = re.sub(r'(^\s+)|\'|"|<|>|!|\||@|#|$|%|^|\^|\$|\\|/|&|\*|\(\)|\|;|\+|№|,|\?|:|{|}|\[|]',
-                    '', string).title()
+    string = string.strip(' ')
+
     new_string = ''
-    for char in string:
-        for key in ukr_to_en:
-            if key == char:
-                new_string += ukr_to_en[key]
-                break
-            elif key == 'Є':
-                new_string += char
+    for word in string:
+        word.strip()
+        for char in word:
+            if word.index(char) == 0 or word.index(char) == 1 and word[0] == '"':
+                new_string += trans_char(char, ukr_to_en_first_word)
+            else:
+                new_string += trans_char(char, ukr_to_en)
     return new_string
+
+
+def transliterate_company_name(string):
+    string = string.split('"')
+    company_type = CompanyType.objects.filter(name=string[0].strip()).first().name_eng if \
+        CompanyType.objects.filter(name=string[0].strip()).first() else transliterate(string[0].strip())
+    return (company_type + ' ' + transliterate('"' + '"'.join(string[1:]))).strip()
+
+
+def transliterate_address(string):
+    string = string.split(',')
+    country = Country.objects.filter(name_uk=string[0].strip().lower()).first().name if \
+        Country.objects.filter(name_uk=string[0].strip().lower()).first() else transliterate(string[0].strip())
+    return (country + ', ' + transliterate(','.join(string[1:]).lower())).strip()
