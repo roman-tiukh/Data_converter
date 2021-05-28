@@ -289,7 +289,8 @@ class PepConverterFromDB(Converter):
                 country.name_en,
                 p2c.id,
                 company.name_en,
-                p2c.relationship_type
+                p2c.relationship_type,
+                p2c.relationship_type_en
             FROM core_person2company p2c
             INNER JOIN core_company company on p2c.to_company_id=company.id
             LEFT JOIN (
@@ -484,7 +485,7 @@ class PepConverterFromDB(Converter):
                 link.to_person.save(update_fields=['updated_at', ])
 
     def create_company_link_with_pep(self, company, pep, category, start_date, confirmation_date,
-                                     end_date, is_state_company, source_id, relationship_type):
+                                     end_date, is_state_company, source_id, relationship_type, relationship_type_en):
         self.peps_companies_dict[source_id] = CompanyLinkWithPep.objects.create(
             company=company,
             pep=pep,
@@ -494,7 +495,8 @@ class PepConverterFromDB(Converter):
             end_date=end_date,
             is_state_company=is_state_company,
             source_id=source_id,
-            relationship_type=relationship_type
+            relationship_type=relationship_type,
+            relationship_type_en=relationship_type_en
         )
 
     def save_or_update_peps_companies(self, peps_companies_data):
@@ -520,6 +522,7 @@ class PepConverterFromDB(Converter):
             source_id = link[11]
             company_name_en = link[12]
             relationship_type = link[13]
+            relationship_type_en = link[14]
             country = address_converter.save_or_get_country(country_name) if country_name else None
             company = Company.include_deleted_objects.filter(antac_id=company_antac_id).first()
             company_update_fields = []
@@ -537,7 +540,7 @@ class PepConverterFromDB(Converter):
                                                  antac_id=company_antac_id, from_antac_only=True)
                 self.create_company_link_with_pep(company, pep, category, start_date,
                                                   confirmation_date, end_date, is_state_company,
-                                                  source_id, relationship_type)
+                                                  source_id, relationship_type, relationship_type_en)
                 is_changed = True
             else:
                 if company.name_en != company_name_en:
@@ -550,13 +553,19 @@ class PepConverterFromDB(Converter):
                 if not already_stored_link:
                     self.create_company_link_with_pep(company, pep, category, start_date,
                                                       confirmation_date, end_date, is_state_company,
-                                                      source_id, relationship_type)
+                                                      source_id, relationship_type, relationship_type_en)
                     is_changed = True
                 else:
                     update_fields = []
                     if already_stored_link.category != category:
                         already_stored_link.category = category
                         update_fields.append('category')
+                    if already_stored_link.relationship_type != relationship_type:
+                        already_stored_link.relationship_type = relationship_type
+                        update_fields.append('relationship_type')
+                    if already_stored_link.relationship_type_en != relationship_type_en:
+                        already_stored_link.relationship_type_en = relationship_type_en
+                        update_fields.append('relationship_type_en')
                     if already_stored_link.start_date != start_date:
                         already_stored_link.start_date = start_date
                         update_fields.append('start_date')
