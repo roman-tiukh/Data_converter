@@ -94,8 +94,8 @@ class PepConverterFromJson(BusinessConverter):
             middle_name = pep_dict['patronymic'].lower()
             last_name = pep_dict['last_name'].lower()
             fullname = pep_dict['full_name'].lower()
-            fullname_en = pep_dict['first_name_en'].lower() + ' ' + pep_dict['patronymic_en'].lower() + ' ' + \
-                          pep_dict['last_name_en'].lower()
+            fullname_en = pep_dict['last_name_en'].lower() + ' ' + pep_dict['first_name_en'].lower() + ' ' + \
+                          pep_dict['patronymic_en'].lower()
             fullname_transcriptions_eng = pep_dict['names'].lower()
             last_job_title = pep_dict.get('last_job_title')
             if last_job_title:
