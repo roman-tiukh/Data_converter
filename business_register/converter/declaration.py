@@ -772,10 +772,10 @@ class DeclarationConverter(BusinessConverter):
         declaration.city_of_registration = city_of_registration
         # TODO: make a method for extracting residence data
         if city_of_residance_data:
-            city_of_residance = self.find_city(city_of_residance_data)
+            city_of_residence = self.find_city(city_of_residance_data)
         else:
-            city_of_residance = None
-        declaration.city_of_residence = city_of_residance
+            city_of_residence = None
+        declaration.city_of_residence = city_of_residence
         # TODO: investigate the date of birth data
         declaration.last_job_title = declarant_data.get('workPost')
         declaration.save()
