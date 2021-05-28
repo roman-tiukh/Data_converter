@@ -764,15 +764,15 @@ class DeclarationConverter(BusinessConverter):
     def save_declarant_data(self, declarant_data, pep, declaration):
         declaration.last_employer = declarant_data.get('workPlace')
         city_of_registration_data = declarant_data.get('cityType')
-        city_of_residance_data = declarant_data.get('actual_cityType')
+        city_of_residence_data = declarant_data.get('actual_cityType')
         if city_of_registration_data:
             city_of_registration = self.find_city(city_of_registration_data)
         else:
             city_of_registration = None
         declaration.city_of_registration = city_of_registration
         # TODO: make a method for extracting residence data
-        if city_of_residance_data:
-            city_of_residence = self.find_city(city_of_residance_data)
+        if city_of_residence_data:
+            city_of_residence = self.find_city(city_of_residence_data)
         else:
             city_of_residence = None
         declaration.city_of_residence = city_of_residence
