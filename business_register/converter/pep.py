@@ -523,7 +523,6 @@ class PepConverterFromDB(Converter):
             relationship_type_en = link[14]
             country = address_converter.save_or_get_country(country_name) if country_name else None
             company = Company.include_deleted_objects.filter(antac_id=company_antac_id).first()
-            company_update_fields = []
             if not company and edrpou:
                 company = Company.include_deleted_objects.filter(
                     edrpou=edrpou,
