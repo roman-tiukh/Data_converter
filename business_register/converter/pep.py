@@ -519,6 +519,7 @@ class PepConverterFromDB(Converter):
             company_name = link[9]
             country_name = link[10]
             source_id = link[11]
+            company_name_en = link[12]
             relationship_type = link[13]
             relationship_type_en = link[14]
             country = address_converter.save_or_get_country(country_name) if country_name else None
