@@ -419,6 +419,10 @@ msgstr "інша пов'язана особа"
 msgid "connection`s type"
 msgstr "тип зв'язку"
 
+#: business_register/models/pep_models.py:267
+msgid "connection`s type in English"
+msgstr "тип зв'язку англійською"
+
 #: business_register/models/pep_models.py:187
 msgid "another person`s connection`s type"
 msgstr "тип зв'язку для іншої особи"
