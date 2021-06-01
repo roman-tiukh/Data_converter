@@ -212,11 +212,11 @@ ukr_to_en = {
     'Ґ': 'G',
     'Д': 'D',
     'Е': 'E',
-    'Ё': 'Jo',
-    'Ж': 'Zh',
+    'Ё': 'JO',
+    'Ж': 'ZH',
     'З': 'Z',
     'И': 'Y',
-    'Й': 'Y',
+    'Й': 'I',
     'К': 'K',
     'Л': 'L',
     'М': 'M',
@@ -228,21 +228,21 @@ ukr_to_en = {
     'Т': 'T',
     'У': 'U',
     'Ф': 'F',
-    'Х': 'Kh',
-    'Ц': 'Ts',
-    'Ч': 'Ch',
-    'Ш': 'Sh',
-    'Щ': 'Shch',
+    'Х': 'KH',
+    'Ц': 'TS',
+    'Ч': 'CH',
+    'Ш': 'SH',
+    'Щ': 'SHCH',
     'Ъ': '',
     'Ы': 'Y',
     'Ь': '',
     'Э': 'E',
-    'Ю': 'Yu',
-    'Я': 'Ya',
+    'Ю': 'IU',
+    'Я': 'IA',
     '’': '',
     'І': 'I',
-    'Ї': 'Yi',
-    'Є': 'Ye'
+    'Ї': 'I',
+    'Є': 'IE'
 }
 
 
@@ -260,7 +260,7 @@ def transliterate(string):
 
 def transliterate_field(string, field_name=None):
     if not field_name:
-        return transliterate(string)
+        return transliterate(string).lower()
     else:
         string_parts = re.split(r'("|«|,)', string, 1)
         first_string_part = string_parts[0].strip().lower()
@@ -273,9 +273,9 @@ def transliterate_field(string, field_name=None):
         elif field_name == 'address':
             country = Country.objects.filter(name_uk=first_string_part).first()
             if country:
-                new_first_string_part = country.name.capitalize()
+                new_first_string_part = country.name
             else:
-                new_first_string_part = transliterate(first_string_part)
+                new_first_string_part = transliterate(first_string_part).lower()
         else:
-            return transliterate(string)
+            return transliterate(string).lower()
         return new_first_string_part + transliterate(''.join(string_parts[1:]))
