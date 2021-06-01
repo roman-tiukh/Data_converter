@@ -535,11 +535,19 @@ msgstr "дата завершення санкцій"
 msgid "reasoning"
 msgstr "обгрунтування"
 
+#: business_register/models/sanction_models.py:100
+msgid "reasoning date"
+msgstr "дата обгрунтування"
+
 #: business_register/models/sanction_models.py:53
 msgid "reasoning of imposing sanctions"
 msgstr "обгрунтування санкцій"
 
-#: business_register/models/sanction_models.py:66
+#: business_register/models/sanction_models.py:103
+msgid "date of reasoning of imposing sanctions"
+msgstr "дата обгрунтування санкцій"
+
+#: business_register/models/sanction_models.py:99
 msgid "country under this sanction"
 msgstr "країна під цією санкцією"
 
