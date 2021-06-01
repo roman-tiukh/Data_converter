@@ -300,24 +300,38 @@ class BaseSanctionFilter(filters.FilterSet):
 class CompanySanctionFilterSet(BaseSanctionFilter):
     name = filters.CharFilter(
         lookup_expr='icontains',
-        help_text='Filter by name of company',
+        help_text='Filter by name of company. Type: case insensitive string contains',
+    )
+    name_original = filters.CharFilter(
+        lookup_expr='icontains',
+        help_text='Filter by name original of company. Type: case insensitive string contains',
     )
     address = filters.CharFilter(
         lookup_expr='icontains',
-        help_text='Filter by address of company',
+        help_text='Filter by address of company. Type: case insensitive string contains',
+    )
+    registration_date = filters.DateFromToRangeFilter(
+        help_text='You can use key "registration_date_before" to select objects before the specified date and '
+                  '"registration_date_after" key to select objects after the specified date. '
+                  'Date must be in YYYY-MM-DD format.',
     )
     registration_number = filters.CharFilter(
         lookup_expr='icontains',
-        help_text='Filter by registration number of company',
+        help_text='Filter by registration number of company. Type: case insensitive string contains',
     )
     taxpayer_number = filters.CharFilter(
         lookup_expr='icontains',
-        help_text='Filter by taxpayer number of company',
+        help_text='Filter by taxpayer number of company. Type: case insensitive string contains',
+    )
+    additional_info = filters.CharFilter(
+        lookup_expr='icontains',
+        help_text='Filter by additional info of company. Type: case insensitive string contains',
     )
     country_of_registration = filters.CharFilter(
         field_name='country_of_registration__name',
         lookup_expr='icontains',
-        help_text='Filter by country_of_registration of company',
+        distinct=True,
+        help_text='Filter by country_of_registration of company. Type: case insensitive string contains',
     )
 
     class Meta:
@@ -328,7 +342,11 @@ class CompanySanctionFilterSet(BaseSanctionFilter):
 class PersonSanctionFilterSet(BaseSanctionFilter):
     full_name = filters.CharFilter(
         lookup_expr='icontains',
-        help_text='Filter by full name of person',
+        help_text='Filter by full name of person. Type: case insensitive string contains',
+    )
+    full_name_original = filters.CharFilter(
+        lookup_expr='icontains',
+        help_text='Filter by full name original of person. Type: case insensitive string contains',
     )
     date_of_birth = filters.DateFilter(
         lookup_expr='exact',
@@ -341,16 +359,16 @@ class PersonSanctionFilterSet(BaseSanctionFilter):
     )
     address = filters.CharFilter(
         lookup_expr='icontains',
-        help_text='Filter by address of person',
+        help_text='Filter by address of person. Type: case insensitive string contains',
     )
     taxpayer_number = filters.CharFilter(
         lookup_expr='icontains',
-        help_text='Filter by taxpayer number of person',
+        help_text='Filter by taxpayer number of person. Type: case insensitive string contains',
     )
     country_of_citizenship = filters.CharFilter(
         field_name='countries_of_citizenship__name',
         lookup_expr='icontains',
-        help_text='Filter by countries of citizenship of person',
+        help_text='Filter by countries of citizenship of person. Type: case insensitive string contains',
     )
 
     class Meta:

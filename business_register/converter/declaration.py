@@ -14,6 +14,7 @@ from business_register.models.declaration_models import (Declaration,
                                                          Securities,
                                                          SecuritiesRight,
                                                          Income,
+                                                         Money,
                                                          )
 from business_register.models.pep_models import Pep, RelatedPersonsLink
 from location_register.models.address_models import Country
@@ -62,6 +63,128 @@ class DeclarationConverter(BusinessConverter):
     def log_error(self, message):
         logger.error(f'Declaration id {self.current_declaration.nacp_declaration_id} : {message}')
 
+    # looks like data starts with 'debtor_ua' is the data of the owner of the Money.Cash
+    # possible_keys = {
+    #     'debtor_ua_birthday', 'iteration', 'organization_eng_company_name_extendedstatus', 'debtor_ua_lastname',
+    #     'debtor_ua_regAddress_extendedstatus', 'organization_type1_extendedstatus', 'debtor_ua_regAddress',
+    #     'objectType', 'organization_ua_company_code', 'organization_type2', 'debtor_ua_sameRegLivingAddress',
+    #     'organization_eng_company_name', 'organization_ua_company_name', 'debtor_ua_middlename',
+    #     'organization_eng_company_code_extendedstatus', 'debtor_ua_taxNumber_extendedstatus',
+    #     'organization_ukr_company_name', 'organization_type1', 'debtor_ua_actualAddress_extendedstatus',
+    #     'debtor_ua_lastname_extendedstatus', 'organization_eng_company_code', 'organization_extendedstatus',
+    #     'debtor_ua_firstname_extendedstatus', 'sizeAssets', 'debtor_ua_firstname', 'sizeAssets_extendedstatus',
+    #     'rights', 'organization_eng_company_address', 'organization_ukr_company_address',
+    #     'assetsCurrency_extendedstatus', 'otherObjectType', 'organization_ua_company_name_extendedstatus',
+    #     'otherObjectType_extendedstatus', 'debtor_ua_actualAddress', 'person',
+    #     'organization_ukr_company_address_extendedstatus', 'assetsCurrency',
+    #     'organization_ukr_company_name_extendedstatus', 'debtor_ua_birthday_extendedstatus',
+    #     'debtor_ua_middlename_extendedstatus', 'organization_ua_company_code_extendedstatus', 'organization',
+    #     'organization_type2_extendedstatus', 'debtor_ua_taxNumber', 'organization_type',
+    #     'organization_eng_company_address_extendedstatus'
+    # }
+    def save_money(self, money_data, declaration):
+        types = {
+            'Готівкові кошти': Money.CASH,
+            'Кошти, розміщені на банківських рахунках': Money.BANK_ACCOUNT,
+            'Внески до кредитних спілок та інших небанківських фінансових установ': Money.CONTRIBUTION,
+            'Кошти, позичені третім особам': Money.LENT_MONEY,
+            'Активи у дорогоцінних (банківських) металах': Money.PRECIOUS_METALS,
+            'Інше': Money.OTHER
+        }
+        # currencies = {
+        # }
+
+        for data in money_data:
+            money_type = types.get(data.get('objectType'))
+            additional_info = data.get('otherObjectType', '')
+            amount = data.get('sizeAssets')
+            if amount not in self.NO_DATA:
+                amount = float(amount)
+            else:
+                amount = None
+            # TODO: check records after storing
+            currency = data.get('assetsCurrency', '')
+
+            if money_type in [Money.BANK_ACCOUNT, Money.CONTRIBUTION, Money.OTHER]:
+                bank_from_info = data.get('organization_type', '')
+                bank_name = data.get('organization_ua_company_name')
+                if bank_name in self.NO_DATA:
+                    bank_name = data.get('organization_ukr_company_name')
+                if bank_name in self.NO_DATA:
+                    bank_name = ''
+                bank_name_eng = data.get('organization_eng_company_name')
+                if bank_name_eng in self.NO_DATA:
+                    bank_name_eng = ''
+                bank_address = data.get('organization_ukr_company_address')
+                if bank_address in self.NO_DATA:
+                    bank_address = data.get('organization_eng_company_address')
+                if bank_address in self.NO_DATA:
+                    bank_address = ''
+                bank = None
+                bank_registration_number = data.get('organization_ua_company_code')
+                if bank_registration_number not in self.NO_DATA:
+                    bank = Company.objects.filter(
+                        edrpou=bank_registration_number,
+                        source=Company.UKRAINE_REGISTER
+                    ).first()
+                    if not bank:
+                        self.log_error(
+                            f'Cannot identify ukrainian company with edrpou {bank_registration_number}.'
+                            f'Check money data({data})'
+                        )
+                        continue
+                else:
+                    bank_registration_number = ''
+                bank_foreign_registration_number = data.get('organization_eng_company_code')
+                if bank_foreign_registration_number not in self.NO_DATA:
+                    bank = Company.objects.create(
+                        name=bank_name_eng,
+                        edrpou=bank_foreign_registration_number,
+                        address=bank_address,
+                        source=Company.DECLARATIONS
+                    )
+                    bank_registration_number = bank_foreign_registration_number
+
+            # for faster assigning, if money_type == Money.LENT_MONEY or Money.CASH:
+            else:
+                bank_from_info = ''
+                bank_name = ''
+                bank_name_eng = ''
+                bank_address = ''
+                bank_registration_number = ''
+                bank = None
+
+            owner = None
+            owner_id = data.get('person')
+            if owner_id in self.NO_DATA:
+                owner_info = data.get('rights')
+                if owner_info:
+                    for info in owner_info:
+                        owner_id = info.get('rightBelongs')
+            if owner_id not in self.NO_DATA:
+                if owner_id in self.ENIGMA:
+                    owner = declaration.pep
+                else:
+                    owner = Pep.objects.filter(nacp_id=int(owner_id)).first()
+            if not owner:
+                self.log_error(f'Cannot identify owner of the money from data({data})')
+
+            else:
+                Money.objects.create(
+                    declaration=declaration,
+                    type=money_type,
+                    additional_info=additional_info,
+                    amount=amount,
+                    currency=currency,
+                    bank_from_info=bank_from_info,
+                    bank_name=bank_name,
+                    bank_name_eng=bank_name_eng,
+                    bank_address=bank_address,
+                    bank_registration_number=bank_registration_number,
+                    bank=bank,
+                    owner=owner
+                )
+
     # TODO: implement
     def save_income_right(self, income, rights_data):
         pass
@@ -87,7 +210,6 @@ class DeclarationConverter(BusinessConverter):
     #     'source_ua_birthday_extendedstatus', 'source_ukr_firstname', 'source_citizen_extendedstatus',
     #     'source_ukr_company_name', 'person'
     # }
-
     def save_income(self, incomes_data, declaration):
         types = {
             'Дохід від зайняття підприємницькою діяльністю': Income.BUSINESS,
@@ -149,6 +271,7 @@ class DeclarationConverter(BusinessConverter):
                         address=data.get('source_eng_company_address'),
                         source=Company.DECLARATIONS
                     )
+
             full_name = data.get('source_ukr_fullname')
             if not full_name:
                 full_name = data.get('source_eng_fullname')
@@ -190,7 +313,7 @@ class DeclarationConverter(BusinessConverter):
                 recipient = Pep.objects.filter(nacp_id=int(recipient_code)).first()
             if not recipient:
                 self.log_error(
-                    f'Cannot identify recipient with NACP id {recipient_code}.'
+                    f'Cannot identify income recipient with NACP id {recipient_code}.'
                     f'Check income data({data})'
                 )
                 continue
@@ -670,7 +793,7 @@ class DeclarationConverter(BusinessConverter):
                 part = part.split('/')[0]
             if 'район' in part:
                 district = part
-            elif 'область' in part:
+            elif 'область' in part or 'автономна республіка крим' in part:
                 region = part
             elif part in city_region:
                 city = region = part
@@ -765,12 +888,18 @@ class DeclarationConverter(BusinessConverter):
     def save_declarant_data(self, declarant_data, pep, declaration):
         declaration.last_employer = declarant_data.get('workPlace')
         city_of_registration_data = declarant_data.get('cityType')
+        city_of_residence_data = declarant_data.get('actual_cityType')
         if city_of_registration_data:
             city_of_registration = self.find_city(city_of_registration_data)
         else:
             city_of_registration = None
         declaration.city_of_registration = city_of_registration
         # TODO: make a method for extracting residence data
+        if city_of_residence_data:
+            city_of_residence = self.find_city(city_of_residence_data)
+        else:
+            city_of_residence = None
+        declaration.city_of_residence = city_of_residence
         # TODO: investigate the date of birth data
         declaration.last_job_title = declarant_data.get('workPost')
         declaration.save()
@@ -822,7 +951,7 @@ class DeclarationConverter(BusinessConverter):
                 # possible_keys = {
                 #     'step_9', 'step_13', 'step_3', 'step_14', 'step_16', 'step_11', 'step_17',
                 #     'step_6', 'step_5', 'step_8', 'step_0', 'step_1', 'step_7', 'step_2',
-                #     'step_4', 'step_12', 'step_10', 'step_15'
+                #     'step_4', 'step_12', 'step_10', 'step_15',
                 # }
                 detailed_declaration_data = response.json()['data']
 
@@ -878,3 +1007,8 @@ class DeclarationConverter(BusinessConverter):
                 # if (detailed_declaration_data['step_11']
                 #         and not detailed_declaration_data['step_11'].get('isNotApplicable')):
                 #     self.save_income(detailed_declaration_data['step_11']['data'], declaration)
+
+                # 'Step_11' - declarant`s family`s money
+                # if (detailed_declaration_data['step_12']
+                #         and not detailed_declaration_data['step_12'].get('isNotApplicable')):
+                #     self.save_money(detailed_declaration_data['step_12']['data'], declaration)
