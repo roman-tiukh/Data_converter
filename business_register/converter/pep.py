@@ -288,6 +288,7 @@ class PepConverterFromDB(Converter):
                 company.name,
                 country.name_en,
                 p2c.id,
+                company.name_en,
                 p2c.relationship_type,
                 p2c.relationship_type_en
             FROM core_person2company p2c
@@ -524,6 +525,7 @@ class PepConverterFromDB(Converter):
             relationship_type_en = link[14]
             country = address_converter.save_or_get_country(country_name) if country_name else None
             company = Company.include_deleted_objects.filter(antac_id=company_antac_id).first()
+            company_update_fields = []
             if not company and edrpou:
                 company = Company.include_deleted_objects.filter(
                     edrpou=edrpou,
@@ -541,6 +543,12 @@ class PepConverterFromDB(Converter):
                                                   source_id, relationship_type, relationship_type_en)
                 is_changed = True
             else:
+                if company.name_en != company_name_en:
+                    company.name_en = company_name_en
+                    company_update_fields.append('name_en')
+                if company_update_fields:
+                    company_update_fields.append('updated_at')
+                    company.save(update_fields=company_update_fields)
                 already_stored_link = self.peps_companies_dict.get(source_id)
                 if not already_stored_link:
                     self.create_company_link_with_pep(company, pep, category, start_date,

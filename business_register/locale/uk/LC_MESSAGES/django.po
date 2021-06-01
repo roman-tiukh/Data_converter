@@ -86,6 +86,10 @@ msgid "name"
 msgstr "назва"
 
 #: business_register/models/company_models.py:42
+msgid "english name"
+msgstr "англійська назва"
+
+#: business_register/models/company_models.py:43
 msgid "short name"
 msgstr "скорочена назва"
 
