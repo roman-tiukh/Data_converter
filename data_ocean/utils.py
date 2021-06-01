@@ -250,7 +250,6 @@ def transliterate(string):
     word_list = re.split('(\W|\d)', string)
     new_string = ''
     for word in word_list:
-        # print(word, word.isupper())
         new_word = ''
         for char in word:
             if word.index(char) == 0:
