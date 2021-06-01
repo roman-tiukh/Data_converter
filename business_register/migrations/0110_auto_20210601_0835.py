@@ -24,9 +24,12 @@ date_regex = re.compile(r'від (\d{1,2} ' + f'({"|".join(months.keys())})' + r
 
 
 def extract_date(reasoning):
-    dob = date_regex.findall(reasoning)
-    dob = dob[0][0]
-    day, month, year = dob.split(' ')
+    matches = date_regex.findall(reasoning)
+    try:
+        match = matches[0][0]
+    except IndexError:
+        return None
+    day, month, year = match.split(' ')
     month = months[month]
     return date(int(year), month, int(day))
 
