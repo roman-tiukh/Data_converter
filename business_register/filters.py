@@ -6,6 +6,7 @@ from business_register.forms import PepExportForm, PepCheckFilterForm
 from business_register.models.company_models import Company
 from business_register.models.fop_models import Fop
 from business_register.models.pep_models import Pep, CompanyLinkWithPep
+from business_register.models.sanction_models import CompanySanction, PersonSanction
 from data_ocean.filters import ValidatedBooleanWidget
 from .models.kved_models import Kved
 
@@ -47,7 +48,6 @@ class FopFilterSet(filters.FilterSet):
                   '<br>Examples: М.ГОРОДИЩЕ, ГОРОДИЩЕНСЬКИЙ РАЙОН; 19200, Черкаська область, Жашківський район, '
                   ' місто Жашків, ВУЛИЦЯ ПЕРЕМОГИ;'
     )
-    #status search changed from id to name (Tiukh + Litsyhyn)
     status = filters.CharFilter(
         field_name='status__name',
         lookup_expr='icontains',
@@ -94,7 +94,6 @@ class FopFilterSet(filters.FilterSet):
                   'Searching request may contain only full date.'
                   '<br> Example: 2021-03-02'
     )
-    #authority search changer from id to name (Tiukh + Litsyshyn)
     authority = filters.CharFilter(
         field_name='authority__name',
         lookup_expr='icontains',
@@ -279,3 +278,104 @@ class PepCheckFilterSet(filters.FilterSet):
 
 class HistoricalCompanyRelatedFilterSet(filters.FilterSet):
     history_date = filters.DateFromToRangeFilter()
+
+
+class BaseSanctionFilter(filters.FilterSet):
+    start_date = filters.DateFromToRangeFilter(
+        help_text='You can use key "start_date_before" to select objects before the specified date and '
+                  '"start_date_after" key to select objects after the specified date. '
+                  'Date must be in YYYY-MM-DD format.',
+    )
+    end_date = filters.DateFromToRangeFilter(
+        help_text='You can use key "end_date_before" to select objects before the specified date and '
+                  '"end_date_after" key to select objects after the specified date. '
+                  'Date must be in YYYY-MM-DD format.',
+    )
+    reasoning = filters.CharFilter(
+        lookup_expr='icontains',
+        help_text='Filter by reasoning of imposing sanctions',
+    )
+    reasoning_date = filters.DateFromToRangeFilter(
+        help_text='You can use key "reasoning_date_before" to select objects before the specified date and '
+                  '"reasoning_date_after" key to select objects after the specified date. '
+                  'Date must be in YYYY-MM-DD format.',
+    )
+
+
+class CompanySanctionFilterSet(BaseSanctionFilter):
+    name = filters.CharFilter(
+        lookup_expr='icontains',
+        help_text='Filter by name of company. Type: case insensitive string contains',
+    )
+    name_original = filters.CharFilter(
+        lookup_expr='icontains',
+        help_text='Filter by name original of company. Type: case insensitive string contains',
+    )
+    address = filters.CharFilter(
+        lookup_expr='icontains',
+        help_text='Filter by address of company. Type: case insensitive string contains',
+    )
+    registration_date = filters.DateFromToRangeFilter(
+        help_text='You can use key "registration_date_before" to select objects before the specified date and '
+                  '"registration_date_after" key to select objects after the specified date. '
+                  'Date must be in YYYY-MM-DD format.',
+    )
+    registration_number = filters.CharFilter(
+        lookup_expr='icontains',
+        help_text='Filter by registration number of company. Type: case insensitive string contains',
+    )
+    taxpayer_number = filters.CharFilter(
+        lookup_expr='icontains',
+        help_text='Filter by taxpayer number of company. Type: case insensitive string contains',
+    )
+    additional_info = filters.CharFilter(
+        lookup_expr='icontains',
+        help_text='Filter by additional info of company. Type: case insensitive string contains',
+    )
+    country_of_registration = filters.CharFilter(
+        field_name='country_of_registration__name',
+        lookup_expr='icontains',
+        distinct=True,
+        help_text='Filter by country_of_registration of company. Type: case insensitive string contains',
+    )
+
+    class Meta:
+        model = CompanySanction
+        fields = {}
+
+
+class PersonSanctionFilterSet(BaseSanctionFilter):
+    full_name = filters.CharFilter(
+        lookup_expr='icontains',
+        help_text='Filter by full name of person. Type: case insensitive string contains',
+    )
+    full_name_original = filters.CharFilter(
+        lookup_expr='icontains',
+        help_text='Filter by full name original of person. Type: case insensitive string contains',
+    )
+    date_of_birth = filters.DateFilter(
+        lookup_expr='exact',
+        help_text='Filter by date of birth. Format YYYY-MM-DD',
+    )
+    year_of_birth = filters.NumberFilter(
+        field_name='date_of_birth',
+        lookup_expr='year__exact',
+        help_text='Filter by year of birth',
+    )
+    address = filters.CharFilter(
+        lookup_expr='icontains',
+        help_text='Filter by address of person. Type: case insensitive string contains',
+    )
+    taxpayer_number = filters.CharFilter(
+        lookup_expr='icontains',
+        help_text='Filter by taxpayer number of person. Type: case insensitive string contains',
+    )
+    country_of_citizenship = filters.CharFilter(
+        field_name='countries_of_citizenship__name',
+        lookup_expr='icontains',
+        help_text='Filter by countries of citizenship of person. Type: case insensitive string contains',
+    )
+
+    class Meta:
+        model = PersonSanction
+        fields = {}

@@ -101,6 +101,9 @@ class Declaration(DataOceanModel):
         help_text=_('beneficiary of company')
     )
 
+    def __str__(self):
+        return f'declaration of {self.pep} for {self.year} year'
+
 
 class Liability(DataOceanModel):
     LOAN = 1
@@ -174,14 +177,28 @@ class Money(DataOceanModel):
     CASH = 2
     CONTRIBUTION = 3
     LENT_MONEY = 4
+    PRECIOUS_METALS = 5
+    OTHER = 10
     TYPES = (
         (BANK_ACCOUNT, _('Bank account')),
         (CASH, _('Hard cash')),
         (CONTRIBUTION, _('Contribution to the credit union or investment fund')),
         (LENT_MONEY, _('Money lent to another person')),
+        (PRECIOUS_METALS, _('Precious metals')),
+        (OTHER, _('Other')),
     )
-    CURRENCIES = (
-    )
+    # UAH = 1
+    # USD = 2
+    # EUR = 3
+    # GBP = 4
+    # NO_INFO_FROM_FAMILY_MEMBER = 20
+    # CURRENCIES = (
+    #     (UAH, 'UAH'),
+    #     (USD, 'USD'),
+    #     (EUR, 'EUR'),
+    #     (GBP, 'GBP'),
+    #     (NO_INFO_FROM_FAMILY_MEMBER, _('Family member did not provide the information')),
+    # )
     declaration = models.ForeignKey(
         Declaration,
         on_delete=models.PROTECT,
@@ -193,18 +210,67 @@ class Money(DataOceanModel):
         choices=TYPES,
         help_text=_('type')
     )
+    # please, use this field when the type == OTHER
+    additional_info = models.TextField(
+        _('additional info'),
+        blank=True,
+        default='',
+        help_text=_('additional info about the money')
+    )
     # can be no data for cryptocurrency
-    amount = models.PositiveIntegerField(
+    amount = models.FloatField(
         _('amount'),
         null=True,
         blank=True,
         help_text=_('amount of money')
     )
-    # maybe use this? https://pypi.org/project/django-exchange/
-    currency = models.PositiveSmallIntegerField(
+    currency = models.CharField(
         _('currency'),
-        choices=CURRENCIES,
+        max_length=33,
+        blank=True,
+        default='',
         help_text=_('currency')
+    )
+    # another way of storing currency
+    # # maybe use this? https://pypi.org/project/django-exchange/
+    # currency = models.PositiveSmallIntegerField(
+    #     _('currency'),
+    #     choices=CURRENCIES,
+    #     help_text=_('currency')
+    # )
+    bank_from_info = models.CharField(
+        _('info about ukrainian registration'),
+        max_length=55,
+        blank=True,
+        default='',
+        help_text=_('info about ukrainian registration of the bank')
+    )
+    bank_name = models.TextField(
+        _('name of the bank'),
+        max_length=75,
+        blank=True,
+        default='',
+        help_text=_('name of the bank')
+    )
+    bank_name_eng = models.TextField(
+        _('name of the bank in English'),
+        max_length=75,
+        blank=True,
+        default='',
+        help_text=_('name of the bank in English ')
+    )
+    bank_address = models.TextField(
+        _('address of the bank'),
+        blank=True,
+        default='',
+        help_text=_('address of the bank')
+    )
+    bank_registration_number = models.CharField(
+        _('registration number of the bank'),
+        max_length=25,
+        blank=True,
+        default='',
+        help_text=_('number of registration of the bank')
     )
     bank = models.ForeignKey(
         Company,
@@ -216,20 +282,21 @@ class Money(DataOceanModel):
         verbose_name=_('bank'),
         help_text=_('bank, credit union or investment fund where the money is stored')
     )
-    pep_borrower = models.ForeignKey(
-        Pep,
-        on_delete=models.PROTECT,
-        related_name='borrowed_money',
-        verbose_name=_('PEP that borrowed money'),
-        help_text=_('politically exposed person that borrowed money')
-    )
-    non_pep_borrower = models.CharField(
-        _('borrower'),
-        max_length=75,
-        blank=True,
-        default='',
-        help_text='full name of the person that borrowed money'
-    )
+    # TODO: make sure we can delete this fields
+    # pep_borrower = models.ForeignKey(
+    #     Pep,
+    #     on_delete=models.PROTECT,
+    #     related_name='borrowed_money',
+    #     verbose_name=_('PEP that borrowed money'),
+    #     help_text=_('politically exposed person that borrowed money')
+    # )
+    # non_pep_borrower = models.CharField(
+    #     _('borrower'),
+    #     max_length=75,
+    #     blank=True,
+    #     default='',
+    #     help_text='full name of the person that borrowed money'
+    # )
     owner = models.ForeignKey(
         Pep,
         on_delete=models.PROTECT,
@@ -245,14 +312,46 @@ class Income(DataOceanModel):
     DIVIDENDS = 3
     PROPERTY_SALE = 4
     SECURITIES_SALE = 5
+    BUSINESS = 6
+    GIFT_IN_CASH = 7
+    GIFT = 8
+    FEES = 9
     OTHER = 10
+    RENTING_PROPERTY = 11
+    PENSION = 12
+    INSURANCE_PAYMENTS = 13
+    SALE_OF_SECURITIES = 14
+    PRIZE = 15
+    CHARITY = 16
+    SALE_OF_PROPERTY = 17
+    LEGACY = 18
+    PART_TIME_SALARY = 19
+    SALE_OF_LUXURIES = 20
+    SELF_EMPLOYMENT = 21
+
     INCOME_TYPES = (
         (SALARY, _('Salary')),
         (INTEREST, _('Interest')),
         (DIVIDENDS, _('Dividends')),
         (PROPERTY_SALE, _('From sale of property')),
         (SECURITIES_SALE, _('From sale of securities or corporate rights')),
+        (BUSINESS, _('Business')),
+        (GIFT_IN_CASH, _('Gift in cash')),
+        (GIFT, _('Gift')),
+        (FEES, _('Fees and other payments')),
         (OTHER, _('Other')),
+        (RENTING_PROPERTY, _('Income from renting property')),
+        (PENSION, _('Pension')),
+        (INSURANCE_PAYMENTS, _('Insurance payments')),
+        (SALE_OF_SECURITIES, _('Sale of securities and corporate rights')),
+        (PRIZE, _('Prize')),
+        (CHARITY, _('Charity')),
+        (SALE_OF_PROPERTY, _('Sale of property')),
+        (LEGACY, _('Legacy')),
+        (PART_TIME_SALARY, _('Salary from part-time job')),
+        (SALE_OF_LUXURIES, _('Sale of luxuries')),
+        (SELF_EMPLOYMENT, _('Self-employment')),
+
     )
     declaration = models.ForeignKey(
         Declaration,
@@ -264,6 +363,13 @@ class Income(DataOceanModel):
         _('type'),
         choices=INCOME_TYPES,
         help_text=_('type of income')
+    )
+    # please, use this field when the type == OTHER
+    additional_info = models.TextField(
+        _('additional info'),
+        blank=True,
+        default='',
+        help_text=_('additional info about the income')
     )
     amount = models.PositiveIntegerField(
         _('amount'),
@@ -284,7 +390,14 @@ class Income(DataOceanModel):
         max_length=75,
         blank=True,
         default='',
-        help_text='full name of the person that paid'
+        help_text=_('full name of the person that paid')
+    )
+    from_info = models.CharField(
+        _('info about ukrainian citizenship or registration'),
+        max_length=55,
+        blank=True,
+        default='',
+        help_text=_('info about ukrainian citizenship or registration of the person or company that paid')
     )
     recipient = models.ForeignKey(
         Pep,
@@ -298,10 +411,24 @@ class Income(DataOceanModel):
 class Securities(DataOceanModel):
     SHARE = 1
     CORPORATE_RIGHTS = 2
+    MORTGAGE_SECURITIES = 3
+    COMMODITY_SECURITIES = 4
+    DERIVATIVES = 5
+    DEBT_SECURITIES = 6
+    PRIVATIZATION_SECURITIES = 7
+    INVESTMENT_CERTIFICATES = 8
+    CHECK = 9
     OTHER = 10
     ITEM_TYPES = (
         (SHARE, _('Share')),
         (CORPORATE_RIGHTS, _('Corporate right')),
+        (MORTGAGE_SECURITIES, _('Mortgage securities')),
+        (COMMODITY_SECURITIES, _('Commodity securities')),
+        (DERIVATIVES, _('Derivatives')),
+        (DEBT_SECURITIES, _('Debt securities')),
+        (PRIVATIZATION_SECURITIES, _('Privatization securities (vouchers, etc)')),
+        (INVESTMENT_CERTIFICATES, _('Investment certificates)')),
+        (CHECK, _('Check')),
         (OTHER, _('Other')),
     )
     declaration = models.ForeignKey(
@@ -315,6 +442,47 @@ class Securities(DataOceanModel):
         choices=ITEM_TYPES,
         help_text=_('type of securities')
     )
+    # please, use this field when the type == OTHER
+    additional_info = models.TextField(
+        _('additional info'),
+        blank=True,
+        default='',
+        help_text=_('additional info about securities')
+    )
+    issuer_from_info = models.CharField(
+        _('info about ukrainian registration'),
+        max_length=55,
+        blank=True,
+        default='',
+        help_text=_('info about ukrainian registration of the issuer of securities')
+    )
+    issuer_name = models.TextField(
+        _('name of the issuer'),
+        max_length=75,
+        blank=True,
+        default='',
+        help_text=_('name of the issuer of securities')
+    )
+    issuer_name_eng = models.TextField(
+        _('name of the issuer in English'),
+        max_length=75,
+        blank=True,
+        default='',
+        help_text=_('name in English of the issuer of securities')
+    )
+    issuer_address = models.TextField(
+        _('address of the issuer'),
+        blank=True,
+        default='',
+        help_text=_('address of the issuer of securities')
+    )
+    issuer_registration_number = models.CharField(
+        _('registration number of the issuer'),
+        max_length=15,
+        blank=True,
+        default='',
+        help_text=_('number of registration of the issuer of securities')
+    )
     issuer = models.ForeignKey(
         Company,
         on_delete=models.PROTECT,
@@ -324,6 +492,40 @@ class Securities(DataOceanModel):
         default=None,
         verbose_name=_('issuer'),
         help_text=_('issuer of securities')
+    )
+    trustee_from_info = models.CharField(
+        _('info about ukrainian registration'),
+        max_length=55,
+        blank=True,
+        default='',
+        help_text=_('info about ukrainian registration of the trustee of securities')
+    )
+    trustee_name = models.TextField(
+        _('name of the trustee'),
+        max_length=75,
+        blank=True,
+        default='',
+        help_text=_('name of the trustee of securities')
+    )
+    trustee_name_eng = models.TextField(
+        _('name of the trustee in English'),
+        max_length=75,
+        blank=True,
+        default='',
+        help_text=_('name in English of the trustee of securities')
+    )
+    trustee_address = models.TextField(
+        _('address of the trustee'),
+        blank=True,
+        default='',
+        help_text=_('address of the trustee of securities')
+    )
+    trustee_registration_number = models.CharField(
+        _('registration number of the trustee'),
+        max_length=15,
+        blank=True,
+        default='',
+        help_text=_('number of registration of the trustee of securities')
     )
     trustee = models.ForeignKey(
         Company,
@@ -341,17 +543,11 @@ class Securities(DataOceanModel):
         null=True,
         help_text=_('quantity of securities')
     )
-    nominal_value = models.PositiveIntegerField(
+    nominal_value = models.FloatField(
         _('nominal value'),
         blank=True,
         null=True,
         help_text=_('nominal value of securities')
-    )
-    valuation = models.PositiveIntegerField(
-        _('valuation'),
-        blank=True,
-        null=True,
-        help_text=_('valuation')
     )
 
 
@@ -573,7 +769,7 @@ class BaseRight(DataOceanModel):
     RENT = 5
     USAGE = 6
     OWNER_IS_ANOTHER_PERSON = 7
-    NO_INFO_FROM_FAMILY_MEMBER = 8
+    NO_INFO_FROM_FAMILY_MEMBER = 20
     OTHER_USAGE_RIGHT = 10
 
     RIGHT_TYPES = (

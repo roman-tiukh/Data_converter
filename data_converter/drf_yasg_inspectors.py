@@ -21,7 +21,7 @@ class DjangoFilterDescriptionInspector(CoreAPICompatInspector):
                     param.description = f'Filter the returned list by {param.name}.'
         if isinstance(filter_backend, SearchFilter):
             fields = getattr(self.view, 'search_fields')
-            fields = ', '.join(fields)
-            params[0].description = f'Search by {fields.split("__")[0]}.'
+            fields = ', '.join([field.split('__')[0] for field in fields])
+            params[0].description = f'Search by {fields}.'
 
         return params

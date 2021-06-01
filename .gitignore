@@ -27,3 +27,5 @@ download
 *.zip
 db.sqlite3
 /export/
+logfile
+django.mo

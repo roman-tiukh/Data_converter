@@ -21,6 +21,52 @@ class SanctionType(DataOceanModel):
         help_text=_('law used to impose sanctions')
     )
 
+    def relink_duplicates(self, duplicates: list):
+        moved_person_sanctions = 0
+        moved_company_sanctions = 0
+        moved_country_sanctions = 0
+
+        for sanction_type in duplicates:
+            for cs in list(sanction_type.companies_under_sanction.all()):
+                cs.types_of_sanctions.remove(sanction_type)
+                cs.types_of_sanctions.add(self)
+                moved_company_sanctions += 1
+            for ps in list(sanction_type.persons_under_sanction.all()):
+                ps.types_of_sanctions.remove(sanction_type)
+                ps.types_of_sanctions.add(self)
+                moved_person_sanctions += 1
+            for country_sanction in list(sanction_type.countries_under_sanction.all()):
+                country_sanction.types_of_sanctions.remove(sanction_type)
+                country_sanction.types_of_sanctions.add(self)
+                moved_country_sanctions += 1
+        return moved_person_sanctions, moved_company_sanctions, moved_country_sanctions
+
+    @classmethod
+    def clean_empty(cls):
+        def get_exists(model):
+            return models.Exists(
+                model.types_of_sanctions.through.objects.filter(
+                    sanctiontype_id=models.OuterRef('pk'),
+                )
+            )
+
+        qs = cls.objects.annotate(
+            companies_under_sanction__exists=get_exists(CompanySanction),
+            persons_under_sanction__exists=get_exists(PersonSanction),
+            countries_under_sanction__exists=get_exists(CountrySanction),
+        )
+        deleted = 0
+        for st in qs:
+            is_relations_exists = [
+                st.companies_under_sanction__exists,
+                st.persons_under_sanction__exists,
+                st.countries_under_sanction__exists,
+            ]
+            if not any(is_relations_exists):
+                st.delete()
+                deleted += 1
+        return deleted
+
     class Meta:
         verbose_name = _('Sanction type')
         verbose_name_plural = _('Sanction types')
@@ -46,9 +92,14 @@ class Sanction(DataOceanModel):
     )
     reasoning = models.TextField(
         _('reasoning'),
-        blank=True,
         default='',
         help_text=_('reasoning of imposing sanctions')
+    )
+    reasoning_date = models.DateField(
+        _('reasoning date'),
+        default=None,
+        null=True,
+        help_text=_('date of reasoning of imposing sanctions')
     )
 
     class Meta:
@@ -112,7 +163,7 @@ class PersonSanction(Sanction):
         max_length=75,
         help_text='full name of the person under sanctions'
     )
-    full_name_original_transcription = models.CharField(
+    full_name_original = models.CharField(
         _('full name original transcription'),
         blank=True,
         default='',
@@ -202,7 +253,7 @@ class CompanySanction(Sanction):
         db_index=True,
         help_text=_('name of the company under sanctions')
     )
-    name_original_transcription = models.TextField(
+    name_original = models.TextField(
         _('original transcription of the name'),
         db_index=True,
         blank=True,
