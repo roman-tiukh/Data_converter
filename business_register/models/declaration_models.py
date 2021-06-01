@@ -101,6 +101,9 @@ class Declaration(DataOceanModel):
         help_text=_('beneficiary of company')
     )
 
+    def __str__(self):
+        return f'declaration of {self.pep} for {self.year} year'
+
 
 class Liability(DataOceanModel):
     LOAN = 1
@@ -174,14 +177,28 @@ class Money(DataOceanModel):
     CASH = 2
     CONTRIBUTION = 3
     LENT_MONEY = 4
+    PRECIOUS_METALS = 5
+    OTHER = 10
     TYPES = (
         (BANK_ACCOUNT, _('Bank account')),
         (CASH, _('Hard cash')),
         (CONTRIBUTION, _('Contribution to the credit union or investment fund')),
         (LENT_MONEY, _('Money lent to another person')),
+        (PRECIOUS_METALS, _('Precious metals')),
+        (OTHER, _('Other')),
     )
-    CURRENCIES = (
-    )
+    # UAH = 1
+    # USD = 2
+    # EUR = 3
+    # GBP = 4
+    # NO_INFO_FROM_FAMILY_MEMBER = 20
+    # CURRENCIES = (
+    #     (UAH, 'UAH'),
+    #     (USD, 'USD'),
+    #     (EUR, 'EUR'),
+    #     (GBP, 'GBP'),
+    #     (NO_INFO_FROM_FAMILY_MEMBER, _('Family member did not provide the information')),
+    # )
     declaration = models.ForeignKey(
         Declaration,
         on_delete=models.PROTECT,
@@ -193,18 +210,67 @@ class Money(DataOceanModel):
         choices=TYPES,
         help_text=_('type')
     )
+    # please, use this field when the type == OTHER
+    additional_info = models.TextField(
+        _('additional info'),
+        blank=True,
+        default='',
+        help_text=_('additional info about the money')
+    )
     # can be no data for cryptocurrency
-    amount = models.PositiveIntegerField(
+    amount = models.FloatField(
         _('amount'),
         null=True,
         blank=True,
         help_text=_('amount of money')
     )
-    # maybe use this? https://pypi.org/project/django-exchange/
-    currency = models.PositiveSmallIntegerField(
+    currency = models.CharField(
         _('currency'),
-        choices=CURRENCIES,
+        max_length=33,
+        blank=True,
+        default='',
         help_text=_('currency')
+    )
+    # another way of storing currency
+    # # maybe use this? https://pypi.org/project/django-exchange/
+    # currency = models.PositiveSmallIntegerField(
+    #     _('currency'),
+    #     choices=CURRENCIES,
+    #     help_text=_('currency')
+    # )
+    bank_from_info = models.CharField(
+        _('info about ukrainian registration'),
+        max_length=55,
+        blank=True,
+        default='',
+        help_text=_('info about ukrainian registration of the bank')
+    )
+    bank_name = models.TextField(
+        _('name of the bank'),
+        max_length=75,
+        blank=True,
+        default='',
+        help_text=_('name of the bank')
+    )
+    bank_name_eng = models.TextField(
+        _('name of the bank in English'),
+        max_length=75,
+        blank=True,
+        default='',
+        help_text=_('name of the bank in English ')
+    )
+    bank_address = models.TextField(
+        _('address of the bank'),
+        blank=True,
+        default='',
+        help_text=_('address of the bank')
+    )
+    bank_registration_number = models.CharField(
+        _('registration number of the bank'),
+        max_length=25,
+        blank=True,
+        default='',
+        help_text=_('number of registration of the bank')
     )
     bank = models.ForeignKey(
         Company,
@@ -216,20 +282,21 @@ class Money(DataOceanModel):
         verbose_name=_('bank'),
         help_text=_('bank, credit union or investment fund where the money is stored')
     )
-    pep_borrower = models.ForeignKey(
-        Pep,
-        on_delete=models.PROTECT,
-        related_name='borrowed_money',
-        verbose_name=_('PEP that borrowed money'),
-        help_text=_('politically exposed person that borrowed money')
-    )
-    non_pep_borrower = models.CharField(
-        _('borrower'),
-        max_length=75,
-        blank=True,
-        default='',
-        help_text='full name of the person that borrowed money'
-    )
+    # TODO: make sure we can delete this fields
+    # pep_borrower = models.ForeignKey(
+    #     Pep,
+    #     on_delete=models.PROTECT,
+    #     related_name='borrowed_money',
+    #     verbose_name=_('PEP that borrowed money'),
+    #     help_text=_('politically exposed person that borrowed money')
+    # )
+    # non_pep_borrower = models.CharField(
+    #     _('borrower'),
+    #     max_length=75,
+    #     blank=True,
+    #     default='',
+    #     help_text='full name of the person that borrowed money'
+    # )
     owner = models.ForeignKey(
         Pep,
         on_delete=models.PROTECT,
@@ -702,7 +769,7 @@ class BaseRight(DataOceanModel):
     RENT = 5
     USAGE = 6
     OWNER_IS_ANOTHER_PERSON = 7
-    NO_INFO_FROM_FAMILY_MEMBER = 8
+    NO_INFO_FROM_FAMILY_MEMBER = 20
     OTHER_USAGE_RIGHT = 10
 
     RIGHT_TYPES = (

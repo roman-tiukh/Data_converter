@@ -92,9 +92,14 @@ class Sanction(DataOceanModel):
     )
     reasoning = models.TextField(
         _('reasoning'),
-        blank=True,
         default='',
         help_text=_('reasoning of imposing sanctions')
+    )
+    reasoning_date = models.DateField(
+        _('reasoning date'),
+        default=None,
+        null=True,
+        help_text=_('date of reasoning of imposing sanctions')
     )
 
     class Meta:
