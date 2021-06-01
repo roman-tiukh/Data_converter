@@ -55,6 +55,7 @@ class UkrCompanyFullConverter(CompanyConverter):
         self.already_stored_companies =\
             list(Company.objects.filter(source=Company.UKRAINE_REGISTER).values_list('id', flat=True))
         self.uptodated_companies = []
+        self.invalid_data_counter = 0
         super().__init__()
 
     def save_or_get_bylaw(self, bylaw_from_record):
@@ -770,10 +771,12 @@ class UkrCompanyFullConverter(CompanyConverter):
         for record in records:
             edrpou = record.xpath('EDRPOU')[0].text
             if not edrpou:
+                self.invalid_data_counter += 1
                 continue
             if record.xpath('NAME')[0].text:
                 name = record.xpath('NAME')[0].text.lower()
             else:
+                self.invalid_data_counter += 1
                 continue
             code = name + edrpou
             address = record.xpath('ADDRESS')[0].text
@@ -1085,6 +1088,7 @@ class UkrCompanyFullDownloader(Downloader):
         if ukr_company_full.process():
             logger.info(f'{self.reg_name}: process() with {self.file_path} finished successfully.')
             self.report.update_status = True
+            self.report.update_finish = timezone.now()
 
             sleep(5)
             self.vacuum_analyze(table_list=['business_register_company', ])
@@ -1099,9 +1103,11 @@ class UkrCompanyFullDownloader(Downloader):
             self.update_register_field(settings.UKR_COMPANY_REGISTER_LIST, 'total_records', new_total_records)
             logger.info(f'{self.reg_name}: Update total records finished successfully.')
 
+            self.report.invalid_data = ukr_company_full.invalid_data_counter
             self.measure_company_changes(Company.UKRAINE_REGISTER)
             logger.info(f'{self.reg_name}: Report created successfully.')
 
             logger.info(f'{self.reg_name}: Update finished successfully.')
-        self.report.update_finish = timezone.now()
-        self.report.save()
+        else:
+            self.report.update_finish = timezone.now()
+            self.report.save()
