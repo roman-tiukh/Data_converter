@@ -454,9 +454,9 @@ class PepConverterFromDB(Converter):
                 self.invalid_data_counter += 1
                 continue
             from_person_relationship_type = link[2]
-            to_person_relationship_type = link[3]
-            category = self.PEP_RELATIONSHIPS_TYPES_TO_EN.get(self.PEP_RELATIONSHIPS_TYPES_TO_CATEGORIES.get(
-                from_person_relationship_type))
+            to_person_relationship_type = self.PEP_RELATIONSHIPS_TYPES_TO_EN.get(link[3])
+            category = self.PEP_RELATIONSHIPS_TYPES_TO_CATEGORIES.get(from_person_relationship_type)
+            from_person_relationship_type = self.PEP_RELATIONSHIPS_TYPES_TO_EN.get(from_person_relationship_type)
             start_date = link[4]
             confirmation_date = link[5]
             end_date = link[6]
