@@ -124,6 +124,7 @@ class PersonSanctionAdmin(RegisterModelAdmin):
         ('date_of_birth', DateRangeFilter),
         ('start_date', DateRangeFilter),
         ('end_date', DateRangeFilter),
+        ('reasoning_date', DateRangeFilter),
         input_filter('reasoning', 'reasoning', ['reasoning']),
         input_filter('additional_info', 'additional_info', ['additional_info']),
     )
@@ -171,6 +172,7 @@ class CompanySanctionAdmin(RegisterModelAdmin):
         input_filter('country_of_registration', 'countries of registration name', ['country_of_registration__name']),
         ('start_date', DateRangeFilter),
         ('end_date', DateRangeFilter),
+        ('reasoning_date', DateRangeFilter),
         input_filter('reasoning', 'reasoning', ['reasoning']),
         input_filter('additional_info', 'additional_info', ['additional_info']),
     )

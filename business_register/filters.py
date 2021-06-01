@@ -295,6 +295,11 @@ class BaseSanctionFilter(filters.FilterSet):
         lookup_expr='icontains',
         help_text='Filter by reasoning of imposing sanctions',
     )
+    reasoning_date = filters.DateFromToRangeFilter(
+        help_text='You can use key "reasoning_date_before" to select objects before the specified date and '
+                  '"reasoning_date_after" key to select objects after the specified date. '
+                  'Date must be in YYYY-MM-DD format.',
+    )
 
 
 class CompanySanctionFilterSet(BaseSanctionFilter):
