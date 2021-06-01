@@ -22,7 +22,7 @@ from business_register.models.company_models import Company
 from data_ocean.utils import simple_format_date_to_yymmdd
 from location_register.models.ratu_models import RatuRegion, RatuDistrict, RatuCity
 
-from business_register.management.commands.fetch_peps_nacp_id import is_same_full_name, InvalidData
+from business_register.management.commands.fetch_peps_nacp_id import is_same_full_name, InvalidRelativeData
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -861,8 +861,8 @@ class DeclarationConverter(BusinessConverter):
                                 spouse_from_our_db
                             )
                             spouse = spouse_from_our_db
-                        except InvalidData:
-                            self.log_error(f'Check related person data ({relative_data})')
+                        except InvalidRelativeData:
+                            self.log_error(f'{InvalidRelativeData(relative_data)}')
                             break
                 if spouse:
                     declaration.spouse = spouse

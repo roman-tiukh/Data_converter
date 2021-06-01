@@ -21,8 +21,12 @@ from business_register.models.pep_models import Pep, RelatedPersonsLink
 #  'identificationCode', 'no_taxNumber', 'region_extendedstatus', 'street', 'birthday', 'streetType',
 #  'middlename', 'previous_eng_middlename', 'subjectRelation', 'citizenship', 'city', 'streetType_extendedstatus',
 #  'postCode', 'passport_extendedstatus']
-class InvalidData(Exception):
-    pass
+class InvalidRelativeData(Exception):
+    def __init__(self, relative_data):
+        self.relative_data = relative_data
+
+    def __str__(self):
+        return f'Check related person data ({self.relative_data})'
 
 
 def is_same_full_name(relative_data, pep):
@@ -42,13 +46,13 @@ def is_same_full_name(relative_data, pep):
         if full_name:
             splitted_names = full_name.split(' ')
             if len(splitted_names) < 2:
-                raise InvalidData
+                raise InvalidRelativeData(relative_data)
             last_name = splitted_names[0]
             first_name = splitted_names[1]
             if len(splitted_names) == 3:
                 middle_name = splitted_names[2]
     if not last_name or not first_name:
-        raise InvalidData
+        raise InvalidRelativeData(relative_data)
     if not middle_name:
         middle_name = ''
     return (
@@ -164,6 +168,6 @@ class Command(BaseCommand):
                                     else:
                                         related_person.nacp_id = related_person_nacp_id
                                         related_person.save()
-                            except InvalidData:
-                                self.stdout.write(f'Check related person data ({relative_data}) from declaration '
+                            except InvalidRelativeData:
+                                self.stdout.write(f'{InvalidRelativeData(relative_data)} from declaration '
                                                   f'with NACP id {declaration_id}')
