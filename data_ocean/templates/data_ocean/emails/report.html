@@ -63,9 +63,9 @@
                 <td>{{ report.invalid_data }} </td>
             </tr>
         {% endfor %}
-        {% for registry_name in not_updated_registers %}
+        {% for register in not_updated_registers %}
             <tr>
-                <td>{{ registry_name }}</td>
+                <td>{{ register.name_in_daily_report }}</td>
                 <td>Shouldn't have started</td>
                 <td></td>
                 <td></td>
