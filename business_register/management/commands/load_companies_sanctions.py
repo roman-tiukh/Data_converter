@@ -1,6 +1,9 @@
+import re
+
 from django.core.management.base import BaseCommand
 from openpyxl import load_workbook
 from business_register.models.sanction_models import CompanySanction, SanctionType
+from data_ocean.utils import replace_incorrect_symbols
 from location_register.models.address_models import Country
 
 
@@ -12,10 +15,11 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         start_row = options['start_row']
-        wb = load_workbook('./source_data/data_for_upload/normalized_Yur_osob_28_2017.xlsx')
+        wb = load_workbook('./source_data/data_for_upload/normalized_companies_210521.xlsx')
         reasoning = (
-            'рішення Ради національної безпеки і оборони України від 28 квітня 2017 року '
-            '"Про застосування персональних спеціальних економічних та інших обмежувальних заходів (санкцій)"'
+            'рішення Ради національної безпеки і оборони України '
+            'від 14 травня 2021 року "Про застосування персональних '
+            'спеціальних економічних та інших обмежувальних заходів (санкцій)"'
         )
         ws = wb['Sheet']
         for i, row in enumerate(ws):
@@ -24,7 +28,7 @@ class Command(BaseCommand):
             self.stdout.write(f'\r    Process row #{i}', ending='')
             row = [cell.value for cell in row]
 
-            country_name = row[4]
+            country_name = row[5]
             try:
                 country = Country.objects.get(name=country_name)
             except Country.DoesNotExist:
@@ -32,25 +36,25 @@ class Command(BaseCommand):
                 exit(1)
 
             company = CompanySanction.objects.create(
-                name=row[2],
-                name_original_transcription=row[3] or '',
+                address=row[2] or '',
+                name=row[3],
+                name_original=row[4] or '',
                 country_of_registration=country,
-                address=row[5] or '',
 
                 registration_number=row[6] or '',
                 taxpayer_number=row[7] or '',
-                additional_info=row[8] or '',
+                # additional_info=row[8] or '',
 
-                end_date=row[10],
-                start_date=row[12],
+                end_date=row[9],
+                start_date=row[10],
 
                 # registration_date=row[12],
 
                 reasoning=reasoning,
             )
 
-            for sanction_type_name in row[9].split('&&'):
-                sanction_type_name = sanction_type_name.strip()
+            for sanction_type_name in row[8].split('&&'):
+                sanction_type_name = replace_incorrect_symbols(sanction_type_name.strip())
                 sanction_type, created = SanctionType.objects.get_or_create(
                     name=sanction_type_name,
                     defaults={'law': 'про санкції'},

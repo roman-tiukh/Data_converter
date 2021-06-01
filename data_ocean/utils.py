@@ -132,3 +132,21 @@ class Timer():
             print(period_name, '\t', str(value).split(".")[0], '\t',
                   round(value / self.times_dict['total\t\t\t'] * 100, 2), '%')
         print('----------------------------------------------------------------------------------')
+
+
+def replace_incorrect_symbols(string):
+    string = string \
+        .strip() \
+        .replace('\t', ' ') \
+        .replace('\r', '') \
+        .replace('\n', ' ') \
+        .replace('’', "'") \
+        .replace('—', '-') \
+        .replace('–', '-') \
+        .replace('−', '-') \
+        .replace('\xa0', ' ') \
+        .replace('«', '"') \
+        .replace('»', '"') \
+        .replace("''", '"')
+    string = re.sub(r'\s+', ' ', string)
+    return string
