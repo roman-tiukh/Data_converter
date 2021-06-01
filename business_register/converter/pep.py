@@ -529,6 +529,8 @@ class PepConverterFromDB(Converter):
                     company.antac_id = company_antac_id
                     company_update_fields.append('antac_id')
             if not company:
+                if company_name_en is None:
+                    company_name_en = company_name
                 company = Company.objects.create(name=company_name, name_en=company_name_en, edrpou=edrpou,
                                                  country=country, code=company_name + edrpou, source=Company.ANTAC,
                                                  antac_id=company_antac_id, from_antac_only=True)
@@ -539,6 +541,9 @@ class PepConverterFromDB(Converter):
             else:
                 if company.name_en != company_name_en:
                     company.name_en = company_name_en
+                    company_update_fields.append('name_en')
+                if company.name_en is None:
+                    company.name_en = company_name
                     company_update_fields.append('name_en')
                 if company_update_fields:
                     company_update_fields.append('updated_at')
