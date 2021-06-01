@@ -266,7 +266,7 @@ def transliterate_field(string, field_name=None):
     if not field_name:
         return transliterate(string)
     else:
-        string_parts = re.split(r'("|«|,)', string, 1)
+        string_parts = re.split('("|«|,)', string, 1)
         first_string_part = string_parts[0].strip().lower()
         if field_name == 'company_name':
             company_type = CompanyType.objects.filter(name=first_string_part).first()

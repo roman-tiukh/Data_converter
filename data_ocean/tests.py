@@ -1,4 +1,5 @@
 import random
+import re
 
 from django.test import TestCase
 from django.test.runner import DiscoverRunner
@@ -28,9 +29,9 @@ class TransliterateTestCase(TestCase):
     def test_is_ukr_chars_in_string(self):
         company_name = transliterate_field(self.testing_company.name, 'company_name')
         address = transliterate_field(self.testing_company.address, 'address')
-        if not set(ukr_to_en).isdisjoint(set(company_name)):
+        if re.search("[А-ЩЬЮЯҐЄІЇа-щьюяґєії]", company_name):
             company_name = None
-        if not set(ukr_to_en).isdisjoint(set(address)):
+        if re.search("[А-ЩЬЮЯҐЄІЇа-щьюяґєії]", address):
             address = None
         print(company_name)
         print(address)
