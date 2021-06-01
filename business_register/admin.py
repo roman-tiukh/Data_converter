@@ -107,7 +107,7 @@ class PersonSanctionAdmin(RegisterModelAdmin):
     autocomplete_fields = ['pep', 'countries_of_citizenship', 'types_of_sanctions']
     search_fields = (
         'full_name',
-        'full_name_original_transcription',
+        'full_name_original',
         'taxpayer_number',
         'address',
         'place_of_birth',
@@ -155,7 +155,7 @@ class CompanySanctionAdmin(RegisterModelAdmin):
     autocomplete_fields = ('company', 'country_of_registration', 'types_of_sanctions')
     search_fields = (
         'name',
-        'name_original_transcription',
+        'name_original',
         'registration_number',
         'address',
         'country_of_registration__name',

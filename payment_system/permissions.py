@@ -52,6 +52,14 @@ class AccessFromProjectToken(permissions.BasePermission):
         return bool(project and isinstance(project, Project))
 
 
+class FreeForPayedProjects(AccessFromProjectToken):
+    def has_permission(self, request: Request, view):
+        has_perm = super().has_permission(request, view)
+        if has_perm:
+            request._request._decrease_requests_counter = request.current_p2s.subscription.is_default
+        return has_perm
+
+
 class PepChecksPermission(AccessFromProjectToken):
     decrease_requests_counter = False
 
