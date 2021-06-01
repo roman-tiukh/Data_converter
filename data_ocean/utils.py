@@ -212,8 +212,8 @@ ukr_to_en = {
     'Ґ': 'G',
     'Д': 'D',
     'Е': 'E',
-    'Ё': 'JO',
-    'Ж': 'ZH',
+    'Ё': 'Jo',
+    'Ж': 'Zh',
     'З': 'Z',
     'И': 'Y',
     'Й': 'I',
@@ -228,21 +228,21 @@ ukr_to_en = {
     'Т': 'T',
     'У': 'U',
     'Ф': 'F',
-    'Х': 'KH',
-    'Ц': 'TS',
-    'Ч': 'CH',
-    'Ш': 'SH',
-    'Щ': 'SHCH',
+    'Х': 'Kh',
+    'Ц': 'Ts',
+    'Ч': 'Ch',
+    'Ш': 'Sh',
+    'Щ': 'Shch',
     'Ъ': '',
     'Ы': 'Y',
     'Ь': '',
     'Э': 'E',
-    'Ю': 'IU',
-    'Я': 'IA',
+    'Ю': 'Iu',
+    'Я': 'Ia',
     '’': '',
     'І': 'I',
     'Ї': 'I',
-    'Є': 'IE'
+    'Є': 'Ie'
 }
 
 
@@ -250,17 +250,22 @@ def transliterate(string):
     word_list = re.split('(\W|\d)', string)
     new_string = ''
     for word in word_list:
+        # print(word, word.isupper())
+        new_word = ''
         for char in word:
             if word.index(char) == 0:
-                new_string += ukr_to_en_first_char.get(char, ukr_to_en.get(char, char))
+                new_word += ukr_to_en_first_char.get(char, ukr_to_en.get(char, char))
             else:
-                new_string += ukr_to_en.get(char, char)
+                new_word += ukr_to_en.get(char, char)
+        new_word = new_word.title() if word.istitle() else new_word
+        new_word = new_word.upper() if word.isupper() else new_word
+        new_string += new_word
     return new_string
 
 
 def transliterate_field(string, field_name=None):
     if not field_name:
-        return transliterate(string).lower()
+        return transliterate(string)
     else:
         string_parts = re.split(r'("|«|,)', string, 1)
         first_string_part = string_parts[0].strip().lower()
@@ -273,9 +278,9 @@ def transliterate_field(string, field_name=None):
         elif field_name == 'address':
             country = Country.objects.filter(name_uk=first_string_part).first()
             if country:
-                new_first_string_part = country.name
+                new_first_string_part = country.name.title()
             else:
-                new_first_string_part = transliterate(first_string_part).lower()
+                new_first_string_part = transliterate(first_string_part)
         else:
-            return transliterate(string).lower()
+            return transliterate(string)
         return new_first_string_part + transliterate(''.join(string_parts[1:]))
