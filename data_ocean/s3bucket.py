@@ -38,15 +38,17 @@ CONTENT_TYPES = {
     '.zip': 'application/zip',
 }
 
-BUCKET_NAME = settings.AWS_S3_BUCKET_NAME
-BUCKET_REGION = settings.AWS_S3_REGION_NAME
-ACCESS_KEY_ID = settings.AWS_S3_ACCESS_KEY_ID
-SECRET_ACCESS_KEY = settings.AWS_S3_SECRET_ACCESS_KEY
+
 HASH_LENGTH = 16
 
 
 def save_file(file_path: str, file_body, content_disposition: str = ATTACHMENT,
               acl: str = PUBLIC_READ, hashing: bool = True) -> str:
+
+    bucket_name = settings.AWS_S3_BUCKET_NAME
+    bucket_region = settings.AWS_S3_REGION_NAME
+    access_key_id = settings.AWS_S3_ACCESS_KEY_ID
+    secret_access_key = settings.AWS_S3_SECRET_ACCESS_KEY
 
     if content_disposition not in CONTENT_DISPOSITION:
         content_disposition = ATTACHMENT
@@ -78,16 +80,16 @@ def save_file(file_path: str, file_body, content_disposition: str = ATTACHMENT,
 
     s3 = boto3.resource(
         's3',
-        aws_access_key_id=ACCESS_KEY_ID,
-        aws_secret_access_key=SECRET_ACCESS_KEY,
-        region_name=BUCKET_REGION,
+        aws_access_key_id=access_key_id,
+        aws_secret_access_key=secret_access_key,
+        region_name=bucket_region,
     )
-    if s3.Bucket(BUCKET_NAME).creation_date is None:
+    if s3.Bucket(bucket_name).creation_date is None:
         raise ValueError('This bucket does not exist!')
 
     logger.info(f'[{timezone.now()}] s3bucket save file: {file_path} ...')
 
-    s3.Bucket(BUCKET_NAME).put_object(
+    s3.Bucket(bucket_name).put_object(
         Key=file_path_str,
         Body=file_body,
         ACL=acl,
@@ -95,7 +97,7 @@ def save_file(file_path: str, file_body, content_disposition: str = ATTACHMENT,
         ContentType=content_type,
     )
 
-    url = f'https://{BUCKET_NAME}.s3.{BUCKET_REGION}.amazonaws.com/{file_path_str}'
+    url = f'https://{bucket_name}.s3.{bucket_region}.amazonaws.com/{file_path_str}'
     logger.warning(f'[{timezone.now()}] s3bucket file URL: {url}')
 
     return url
