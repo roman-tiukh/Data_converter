@@ -155,80 +155,15 @@ def replace_incorrect_symbols(string):
     return string
 
 
-ukr_to_en_first_word = {
-    'а': 'a',
-    'б': 'b',
-    'в': 'v',
-    'г': 'h',
-    'ґ': 'g',
-    'д': 'd',
-    'е': 'e',
+ukr_to_en_first_char = {
     'є': 'ye',
-    'ё': 'jo',
-    'ж': 'zh',
-    'з': 'z',
-    'и': 'y',
-    'і': 'i',
     'ї': 'yi',
     'й': 'y',
-    'к': 'k',
-    'л': 'l',
-    'м': 'm',
-    'н': 'n',
-    'о': 'o',
-    'п': 'p',
-    'р': 'r',
-    'с': 's',
-    'т': 't',
-    'у': 'u',
-    'ф': 'f',
-    'х': 'kh',
-    'ц': 'ts',
-    'ч': 'ch',
-    'ш': 'sh',
-    'щ': 'shch',
-    'ъ': '',
-    'ы': 'y',
-    'ь': '',
-    'э': 'e',
     'ю': 'yu',
     'я': 'ya',
-    'А': 'A',
-    'Б': 'B',
-    'В': 'V',
-    'Г': 'H',
-    'Ґ': 'G',
-    'Д': 'D',
-    'Е': 'E',
-    'Ё': 'Jo',
-    'Ж': 'Zh',
-    'З': 'Z',
-    'И': 'Y',
     'Й': 'Y',
-    'К': 'K',
-    'Л': 'L',
-    'М': 'M',
-    'Н': 'N',
-    'О': 'O',
-    'П': 'P',
-    'Р': 'R',
-    'С': 'S',
-    'Т': 'T',
-    'У': 'U',
-    'Ф': 'F',
-    'Х': 'Kh',
-    'Ц': 'Ts',
-    'Ч': 'Ch',
-    'Ш': 'Sh',
-    'Щ': 'Shch',
-    'Ъ': '',
-    'Ы': 'Y',
-    'Ь': '',
-    'Э': 'E',
     'Ю': 'Yu',
     'Я': 'Ya',
-    '’': '',
-    'І': 'I',
     'Ї': 'Yi',
     'Є': 'Ye'
 }
@@ -311,37 +246,36 @@ ukr_to_en = {
 }
 
 
-def trans_char(char, transliterate_dict):
-    for key in transliterate_dict:
-        if key == char:
-            return transliterate_dict[key]
-        elif key == 'Є':
-            return char
-
-
 def transliterate(string):
-    string = string.strip(' ')
-
+    word_list = re.split('(\W|\d)', string)
     new_string = ''
-    for word in string:
-        word.strip()
+    for word in word_list:
         for char in word:
-            if word.index(char) == 0 or word.index(char) == 1 and word[0] == '"':
-                new_string += trans_char(char, ukr_to_en_first_word)
+            if word.index(char) == 0:
+                new_string += ukr_to_en_first_char.get(char, ukr_to_en.get(char, char))
             else:
-                new_string += trans_char(char, ukr_to_en)
+                new_string += ukr_to_en.get(char, char)
     return new_string
 
 
-def transliterate_company_name(string):
-    string = string.split('"')
-    company_type = CompanyType.objects.filter(name=string[0].strip()).first().name_eng if \
-        CompanyType.objects.filter(name=string[0].strip()).first() else transliterate(string[0].strip())
-    return (company_type + ' ' + transliterate('"' + '"'.join(string[1:]))).strip()
-
-
-def transliterate_address(string):
-    string = string.split(',')
-    country = Country.objects.filter(name_uk=string[0].strip().lower()).first().name if \
-        Country.objects.filter(name_uk=string[0].strip().lower()).first() else transliterate(string[0].strip())
-    return (country + ', ' + transliterate(','.join(string[1:]).lower())).strip()
+def transliterate_field(string, field_name=None):
+    if not field_name:
+        return transliterate(string)
+    else:
+        string_parts = re.split(r'("|«|,)', string, 1)
+        first_string_part = string_parts[0].strip().lower()
+        if field_name == 'company_name':
+            company_type = CompanyType.objects.filter(name=first_string_part).first()
+            if company_type:
+                new_first_string_part = company_type.name_eng + ' '
+            else:
+                new_first_string_part = transliterate(first_string_part)
+        elif field_name == 'address':
+            country = Country.objects.filter(name_uk=first_string_part).first()
+            if country:
+                new_first_string_part = country.name.capitalize()
+            else:
+                new_first_string_part = transliterate(first_string_part)
+        else:
+            return transliterate(string)
+        return new_first_string_part + transliterate(''.join(string_parts[1:]))

@@ -312,3 +312,6 @@ PEP_SCHEMA_TOKENS = {
 
 # < /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-80};echo;
 SERVICE_TOKEN = '2JMV2GQ2_vBoP8r5TZAvH6gAeQp_etxey19126QPdcyy9O9b73oyhQ-kEc7N1bUtlTy7FOHz2CeBLM6W'
+
+# Test runner with no database creation
+TEST_RUNNER = 'data_ocean.tests.NoDbTestRunner'
