@@ -98,7 +98,7 @@ class CountFoundedCompaniesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
         fields = (
-            'id', 'name', 'short_name', 'company_type', 'edrpou', 'status', 'founder_of_count',
+            'id', 'name', 'name_en', 'short_name', 'company_type', 'edrpou', 'status', 'founder_of_count',
             'is_closed', 'is_foreign', 'from_antac_only',
         )
 
@@ -226,7 +226,7 @@ class CompanyDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     class Meta:
         model = Company
         fields = (
-            'id', 'name', 'short_name', 'address', 'country', 'edrpou', 'founders', 'founder_of',
+            'id', 'name', 'name_en', 'short_name', 'address', 'country', 'edrpou', 'founders', 'founder_of',
             'relationships_with_peps', 'authorized_capital', 'parent', 'company_type', 'status',
             'is_closed', 'predecessors', 'authority', 'signers', 'assignees',
             'bancruptcy_readjustment', 'termination_started', 'company_detail', 'kveds', 'bylaw',
