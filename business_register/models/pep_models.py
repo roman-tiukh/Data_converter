@@ -200,6 +200,18 @@ class RelatedPersonsLink(DataOceanModel):
         null=True,
         help_text='The type of relationship with a related person.'
     )
+    from_person_relationship_type_en = models.CharField(
+        _("connection`s type in English"),
+        max_length=90,
+        null=True,
+        help_text='The type of relationship with a related person in English.'
+    )
+    to_person_relationship_type_en = models.CharField(
+        _("another person`s connection`s type in English"),
+        max_length=90,
+        null=True,
+        help_text='The type of relationship with a related person in English.'
+    )
     category = models.CharField(
         _("connection`s category"),
         choices=CATEGORIES,

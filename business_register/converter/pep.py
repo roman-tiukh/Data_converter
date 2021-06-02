@@ -454,9 +454,10 @@ class PepConverterFromDB(Converter):
                 self.invalid_data_counter += 1
                 continue
             from_person_relationship_type = link[2]
-            to_person_relationship_type = self.PEP_RELATIONSHIPS_TYPES_TO_EN.get(link[3])
+            to_person_relationship_type = link[3]
+            from_person_relationship_type_en = self.PEP_RELATIONSHIPS_TYPES_TO_EN.get(from_person_relationship_type)
+            to_person_relationship_type_en = self.PEP_RELATIONSHIPS_TYPES_TO_EN.get(to_person_relationship_type)
             category = self.PEP_RELATIONSHIPS_TYPES_TO_CATEGORIES.get(from_person_relationship_type)
-            from_person_relationship_type = self.PEP_RELATIONSHIPS_TYPES_TO_EN.get(from_person_relationship_type)
             start_date = link[4]
             confirmation_date = link[5]
             end_date = link[6]
@@ -469,6 +470,8 @@ class PepConverterFromDB(Converter):
                     to_person_id=to_person.id,
                     from_person_relationship_type=from_person_relationship_type,
                     to_person_relationship_type=to_person_relationship_type,
+                    from_person_relationship_type_en=from_person_relationship_type_en,
+                    to_person_relationship_type_en=to_person_relationship_type_en,
                     category=category,
                     start_date=start_date,
                     confirmation_date=confirmation_date,
@@ -485,6 +488,12 @@ class PepConverterFromDB(Converter):
                 if stored_link.to_person_relationship_type != to_person_relationship_type:
                     stored_link.to_person_relationship_type = to_person_relationship_type
                     update_fields.append('to_person_relationship_type')
+                if stored_link.from_person_relationship_type_en != from_person_relationship_type_en:
+                    stored_link.from_person_relationship_type_en = from_person_relationship_type_en
+                    update_fields.append('from_person_relationship_type_en')
+                if stored_link.to_person_relationship_type_en != to_person_relationship_type_en:
+                    stored_link.to_person_relationship_type_en = to_person_relationship_type_en
+                    update_fields.append('to_person_relationship_type_en')
                 if stored_link.category != category:
                     stored_link.category = category
                     update_fields.append('category')
