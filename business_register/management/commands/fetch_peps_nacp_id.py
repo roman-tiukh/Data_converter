@@ -168,6 +168,5 @@ class Command(BaseCommand):
                                     else:
                                         related_person.nacp_id = related_person_nacp_id
                                         related_person.save()
-                            except InvalidRelativeData:
-                                self.stdout.write(f'{InvalidRelativeData(relative_data)} from declaration '
-                                                  f'with NACP id {declaration_id}')
+                            except InvalidRelativeData as e:
+                                self.stdout.write(f'{e} from declaration with NACP id {declaration_id}')

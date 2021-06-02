@@ -862,8 +862,8 @@ class DeclarationConverter(BusinessConverter):
                                 spouse_from_our_db
                             )
                             spouse = spouse_from_our_db
-                        except InvalidRelativeData:
-                            self.log_error(f'{InvalidRelativeData(relative_data)}')
+                        except InvalidRelativeData as e:
+                            self.log_error(f'{e}')
                             break
                 if spouse:
                     declaration.spouse = spouse
