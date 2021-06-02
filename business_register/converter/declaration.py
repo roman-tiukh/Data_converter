@@ -1,5 +1,6 @@
 import logging
 
+from dateutil.parser import isoparse
 import requests
 from django.conf import settings
 
@@ -933,9 +934,11 @@ class DeclarationConverter(BusinessConverter):
                     continue
                 # TODO: add date to the model and here
                 else:
+                    submission_date = isoparse(declaration_data['date']).date()
                     declaration = Declaration.objects.create(
                         type=declaration_type,
                         year=declaration_data['declaration_year'],
+                        submission_date=submission_date,
                         nacp_declaration_id=declaration_id,
                         nacp_declarant_id=nacp_declarant_id,
                         pep=pep,

@@ -39,6 +39,12 @@ class Declaration(DataOceanModel):
         _('NACP id of the declarant'),
         db_index=True
     )
+    submission_date = models.DateField(
+        _('submission date'),
+        null=True,
+        blank=True,
+        help_text=_('date of submission of the declaration')
+    )
     pep = models.ForeignKey(
         Pep,
         on_delete=models.PROTECT,
@@ -46,12 +52,13 @@ class Declaration(DataOceanModel):
         verbose_name=_('PEP who declares'),
         help_text=_('politically exposed person who declares')
     )
-    date_of_birth = models.DateField(
-        _('date of birth'),
-        null=True,
-        blank=True,
-        help_text=_('date of birth of the declarant')
-    )
+    # looks like this is secret info)
+    # date_of_birth = models.DateField(
+    #     _('date of birth'),
+    #     null=True,
+    #     blank=True,
+    #     help_text=_('date of birth of the declarant')
+    # )
     city_of_registration = models.ForeignKey(
         RatuCity,
         on_delete=models.PROTECT,
