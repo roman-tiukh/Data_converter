@@ -94,10 +94,6 @@ class PepConverterFromJson(BusinessConverter):
             middle_name = pep_dict['patronymic'].lower()
             last_name = pep_dict['last_name'].lower()
             fullname = pep_dict['full_name'].lower()
-            first_name_en = pep_dict['first_name_en'].lower()
-            middle_name_en = pep_dict['patronymic_en'].lower()
-            last_name_en = pep_dict['last_name_en'].lower()
-            fullname_en = last_name_en + ' ' + first_name_en + ' ' + middle_name_en
             fullname_transcriptions_eng = pep_dict['names'].lower()
             last_job_title = pep_dict.get('last_job_title')
             if last_job_title:
@@ -139,7 +135,6 @@ class PepConverterFromJson(BusinessConverter):
                     middle_name=middle_name,
                     last_name=last_name,
                     fullname=fullname,
-                    fullname_en=fullname_en,
                     fullname_transcriptions_eng=fullname_transcriptions_eng,
                     last_job_title=last_job_title,
                     last_employer=last_employer,
@@ -173,9 +168,6 @@ class PepConverterFromJson(BusinessConverter):
                 if pep.fullname_transcriptions_eng != fullname_transcriptions_eng:
                     pep.fullname_transcriptions_eng = fullname_transcriptions_eng
                     update_fields.append('fullname_transcriptions_eng')
-                if pep.fullname_en != fullname_en:
-                    pep.fullname_en = fullname_en
-                    update_fields.append('fullname_en')
                 if pep.last_job_title != last_job_title:
                     pep.last_job_title = last_job_title
                     update_fields.append('last_job_title')
@@ -616,7 +608,10 @@ class PepConverterFromDB(Converter):
             first_name = pep_data[2].lower()
             middle_name = pep_data[3].lower()
             fullname = f'{last_name} {first_name} {middle_name}'
-            fullname_en = f'{pep_data[4].lower()} {pep_data[5].lower()} {pep_data[6].lower()}'
+            last_name = pep_data[4].lower()
+            first_name = pep_data[5].lower()
+            middle_name = pep_data[6].lower()
+            fullname_en = f'{last_name} {first_name} {middle_name}'
             fullname_transcriptions_eng = pep_data[7].lower()
             is_pep = pep_data[8]
             date_of_birth = self.parse_date_of_birth(pep_data[9])
