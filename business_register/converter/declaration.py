@@ -47,7 +47,8 @@ class DeclarationConverter(BusinessConverter):
             '[Не застосовується]',
             '[Не відомо]',
             "[Член сім'ї не надав інформацію]",
-            '[Конфіденційна інформація]'
+            '[Конфіденційна інформація]',
+            'Не визначено'
         }
         self.BOOLEAN_VALUES = {
             '1': True,
@@ -653,7 +654,10 @@ class DeclarationConverter(BusinessConverter):
             additional_info = data.get('otherOwnership', '')
             country_of_citizenship_info = data.get('citizen')
             # TODO: return country
-            country_of_citizenship = self.find_country(country_of_citizenship_info)
+            if country_of_citizenship_info:
+                country_of_citizenship = self.find_country(country_of_citizenship_info)
+            else:
+                country_of_citizenship = None
             last_name = data.get('ua_lastname')
             first_name = data.get('ua_firstname')
             middle_name = data.get('ua_middlename')
@@ -729,6 +733,9 @@ class DeclarationConverter(BusinessConverter):
             'Офіс': Property.OFFICE
         }
         for data in property_data:
+            if type(data['objectType']) != str:
+                self.log_error(f'Invalid value: property_type = {data["objectType"]}')
+                break
             property_type = TYPES.get(data['objectType'])
             additional_info = data.get('otherObjectType', '')
             # TODO: add country
@@ -746,7 +753,11 @@ class DeclarationConverter(BusinessConverter):
                 if valuation in self.NO_DATA:
                     valuation = data.get('cost_date_assessment')
             if valuation not in self.NO_DATA:
-                valuation = int(valuation)
+                try:
+                    valuation = float(valuation.replace(',', '.'))
+                except ValueError:
+                    self.log_error(f'Invalid value: valuation = {valuation}')
+                    valuation = None
             else:
                 valuation = None
             area = data.get('totalArea')
@@ -840,12 +851,18 @@ class DeclarationConverter(BusinessConverter):
         SPOUSE_TYPES = ['дружина', 'чоловік']
         # TODO: decide should we store new Pep that not spouse from relatives_data
         for relative_data in relatives_data:
+            if type(relative_data) == str:
+                self.log_error(f'Invalid value: relative_data = {relative_data}')
+                break
             to_person_relationship_type = relative_data.get('subjectRelation')
             if to_person_relationship_type in SPOUSE_TYPES:
                 spouse = None
                 nacp_id = relative_data.get('id')
                 if nacp_id:
-                    spouse = Pep.objects.filter(nacp_id=nacp_id).first()
+                    if nacp_id == 'declarationType':
+                        self.log_error(f'Invalid value: nacp_id = {nacp_id}')
+                    else:
+                        spouse = Pep.objects.filter(nacp_id=nacp_id).first()
                 if not spouse:
                     link_from_our_db = RelatedPersonsLink.objects.filter(
                         from_person=pep,

@@ -669,7 +669,7 @@ class LuxuryItem(DataOceanModel):
     )
     trademark = models.CharField(
         _('trademark'),
-        max_length=40,
+        max_length=100,
         blank=True,
         default='',
         help_text=_('trademark of the item')
@@ -759,7 +759,7 @@ class Property(DataOceanModel):
         verbose_name=_('address'),
         help_text=_('city where the property is located')
     )
-    valuation = models.PositiveIntegerField(
+    valuation = models.FloatField(
         _('valuation'),
         blank=True,
         null=True,
