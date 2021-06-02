@@ -287,7 +287,8 @@ class PepConverterFromDB(Converter):
                 company.short_name_en,
                 company.name,
                 country.name_en,
-                p2c.id
+                p2c.id,
+                company.name_en
             FROM core_person2company p2c
             INNER JOIN core_company company on p2c.to_company_id=company.id
             LEFT JOIN (
@@ -515,8 +516,10 @@ class PepConverterFromDB(Converter):
             company_name = link[9]
             country_name = link[10]
             source_id = link[11]
+            company_name_en = link[12]
             country = address_converter.save_or_get_country(country_name) if country_name else None
             company = Company.include_deleted_objects.filter(antac_id=company_antac_id).first()
+            company_update_fields = []
             if not company and edrpou:
                 company = Company.include_deleted_objects.filter(
                     edrpou=edrpou,
@@ -524,16 +527,22 @@ class PepConverterFromDB(Converter):
                 ).first()
                 if company:
                     company.antac_id = company_antac_id
-                    company.save(update_fields=['antac_id', 'updated_at'])
+                    company_update_fields.append('antac_id')
             if not company:
-                company = Company.objects.create(name=company_name, edrpou=edrpou, country=country,
-                                                 code=company_name + edrpou, source=Company.ANTAC,
+                company = Company.objects.create(name=company_name, name_en=company_name_en, edrpou=edrpou,
+                                                 country=country, code=company_name + edrpou, source=Company.ANTAC,
                                                  antac_id=company_antac_id, from_antac_only=True)
                 self.create_company_link_with_pep(company, pep, category, start_date,
                                                   confirmation_date, end_date, is_state_company,
                                                   source_id)
                 is_changed = True
             else:
+                if company.name_en != company_name_en:
+                    company.name_en = company_name_en
+                    company_update_fields.append('name_en')
+                if company_update_fields:
+                    company_update_fields.append('updated_at')
+                    company.save(update_fields=company_update_fields)
                 already_stored_link = self.peps_companies_dict.get(source_id)
                 if not already_stored_link:
                     self.create_company_link_with_pep(company, pep, category, start_date,
