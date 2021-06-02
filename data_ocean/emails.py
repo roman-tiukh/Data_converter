@@ -12,7 +12,7 @@ def send_reports_mail():
         name_in_daily_report__in=[report.registry_name for report in reports]
     ).exclude(name_in_daily_report='')
     send_template_mail(
-        to=['ivakhar@gmail.com'],
+        to=settings.REPORT_EMAILS,
         subject='Звіт про оновлення реєстрів за останні 24 години',
         template='data_ocean/emails/report.html',
         context={
