@@ -140,6 +140,9 @@ class KvedFilterSet(filters.FilterSet):
 
 
 class PepFilterSet(filters.FilterSet):
+    id = filters.NumberFilter(
+        help_text='Filter by id.',
+    )
     fullname = filters.CharFilter(
         lookup_expr='search',
         help_text='Filter by full name "last name first name middle name" in Ukrainian.',
