@@ -94,6 +94,7 @@ class Register(DataOceanModel):
     total_records = models.PositiveIntegerField(_('total records'), default=1, blank=True)
     status = models.CharField(_('status'), max_length=15, choices=STATUSES, default=RELEVANT,
                               blank=True)
+    name_in_daily_report = models.CharField(max_length=20, blank=True, default='')
 
     @staticmethod
     def actualize_updates():
