@@ -268,6 +268,8 @@ class CompanyLinkWithPep(DataOceanModel):
                                                       'Can be: bank_customer, owner, manager, by_position, other.')
     relationship_type = models.CharField(_("connection`s type"), max_length=550, null=True,
                                          help_text='Type of connection between the person and this company')
+    relationship_type_en = models.CharField(_("connection`s type in English"), max_length=550, null=True,
+                                         help_text='Type of connection between the person and this company in English')
     start_date = models.DateField(_("connection`s start date"), null=True,
                                   help_text='Date of the beginning of the person\'s connection with the company.')
     confirmation_date = models.DateField(_("connection`s confirmation date"), null=True,
