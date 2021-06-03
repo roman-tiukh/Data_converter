@@ -49,9 +49,9 @@ class Project(DataOceanModel):
         return f'{self.name} of {self.owner}'
 
     def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
         if not self.token:
             self.generate_new_token()
+        super().save(*args, **kwargs)
 
     def generate_new_token(self):
         def get_token_safe():
