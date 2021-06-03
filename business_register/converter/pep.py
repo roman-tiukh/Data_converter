@@ -348,6 +348,38 @@ class PepConverterFromDB(Converter):
             'дружина': RelatedPersonsLink.FAMILY,
             'свекруха': RelatedPersonsLink.FAMILY,
         }
+        self.PEP_RELATIONSHIPS_TYPES_TO_EN = {
+            "ділові зв'язки": 'business relationship',
+            "особисті зв'язки": 'personal connections',
+            'особи, які спільно проживають': '',
+            "пов'язані спільним побутом і мають взаємні права та обов'язки": '',
+            'усиновлювач': 'adopter',
+            'падчерка': 'stepdaughter',
+            'дід': 'grandfather',
+            'рідний брат': 'brother',
+            'мати': 'mother',
+            'син': 'son',
+            'невістка': 'daughter-in-law',
+            'внук': 'grandson',
+            'мачуха': 'stepmother',
+            'особа, яка перебуває під опікою або піклуванням': 'a person under guardianship or custody',
+            'усиновлений': 'adopted',
+            'внучка': 'granddaughter',
+            'батько': 'father',
+            'рідна сестра': 'sister',
+            'зять': 'son-in-law',
+            'чоловік': 'husband',
+            'опікун чи піклувальник': 'guardian or trustee',
+            'дочка': 'daughter',
+            'свекор': 'father-in-law',
+            'тесть': 'father-in-law',
+            'теща': 'mother-in-law',
+            'баба': 'grandmother',
+            'пасинок': 'stepson',
+            'вітчим': 'stepfather',
+            'дружина': 'wife',
+            'свекруха': 'mother-in-laws',
+        }
 
     def get_pep_data(self, host=None, port=None):
 
@@ -425,6 +457,8 @@ class PepConverterFromDB(Converter):
                 continue
             from_person_relationship_type = link[2]
             to_person_relationship_type = link[3]
+            from_person_relationship_type_en = self.PEP_RELATIONSHIPS_TYPES_TO_EN.get(from_person_relationship_type)
+            to_person_relationship_type_en = self.PEP_RELATIONSHIPS_TYPES_TO_EN.get(to_person_relationship_type)
             category = self.PEP_RELATIONSHIPS_TYPES_TO_CATEGORIES.get(from_person_relationship_type)
             start_date = link[4]
             confirmation_date = link[5]
@@ -438,6 +472,8 @@ class PepConverterFromDB(Converter):
                     to_person_id=to_person.id,
                     from_person_relationship_type=from_person_relationship_type,
                     to_person_relationship_type=to_person_relationship_type,
+                    from_person_relationship_type_en=from_person_relationship_type_en,
+                    to_person_relationship_type_en=to_person_relationship_type_en,
                     category=category,
                     start_date=start_date,
                     confirmation_date=confirmation_date,
@@ -454,6 +490,12 @@ class PepConverterFromDB(Converter):
                 if stored_link.to_person_relationship_type != to_person_relationship_type:
                     stored_link.to_person_relationship_type = to_person_relationship_type
                     update_fields.append('to_person_relationship_type')
+                if stored_link.from_person_relationship_type_en != from_person_relationship_type_en:
+                    stored_link.from_person_relationship_type_en = from_person_relationship_type_en
+                    update_fields.append('from_person_relationship_type_en')
+                if stored_link.to_person_relationship_type_en != to_person_relationship_type_en:
+                    stored_link.to_person_relationship_type_en = to_person_relationship_type_en
+                    update_fields.append('to_person_relationship_type_en')
                 if stored_link.category != category:
                     stored_link.category = category
                     update_fields.append('category')

@@ -435,6 +435,14 @@ msgstr "тип зв'язку англійською"
 msgid "another person`s connection`s type"
 msgstr "тип зв'язку для іншої особи"
 
+#: business_register/models/pep_models.py:204
+msgid "connection`s type in English"
+msgstr "тип зв'язку англійською"
+
+#: business_register/models/pep_models.py:210
+msgid "another person`s connection`s type in English"
+msgstr "тип зв'язку для іншої особи англійською"
+
 #: business_register/models/pep_models.py:193
 #: business_register/models/pep_models.py:251
 msgid "connection`s category"
