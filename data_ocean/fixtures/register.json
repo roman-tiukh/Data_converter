@@ -92,7 +92,7 @@
       "source_api_address": "https://data.gov.ua/api/3/action/package_show?id=dc081fb0-f504-4696-916c-a5b24312ab6e",
       "api_list": "/api/koatuu-fourth-level/",
       "api_detail": "/api/koatuu-fourth-level/{id}/",
-      "name_in_daily_report": "",
+      "name_in_daily_report": ""
     }
   },
   {
