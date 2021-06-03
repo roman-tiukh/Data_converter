@@ -608,6 +608,10 @@ class PepConverterFromDB(Converter):
             first_name = pep_data[2].lower()
             middle_name = pep_data[3].lower()
             fullname = f'{last_name} {first_name} {middle_name}'
+            last_name = pep_data[4].lower()
+            first_name = pep_data[5].lower()
+            middle_name = pep_data[6].lower()
+            fullname_en = f'{last_name} {first_name} {middle_name}'
             fullname_transcriptions_eng = pep_data[7].lower()
             is_pep = pep_data[8]
             date_of_birth = self.parse_date_of_birth(pep_data[9])
@@ -634,6 +638,7 @@ class PepConverterFromDB(Converter):
                     middle_name=middle_name,
                     last_name=last_name,
                     fullname=fullname,
+                    fullname_en=fullname_en,
                     fullname_transcriptions_eng=fullname_transcriptions_eng,
                     is_pep=is_pep,
                     date_of_birth=date_of_birth,
@@ -667,6 +672,9 @@ class PepConverterFromDB(Converter):
                 if pep.fullname != fullname:
                     pep.fullname = fullname
                     update_fields.append('fullname')
+                if pep.fullname_en != fullname_en:
+                    pep.fullname_en = fullname_en
+                    update_fields.append('fullname_en')
                 if pep.fullname_transcriptions_eng != fullname_transcriptions_eng:
                     pep.fullname_transcriptions_eng = fullname_transcriptions_eng
                     update_fields.append('fullname_transcriptions_eng')

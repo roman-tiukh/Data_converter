@@ -214,6 +214,10 @@ msgstr "ліквідація"
 msgid "full name"
 msgstr "повне ім'я"
 
+#: business_register/models/sanction_models.py:57
+msgid "full name in English"
+msgstr "повне ім'я англійською мовою"
+
 #: business_register/models/fop_models.py:16
 msgid "termination date"
 msgstr "дата ліквідації"
