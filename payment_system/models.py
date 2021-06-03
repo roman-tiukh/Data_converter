@@ -834,7 +834,8 @@ class CustomSubscriptionRequest(DataOceanModel):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        emails.new_custom_sub_request(self)
+        if self.created_at.replace(microsecond=0) == self.updated_at.replace(microsecond=0):
+            emails.new_custom_sub_request(self)
 
     class Meta:
         ordering = ['is_processed', '-created_at']
