@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.utils.translation import gettext_lazy as _
 from django.db.models import Q
 from django_filters import rest_framework as filters
@@ -364,6 +366,8 @@ class PersonSanctionFilterSet(BaseSanctionFilter):
         field_name='date_of_birth',
         lookup_expr='year__exact',
         help_text='Filter by year of birth',
+        min_value=1800,
+        max_value=date.today().year,
     )
     address = filters.CharFilter(
         lookup_expr='icontains',
