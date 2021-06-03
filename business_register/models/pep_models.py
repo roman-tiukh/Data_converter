@@ -54,7 +54,7 @@ class Pep(DataOceanModel):
         help_text='Full name "last name first name middle name" in Ukrainian.'
     )
     fullname_en = models.CharField(
-        _("full name in English"), max_length=75, db_index=True,
+        _("full name in English"), max_length=75, default='',
         help_text='Full name "last name first name middle name" in English.'
     )
     fullname_transcriptions_eng = models.TextField(
