@@ -351,8 +351,8 @@ class PepConverterFromDB(Converter):
         self.PEP_RELATIONSHIPS_TYPES_TO_EN = {
             "ділові зв'язки": 'business relationship',
             "особисті зв'язки": 'personal connections',
-            'особи, які спільно проживають': '',
-            "пов'язані спільним побутом і мають взаємні права та обов'язки": '',
+            'особи, які спільно проживають': 'persons who live together',
+            "пов'язані спільним побутом і мають взаємні права та обов'язки": 'are connected by common constructions and have common rights and responsibilities',
             'усиновлювач': 'adopter',
             'падчерка': 'stepdaughter',
             'дід': 'grandfather',
