@@ -92,7 +92,7 @@ urlpatterns = [
         name='password_reset_confirm'
     ),
 
-    path('', TemplateView.as_view(template_name='users/index.html')),
+    path('', admin.site.urls),
     path('api/accounts/profile/', TemplateView.as_view(template_name='users/profile.html')),
     path('api/accounts/', include('allauth.urls')),
 
