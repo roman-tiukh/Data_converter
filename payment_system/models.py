@@ -833,9 +833,10 @@ class CustomSubscriptionRequest(DataOceanModel):
         return f'{self.full_name} <{self.email}>'
 
     def save(self, *args, **kwargs):
-        if not getattr(self, 'id', None):
-            emails.new_custom_sub_request(self)
+        is_new_record = getattr(self, 'id', None)
         super().save(*args, **kwargs)
+        if not is_new_record:
+            emails.new_custom_sub_request(self)
 
     class Meta:
         ordering = ['is_processed', '-created_at']
