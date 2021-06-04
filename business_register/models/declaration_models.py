@@ -759,8 +759,10 @@ class Property(DataOceanModel):
         verbose_name=_('address'),
         help_text=_('city where the property is located')
     )
-    valuation = models.FloatField(
+    valuation = models.DecimalField(
         _('valuation'),
+        max_digits=12,
+        decimal_places=2,
         blank=True,
         null=True,
         help_text=_('valuation of the property')

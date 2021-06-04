@@ -586,8 +586,8 @@ class DeclarationConverter(BusinessConverter):
             acquisition_period = data.get('acqPeriod')
             if acquired_before_first_declaration is None and acquisition_period:
                 acquired_before_first_declaration = self.BOOLEAN_VALUES.get(acquisition_period)
-            trademark = data.get('trademark', '')
-            producer = data.get('manufacturerName', '')
+            trademark = data.get('trademark') if data.get('trademark') not in self.NO_DATA else ''
+            producer = data.get('manufacturerName') if data.get('manufacturerName') not in self.NO_DATA else ''
             description = data.get('propertyDescr', '')
             valuation = data.get('costDateUse')
             if valuation not in self.NO_DATA:
@@ -604,8 +604,9 @@ class DeclarationConverter(BusinessConverter):
                 description=description,
                 valuation=valuation
             )
-
-            acquisition_date = simple_format_date_to_yymmdd(data.get('dateUse'))
+            acquisition_date = data.get('dateUse')
+            if acquisition_date:
+                acquisition_date = simple_format_date_to_yymmdd(acquisition_date)
             # TODO: store  'person'
             person = data.get('person')
             rights_data = data.get('rights')
@@ -765,7 +766,9 @@ class DeclarationConverter(BusinessConverter):
                 area = float(area.replace(',', '.'))
             else:
                 area = None
-            acquisition_date = simple_format_date_to_yymmdd(data.get('owningDate'))
+            acquisition_date = data.get('owningDate')
+            if acquisition_date:
+                acquisition_date = simple_format_date_to_yymmdd(acquisition_date)
             property = Property.objects.create(
                 declaration=declaration,
                 type=property_type,
@@ -774,7 +777,6 @@ class DeclarationConverter(BusinessConverter):
                 country=country,
                 city=city,
                 valuation=valuation,
-
             )
             # TODO: store 'sources', 'person'
             sources = data.get('sources')
@@ -851,7 +853,7 @@ class DeclarationConverter(BusinessConverter):
         SPOUSE_TYPES = ['дружина', 'чоловік']
         # TODO: decide should we store new Pep that not spouse from relatives_data
         for relative_data in relatives_data:
-            if type(relative_data) == str:
+            if type(relative_data) != dict:
                 self.log_error(f'Invalid value: relative_data = {relative_data}')
                 break
             to_person_relationship_type = relative_data.get('subjectRelation')
@@ -859,10 +861,10 @@ class DeclarationConverter(BusinessConverter):
                 spouse = None
                 nacp_id = relative_data.get('id')
                 if nacp_id:
-                    if nacp_id == 'declarationType':
-                        self.log_error(f'Invalid value: nacp_id = {nacp_id}')
-                    else:
+                    if type(nacp_id) == int:
                         spouse = Pep.objects.filter(nacp_id=nacp_id).first()
+                    else:
+                        self.log_error(f'Invalid value: nacp_id = {nacp_id}')
                 if not spouse:
                     link_from_our_db = RelatedPersonsLink.objects.filter(
                         from_person=pep,
