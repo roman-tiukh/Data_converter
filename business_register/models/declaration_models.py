@@ -114,9 +114,23 @@ class Declaration(DataOceanModel):
 
 class Liability(DataOceanModel):
     LOAN = 1
+    BORROWED_MONEY_BY_ANOTHER_PERSON = 2
+    TAX_DEBT = 3
+    PENSION_INSURANCE = 4
+    INSURANCE = 5
+    LEASING = 6
+    LOAN_PAYMENTS = 7
+    INTEREST_LOAN_PAYMENTS = 8
     OTHER = 10
     LIABILITY_TYPES = (
         (LOAN, _('Loan')),
+        (BORROWED_MONEY_BY_ANOTHER_PERSON, _('Money borrowed by another person')),
+        (TAX_DEBT, _('Tax debt')),
+        (PENSION_INSURANCE, _('Liabilities under pension insurance contract')),
+        (INSURANCE, _('Liabilities under insurance contract')),
+        (LEASING, _('Liabilities under leasing contract')),
+        (LOAN_PAYMENTS, _('loan payments')),
+        (INTEREST_LOAN_PAYMENTS, _('interest payments on the loan')),
         (OTHER, _('Other')),
     )
     CURRENCIES = (
@@ -130,19 +144,85 @@ class Liability(DataOceanModel):
     type = models.PositiveSmallIntegerField(
         _('type'),
         choices=LIABILITY_TYPES,
-        help_text=_('type of liability')
+        help_text=_('type of the liability')
     )
-    amount = models.PositiveIntegerField(
+    # please, use this field when the type == OTHER
+    additional_info = models.TextField(
+        _('additional info'),
+        blank=True,
+        default='',
+        help_text=_('additional info about the liability')
+    )
+    amount = models.FloatField(
         _('amount'),
-        help_text=_('amount of liability')
+        help_text=_('amount of the liability')
     )
-    # maybe use this? https://pypi.org/project/django-exchange/
-    currency = models.PositiveSmallIntegerField(
+    loan_rest = models.FloatField(
+        _('loan rest'),
+        help_text=_('amount of the rest of the loan')
+    )
+    loan_paid = models.FloatField(
+        _('loan paid'),
+        help_text=_('amount of the body of the loan that was paid during declaration`s period')
+    )
+    interest_paid = models.FloatField(
+        _('interest paid'),
+        help_text=_('amount of the interest of the loan that was paid during declaration`s period')
+    )
+    currency = models.CharField(
         _('currency'),
-        choices=CURRENCIES,
+        max_length=33,
+        blank=True,
+        default='',
         help_text=_('currency')
     )
-    bank_creditor = models.ForeignKey(
+    # another way of storing currency
+    # currency = models.PositiveSmallIntegerField(
+    #     _('currency'),
+    #     choices=CURRENCIES,
+    #     help_text=_('currency')
+    # )
+    date = models.DateField(
+        _('date'),
+        null=True,
+        blank=True,
+        help_text=_('liability date')
+    )
+    bank_from_info = models.CharField(
+        _('info about ukrainian registration'),
+        max_length=55,
+        blank=True,
+        default='',
+        help_text=_('info about ukrainian registration of the bank')
+    )
+    bank_name = models.TextField(
+        _('name of the bank'),
+        max_length=75,
+        blank=True,
+        default='',
+        help_text=_('name of the bank')
+    )
+    bank_name_eng = models.TextField(
+        _('name of the bank in English'),
+        max_length=75,
+        blank=True,
+        default='',
+        help_text=_('name of the bank in English ')
+    )
+    bank_address = models.TextField(
+        _('address of the bank'),
+        blank=True,
+        default='',
+        help_text=_('address of the bank')
+    )
+    bank_registration_number = models.CharField(
+        _('registration number of the bank'),
+        max_length=25,
+        blank=True,
+        default='',
+        help_text=_('number of registration of the bank')
+    )
+    bank = models.ForeignKey(
         Company,
         on_delete=models.PROTECT,
         related_name='lent_money',
@@ -152,22 +232,60 @@ class Liability(DataOceanModel):
         default=None,
         help_text=_('bank or company to whom money is owed')
     )
-    pep_creditor = models.ForeignKey(
-        Pep,
+    guarantee = models.CharField(
+        _('loan guarantee'),
+        max_length=65,
+        blank=True,
+        default='',
+        help_text=_('loan guarantee')
+    )
+    guarantee_amount = models.FloatField(
+        _('amount'),
+        null=True,
+        blank=True,
+        help_text=_('amount of the loan guarantee')
+    )
+    guarantee_registration = models.ForeignKey(
+        RatuCity,
         on_delete=models.PROTECT,
-        related_name='lent_money',
-        verbose_name=_('PEP-creditor'),
         null=True,
         blank=True,
         default=None,
-        help_text=_('politically exposed person to whom money is owed')
+        related_name='loans_guarantees',
+        verbose_name=_('loan guarantee registration'),
+        help_text=_('city of registration of the loan guarantee')
     )
-    non_pep_creditor = models.CharField(
+    # looks like we cannot get person NACP id here
+    # pep_creditor = models.ForeignKey(
+    #     Pep,
+    #     on_delete=models.PROTECT,
+    #     related_name='lent_money',
+    #     verbose_name=_('PEP-creditor'),
+    #     null=True,
+    #     blank=True,
+    #     default=None,
+    #     help_text=_('politically exposed person to whom money is owed')
+    # )
+    creditor_from_info = models.CharField(
+        _('info about ukrainian registration'),
+        max_length=55,
+        blank=True,
+        default='',
+        help_text=_('info about ukrainian registration of the person to whom money is owed')
+    )
+    creditor_full_name = models.CharField(
         _('creditor'),
         max_length=75,
         blank=True,
         default='',
-        help_text='person to whom money is owed'
+        help_text='fullname of the person to whom money is owed'
+    )
+    creditor_full_name_eng = models.CharField(
+        _('creditor fullname in English'),
+        max_length=75,
+        blank=True,
+        default='',
+        help_text='fullname of the person to whom money is owed in English'
     )
     owner = models.ForeignKey(
         Pep,
