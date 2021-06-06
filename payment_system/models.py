@@ -833,9 +833,9 @@ class CustomSubscriptionRequest(DataOceanModel):
         return f'{self.full_name} <{self.email}>'
 
     def save(self, *args, **kwargs):
-        is_new_record = getattr(self, 'id', None)
+        is_existing_record = getattr(self, 'id', None)
         super().save(*args, **kwargs)
-        if not is_new_record:
+        if not is_existing_record:
             emails.new_custom_sub_request(self)
 
     class Meta:
