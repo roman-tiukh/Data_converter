@@ -16,7 +16,7 @@ def transliterate(string):
         new_word = new_word.title() if word.istitle() else new_word
         new_word = new_word.upper() if word.isupper() else new_word
         new_string += new_word
-    return
+    return new_string
 
 
 def replace_translated(string, search_pattern, translating_dict):
@@ -26,7 +26,7 @@ def replace_translated(string, search_pattern, translating_dict):
         match = re.search(key_search_pattern, lower_string)
         if match:
             existing_record = string[match.start():match.end()]
-            translated_record = translating_dict[key]
+            translated_record = re.sub(key, translating_dict[key], match[0])
             if existing_record.isupper():
                 translated_record = translated_record.upper()
             elif existing_record.istitle():
@@ -48,6 +48,6 @@ def translate_company_type_in_string(string):
 def translate_country_in_string(string):
     return replace_translated(
         string=string,
-        search_pattern="\A%s|%s\Z",  # search only at the beginning and/or at the end of string
+        search_pattern="\A%s|%s\Z|, %s",  # search only at the beginning and/or at the end of string, and after ', '
         translating_dict=constants.COUNTRIES
     )
