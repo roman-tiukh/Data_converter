@@ -2,7 +2,7 @@ import re
 
 from data_ocean.transliteration import constants
 
-
+# TODO: Add regex for difference between apostrophe & "'"
 def transliterate(string):
     word_list = re.split('(\W|\d)', string)
     new_string = ''
