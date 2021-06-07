@@ -13,9 +13,6 @@ import sys
 from django.utils import translation
 from num2words import num2words
 
-from business_register.models.company_models import Company, CompanyType
-from location_register.models.address_models import Country
-
 
 def clean_name(name):
     return re.sub(r'р\.|м\.|с\.|смт\.|сщ\.|с/рада\.|сщ/рада\.|вул\.', "", name.lower()).strip()
