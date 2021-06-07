@@ -304,6 +304,7 @@ class FromRelatedPersonLinkSerializer(serializers.ModelSerializer):
         fields = (
             'to_person',
             'to_person_relationship_type',
+            'to_person_relationship_type_en',
             'category',
             'category_display',
             'start_date',
@@ -322,6 +323,7 @@ class ToRelatedPersonLinkSerializer(serializers.ModelSerializer):
         fields = (
             'from_person',
             'from_person_relationship_type',
+            'from_person_relationship_type_en',
             'category',
             'category_display',
             'start_date',
@@ -475,6 +477,7 @@ class FromRelatedPersonListSerializer(serializers.ModelSerializer):
             'fullname',
             'pep_type',
             'to_person_relationship_type',
+            'to_person_relationship_type_en',
             'category_display',
         )
 
@@ -496,6 +499,7 @@ class ToRelatedPersonListSerializer(serializers.ModelSerializer):
             'fullname',
             'pep_type',
             'from_person_relationship_type',
+            'from_person_relationship_type_en',
             'category_display',
         )
 
