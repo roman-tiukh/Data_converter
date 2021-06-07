@@ -53,6 +53,10 @@ class Pep(DataOceanModel):
         _("full name"), max_length=75, db_index=True,
         help_text='Full name "last name first name middle name" in Ukrainian.'
     )
+    fullname_en = models.CharField(
+        _("full name in English"), max_length=75, default='',
+        help_text='Full name "last name first name middle name" in English.'
+    )
     fullname_transcriptions_eng = models.TextField(
         _('options for writing the full name'), db_index=True,
         help_text='Full name in English transcription.'
@@ -200,6 +204,18 @@ class RelatedPersonsLink(DataOceanModel):
         null=True,
         help_text='The type of relationship with a related person.'
     )
+    from_person_relationship_type_en = models.CharField(
+        _("connection`s type in English"),
+        max_length=90,
+        null=True,
+        help_text='The type of relationship with a related person in English.'
+    )
+    to_person_relationship_type_en = models.CharField(
+        _("another person`s connection`s type in English"),
+        max_length=90,
+        null=True,
+        help_text='The type of relationship with a related person in English.'
+    )
     category = models.CharField(
         _("connection`s category"),
         choices=CATEGORIES,
@@ -264,6 +280,8 @@ class CompanyLinkWithPep(DataOceanModel):
                                                       'Can be: bank_customer, owner, manager, by_position, other.')
     relationship_type = models.CharField(_("connection`s type"), max_length=550, null=True,
                                          help_text='Type of connection between the person and this company')
+    relationship_type_en = models.CharField(_("connection`s type in English"), max_length=550, null=True,
+                                         help_text='Type of connection between the person and this company in English')
     start_date = models.DateField(_("connection`s start date"), null=True,
                                   help_text='Date of the beginning of the person\'s connection with the company.')
     confirmation_date = models.DateField(_("connection`s confirmation date"), null=True,

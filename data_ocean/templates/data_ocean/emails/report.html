@@ -63,6 +63,18 @@
                 <td>{{ report.invalid_data }} </td>
             </tr>
         {% endfor %}
+        {% for register in not_updated_registers %}
+            <tr>
+                <td>{{ register.name_in_daily_report }}</td>
+                <td>Shouldn't have started</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        {% endfor %}
         </tbody>
     </table>
     </p>
