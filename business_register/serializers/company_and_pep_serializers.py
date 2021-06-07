@@ -167,7 +167,7 @@ class CompanyLinkWithPepSerializer(serializers.ModelSerializer):
     class Meta:
         model = CompanyLinkWithPep
         fields = (
-            'pep', 'category', 'relationship_type', 'start_date', 'end_date', 'is_state_company'
+            'pep', 'category', 'relationship_type', 'relationship_type_en', 'start_date', 'end_date', 'is_state_company'
         )
 
 
@@ -338,7 +338,7 @@ class PepLinkWithCompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = CompanyLinkWithPep
         fields = (
-            'company', 'category', 'category_display', 'relationship_type',
+            'company', 'category', 'category_display', 'relationship_type',  'relationship_type_en',
             'start_date', 'end_date', 'is_state_company',
         )
 
@@ -351,7 +351,7 @@ class PepDetailLinkWithCompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = CompanyLinkWithPep
         fields = (
-            'company', 'category', 'category_display', 'relationship_type',
+            'company', 'category', 'category_display', 'relationship_type',  'relationship_type_en',
             'start_date', 'end_date', 'is_state_company',
         )
 
