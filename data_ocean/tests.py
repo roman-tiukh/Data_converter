@@ -6,92 +6,91 @@ from data_ocean.transliteration.utils import transliterate, translate_company_ty
 
 class TransliterateTestCase(SimpleTestCase):
     def test_translate_country_in_address(self):
-        self.assertEqual(
-            translate_country_in_string(
-                'Україна, 36014, Полтавська обл., місто Полтава, ПЛОЩА ПАВЛЕНКІВСЬКА, будинок 24'
+        variants = (
+            (
+                'Україна, 36014, Полтавська обл., місто Полтава, ПЛОЩА ПАВЛЕНКІВСЬКА, будинок 24',
+                'Ukraine, 36014, Полтавська обл., місто Полтава, ПЛОЩА ПАВЛЕНКІВСЬКА, будинок 24'
             ),
-            'Ukraine, 36014, Полтавська обл., місто Полтава, ПЛОЩА ПАВЛЕНКІВСЬКА, будинок 24'
-        )
-        self.assertEqual(
-            translate_country_in_string(
-                'Україна, 32500, Хмельницька обл., Віньковецький р-н, смт. Віньківці, ВУЛИЦЯ СОБОРНА УКРАЇНA'
+            (
+                'Україна, 32500, Хмельницька обл., Віньковецький р-н, смт. Віньківці, ВУЛИЦЯ СОБОРНА УКРАЇНA',
+                'Ukraine, 32500, Хмельницька обл., Віньковецький р-н, смт. Віньківці, ВУЛИЦЯ СОБОРНА УКРАЇНA'
             ),
-            'Ukraine, 32500, Хмельницька обл., Віньковецький р-н, смт. Віньківці, ВУЛИЦЯ СОБОРНА УКРАЇНA'
-        )
-        self.assertEqual(
-            translate_country_in_string(
-                'україна, 08606, Київська обл., Васильківський р-н, село Крушинка, ТЕРИТОРІЯ ПТАХОФАБРИКИ "УКРАЇНА"'
+            (
+                'україна, 08606, Київська обл., Васильківський р-н, село Крушинка, ТЕРИТОРІЯ ПТАХОФАБРИКИ "УКРАЇНА"',
+                'ukraine, 08606, Київська обл., Васильківський р-н, село Крушинка, ТЕРИТОРІЯ ПТАХОФАБРИКИ "УКРАЇНА"'
             ),
-            'ukraine, 08606, Київська обл., Васильківський р-н, село Крушинка, ТЕРИТОРІЯ ПТАХОФАБРИКИ "УКРАЇНА"'
-        )
-        self.assertEqual(
-            translate_country_in_string(
-                '03055, ПРОСПЕКТ ПЕРЕМОГИ, БУД. 15, ЛІТЕРА"А", М. КИЇВ, УКРАЇНА., будинок 15, павільйон ЛІТЕРА"А"'
+            (
+                '03055, ПРОСПЕКТ ПЕРЕМОГИ, БУД. 15, ЛІТЕРА"А", М. КИЇВ, УКРАЇНА., будинок 15, павільйон ЛІТЕРА"А"',
+                '03055, ПРОСПЕКТ ПЕРЕМОГИ, БУД. 15, ЛІТЕРА"А", М. КИЇВ, UKRAINE., будинок 15, павільйон ЛІТЕРА"А"'
             ),
-            '03055, ПРОСПЕКТ ПЕРЕМОГИ, БУД. 15, ЛІТЕРА"А", М. КИЇВ, UKRAINE., будинок 15, павільйон ЛІТЕРА"А"'
         )
+        for tested, expected in variants:
+            self.assertEqual(translate_country_in_string(tested), expected)
 
     def test_translate_company_type_in_string(self):
-        self.assertEqual(
-            translate_company_type_in_string(
-                'приватне підприємство "алмаз"'
+        variants = (
+            (
+                'приватне підприємство "алмаз"',
+                'private enterprise "алмаз"'
             ),
-            'private enterprise "алмаз"'
-        )
-        self.assertEqual(
-            translate_company_type_in_string(
-                'Приватне Підприємство "Алмаз"'
+            (
+                'Приватне Підприємство "Алмаз"',
+                'Private Enterprise "Алмаз"'
             ),
-            'Private Enterprise "Алмаз"'
-        )
-        self.assertEqual(
-            translate_company_type_in_string(
-                'Приватне підприємство "Алмаз"'
+            (
+                'Приватне підприємство "Алмаз"',
+                'Private enterprise "Алмаз"'
             ),
-            'Private enterprise "Алмаз"'
+            (
+                'ПРИВАТНЕ ПІДПРИЄМСТВО "АЛМАЗ"',
+                'PRIVATE ENTERPRISE "АЛМАЗ"'
+            )
         )
-        self.assertEqual(
-            translate_company_type_in_string(
-                'ПРИВАТНЕ ПІДПРИЄМСТВО "АЛМАЗ"'
-            ),
-            'PRIVATE ENTERPRISE "АЛМАЗ"'
-        )
+        for tested, expected in variants:
+            self.assertEqual(translate_company_type_in_string(tested), expected)
 
     def test_transliterate(self):
-        self.assertEqual(
-            transliterate(
-                'командитне товариство "європейська транспортна група"'
+        variants = (
+            (
+                'командитне товариство "європейська транспортна група"',
+                'komandytne tovarystvo "yevropeiska transportna hrupa"'
             ),
-            'komandytne tovarystvo "yevropeiska transportna hrupa"'
-        )
-        self.assertEqual(
-            transliterate(
-                'Споживче Товариство "Яблунівка"'
+            (
+                'Споживче Товариство "Яблунівка"',
+                'Spozhyvche Tovarystvo "Yablunivka"'
             ),
-            'Spozhyvche Tovarystvo "Yablunivka"'
+            (
+                'ПРИВАТНЕ ПІДПРИЄМСТВО "ЮЛІЯ"',
+                'PRYVATNE PIDPRYIEMSTVO "YULIIA"'
+            )
         )
-        self.assertEqual(
-            transliterate(
-                'ПРИВАТНЕ ПІДПРИЄМСТВО "ЮЛІЯ"'
-            ),
-            'PRYVATNE PIDPRYIEMSTVO "YULIIA"'
-        )
+        for tested, expected in variants:
+            self.assertEqual(transliterate(tested), expected)
 
-    def test_translate_and_transliterate(self):
-        self.assertEqual(
-            transliterate(
-                translate_country_in_string(
-                    'Україна, 42032, ВУЛ. ЖОВТНЕВА, БУД. 71, С. ХРЕЩАТИК, РОМЕНСЬКИЙ РАЙОН, СУМСЬКА ОБЛАСТЬ'
-                )
+    def test_translate_country_and_transliterate(self):
+        variants = (
+            (
+                'Україна, 42032, ВУЛ. ЖОВТНЕВА, БУД. 71, С. ХРЕЩАТИК, РОМЕНСЬКИЙ РАЙОН, СУМСЬКА ОБЛАСТЬ',
+                'Ukraine, 42032, VUL. ZHOVTNEVA, BUD. 71, S. KHRESHCHATYK, ROMENSKYI RAION, SUMSKA OBLAST'
             ),
-            'Ukraine, 42032, VUL. ZHOVTNEVA, BUD. 71, S. KHRESHCHATYK, ROMENSKYI RAION, SUMSKA OBLAST'
+            (
+                'Україна, 55000, Миколаївська обл., місто Южноукраїнськ, ПРОМИСЛОВИЙ МАЙДАНЧИК, 13 А',
+                'Ukraine, 55000, Mykolaivska obl., misto Yuzhnoukrainsk, PROMYSLOVYI MAIDANCHYK, 13 A'
+            )
         )
+        for tested, expected in variants:
+            self.assertEqual(transliterate(translate_country_in_string(tested)), expected)
 
-        self.assertEqual(
-            transliterate(
-                translate_company_type_in_string(
-                    'публічне акціонерне товариство "каховське автотранспортне підприємство 16555"'
-                )
+    def test_translate_company_type_and_transliterate(self):
+        variants = (
+            (
+                'спільне підприємство "новоодеське заготівельно-переробне торгове підприємство"',
+                'joint enterprise "novoodeske zahotivelno-pererobne torhove pidpryiemstvo"'
             ),
-            'public joint-stock company "kakhovske avtotransportne pidpryiemstvo 16555"'
+            (
+                'публічне акціонерне товариство "каховське автотранспортне підприємство 16555"',
+                'public joint-stock company "kakhovske avtotransportne pidpryiemstvo 16555"'
+            )
         )
+        for tested, expected in variants:
+            self.assertEqual(transliterate(translate_company_type_in_string(tested)), expected)
