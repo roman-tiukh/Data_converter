@@ -225,6 +225,7 @@ class PepConverterFromJson(BusinessConverter):
 
 
 class PepConverterFromDB(Converter):
+    refresh_updated_at_field = True
 
     def __init__(self):
         self.host = settings.PEP_SOURCE_HOST
@@ -517,7 +518,7 @@ class PepConverterFromDB(Converter):
                     is_changed = True
                 if self.outdated_peps_links_dict.get(source_id):
                     del self.outdated_peps_links_dict[source_id]
-            if is_changed:
+            if is_changed and self.refresh_updated_at_field:
                 from_person.save(update_fields=['updated_at', ])
                 to_person.save(update_fields=['updated_at', ])
         if self.outdated_peps_links_dict:
@@ -629,7 +630,7 @@ class PepConverterFromDB(Converter):
                         is_changed = True
                     if self.outdated_peps_companies_dict.get(source_id):
                         del self.outdated_peps_companies_dict[source_id]
-            if is_changed:
+            if is_changed and self.refresh_updated_at_field:
                 pep.save(update_fields=['updated_at', ])
         if self.outdated_peps_companies_dict:
             for link in self.outdated_peps_companies_dict.values():
@@ -772,7 +773,8 @@ class PepConverterFromDB(Converter):
                     pep.termination_date = termination_date
                     update_fields.append('termination_date')
                 if len(update_fields):
-                    update_fields.append('updated_at')
+                    if self.refresh_updated_at_field:
+                        update_fields.append('updated_at')
                     pep.save(update_fields=update_fields)
                 del self.outdated_peps_dict[code]
         if self.outdated_peps_dict:
