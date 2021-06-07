@@ -4,6 +4,7 @@ from simple_history.models import HistoricalRecords
 
 from business_register.models.kved_models import Kved
 from data_ocean.models import Authority, DataOceanModel, Status, TaxpayerType
+from data_ocean.transliteration.utils import transliterate, translate_country_in_string
 from location_register.models.address_models import Country
 
 
@@ -118,6 +119,10 @@ class Company(DataOceanModel):  # constraint for not null in both name & short_n
         if not self.country:
             return None
         return self.country.name != 'ukraine'
+
+    @property
+    def address_en(self):
+        return transliterate(translate_country_in_string(self.address))
 
     class Meta:
         verbose_name = _('company')
