@@ -90,6 +90,10 @@ class TransliterateTestCase(SimpleTestCase):
             (
                 'публічне акціонерне товариство "каховське автотранспортне підприємство 16555"',
                 'public joint-stock company "kakhovske avtotransportne pidpryiemstvo 16555"'
+            ),
+            (
+                'товариство з обмеженою відповідальністю "український кур\'єр"',
+                'limited trade development "ukrainskyi kuryer"'
             )
         )
         for tested, expected in variants:
