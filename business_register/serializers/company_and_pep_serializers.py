@@ -142,7 +142,7 @@ class CompanyListSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     class Meta:
         model = Company
         fields = (
-            'id', 'name', 'name_en', 'short_name', 'address', 'country', 'edrpou', 'founders',
+            'id', 'name', 'name_en', 'short_name', 'address', 'address_en', 'country', 'edrpou', 'founders',
             'authorized_capital', 'parent', 'company_type', 'status', 'is_closed',
             'predecessors', 'authority', 'signers', 'assignees', 'bancruptcy_readjustment',
             'termination_started', 'company_detail', 'kveds', 'bylaw', 'exchange_data'
@@ -226,7 +226,7 @@ class CompanyDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     class Meta:
         model = Company
         fields = (
-            'id', 'name', 'name_en', 'short_name', 'address', 'country', 'edrpou', 'founders', 'founder_of',
+            'id', 'name', 'name_en', 'short_name', 'address', 'address_en', 'country', 'edrpou', 'founders', 'founder_of',
             'relationships_with_peps', 'authorized_capital', 'parent', 'company_type', 'status',
             'is_closed', 'predecessors', 'authority', 'signers', 'assignees',
             'bancruptcy_readjustment', 'termination_started', 'company_detail', 'kveds', 'bylaw',
@@ -447,7 +447,7 @@ class PepDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
             'id', 'first_name', 'last_name', 'middle_name', 'fullname', 'fullname_en',
             'fullname_transcriptions_eng', 'last_job_title', 'last_employer',
             'is_pep', 'pep_type', 'info', 'sanctions', 'criminal_record', 'assets_info',
-            'criminal_proceedings', 'wanted', 'date_of_birth', 'place_of_birth', 'is_dead',
+            'criminal_proceedings', 'wanted', 'date_of_birth', 'place_of_birth', 'place_of_birth_en', 'is_dead',
             'termination_date', 'reason_of_termination', 'to_person_links', 'from_person_links',
             'related_companies', 'check_companies', 'pep_org_ua_link', 'created_at', 'updated_at',
         )
@@ -527,7 +527,7 @@ class PepListSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
             'id', 'first_name', 'last_name', 'middle_name', 'fullname', 'fullname_en',
             'fullname_transcriptions_eng', 'last_job_title', 'last_employer',
             'is_pep', 'pep_type', 'info', 'sanctions', 'criminal_record', 'assets_info',
-            'criminal_proceedings', 'wanted', 'date_of_birth', 'place_of_birth', 'is_dead',
+            'criminal_proceedings', 'wanted', 'date_of_birth', 'place_of_birth', 'place_of_birth_en', 'is_dead',
             'termination_date', 'reason_of_termination', 'from_person_links', 'to_person_links',
             'related_companies', 'pep_org_ua_link', 'created_at', 'updated_at',
         )
