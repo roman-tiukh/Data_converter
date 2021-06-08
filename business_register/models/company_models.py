@@ -122,7 +122,11 @@ class Company(DataOceanModel):  # constraint for not null in both name & short_n
 
     @property
     def address_en(self):
-        return transliterate(translate_country_in_string(self.address))
+        if self.address:
+            return transliterate(translate_country_in_string(self.address))
+        else:
+            return None
+
 
     class Meta:
         verbose_name = _('company')

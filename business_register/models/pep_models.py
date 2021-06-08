@@ -161,7 +161,10 @@ class Pep(DataOceanModel):
 
     @property
     def place_of_birth_en(self):
-        return transliterate(translate_country_in_string(self.place_of_birth))
+        if self.place_of_birth:
+            return transliterate(translate_country_in_string(self.place_of_birth))
+        else:
+            return None
 
     class Meta:
         indexes = [
