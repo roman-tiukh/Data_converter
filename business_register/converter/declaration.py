@@ -615,7 +615,28 @@ class DeclarationConverter(BusinessConverter):
 
     # TODO: implement as save_property()
     def save_unfinished_construction(self, unfinished_construction_data, declaration):
-        pass
+        for data in unfinished_construction_data:
+            additional_info = data.get('objectType')
+            # TODO: add country
+            country = self.find_country(data['country'])
+            city = None
+            property_location = data.get('ua_cityType')
+            # TODO: add unfinished_construction_city
+            if property_location:
+                city = self.find_city(property_location)
+            area = data.get('totalArea')
+            if area not in self.NO_DATA:
+                area = float(area.replace(',', '.'))
+            else:
+                area = None
+            unfinished_construction_property = Property.objects.create(
+                declaration=declaration,
+                type=Property.UNFINISHED_CONSTRUCTION,
+                additional_info=additional_info,
+                area=area,
+                country=country,
+                city=city,
+            )
 
     # possible_keys = [
     #     {'ua_sameRegLivingAddress', 'percent-ownership', 'ua_regAddressFull', 'otherOwnership', 'citizen',
