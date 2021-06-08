@@ -4,7 +4,6 @@ from simple_history.models import HistoricalRecords
 
 from business_register.models.company_models import Company, Founder
 from data_ocean.models import DataOceanModel
-from data_ocean.transliteration.utils import transliterate, translate_country_in_string
 
 
 class Pep(DataOceanModel):
@@ -158,10 +157,6 @@ class Pep(DataOceanModel):
     @property
     def pep_org_ua_link(self):
         return 'https://pep.org.ua/uk/person/' + str(self.source_id)
-
-    @property
-    def place_of_birth_en(self):
-        return transliterate(translate_country_in_string(self.place_of_birth))
 
     class Meta:
         indexes = [
