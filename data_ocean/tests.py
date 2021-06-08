@@ -93,7 +93,15 @@ class TransliterateTestCase(SimpleTestCase):
             ),
             (
                 'товариство з обмеженою відповідальністю "український кур\'єр"',
-                'limited trade development "ukrainskyi kuryer"'
+                'limited trade development "ukrainskyi kurier"'
+            ),
+            (
+                'товариство з обмеженою відповідальністю "український кур`єр"',
+                'limited trade development "ukrainskyi kurier"'
+            ),
+            (
+                'товариство з обмеженою відповідальністю "український кур’єр"',
+                'limited trade development "ukrainskyi kurier"'
             )
         )
         for tested, expected in variants:

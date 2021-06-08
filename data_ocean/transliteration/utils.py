@@ -4,6 +4,7 @@ from data_ocean.transliteration import constants
 
 # TODO: Add regex for difference between apostrophe & "'"
 def transliterate(string):
+
     word_list = re.split('(\W|\d)', string)
     new_string = ''
     for word in word_list:
@@ -18,8 +19,11 @@ def transliterate(string):
         new_string += new_word
     return new_string
 
+def delete_apostrophe(match):
+    return re.sub("['`’]", '', match.group())
 
 def replace_translated(string, search_pattern, translating_dict):
+    string = re.sub("\w['`’]\w", delete_apostrophe, string)
     lower_string = string.lower()
     for key in translating_dict.keys():
         key_search_pattern = re.sub('%s', key, search_pattern)
