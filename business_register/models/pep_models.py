@@ -159,14 +159,12 @@ class Pep(DataOceanModel):
     def pep_org_ua_link(self):
         return 'https://pep.org.ua/uk/person/' + str(self.source_id)
 
-
     @property
     def place_of_birth_en(self):
         if self.place_of_birth:
             return transliterate(translate_country_in_string(self.place_of_birth))
         else:
             return None
-
 
     class Meta:
         indexes = [

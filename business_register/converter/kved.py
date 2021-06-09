@@ -112,7 +112,7 @@ class KvedConverter(Converter):
     def fill_name_en_sections():
         for section in KvedSection.objects.all():
             section.name_en = KVED_SECTIONS.get(section.name, '')
-            section.save()
+            section.save(update_fields=['name_en'])
 
 
 class KvedDownloader(Downloader):
