@@ -132,8 +132,8 @@
     "pk": 9,
     "fields": {
       "created_at": "2021-04-22 19:20",
-      "name": "Реєстр санкцій персональний",
-      "name_eng": "Person sanctions register",
+      "name": "Реєстр санкцій РНБОУ щодо фізичних осіб",
+      "name_eng": "Register of NSDCU sanctions against persons",
       "source_name": "",
       "source_register_id": "",
       "source_url_address": "http://president.gov.ua",
