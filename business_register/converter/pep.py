@@ -225,6 +225,7 @@ class PepConverterFromJson(BusinessConverter):
 
 
 class PepConverterFromDB(Converter):
+    refresh_updated_at_field = True
 
     def __init__(self):
         self.host = settings.PEP_SOURCE_HOST
@@ -288,7 +289,9 @@ class PepConverterFromDB(Converter):
                 company.name,
                 country.name_en,
                 p2c.id,
-                company.name_en
+                company.name_en,
+                p2c.relationship_type,
+                p2c.relationship_type_en
             FROM core_person2company p2c
             INNER JOIN core_company company on p2c.to_company_id=company.id
             LEFT JOIN (
@@ -345,6 +348,38 @@ class PepConverterFromDB(Converter):
             'вітчим': RelatedPersonsLink.FAMILY,
             'дружина': RelatedPersonsLink.FAMILY,
             'свекруха': RelatedPersonsLink.FAMILY,
+        }
+        self.PEP_RELATIONSHIPS_TYPES_TO_EN = {
+            "ділові зв'язки": 'business relationship',
+            "особисті зв'язки": 'personal connections',
+            'особи, які спільно проживають': 'persons who live together',
+            "пов'язані спільним побутом і мають взаємні права та обов'язки": 'are connected by common constructions and have common rights and responsibilities',
+            'усиновлювач': 'adopter',
+            'падчерка': 'stepdaughter',
+            'дід': 'grandfather',
+            'рідний брат': 'brother',
+            'мати': 'mother',
+            'син': 'son',
+            'невістка': 'daughter-in-law',
+            'внук': 'grandson',
+            'мачуха': 'stepmother',
+            'особа, яка перебуває під опікою або піклуванням': 'a person under guardianship or custody',
+            'усиновлений': 'adopted',
+            'внучка': 'granddaughter',
+            'батько': 'father',
+            'рідна сестра': 'sister',
+            'зять': 'son-in-law',
+            'чоловік': 'husband',
+            'опікун чи піклувальник': 'guardian or trustee',
+            'дочка': 'daughter',
+            'свекор': 'father-in-law',
+            'тесть': 'father-in-law',
+            'теща': 'mother-in-law',
+            'баба': 'grandmother',
+            'пасинок': 'stepson',
+            'вітчим': 'stepfather',
+            'дружина': 'wife',
+            'свекруха': 'mother-in-laws',
         }
 
     def get_pep_data(self, host=None, port=None):
@@ -423,6 +458,8 @@ class PepConverterFromDB(Converter):
                 continue
             from_person_relationship_type = link[2]
             to_person_relationship_type = link[3]
+            from_person_relationship_type_en = self.PEP_RELATIONSHIPS_TYPES_TO_EN.get(from_person_relationship_type)
+            to_person_relationship_type_en = self.PEP_RELATIONSHIPS_TYPES_TO_EN.get(to_person_relationship_type)
             category = self.PEP_RELATIONSHIPS_TYPES_TO_CATEGORIES.get(from_person_relationship_type)
             start_date = link[4]
             confirmation_date = link[5]
@@ -436,6 +473,8 @@ class PepConverterFromDB(Converter):
                     to_person_id=to_person.id,
                     from_person_relationship_type=from_person_relationship_type,
                     to_person_relationship_type=to_person_relationship_type,
+                    from_person_relationship_type_en=from_person_relationship_type_en,
+                    to_person_relationship_type_en=to_person_relationship_type_en,
                     category=category,
                     start_date=start_date,
                     confirmation_date=confirmation_date,
@@ -452,6 +491,12 @@ class PepConverterFromDB(Converter):
                 if stored_link.to_person_relationship_type != to_person_relationship_type:
                     stored_link.to_person_relationship_type = to_person_relationship_type
                     update_fields.append('to_person_relationship_type')
+                if stored_link.from_person_relationship_type_en != from_person_relationship_type_en:
+                    stored_link.from_person_relationship_type_en = from_person_relationship_type_en
+                    update_fields.append('from_person_relationship_type_en')
+                if stored_link.to_person_relationship_type_en != to_person_relationship_type_en:
+                    stored_link.to_person_relationship_type_en = to_person_relationship_type_en
+                    update_fields.append('to_person_relationship_type_en')
                 if stored_link.category != category:
                     stored_link.category = category
                     update_fields.append('category')
@@ -473,7 +518,7 @@ class PepConverterFromDB(Converter):
                     is_changed = True
                 if self.outdated_peps_links_dict.get(source_id):
                     del self.outdated_peps_links_dict[source_id]
-            if is_changed:
+            if is_changed and self.refresh_updated_at_field:
                 from_person.save(update_fields=['updated_at', ])
                 to_person.save(update_fields=['updated_at', ])
         if self.outdated_peps_links_dict:
@@ -483,7 +528,7 @@ class PepConverterFromDB(Converter):
                 link.to_person.save(update_fields=['updated_at', ])
 
     def create_company_link_with_pep(self, company, pep, category, start_date, confirmation_date,
-                                     end_date, is_state_company, source_id):
+                                     end_date, is_state_company, source_id, relationship_type, relationship_type_en):
         self.peps_companies_dict[source_id] = CompanyLinkWithPep.objects.create(
             company=company,
             pep=pep,
@@ -492,7 +537,9 @@ class PepConverterFromDB(Converter):
             confirmation_date=confirmation_date,
             end_date=end_date,
             is_state_company=is_state_company,
-            source_id=source_id
+            source_id=source_id,
+            relationship_type=relationship_type,
+            relationship_type_en=relationship_type_en
         )
 
     def save_or_update_peps_companies(self, peps_companies_data):
@@ -517,6 +564,8 @@ class PepConverterFromDB(Converter):
             country_name = link[10]
             source_id = link[11]
             company_name_en = link[12]
+            relationship_type = link[13]
+            relationship_type_en = link[14]
             country = address_converter.save_or_get_country(country_name) if country_name else None
             company = Company.include_deleted_objects.filter(antac_id=company_antac_id).first()
             company_update_fields = []
@@ -536,7 +585,7 @@ class PepConverterFromDB(Converter):
                                                  antac_id=company_antac_id, from_antac_only=True)
                 self.create_company_link_with_pep(company, pep, category, start_date,
                                                   confirmation_date, end_date, is_state_company,
-                                                  source_id)
+                                                  source_id, relationship_type, relationship_type_en)
                 is_changed = True
             else:
                 if company.name_en != company_name_en:
@@ -552,13 +601,19 @@ class PepConverterFromDB(Converter):
                 if not already_stored_link:
                     self.create_company_link_with_pep(company, pep, category, start_date,
                                                       confirmation_date, end_date, is_state_company,
-                                                      source_id)
+                                                      source_id, relationship_type, relationship_type_en)
                     is_changed = True
                 else:
                     update_fields = []
                     if already_stored_link.category != category:
                         already_stored_link.category = category
                         update_fields.append('category')
+                    if already_stored_link.relationship_type != relationship_type:
+                        already_stored_link.relationship_type = relationship_type
+                        update_fields.append('relationship_type')
+                    if already_stored_link.relationship_type_en != relationship_type_en:
+                        already_stored_link.relationship_type_en = relationship_type_en
+                        update_fields.append('relationship_type_en')
                     if already_stored_link.start_date != start_date:
                         already_stored_link.start_date = start_date
                         update_fields.append('start_date')
@@ -580,7 +635,7 @@ class PepConverterFromDB(Converter):
                         is_changed = True
                     if self.outdated_peps_companies_dict.get(source_id):
                         del self.outdated_peps_companies_dict[source_id]
-            if is_changed:
+            if is_changed and self.refresh_updated_at_field:
                 pep.save(update_fields=['updated_at', ])
         if self.outdated_peps_companies_dict:
             for link in self.outdated_peps_companies_dict.values():
@@ -613,6 +668,10 @@ class PepConverterFromDB(Converter):
             first_name = pep_data[2].lower()
             middle_name = pep_data[3].lower()
             fullname = f'{last_name} {first_name} {middle_name}'
+            last_name = pep_data[4].lower()
+            first_name = pep_data[5].lower()
+            middle_name = pep_data[6].lower()
+            fullname_en = f'{last_name} {first_name} {middle_name}'
             fullname_transcriptions_eng = pep_data[7].lower()
             is_pep = pep_data[8]
             date_of_birth = self.parse_date_of_birth(pep_data[9])
@@ -639,6 +698,7 @@ class PepConverterFromDB(Converter):
                     middle_name=middle_name,
                     last_name=last_name,
                     fullname=fullname,
+                    fullname_en=fullname_en,
                     fullname_transcriptions_eng=fullname_transcriptions_eng,
                     is_pep=is_pep,
                     date_of_birth=date_of_birth,
@@ -672,6 +732,9 @@ class PepConverterFromDB(Converter):
                 if pep.fullname != fullname:
                     pep.fullname = fullname
                     update_fields.append('fullname')
+                if pep.fullname_en != fullname_en:
+                    pep.fullname_en = fullname_en
+                    update_fields.append('fullname_en')
                 if pep.fullname_transcriptions_eng != fullname_transcriptions_eng:
                     pep.fullname_transcriptions_eng = fullname_transcriptions_eng
                     update_fields.append('fullname_transcriptions_eng')
@@ -715,7 +778,8 @@ class PepConverterFromDB(Converter):
                     pep.termination_date = termination_date
                     update_fields.append('termination_date')
                 if len(update_fields):
-                    update_fields.append('updated_at')
+                    if self.refresh_updated_at_field:
+                        update_fields.append('updated_at')
                     pep.save(update_fields=update_fields)
                 del self.outdated_peps_dict[code]
         if self.outdated_peps_dict:

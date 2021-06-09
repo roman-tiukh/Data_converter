@@ -1,5 +1,6 @@
 import logging
 
+from dateutil.parser import isoparse
 import requests
 from django.conf import settings
 
@@ -22,7 +23,7 @@ from business_register.models.company_models import Company
 from data_ocean.utils import simple_format_date_to_yymmdd
 from location_register.models.ratu_models import RatuRegion, RatuDistrict, RatuCity
 
-from business_register.management.commands.fetch_peps_nacp_id import is_same_full_name
+from business_register.management.commands.fetch_peps_nacp_id import is_same_full_name, InvalidRelativeData
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -46,7 +47,8 @@ class DeclarationConverter(BusinessConverter):
             '[Не застосовується]',
             '[Не відомо]',
             "[Член сім'ї не надав інформацію]",
-            '[Конфіденційна інформація]'
+            '[Конфіденційна інформація]',
+            'Не визначено'
         }
         self.BOOLEAN_VALUES = {
             '1': True,
@@ -584,8 +586,8 @@ class DeclarationConverter(BusinessConverter):
             acquisition_period = data.get('acqPeriod')
             if acquired_before_first_declaration is None and acquisition_period:
                 acquired_before_first_declaration = self.BOOLEAN_VALUES.get(acquisition_period)
-            trademark = data.get('trademark', '')
-            producer = data.get('manufacturerName', '')
+            trademark = data.get('trademark') if data.get('trademark') not in self.NO_DATA else ''
+            producer = data.get('manufacturerName') if data.get('manufacturerName') not in self.NO_DATA else ''
             description = data.get('propertyDescr', '')
             valuation = data.get('costDateUse')
             if valuation not in self.NO_DATA:
@@ -602,8 +604,9 @@ class DeclarationConverter(BusinessConverter):
                 description=description,
                 valuation=valuation
             )
-
-            acquisition_date = simple_format_date_to_yymmdd(data.get('dateUse'))
+            acquisition_date = data.get('dateUse')
+            if acquisition_date:
+                acquisition_date = simple_format_date_to_yymmdd(acquisition_date)
             # TODO: store  'person'
             person = data.get('person')
             rights_data = data.get('rights')
@@ -652,7 +655,10 @@ class DeclarationConverter(BusinessConverter):
             additional_info = data.get('otherOwnership', '')
             country_of_citizenship_info = data.get('citizen')
             # TODO: return country
-            country_of_citizenship = self.find_country(country_of_citizenship_info)
+            if country_of_citizenship_info:
+                country_of_citizenship = self.find_country(country_of_citizenship_info)
+            else:
+                country_of_citizenship = None
             last_name = data.get('ua_lastname')
             first_name = data.get('ua_firstname')
             middle_name = data.get('ua_middlename')
@@ -728,6 +734,9 @@ class DeclarationConverter(BusinessConverter):
             'Офіс': Property.OFFICE
         }
         for data in property_data:
+            if type(data['objectType']) != str:
+                self.log_error(f'Invalid value: property_type = {data["objectType"]}')
+                break
             property_type = TYPES.get(data['objectType'])
             additional_info = data.get('otherObjectType', '')
             # TODO: add country
@@ -745,7 +754,11 @@ class DeclarationConverter(BusinessConverter):
                 if valuation in self.NO_DATA:
                     valuation = data.get('cost_date_assessment')
             if valuation not in self.NO_DATA:
-                valuation = int(valuation)
+                try:
+                    valuation = float(valuation.replace(',', '.'))
+                except ValueError:
+                    self.log_error(f'Invalid value: valuation = {valuation}')
+                    valuation = None
             else:
                 valuation = None
             area = data.get('totalArea')
@@ -753,7 +766,9 @@ class DeclarationConverter(BusinessConverter):
                 area = float(area.replace(',', '.'))
             else:
                 area = None
-            acquisition_date = simple_format_date_to_yymmdd(data.get('owningDate'))
+            acquisition_date = data.get('owningDate')
+            if acquisition_date:
+                acquisition_date = simple_format_date_to_yymmdd(acquisition_date)
             property = Property.objects.create(
                 declaration=declaration,
                 type=property_type,
@@ -762,7 +777,6 @@ class DeclarationConverter(BusinessConverter):
                 country=country,
                 city=city,
                 valuation=valuation,
-
             )
             # TODO: store 'sources', 'person'
             sources = data.get('sources')
@@ -839,12 +853,18 @@ class DeclarationConverter(BusinessConverter):
         SPOUSE_TYPES = ['дружина', 'чоловік']
         # TODO: decide should we store new Pep that not spouse from relatives_data
         for relative_data in relatives_data:
+            if type(relative_data) != dict:
+                self.log_error(f'Invalid value: relative_data = {relative_data}')
+                break
             to_person_relationship_type = relative_data.get('subjectRelation')
             if to_person_relationship_type in SPOUSE_TYPES:
                 spouse = None
                 nacp_id = relative_data.get('id')
                 if nacp_id:
-                    spouse = Pep.objects.filter(nacp_id=nacp_id).first()
+                    if type(nacp_id) == int:
+                        spouse = Pep.objects.filter(nacp_id=nacp_id).first()
+                    else:
+                        self.log_error(f'Invalid value: nacp_id = {nacp_id}')
                 if not spouse:
                     link_from_our_db = RelatedPersonsLink.objects.filter(
                         from_person=pep,
@@ -855,14 +875,15 @@ class DeclarationConverter(BusinessConverter):
                         break
                     else:
                         spouse_from_our_db = link_from_our_db.to_person
-                        if not is_same_full_name(
+                        try:
+                            is_same_full_name(
                                 relative_data,
-                                spouse_from_our_db,
-                                declaration.id
-                        ):
-                            break
-                        else:
+                                spouse_from_our_db
+                            )
                             spouse = spouse_from_our_db
+                        except InvalidRelativeData as e:
+                            self.log_error(f'{e}')
+                            break
                 if spouse:
                     declaration.spouse = spouse
                     declaration.save()
@@ -933,9 +954,11 @@ class DeclarationConverter(BusinessConverter):
                     continue
                 # TODO: add date to the model and here
                 else:
+                    submission_date = isoparse(declaration_data['date']).date()
                     declaration = Declaration.objects.create(
                         type=declaration_type,
                         year=declaration_data['declaration_year'],
+                        submission_date=submission_date,
                         nacp_declaration_id=declaration_id,
                         nacp_declarant_id=nacp_declarant_id,
                         pep=pep,

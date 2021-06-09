@@ -39,6 +39,12 @@ class Declaration(DataOceanModel):
         _('NACP id of the declarant'),
         db_index=True
     )
+    submission_date = models.DateField(
+        _('submission date'),
+        null=True,
+        blank=True,
+        help_text=_('date of submission of the declaration')
+    )
     pep = models.ForeignKey(
         Pep,
         on_delete=models.PROTECT,
@@ -46,12 +52,13 @@ class Declaration(DataOceanModel):
         verbose_name=_('PEP who declares'),
         help_text=_('politically exposed person who declares')
     )
-    date_of_birth = models.DateField(
-        _('date of birth'),
-        null=True,
-        blank=True,
-        help_text=_('date of birth of the declarant')
-    )
+    # looks like this is secret info)
+    # date_of_birth = models.DateField(
+    #     _('date of birth'),
+    #     null=True,
+    #     blank=True,
+    #     help_text=_('date of birth of the declarant')
+    # )
     city_of_registration = models.ForeignKey(
         RatuCity,
         on_delete=models.PROTECT,
@@ -662,7 +669,7 @@ class LuxuryItem(DataOceanModel):
     )
     trademark = models.CharField(
         _('trademark'),
-        max_length=40,
+        max_length=100,
         blank=True,
         default='',
         help_text=_('trademark of the item')
@@ -752,8 +759,10 @@ class Property(DataOceanModel):
         verbose_name=_('address'),
         help_text=_('city where the property is located')
     )
-    valuation = models.PositiveIntegerField(
+    valuation = models.DecimalField(
         _('valuation'),
+        max_digits=12,
+        decimal_places=2,
         blank=True,
         null=True,
         help_text=_('valuation of the property')
