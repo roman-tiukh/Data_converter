@@ -15,6 +15,9 @@ from data_ocean.downloader import Downloader
 from data_ocean.utils import to_lower_string_if_exists
 from location_register.converter.address import AddressConverter
 from stats.tasks import endpoints_cache_warm_up
+from data_ocean.transliteration.utils import transliterate, translate_company_type_in_string,\
+    translate_country_in_string
+
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -579,7 +582,7 @@ class PepConverterFromDB(Converter):
                     company_update_fields.append('antac_id')
             if not company:
                 if company_name_en is None:
-                    company_name_en = company_name
+                    company_name_en = transliterate(company_name)
                 company = Company.objects.create(name=company_name, name_en=company_name_en, edrpou=edrpou,
                                                  country=country, code=company_name + edrpou, source=Company.ANTAC,
                                                  antac_id=company_antac_id, from_antac_only=True)
@@ -592,7 +595,7 @@ class PepConverterFromDB(Converter):
                     company.name_en = company_name_en
                     company_update_fields.append('name_en')
                 if company.name_en is None:
-                    company.name_en = company_name
+                    company.name_en = transliterate(company_name)
                     company_update_fields.append('name_en')
                 if company_update_fields:
                     company_update_fields.append('updated_at')
