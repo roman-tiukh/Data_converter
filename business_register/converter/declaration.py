@@ -562,7 +562,54 @@ class DeclarationConverter(BusinessConverter):
 
     # TODO: implement
     def save_luxury_right(self, luxury_item, acquisition_date, rights_data):
-        pass
+        TYPES = {
+            'Власність': PropertyRight.OWNERSHIP,
+            'Спільна власність': PropertyRight.JOINT_OWNERSHIP,
+            'Спільна сумісна власність': PropertyRight.COMMON_PROPERTY,
+            'Оренда': PropertyRight.RENT,
+            'Інше право користування': PropertyRight.OTHER_USAGE_RIGHT,
+            'Власником є третя особа': PropertyRight.OWNER_IS_ANOTHER_PERSON,
+            ('Право власності третьої особи, але наявні ознаки відповідно до частини 3 статті 46 '
+             'ЗУ «Про запобігання корупції»'): PropertyRight.BENEFICIAL_OWNERSHIP,
+            "[Член сім'ї не надав інформацію]": PropertyRight.NO_INFO_FROM_FAMILY_MEMBER,
+        }
+        for data in rights_data:
+            type = TYPES.get(data.get('ownershipType'))
+            share = data.get('percent-ownership')
+            if share not in self.NO_DATA:
+                share = float(share.replace(',', '.'))
+            else:
+                share = None
+            owner_info = data.get('rightBelongs')
+            pep = None
+            # TODO: store value from ENIGMA
+            if owner_info not in self.NO_DATA and owner_info not in self.ENIGMA:
+                pep = Pep.objects.filter(nacp_id=int(owner_info)).first()
+            other_owner_info = data.get('rights_id')
+            # Store value 'Інша особа (фізична або юридична)'
+            if not pep and other_owner_info and other_owner_info not in self.ENIGMA:
+                pep = Pep.objects.filter(nacp_id=int(other_owner_info)).first()
+
+            last_name = data.get('ua_lastname')
+            first_name = data.get('ua_firstname')
+            middle_name = data.get('ua_middlename')
+            if (
+                    last_name not in self.NO_DATA
+                    or first_name not in self.NO_DATA
+                    or middle_name not in self.NO_DATA
+            ):
+                full_name = f'{last_name} {first_name} {middle_name}'
+            else:
+                full_name = ''
+
+            LuxuryItemRight.objects.create(
+                luxury_item=luxury_item,
+                type=type,
+                acquisition_date=acquisition_date,
+                share=share,
+                pep=pep,
+                full_name=full_name,
+            )
 
     # possible_keys = {
     #     'otherObjectType', 'costDateUse_extendedstatus', 'dateUse', 'manufacturerName',
