@@ -507,7 +507,80 @@ class DeclarationConverter(BusinessConverter):
 
     # TODO: implement
     def save_vehicle_right(self, vehicle, acquisition_date, rights_data):
-        pass
+        TYPES = {
+            'Власність': PropertyRight.OWNERSHIP,
+            'Спільна власність': PropertyRight.JOINT_OWNERSHIP,
+            'Спільна сумісна власність': PropertyRight.COMMON_PROPERTY,
+            'Оренда': PropertyRight.RENT,
+            'Інше право користування': PropertyRight.OTHER_USAGE_RIGHT,
+            'Власником є третя особа': PropertyRight.OWNER_IS_ANOTHER_PERSON,
+            ('Право власності третьої особи, але наявні ознаки відповідно до частини 3 статті 46 '
+             'ЗУ «Про запобігання корупції»'): PropertyRight.BENEFICIAL_OWNERSHIP,
+            "[Член сім'ї не надав інформацію]": PropertyRight.NO_INFO_FROM_FAMILY_MEMBER,
+        }
+        for data in rights_data:
+            type = TYPES.get(data.get('ownershipType'))
+            share = data.get('percent-ownership')
+            if share not in self.NO_DATA:
+                share = float(share.replace(',', '.'))
+            else:
+                share = None
+            owner_info = data.get('rightBelongs')
+            pep = None
+            # TODO: store value from ENIGMA
+            if owner_info not in self.NO_DATA and owner_info not in self.ENIGMA:
+                pep = Pep.objects.filter(nacp_id=int(owner_info)).first()
+            other_owner_info = data.get('rights_id')
+            # Store value 'Інша особа (фізична або юридична)'
+            if not pep and other_owner_info and other_owner_info not in self.ENIGMA:
+                pep = Pep.objects.filter(nacp_id=int(other_owner_info)).first()
+            additional_info = data.get('otherOwnership', '')
+            country_of_citizenship_info = data.get('citizen')
+            # TODO: return country
+            if country_of_citizenship_info:
+                country_of_citizenship = self.find_country(country_of_citizenship_info)
+            else:
+                country_of_citizenship = None
+            last_name = data.get('ua_lastname')
+            first_name = data.get('ua_firstname')
+            middle_name = data.get('ua_middlename')
+            if (
+                    last_name not in self.NO_DATA
+                    or first_name not in self.NO_DATA
+                    or middle_name not in self.NO_DATA
+            ):
+                full_name = f'{last_name} {first_name} {middle_name}'
+            else:
+                full_name = ''
+            # TODO: check if taxpayer_number can have a value
+            taxpayer_number = data.get('ua_taxNumber')
+            if taxpayer_number and taxpayer_number != '[Конфіденційна інформація]':
+                print(taxpayer_number)
+            company = None
+            company_code = data.get('ua_company_code')
+            if company_code not in self.ENIGMA:
+                company = Company.objects.filter(
+                    edrpou=company_code,
+                    source=Company.UKRAINE_REGISTER
+                ).first()
+                if not company:
+                    self.log_error(
+                        f'Cannot identify ukrainian company with edrpou {company_code}.'
+                        f'Check right data ({data}) to {vehicle.type}'
+                    )
+            VehicleRight.objects.create(
+                car=vehicle,
+                type=type,
+                additional_info=additional_info,
+                acquisition_date=acquisition_date,
+                share=share,
+                pep=pep,
+                company=company,
+                # TODO: decide should we use lower() for storing names
+                full_name=full_name,
+                country_of_citizenship=country_of_citizenship
+            )
+
 
     # TODO: implement
     def is_vehicle_luxury(self, brand, model, year):
