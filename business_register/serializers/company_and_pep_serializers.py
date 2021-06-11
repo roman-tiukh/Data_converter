@@ -111,6 +111,12 @@ class CompanyShortSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'edrpou',)
 
 
+class CompanyToKvedSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CompanyToKved
+        fields = ('code', 'name', 'group', 'division', 'section', 'section_en', 'primary_kved')
+
+
 class CompanyListSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     country = serializers.StringRelatedField(
         help_text=Company._meta.get_field('country').help_text
@@ -127,7 +133,7 @@ class CompanyListSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     authority = serializers.StringRelatedField(help_text=Company._meta.get_field('authority').help_text)
     assignees = serializers.StringRelatedField(many=True, help_text=Assignee._meta.get_field('company').help_text)
     signers = serializers.StringRelatedField(many=True, help_text=Signer._meta.get_field('company').help_text)
-    kveds = serializers.StringRelatedField(many=True, help_text=CompanyToKved._meta.get_field('company').help_text)
+    kveds = CompanyToKvedSerializer(many=True, help_text=CompanyToKved._meta.get_field('company').help_text)
     bylaw = serializers.StringRelatedField(help_text=Company._meta.get_field('bylaw').help_text)
     bancruptcy_readjustment = BancruptcyReadjustmentSerializer(
         many=True, help_text=BancruptcyReadjustment._meta.get_field('company').help_text)

@@ -194,6 +194,48 @@ class CompanyToKved(DataOceanModel):  # constraint for only only one truth in pr
     def __str__(self):
         return f"{self.kved} (declared as primary)" if self.primary_kved else str(self.kved)
 
+    @property
+    def code(self):
+        if self.kved:
+            return self.kved.code
+        else:
+            return None
+
+    @property
+    def name(self):
+        if self.kved:
+            return self.kved.name
+        else:
+            return None
+
+    @property
+    def group(self):
+        if self.kved:
+            return self.kved.group.name
+        else:
+            return None
+
+    @property
+    def division(self):
+        if self.kved:
+            return self.kved.division.name
+        else:
+            return None
+
+    @property
+    def section(self):
+        if self.kved:
+            return self.kved.section.name
+        else:
+            return None
+
+    @property
+    def section_en(self):
+        if self.kved:
+            return self.kved.section.name_en
+        else:
+            return None
+
 
 class ExchangeDataCompany(DataOceanModel):
     company = company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='exchange_data',
