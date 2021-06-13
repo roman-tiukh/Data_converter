@@ -859,7 +859,7 @@ class DeclarationConverter(BusinessConverter):
             # TODO: store 'seller', check if this field is only for changes
             # Possible values = ['Продавець']
             seller = data.get('seller')
-            if seller:
+            if seller not in self.NO_DATA:
                 print(seller)
             PropertyRight.objects.create(
                 property=property,
@@ -948,12 +948,14 @@ class DeclarationConverter(BusinessConverter):
                 city=city,
                 valuation=valuation,
             )
-            # TODO: store 'sources', 'person'
+            # TODO: investigate 'sources'
             sources = data.get('sources')
-            person = data.get('person')
             rights_data = data.get('rights')
             if rights_data:
                 self.save_property_right(property, acquisition_date, rights_data)
+            else:
+                # TODO: decide how to store property right when there is no 'rights' field - only 'person'
+                person = data.get('person')
 
     # TODO: retrieve country from Country DB
     def find_country(self, property_country_data):
