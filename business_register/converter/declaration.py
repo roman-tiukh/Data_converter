@@ -860,7 +860,7 @@ class DeclarationConverter(BusinessConverter):
             # Possible values = ['Продавець']
             seller = data.get('seller')
             if seller not in self.NO_DATA:
-                print(seller)
+                pass
             PropertyRight.objects.create(
                 property=property,
                 type=type,
