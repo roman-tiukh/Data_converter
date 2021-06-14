@@ -170,7 +170,7 @@ class CompanyDetail(DataOceanModel):
                                                 help_text='Founding document number as string')
     executive_power = models.CharField(max_length=390, null=True, help_text='Executive power of the company')
     superior_management = models.CharField(max_length=620, null=True, help_text='Superior management of the company')
-    managing_paper = models.CharField(max_length=360, null=True, help_text='Managing paper of the company')
+    managing_paper = models.CharField(max_length=700, null=True, help_text='Managing paper of the company')
     terminated_info = models.CharField(max_length=600, null=True, help_text='Info about termination')
     termination_cancel_info = models.CharField(max_length=570, null=True,
                                                help_text='Info about termination cancellation')
