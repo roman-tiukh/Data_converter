@@ -70,8 +70,8 @@ SchemaView = get_schema_view(
         title="DataOcean",
         default_version='v1',
         description=(
-            f'<div><a href=\'{settings.FRONTEND_SITE_URL}/docs/TermsAndConditionsEn.html\' target= \'_blank\'>Terms and '
-            f'conditions |</a><a href=\'{settings.FRONTEND_SITE_URL}/docs/TermsAndConditionsUk.html\' target= \'_blank\'>'
+            f'<div><a href=\'{settings.FRONTEND_SITE_URL}/docs/en/TermsAndConditions.html\' target= \'_blank\'>Terms and '
+            f'conditions |</a><a href=\'{settings.FRONTEND_SITE_URL}/docs/uk/TermsAndConditions.html\' target= \'_blank\'>'
             ' Правила та умови</a><div/><p style="font-style: normal; cursor: default; color: #000000">An easy access '
             'to the data, using the Rest API for software developers.<br>Зручний доступ до даних за допомогою Rest API '
             'для розробників програмного забезпечення.<p/><p style="font-style: normal; cursor: default; color: #000000">'

@@ -159,6 +159,8 @@ class Command(BaseCommand):
                                     relative_data,
                                     related_person
                                 ):
+                                    # FIXME: One person may have different id in different declarations of one
+                                    #  declarant. For example: nacp_declarant_id = 77934 or 38468
                                     related_person_nacp_id = relative_data.get('id')
                                     if not isinstance(related_person_nacp_id, int) or related_person_nacp_id == 0:
                                         self.stdout.write(
