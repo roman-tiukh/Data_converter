@@ -593,7 +593,7 @@ class PepConverterFromDB(Converter):
                 if company.name_en != company_name_en:
                     company.name_en = company_name_en
                     company_update_fields.append('name_en')
-                if not company.name_en and company_name:
+                if company.name_en is None and company_name:
                     company.name_en = transliterate(translate_company_type_in_string(company_name))
                     company_update_fields.append('name_en')
                 if company_update_fields:
