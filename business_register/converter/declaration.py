@@ -1031,8 +1031,8 @@ class DeclarationConverter(BusinessConverter):
     # ]
     # TODO: maybe we should simplify spouse to CharField with full name
     def save_related_person(self, relatives_data, pep, declaration):
+        SPOUSE_TYPES = ['дружина', 'чоловік']
         for relative_data in relatives_data:
-            SPOUSE_TYPES = ['дружина', 'чоловік']
             to_person_relationship_type = relative_data.get('subjectRelation')
             related_person_links = RelatedPersonsLink.objects.filter(
                 from_person=pep,
