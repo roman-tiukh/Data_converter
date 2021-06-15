@@ -7,6 +7,7 @@ from django.conf import settings
 from django.utils import timezone
 
 from business_register.models.kved_models import KvedSection, KvedDivision, KvedGroup, Kved
+from business_register.constants import KVED_SECTIONS
 from data_ocean.converter import Converter
 from data_ocean.downloader import Downloader
 from data_ocean.models import Register
@@ -32,7 +33,7 @@ class KvedConverter(Converter):
     # Storing default kved (there is also such migration)
     def save_default_kved(self):
         not_valid = "not_valid"
-        section = KvedSection.objects.create(code=not_valid, name=not_valid)
+        section = KvedSection.objects.create(code=not_valid, name=not_valid, name_en=not_valid)
         division = KvedDivision.objects.create(section=section, code=not_valid, name=not_valid)
         group = KvedGroup.objects.create(section=section, division=division, code=not_valid,
                                          name=not_valid)
@@ -41,7 +42,9 @@ class KvedConverter(Converter):
     def save_to_section_table(self, sections):
         for section_data in sections:
             section = KvedSection.objects.create(code=section_data['sectionCode'],
-                                                 name=section_data['sectionName'].lower())
+                                                 name=section_data['sectionName'].lower(),
+                                                 name_en=KVED_SECTIONS.get(section_data['sectionName'].lower(), '')
+                                                 )
             divisions = section_data['divisions']
             self.save_to_division_table(divisions, section)
 
@@ -104,6 +107,12 @@ class KvedConverter(Converter):
                     self.create_kved(section, division, group, row['KV_PKLAS'], row['KV_NU'],
                                      is_valid=False)
             print('All kveds 2005 were saved')
+
+    @staticmethod
+    def fill_name_en_sections():
+        for section in KvedSection.objects.all():
+            section.name_en = KVED_SECTIONS.get(section.name, '')
+            section.save(update_fields=['name_en'])
 
 
 class KvedDownloader(Downloader):
