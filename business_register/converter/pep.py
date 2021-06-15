@@ -663,10 +663,10 @@ class PepConverterFromDB(Converter):
             first_name = pep_data[2].lower()
             middle_name = pep_data[3].lower()
             fullname = f'{last_name} {first_name} {middle_name}'
-            last_name = pep_data[4].lower()
-            first_name = pep_data[5].lower()
-            middle_name = pep_data[6].lower()
-            fullname_en = f'{last_name} {first_name} {middle_name}'
+            last_name_en = pep_data[4].lower()
+            first_name_en = pep_data[5].lower()
+            middle_name_en = pep_data[6].lower()
+            fullname_en = f'{last_name_en} {first_name_en} {middle_name_en}'
             fullname_transcriptions_eng = pep_data[7].lower()
             is_pep = pep_data[8]
             date_of_birth = self.parse_date_of_birth(pep_data[9])
