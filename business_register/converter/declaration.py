@@ -805,15 +805,26 @@ class DeclarationConverter(BusinessConverter):
                 share = float(share.replace(',', '.'))
             else:
                 share = None
-            owner_info = data.get('rightBelongs')
+            owner_id = data.get('rightBelongs')
             pep = None
             # TODO: store value from ENIGMA
-            if owner_info not in self.NO_DATA and owner_info not in self.ENIGMA:
-                pep = Pep.objects.filter(nacp_id=int(owner_info)).first()
+            if owner_id not in self.NO_DATA:
+                if owner_id == '1':
+                    pep = property.declaration.pep
+                elif owner_id == 'j':
+                    # TODO: decide should we store PEP 'Власником є третя особа' and use it in such case
+                    pass
+                else:
+                    pep = Pep.objects.filter(nacp_id=int(owner_id)).first()
             other_owner_info = data.get('rights_id')
-            # Store value 'Інша особа (фізична або юридична)'
-            if not pep and other_owner_info and other_owner_info not in self.ENIGMA:
+            if not pep and other_owner_info:
+                if other_owner_info == '1':
+                    pep = property.declaration.pep
+                elif other_owner_info == 'j':
+                    # TODO: decide should we store PEP 'Власником є третя особа' and use it in such case
+                    pass
                 pep = Pep.objects.filter(nacp_id=int(other_owner_info)).first()
+
             additional_info = data.get('otherOwnership', '')
             country_of_citizenship_info = data.get('citizen')
             # TODO: return country
@@ -832,10 +843,7 @@ class DeclarationConverter(BusinessConverter):
                 full_name = f'{last_name} {first_name} {middle_name}'
             else:
                 full_name = ''
-            # TODO: check if taxpayer_number can have a value
-            taxpayer_number = data.get('ua_taxNumber')
-            if taxpayer_number and taxpayer_number != '[Конфіденційна інформація]':
-                print(taxpayer_number)
+
             company = None
             company_code = data.get('ua_company_code')
             if company_code not in self.ENIGMA:
@@ -851,8 +859,8 @@ class DeclarationConverter(BusinessConverter):
             # TODO: store 'seller', check if this field is only for changes
             # Possible values = ['Продавець']
             seller = data.get('seller')
-            if seller:
-                print(seller)
+            if seller not in self.NO_DATA:
+                pass
             PropertyRight.objects.create(
                 property=property,
                 type=type,
@@ -940,12 +948,14 @@ class DeclarationConverter(BusinessConverter):
                 city=city,
                 valuation=valuation,
             )
-            # TODO: store 'sources', 'person'
+            # TODO: investigate 'sources'
             sources = data.get('sources')
-            person = data.get('person')
             rights_data = data.get('rights')
             if rights_data:
                 self.save_property_right(property, acquisition_date, rights_data)
+            else:
+                # TODO: decide how to store property right when there is no 'rights' field - only 'person'
+                person = data.get('person')
 
     # TODO: retrieve country from Country DB
     def find_country(self, property_country_data):
@@ -1153,9 +1163,9 @@ class DeclarationConverter(BusinessConverter):
                 #     self.save_spouse(detailed_declaration_data['step_2']['data'], pep, declaration)
 
                 # 'Step_3' - declarant`s family`s properties
-                # if (detailed_declaration_data['step_3']
-                #         and not detailed_declaration_data['step_3'].get('isNotApplicable')):
-                #     self.save_property(detailed_declaration_data['step_3']['data'], declaration)
+                if (detailed_declaration_data['step_3']
+                        and not detailed_declaration_data['step_3'].get('isNotApplicable')):
+                    self.save_property(detailed_declaration_data['step_3']['data'], declaration)
 
                 # 'Step_4' - declarant`s family`s unfinished construction
                 # if (detailed_declaration_data['step_4']
