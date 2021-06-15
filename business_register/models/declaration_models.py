@@ -39,6 +39,12 @@ class Declaration(DataOceanModel):
         _('NACP id of the declarant'),
         db_index=True
     )
+    submission_date = models.DateField(
+        _('submission date'),
+        null=True,
+        blank=True,
+        help_text=_('date of submission of the declaration')
+    )
     pep = models.ForeignKey(
         Pep,
         on_delete=models.PROTECT,
@@ -46,12 +52,13 @@ class Declaration(DataOceanModel):
         verbose_name=_('PEP who declares'),
         help_text=_('politically exposed person who declares')
     )
-    date_of_birth = models.DateField(
-        _('date of birth'),
-        null=True,
-        blank=True,
-        help_text=_('date of birth of the declarant')
-    )
+    # looks like this is secret info)
+    # date_of_birth = models.DateField(
+    #     _('date of birth'),
+    #     null=True,
+    #     blank=True,
+    #     help_text=_('date of birth of the declarant')
+    # )
     city_of_registration = models.ForeignKey(
         RatuCity,
         on_delete=models.PROTECT,
@@ -328,6 +335,7 @@ class Income(DataOceanModel):
     PART_TIME_SALARY = 19
     SALE_OF_LUXURIES = 20
     SELF_EMPLOYMENT = 21
+    ROYALTY = 22
 
     INCOME_TYPES = (
         (SALARY, _('Salary')),
@@ -351,7 +359,7 @@ class Income(DataOceanModel):
         (PART_TIME_SALARY, _('Salary from part-time job')),
         (SALE_OF_LUXURIES, _('Sale of luxuries')),
         (SELF_EMPLOYMENT, _('Self-employment')),
-
+        (ROYALTY, _('Royalty')),
     )
     declaration = models.ForeignKey(
         Declaration,
@@ -373,6 +381,8 @@ class Income(DataOceanModel):
     )
     amount = models.PositiveIntegerField(
         _('amount'),
+        null=True,
+        blank=True,
         help_text=_('amount of income')
     )
     paid_by_company = models.ForeignKey(
@@ -387,7 +397,7 @@ class Income(DataOceanModel):
     )
     paid_by_person = models.CharField(
         _('paid by person'),
-        max_length=75,
+        max_length=100,
         blank=True,
         default='',
         help_text=_('full name of the person that paid')
@@ -478,7 +488,7 @@ class Securities(DataOceanModel):
     )
     issuer_registration_number = models.CharField(
         _('registration number of the issuer'),
-        max_length=15,
+        max_length=20,
         blank=True,
         default='',
         help_text=_('number of registration of the issuer of securities')
@@ -522,7 +532,7 @@ class Securities(DataOceanModel):
     )
     trustee_registration_number = models.CharField(
         _('registration number of the trustee'),
-        max_length=15,
+        max_length=20,
         blank=True,
         default='',
         help_text=_('number of registration of the trustee of securities')
@@ -662,7 +672,7 @@ class LuxuryItem(DataOceanModel):
     )
     trademark = models.CharField(
         _('trademark'),
-        max_length=40,
+        max_length=100,
         blank=True,
         default='',
         help_text=_('trademark of the item')
@@ -752,8 +762,10 @@ class Property(DataOceanModel):
         verbose_name=_('address'),
         help_text=_('city where the property is located')
     )
-    valuation = models.PositiveIntegerField(
+    valuation = models.DecimalField(
         _('valuation'),
+        max_digits=12,
+        decimal_places=2,
         blank=True,
         null=True,
         help_text=_('valuation of the property')

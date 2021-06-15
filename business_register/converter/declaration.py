@@ -1,5 +1,6 @@
 import logging
 
+from dateutil.parser import isoparse
 import requests
 from django.conf import settings
 
@@ -22,7 +23,7 @@ from business_register.models.company_models import Company
 from data_ocean.utils import simple_format_date_to_yymmdd
 from location_register.models.ratu_models import RatuRegion, RatuDistrict, RatuCity
 
-from business_register.management.commands.fetch_peps_nacp_id import is_same_full_name
+from business_register.management.commands.fetch_peps_nacp_id import is_same_full_name, InvalidRelativeData
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -46,7 +47,8 @@ class DeclarationConverter(BusinessConverter):
             '[Не застосовується]',
             '[Не відомо]',
             "[Член сім'ї не надав інформацію]",
-            '[Конфіденційна інформація]'
+            '[Конфіденційна інформація]',
+            'Не визначено'
         }
         self.BOOLEAN_VALUES = {
             '1': True,
@@ -234,9 +236,16 @@ class DeclarationConverter(BusinessConverter):
             'Дохід від зайняття незалежною професійною діяльністю': Income.SELF_EMPLOYMENT,
             'Дивіденди': Income.DIVIDENDS,
             'Інше': Income.OTHER,
+            'Роялті': Income.ROYALTY
         }
         for data in incomes_data:
-            income_type = types.get(data.get('objectType'))
+            income_type = data.get('objectType')
+            # TODO: decide what to do when value income_type == '[Член сім\'ї не надав інформацію]'
+            if income_type and income_type in self.NO_DATA:
+                self.log_error(f'Wrong value for type of income: income_type = {income_type}.Check income data({data})')
+                continue
+            else:
+                income_type = types.get(data.get('objectType'))
             additional_info = data.get('otherObjectType', '')
             amount = data.get('sizeIncome')
             if amount not in self.NO_DATA:
@@ -253,6 +262,8 @@ class DeclarationConverter(BusinessConverter):
             company = None
             company_code = data.get('source_ua_company_code')
             if company_code not in self.NO_DATA and company_code not in self.ENIGMA:
+                company_code = company_code.zfill(8)
+                # FIXME: If the Ukrainian company has source = antac ?
                 company = Company.objects.filter(
                     edrpou=company_code,
                     source=Company.UKRAINE_REGISTER
@@ -265,6 +276,7 @@ class DeclarationConverter(BusinessConverter):
             foreign_company_code = data.get('source_eng_company_code')
             if company_code not in self.NO_DATA and foreign_company_code not in self.ENIGMA:
                 if not company:
+                    # FIXME: If the same company is in a different declaration, will there be two identical companies?
                     Company.objects.create(
                         name=data.get('source_eng_company_name'),
                         edrpou=foreign_company_code,
@@ -309,6 +321,11 @@ class DeclarationConverter(BusinessConverter):
                 recipient_code = recipient_data[0].get('person')
             if recipient_code in self.ENIGMA:
                 recipient = declaration.pep
+            elif recipient_code in self.NO_DATA:
+                recipient_code = ''
+            elif recipient_code.isalpha():
+                self.log_error(f'Wrong value for recipient_code in income: recipient_code = {recipient_code}.'
+                               f'Check income data({data})')
             else:
                 recipient = Pep.objects.filter(nacp_id=int(recipient_code)).first()
             if not recipient:
@@ -400,6 +417,8 @@ class DeclarationConverter(BusinessConverter):
             issuer = None
             issuer_registration_number = data.get('emitent_ua_company_code')
             if issuer_registration_number not in self.NO_DATA:
+                issuer_registration_number = issuer_registration_number.zfill(8)
+                # FIXME: If the Ukrainian company has source = 'antac' ?
                 issuer = Company.objects.filter(
                     edrpou=issuer_registration_number,
                     source=Company.UKRAINE_REGISTER
@@ -413,6 +432,7 @@ class DeclarationConverter(BusinessConverter):
                 issuer_registration_number = ''
             issuer_foreign_registration_number = data.get('emitent_eng_company_code')
             if issuer_foreign_registration_number not in self.NO_DATA:
+                # FIXME: If the same company is in a different declaration, will there be two identical companies?
                 issuer = Company.objects.create(
                     name=issuer_name_eng,
                     edrpou=issuer_foreign_registration_number,
@@ -446,6 +466,8 @@ class DeclarationConverter(BusinessConverter):
             trustee_registration_number = data.get('persons_ua_company_code')
             trustee = None
             if trustee_registration_number not in self.NO_DATA:
+                trustee_registration_number = trustee_registration_number.zfill(8)
+                # FIXME: If the Ukrainian company has source = 'antac' ?
                 trustee = Company.objects.filter(
                     edrpou=trustee_registration_number,
                     source=Company.UKRAINE_REGISTER
@@ -460,6 +482,7 @@ class DeclarationConverter(BusinessConverter):
 
             trustee_foreign_registration_number = data.get('persons_eng_company_code')
             if trustee_foreign_registration_number not in self.NO_DATA:
+                # FIXME: If the same company is in a different declaration, will there be two identical companies?
                 trustee = Company.objects.create(
                     name=trustee_name_eng,
                     edrpou=trustee_foreign_registration_number,
@@ -505,7 +528,80 @@ class DeclarationConverter(BusinessConverter):
 
     # TODO: implement
     def save_vehicle_right(self, vehicle, acquisition_date, rights_data):
-        pass
+        TYPES = {
+            'Власність': PropertyRight.OWNERSHIP,
+            'Спільна власність': PropertyRight.JOINT_OWNERSHIP,
+            'Спільна сумісна власність': PropertyRight.COMMON_PROPERTY,
+            'Оренда': PropertyRight.RENT,
+            'Інше право користування': PropertyRight.OTHER_USAGE_RIGHT,
+            'Власником є третя особа': PropertyRight.OWNER_IS_ANOTHER_PERSON,
+            ('Право власності третьої особи, але наявні ознаки відповідно до частини 3 статті 46 '
+             'ЗУ «Про запобігання корупції»'): PropertyRight.BENEFICIAL_OWNERSHIP,
+            "[Член сім'ї не надав інформацію]": PropertyRight.NO_INFO_FROM_FAMILY_MEMBER,
+        }
+        for data in rights_data:
+            type = TYPES.get(data.get('ownershipType'))
+            share = data.get('percent-ownership')
+            if share not in self.NO_DATA:
+                share = float(share.replace(',', '.'))
+            else:
+                share = None
+            owner_info = data.get('rightBelongs')
+            pep = None
+            # TODO: store value from ENIGMA
+            if owner_info not in self.NO_DATA and owner_info not in self.ENIGMA:
+                pep = Pep.objects.filter(nacp_id=int(owner_info)).first()
+            other_owner_info = data.get('rights_id')
+            # Store value 'Інша особа (фізична або юридична)'
+            if not pep and other_owner_info and other_owner_info not in self.ENIGMA:
+                pep = Pep.objects.filter(nacp_id=int(other_owner_info)).first()
+            additional_info = data.get('otherOwnership', '')
+            country_of_citizenship_info = data.get('citizen')
+            # TODO: return country
+            if country_of_citizenship_info:
+                country_of_citizenship = self.find_country(country_of_citizenship_info)
+            else:
+                country_of_citizenship = None
+            last_name = data.get('ua_lastname')
+            first_name = data.get('ua_firstname')
+            middle_name = data.get('ua_middlename')
+            if (
+                    last_name not in self.NO_DATA
+                    or first_name not in self.NO_DATA
+                    or middle_name not in self.NO_DATA
+            ):
+                full_name = f'{last_name} {first_name} {middle_name}'
+            else:
+                full_name = ''
+            # TODO: check if taxpayer_number can have a value
+            taxpayer_number = data.get('ua_taxNumber')
+            if taxpayer_number and taxpayer_number != '[Конфіденційна інформація]':
+                print(taxpayer_number)
+            company = None
+            company_code = data.get('ua_company_code')
+            if company_code not in self.ENIGMA:
+                company = Company.objects.filter(
+                    edrpou=company_code,
+                    source=Company.UKRAINE_REGISTER
+                ).first()
+                if not company:
+                    self.log_error(
+                        f'Cannot identify ukrainian company with edrpou {company_code}.'
+                        f'Check right data ({data}) to {vehicle.type}'
+                    )
+            VehicleRight.objects.create(
+                car=vehicle,
+                type=type,
+                additional_info=additional_info,
+                acquisition_date=acquisition_date,
+                share=share,
+                pep=pep,
+                company=company,
+                # TODO: decide should we use lower() for storing names
+                full_name=full_name,
+                country_of_citizenship=country_of_citizenship
+            )
+
 
     # TODO: implement
     def is_vehicle_luxury(self, brand, model, year):
@@ -560,68 +656,6 @@ class DeclarationConverter(BusinessConverter):
 
     # TODO: implement
     def save_luxury_right(self, luxury_item, acquisition_date, rights_data):
-        pass
-
-    # possible_keys = {
-    #     'otherObjectType', 'costDateUse_extendedstatus', 'dateUse', 'manufacturerName',
-    #     'manufacturerName_extendedstatus', 'dateUse_extendedstatus', 'propertyDescr_extendedstatus',
-    #     'acqPeriod', 'objectType', 'rights', 'trademark_extendedstatus', 'trademark', 'costDateUse',
-    #     'acqBeforeFD', 'person', 'iteration', 'propertyDescr', 'otherObjectType_extendedstatus'
-    # }
-    def save_luxury_item(self, luxuries_data, declaration):
-        types = {
-            'Твір мистецтва (картина тощо)': LuxuryItem.ART,
-            'Персональні або домашні електронні пристрої': LuxuryItem.ELECTRONIC_DEVICES,
-            'Антикварний виріб': LuxuryItem.ANTIQUES,
-            'Одяг': LuxuryItem.CLOTHES,
-            'Ювелірні вироби': LuxuryItem.JEWELRY,
-            'Інше': LuxuryItem.OTHER
-        }
-        for data in luxuries_data:
-            luxury_type = types.get(data.get('objectType'))
-            additional_info = data.get('otherObjectType', '')
-            acquired_before_first_declaration = self.BOOLEAN_VALUES.get(data.get('acqBeforeFD'))
-            acquisition_period = data.get('acqPeriod')
-            if acquired_before_first_declaration is None and acquisition_period:
-                acquired_before_first_declaration = self.BOOLEAN_VALUES.get(acquisition_period)
-            trademark = data.get('trademark', '')
-            producer = data.get('manufacturerName', '')
-            description = data.get('propertyDescr', '')
-            valuation = data.get('costDateUse')
-            if valuation not in self.NO_DATA:
-                valuation = int(valuation)
-            else:
-                valuation = None
-            luxury_item = LuxuryItem.objects.create(
-                declaration=declaration,
-                type=luxury_type,
-                additional_info=additional_info,
-                acquired_before_first_declaration=acquired_before_first_declaration,
-                trademark=trademark,
-                producer=producer,
-                description=description,
-                valuation=valuation
-            )
-
-            acquisition_date = simple_format_date_to_yymmdd(data.get('dateUse'))
-            # TODO: store  'person'
-            person = data.get('person')
-            rights_data = data.get('rights')
-            if rights_data:
-                self.save_luxury_right(luxury_item, acquisition_date, rights_data)
-
-    # TODO: implement as save_property()
-    def save_unfinished_construction(self, unfinished_construction_data, declaration):
-        pass
-
-    # possible_keys = [
-    #     {'ua_sameRegLivingAddress', 'percent-ownership', 'ua_regAddressFull', 'otherOwnership', 'citizen',
-    #      'ua_birthday_extendedstatus', 'ua_lastname', 'ua_taxNumber_extendedstatus', 'ua_livingAddressFull',
-    #      'ua_birthday', 'ownershipType', 'ua_taxNumber', 'ua_regAddressFull_extendedstatus',
-    #      'percent-ownership_extendedstatus', 'seller', 'ua_middlename', 'rightBelongs', 'ua_company_code',
-    #      'ua_company_name', 'ua_firstname', 'ua_livingAddressFull_extendedstatus', 'rights_id'}
-    # ]
-    def save_property_right(self, property, acquisition_date, rights_data):
         TYPES = {
             'Власність': PropertyRight.OWNERSHIP,
             'Спільна власність': PropertyRight.JOINT_OWNERSHIP,
@@ -649,10 +683,7 @@ class DeclarationConverter(BusinessConverter):
             # Store value 'Інша особа (фізична або юридична)'
             if not pep and other_owner_info and other_owner_info not in self.ENIGMA:
                 pep = Pep.objects.filter(nacp_id=int(other_owner_info)).first()
-            additional_info = data.get('otherOwnership', '')
-            country_of_citizenship_info = data.get('citizen')
-            # TODO: return country
-            country_of_citizenship = self.find_country(country_of_citizenship_info)
+
             last_name = data.get('ua_lastname')
             first_name = data.get('ua_firstname')
             middle_name = data.get('ua_middlename')
@@ -664,10 +695,155 @@ class DeclarationConverter(BusinessConverter):
                 full_name = f'{last_name} {first_name} {middle_name}'
             else:
                 full_name = ''
-            # TODO: check if taxpayer_number can have a value
-            taxpayer_number = data.get('ua_taxNumber')
-            if taxpayer_number and taxpayer_number != '[Конфіденційна інформація]':
-                print(taxpayer_number)
+
+            LuxuryItemRight.objects.create(
+                luxury_item=luxury_item,
+                type=type,
+                acquisition_date=acquisition_date,
+                share=share,
+                pep=pep,
+                full_name=full_name,
+            )
+
+    # possible_keys = {
+    #     'otherObjectType', 'costDateUse_extendedstatus', 'dateUse', 'manufacturerName',
+    #     'manufacturerName_extendedstatus', 'dateUse_extendedstatus', 'propertyDescr_extendedstatus',
+    #     'acqPeriod', 'objectType', 'rights', 'trademark_extendedstatus', 'trademark', 'costDateUse',
+    #     'acqBeforeFD', 'person', 'iteration', 'propertyDescr', 'otherObjectType_extendedstatus'
+    # }
+    def save_luxury_item(self, luxuries_data, declaration):
+        types = {
+            'Твір мистецтва (картина тощо)': LuxuryItem.ART,
+            'Персональні або домашні електронні пристрої': LuxuryItem.ELECTRONIC_DEVICES,
+            'Антикварний виріб': LuxuryItem.ANTIQUES,
+            'Одяг': LuxuryItem.CLOTHES,
+            'Ювелірні вироби': LuxuryItem.JEWELRY,
+            'Інше': LuxuryItem.OTHER
+        }
+        for data in luxuries_data:
+            luxury_type = types.get(data.get('objectType'))
+            additional_info = data.get('otherObjectType', '')
+            acquired_before_first_declaration = self.BOOLEAN_VALUES.get(data.get('acqBeforeFD'))
+            acquisition_period = data.get('acqPeriod')
+            if acquired_before_first_declaration is None and acquisition_period:
+                acquired_before_first_declaration = self.BOOLEAN_VALUES.get(acquisition_period)
+            trademark = data.get('trademark') if data.get('trademark') not in self.NO_DATA else ''
+            producer = data.get('manufacturerName') if data.get('manufacturerName') not in self.NO_DATA else ''
+            description = data.get('propertyDescr', '')
+            valuation = data.get('costDateUse')
+            if valuation not in self.NO_DATA:
+                valuation = int(valuation)
+            else:
+                valuation = None
+            luxury_item = LuxuryItem.objects.create(
+                declaration=declaration,
+                type=luxury_type,
+                additional_info=additional_info,
+                acquired_before_first_declaration=acquired_before_first_declaration,
+                trademark=trademark,
+                producer=producer,
+                description=description,
+                valuation=valuation
+            )
+            acquisition_date = data.get('dateUse')
+            if acquisition_date:
+                acquisition_date = simple_format_date_to_yymmdd(acquisition_date)
+            # TODO: store  'person'
+            person = data.get('person')
+            rights_data = data.get('rights')
+            if rights_data:
+                self.save_luxury_right(luxury_item, acquisition_date, rights_data)
+
+    # TODO: implement as save_property()
+    def save_unfinished_construction(self, unfinished_construction_data, declaration):
+        for data in unfinished_construction_data:
+            additional_info = data.get('objectType')
+            # TODO: add country
+            country = self.find_country(data['country'])
+            city = None
+            property_location = data.get('ua_cityType')
+            # TODO: add unfinished_construction_city
+            if property_location:
+                city = self.find_city(property_location)
+            area = data.get('totalArea')
+            if area not in self.NO_DATA:
+                area = float(area.replace(',', '.'))
+            else:
+                area = None
+            unfinished_construction_property = Property.objects.create(
+                declaration=declaration,
+                type=Property.UNFINISHED_CONSTRUCTION,
+                additional_info=additional_info,
+                area=area,
+                country=country,
+                city=city,
+            )
+
+    # possible_keys = [
+    #     {'ua_sameRegLivingAddress', 'percent-ownership', 'ua_regAddressFull', 'otherOwnership', 'citizen',
+    #      'ua_birthday_extendedstatus', 'ua_lastname', 'ua_taxNumber_extendedstatus', 'ua_livingAddressFull',
+    #      'ua_birthday', 'ownershipType', 'ua_taxNumber', 'ua_regAddressFull_extendedstatus',
+    #      'percent-ownership_extendedstatus', 'seller', 'ua_middlename', 'rightBelongs', 'ua_company_code',
+    #      'ua_company_name', 'ua_firstname', 'ua_livingAddressFull_extendedstatus', 'rights_id'}
+    # ]
+    def save_property_right(self, property, acquisition_date, rights_data):
+        TYPES = {
+            'Власність': PropertyRight.OWNERSHIP,
+            'Спільна власність': PropertyRight.JOINT_OWNERSHIP,
+            'Спільна сумісна власність': PropertyRight.COMMON_PROPERTY,
+            'Оренда': PropertyRight.RENT,
+            'Інше право користування': PropertyRight.OTHER_USAGE_RIGHT,
+            'Власником є третя особа': PropertyRight.OWNER_IS_ANOTHER_PERSON,
+            ('Право власності третьої особи, але наявні ознаки відповідно до частини 3 статті 46 '
+             'ЗУ «Про запобігання корупції»'): PropertyRight.BENEFICIAL_OWNERSHIP,
+            "[Член сім'ї не надав інформацію]": PropertyRight.NO_INFO_FROM_FAMILY_MEMBER,
+        }
+        for data in rights_data:
+            type = TYPES.get(data.get('ownershipType'))
+            share = data.get('percent-ownership')
+            if share not in self.NO_DATA:
+                share = float(share.replace(',', '.'))
+            else:
+                share = None
+            owner_id = data.get('rightBelongs')
+            pep = None
+            # TODO: store value from ENIGMA
+            if owner_id not in self.NO_DATA:
+                if owner_id == '1':
+                    pep = property.declaration.pep
+                elif owner_id == 'j':
+                    # TODO: decide should we store PEP 'Власником є третя особа' and use it in such case
+                    pass
+                else:
+                    pep = Pep.objects.filter(nacp_id=int(owner_id)).first()
+            other_owner_info = data.get('rights_id')
+            if not pep and other_owner_info:
+                if other_owner_info == '1':
+                    pep = property.declaration.pep
+                elif other_owner_info == 'j':
+                    # TODO: decide should we store PEP 'Власником є третя особа' and use it in such case
+                    pass
+                pep = Pep.objects.filter(nacp_id=int(other_owner_info)).first()
+
+            additional_info = data.get('otherOwnership', '')
+            country_of_citizenship_info = data.get('citizen')
+            # TODO: return country
+            if country_of_citizenship_info:
+                country_of_citizenship = self.find_country(country_of_citizenship_info)
+            else:
+                country_of_citizenship = None
+            last_name = data.get('ua_lastname')
+            first_name = data.get('ua_firstname')
+            middle_name = data.get('ua_middlename')
+            if (
+                    last_name not in self.NO_DATA
+                    or first_name not in self.NO_DATA
+                    or middle_name not in self.NO_DATA
+            ):
+                full_name = f'{last_name} {first_name} {middle_name}'
+            else:
+                full_name = ''
+
             company = None
             company_code = data.get('ua_company_code')
             if company_code not in self.ENIGMA:
@@ -683,8 +859,8 @@ class DeclarationConverter(BusinessConverter):
             # TODO: store 'seller', check if this field is only for changes
             # Possible values = ['Продавець']
             seller = data.get('seller')
-            if seller:
-                print(seller)
+            if seller not in self.NO_DATA:
+                pass
             PropertyRight.objects.create(
                 property=property,
                 type=type,
@@ -728,6 +904,9 @@ class DeclarationConverter(BusinessConverter):
             'Офіс': Property.OFFICE
         }
         for data in property_data:
+            if type(data['objectType']) != str:
+                self.log_error(f'Invalid value: property_type = {data["objectType"]}')
+                continue
             property_type = TYPES.get(data['objectType'])
             additional_info = data.get('otherObjectType', '')
             # TODO: add country
@@ -745,7 +924,11 @@ class DeclarationConverter(BusinessConverter):
                 if valuation in self.NO_DATA:
                     valuation = data.get('cost_date_assessment')
             if valuation not in self.NO_DATA:
-                valuation = int(valuation)
+                try:
+                    valuation = float(valuation.replace(',', '.'))
+                except ValueError:
+                    self.log_error(f'Invalid value: valuation = {valuation}')
+                    valuation = None
             else:
                 valuation = None
             area = data.get('totalArea')
@@ -753,7 +936,9 @@ class DeclarationConverter(BusinessConverter):
                 area = float(area.replace(',', '.'))
             else:
                 area = None
-            acquisition_date = simple_format_date_to_yymmdd(data.get('owningDate'))
+            acquisition_date = data.get('owningDate')
+            if acquisition_date:
+                acquisition_date = simple_format_date_to_yymmdd(acquisition_date)
             property = Property.objects.create(
                 declaration=declaration,
                 type=property_type,
@@ -762,14 +947,15 @@ class DeclarationConverter(BusinessConverter):
                 country=country,
                 city=city,
                 valuation=valuation,
-
             )
-            # TODO: store 'sources', 'person'
+            # TODO: investigate 'sources'
             sources = data.get('sources')
-            person = data.get('person')
             rights_data = data.get('rights')
             if rights_data:
                 self.save_property_right(property, acquisition_date, rights_data)
+            else:
+                # TODO: decide how to store property right when there is no 'rights' field - only 'person'
+                person = data.get('person')
 
     # TODO: retrieve country from Country DB
     def find_country(self, property_country_data):
@@ -839,12 +1025,18 @@ class DeclarationConverter(BusinessConverter):
         SPOUSE_TYPES = ['дружина', 'чоловік']
         # TODO: decide should we store new Pep that not spouse from relatives_data
         for relative_data in relatives_data:
+            if type(relative_data) != dict:
+                self.log_error(f'Invalid value: relative_data = {relative_data}')
+                continue
             to_person_relationship_type = relative_data.get('subjectRelation')
             if to_person_relationship_type in SPOUSE_TYPES:
                 spouse = None
                 nacp_id = relative_data.get('id')
                 if nacp_id:
-                    spouse = Pep.objects.filter(nacp_id=nacp_id).first()
+                    if type(nacp_id) == int:
+                        spouse = Pep.objects.filter(nacp_id=nacp_id).first()
+                    else:
+                        self.log_error(f'Invalid value: nacp_id = {nacp_id}')
                 if not spouse:
                     link_from_our_db = RelatedPersonsLink.objects.filter(
                         from_person=pep,
@@ -855,14 +1047,15 @@ class DeclarationConverter(BusinessConverter):
                         break
                     else:
                         spouse_from_our_db = link_from_our_db.to_person
-                        if not is_same_full_name(
+                        try:
+                            is_same_full_name(
                                 relative_data,
-                                spouse_from_our_db,
-                                declaration.id
-                        ):
-                            break
-                        else:
+                                spouse_from_our_db
+                            )
                             spouse = spouse_from_our_db
+                        except InvalidRelativeData as e:
+                            self.log_error(f'{e}')
+                            break
                 if spouse:
                     declaration.spouse = spouse
                     declaration.save()
@@ -933,9 +1126,11 @@ class DeclarationConverter(BusinessConverter):
                     continue
                 # TODO: add date to the model and here
                 else:
+                    submission_date = isoparse(declaration_data['date']).date()
                     declaration = Declaration.objects.create(
                         type=declaration_type,
                         year=declaration_data['declaration_year'],
+                        submission_date=submission_date,
                         nacp_declaration_id=declaration_id,
                         nacp_declarant_id=nacp_declarant_id,
                         pep=pep,
@@ -968,9 +1163,9 @@ class DeclarationConverter(BusinessConverter):
                 #     self.save_spouse(detailed_declaration_data['step_2']['data'], pep, declaration)
 
                 # 'Step_3' - declarant`s family`s properties
-                # if (detailed_declaration_data['step_3']
-                #         and not detailed_declaration_data['step_3'].get('isNotApplicable')):
-                #     self.save_property(detailed_declaration_data['step_3']['data'], declaration)
+                if (detailed_declaration_data['step_3']
+                        and not detailed_declaration_data['step_3'].get('isNotApplicable')):
+                    self.save_property(detailed_declaration_data['step_3']['data'], declaration)
 
                 # 'Step_4' - declarant`s family`s unfinished construction
                 # if (detailed_declaration_data['step_4']
@@ -1007,7 +1202,7 @@ class DeclarationConverter(BusinessConverter):
                 #         and not detailed_declaration_data['step_11'].get('isNotApplicable')):
                 #     self.save_income(detailed_declaration_data['step_11']['data'], declaration)
 
-                # 'Step_11' - declarant`s family`s money
+                # 'Step_12' - declarant`s family`s money
                 # if (detailed_declaration_data['step_12']
                 #         and not detailed_declaration_data['step_12'].get('isNotApplicable')):
                 #     self.save_money(detailed_declaration_data['step_12']['data'], declaration)

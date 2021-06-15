@@ -4,6 +4,7 @@ from simple_history.models import HistoricalRecords
 
 from business_register.models.kved_models import Kved
 from data_ocean.models import Authority, DataOceanModel, Status, TaxpayerType
+from data_ocean.transliteration.utils import transliterate, translate_country_in_string
 from location_register.models.address_models import Country
 
 
@@ -119,6 +120,14 @@ class Company(DataOceanModel):  # constraint for not null in both name & short_n
             return None
         return self.country.name != 'ukraine'
 
+    @property
+    def address_en(self):
+        if self.address:
+            return transliterate(translate_country_in_string(self.address))
+        else:
+            return None
+
+
     class Meta:
         verbose_name = _('company')
         verbose_name_plural = _('companies')
@@ -161,7 +170,7 @@ class CompanyDetail(DataOceanModel):
                                                 help_text='Founding document number as string')
     executive_power = models.CharField(max_length=390, null=True, help_text='Executive power of the company')
     superior_management = models.CharField(max_length=620, null=True, help_text='Superior management of the company')
-    managing_paper = models.CharField(max_length=360, null=True, help_text='Managing paper of the company')
+    managing_paper = models.CharField(max_length=700, null=True, help_text='Managing paper of the company')
     terminated_info = models.CharField(max_length=600, null=True, help_text='Info about termination')
     termination_cancel_info = models.CharField(max_length=570, null=True,
                                                help_text='Info about termination cancellation')

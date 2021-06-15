@@ -4,6 +4,8 @@ from simple_history.models import HistoricalRecords
 
 from business_register.models.company_models import Company, Founder
 from data_ocean.models import DataOceanModel
+from data_ocean.transliteration.utils import transliterate, translate_company_type_in_string,\
+    translate_country_in_string
 
 
 class Pep(DataOceanModel):
@@ -52,6 +54,10 @@ class Pep(DataOceanModel):
     fullname = models.CharField(
         _("full name"), max_length=75, db_index=True,
         help_text='Full name "last name first name middle name" in Ukrainian.'
+    )
+    fullname_en = models.CharField(
+        _("full name in English"), max_length=75, default='',
+        help_text='Full name "last name first name middle name" in English.'
     )
     fullname_transcriptions_eng = models.TextField(
         _('options for writing the full name'), db_index=True,
@@ -154,6 +160,20 @@ class Pep(DataOceanModel):
     def pep_org_ua_link(self):
         return 'https://pep.org.ua/uk/person/' + str(self.source_id)
 
+    @property
+    def place_of_birth_en(self):
+        if self.place_of_birth:
+            return transliterate(translate_country_in_string(self.place_of_birth))
+        else:
+            return None
+
+    @property
+    def last_employer_en(self):
+        if self.last_employer:
+            return transliterate(translate_company_type_in_string(self.last_employer))
+        else:
+            return None
+
     class Meta:
         indexes = [
             models.Index(fields=['updated_at']),
@@ -199,6 +219,18 @@ class RelatedPersonsLink(DataOceanModel):
         max_length=90,
         null=True,
         help_text='The type of relationship with a related person.'
+    )
+    from_person_relationship_type_en = models.CharField(
+        _("connection`s type in English"),
+        max_length=90,
+        null=True,
+        help_text='The type of relationship with a related person in English.'
+    )
+    to_person_relationship_type_en = models.CharField(
+        _("another person`s connection`s type in English"),
+        max_length=90,
+        null=True,
+        help_text='The type of relationship with a related person in English.'
     )
     category = models.CharField(
         _("connection`s category"),
@@ -264,6 +296,8 @@ class CompanyLinkWithPep(DataOceanModel):
                                                       'Can be: bank_customer, owner, manager, by_position, other.')
     relationship_type = models.CharField(_("connection`s type"), max_length=550, null=True,
                                          help_text='Type of connection between the person and this company')
+    relationship_type_en = models.CharField(_("connection`s type in English"), max_length=550, null=True,
+                                         help_text='Type of connection between the person and this company in English')
     start_date = models.DateField(_("connection`s start date"), null=True,
                                   help_text='Date of the beginning of the person\'s connection with the company.')
     confirmation_date = models.DateField(_("connection`s confirmation date"), null=True,
