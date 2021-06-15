@@ -32,9 +32,9 @@ logger.setLevel(logging.INFO)
 class DeclarationConverter(BusinessConverter):
 
     def __init__(self):
-        self.only_peps = {pep.nacp_id: pep for pep in Pep.objects.filter(
+        self.only_peps = {pep.nacp_id[0]: pep for pep in Pep.objects.filter(
             is_pep=True,
-            nacp_id__isnull=False
+            nacp_id__len=1
         )}
         self.all_declarations = self.put_objects_to_dict(
             'nacp_declaration_id',
@@ -64,6 +64,15 @@ class DeclarationConverter(BusinessConverter):
 
     def log_error(self, message):
         logger.error(f'Declaration id {self.current_declaration.nacp_declaration_id} : {message}')
+
+    # TODO: decide what to do if more than one person has the same nacp_id
+    def find_person(self, pep_id):
+        peps = list(Pep.objects.filter(nacp_id__contains=[int(pep_id)]))
+        if len(peps) == 1:
+            return peps[0]
+        elif len(peps) > 1:
+            self.log_error(f'More than one person has nacp_id = {pep_id}')
+        return None
 
     # looks like data starts with 'debtor_ua' is the data of the owner of the Money.Cash
     # possible_keys = {
@@ -167,7 +176,7 @@ class DeclarationConverter(BusinessConverter):
                 if owner_id in self.ENIGMA:
                     owner = declaration.pep
                 else:
-                    owner = Pep.objects.filter(nacp_id=int(owner_id)).first()
+                    owner = self.find_person(owner_id)
             if not owner:
                 self.log_error(f'Cannot identify owner of the money from data({data})')
 
@@ -327,7 +336,7 @@ class DeclarationConverter(BusinessConverter):
                 self.log_error(f'Wrong value for recipient_code in income: recipient_code = {recipient_code}.'
                                f'Check income data({data})')
             else:
-                recipient = Pep.objects.filter(nacp_id=int(recipient_code)).first()
+                recipient = self.find_person(recipient_code)
             if not recipient:
                 self.log_error(
                     f'Cannot identify income recipient with NACP id {recipient_code}.'
@@ -550,11 +559,11 @@ class DeclarationConverter(BusinessConverter):
             pep = None
             # TODO: store value from ENIGMA
             if owner_info not in self.NO_DATA and owner_info not in self.ENIGMA:
-                pep = Pep.objects.filter(nacp_id=int(owner_info)).first()
+                pep = self.find_person(owner_info)
             other_owner_info = data.get('rights_id')
             # Store value 'Інша особа (фізична або юридична)'
             if not pep and other_owner_info and other_owner_info not in self.ENIGMA:
-                pep = Pep.objects.filter(nacp_id=int(other_owner_info)).first()
+                pep = self.find_person(owner_info)
             additional_info = data.get('otherOwnership', '')
             country_of_citizenship_info = data.get('citizen')
             # TODO: return country
@@ -678,11 +687,11 @@ class DeclarationConverter(BusinessConverter):
             pep = None
             # TODO: store value from ENIGMA
             if owner_info not in self.NO_DATA and owner_info not in self.ENIGMA:
-                pep = Pep.objects.filter(nacp_id=int(owner_info)).first()
+                pep = self.find_person(owner_info)
             other_owner_info = data.get('rights_id')
             # Store value 'Інша особа (фізична або юридична)'
             if not pep and other_owner_info and other_owner_info not in self.ENIGMA:
-                pep = Pep.objects.filter(nacp_id=int(other_owner_info)).first()
+                pep = self.find_person(other_owner_info)
 
             last_name = data.get('ua_lastname')
             first_name = data.get('ua_firstname')
@@ -815,7 +824,7 @@ class DeclarationConverter(BusinessConverter):
                     # TODO: decide should we store PEP 'Власником є третя особа' and use it in such case
                     pass
                 else:
-                    pep = Pep.objects.filter(nacp_id=int(owner_id)).first()
+                    pep = self.find_person(owner_id)
             other_owner_info = data.get('rights_id')
             if not pep and other_owner_info:
                 if other_owner_info == '1':
@@ -823,7 +832,7 @@ class DeclarationConverter(BusinessConverter):
                 elif other_owner_info == 'j':
                     # TODO: decide should we store PEP 'Власником є третя особа' and use it in such case
                     pass
-                pep = Pep.objects.filter(nacp_id=int(other_owner_info)).first()
+                pep = self.find_person(other_owner_info)
 
             additional_info = data.get('otherOwnership', '')
             country_of_citizenship_info = data.get('citizen')
@@ -1021,45 +1030,36 @@ class DeclarationConverter(BusinessConverter):
     #     'postCode', 'passport_extendedstatus'
     # ]
     # TODO: maybe we should simplify spouse to CharField with full name
-    def save_spouse(self, relatives_data, pep, declaration):
-        SPOUSE_TYPES = ['дружина', 'чоловік']
-        # TODO: decide should we store new Pep that not spouse from relatives_data
+    def save_related_person(self, relatives_data, pep, declaration):
         for relative_data in relatives_data:
-            if type(relative_data) != dict:
-                self.log_error(f'Invalid value: relative_data = {relative_data}')
-                continue
+            SPOUSE_TYPES = ['дружина', 'чоловік']
             to_person_relationship_type = relative_data.get('subjectRelation')
-            if to_person_relationship_type in SPOUSE_TYPES:
-                spouse = None
-                nacp_id = relative_data.get('id')
-                if nacp_id:
-                    if type(nacp_id) == int:
-                        spouse = Pep.objects.filter(nacp_id=nacp_id).first()
-                    else:
-                        self.log_error(f'Invalid value: nacp_id = {nacp_id}')
-                if not spouse:
-                    link_from_our_db = RelatedPersonsLink.objects.filter(
-                        from_person=pep,
-                        to_person_relationship_type=to_person_relationship_type,
-                    ).first()
-                    if not link_from_our_db:
-                        # TODO: decide should we store new Pep here
-                        break
-                    else:
-                        spouse_from_our_db = link_from_our_db.to_person
-                        try:
-                            is_same_full_name(
-                                relative_data,
-                                spouse_from_our_db
-                            )
-                            spouse = spouse_from_our_db
-                        except InvalidRelativeData as e:
-                            self.log_error(f'{e}')
-                            break
-                if spouse:
-                    declaration.spouse = spouse
-                    declaration.save()
-                    break
+            related_person_links = RelatedPersonsLink.objects.filter(
+                from_person=pep,
+                to_person_relationship_type=to_person_relationship_type
+            )
+            # TODO: decide should we store new Pep here
+            for link in related_person_links:
+                related_person = link.to_person
+                related_person_nacp_id = relative_data.get('id')
+                try:
+                    same_name = is_same_full_name(relative_data, related_person)
+                except InvalidRelativeData as e:
+                    self.log_error(f'{e}')
+                    continue
+                else:
+                    if same_name:
+                        if not isinstance(related_person_nacp_id, int) or related_person_nacp_id == 0:
+                            self.log_error(f'Check invalid declarant NACP id ({related_person_nacp_id})')
+                        elif related_person_nacp_id in related_person.nacp_id:
+                            pass
+                        else:
+                            related_person.nacp_id.append(related_person_nacp_id)
+                            related_person.save()
+                        # TODO: decide should we store new Pep that not spouse from relatives_data
+                        if to_person_relationship_type in SPOUSE_TYPES:
+                            declaration.spouse = related_person
+                            declaration.save()
 
     # possible_keys = [
     #     'actual_streetType', 'actual_apartmentsNum_extendedstatus', 'actual_apartmentsNum', 'country',
@@ -1160,7 +1160,7 @@ class DeclarationConverter(BusinessConverter):
                 #         and detailed_declaration_data['step_2']
                 #         and not detailed_declaration_data['step_2'].get('isNotApplicable')
                 # ):
-                #     self.save_spouse(detailed_declaration_data['step_2']['data'], pep, declaration)
+                #    self.save_related_person(detailed_declaration_data['step_2']['data'], pep, declaration)
 
                 # 'Step_3' - declarant`s family`s properties
                 if (detailed_declaration_data['step_3']

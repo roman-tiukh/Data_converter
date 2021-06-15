@@ -1,3 +1,4 @@
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from simple_history.models import HistoricalRecords
@@ -132,13 +133,13 @@ class Pep(DataOceanModel):
     source_id = models.PositiveIntegerField(
         _("id from ANTACs DB"), unique=True, null=True, blank=True
     )
-    nacp_id = models.PositiveBigIntegerField(
+    nacp_id = ArrayField(models.PositiveBigIntegerField(
         _('id from NACP'),
         unique=True,
-        null=True,
+    ),
         blank=True,
-        help_text=_('id from the National agency on corruption prevention')
-    )
+        default=list,
+        help_text=_('id from the National agency on corruption prevention'))
     history = HistoricalRecords(excluded_fields=['url', 'code'])
 
     @property
