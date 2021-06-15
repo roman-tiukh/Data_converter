@@ -111,6 +111,19 @@ class CompanyShortSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'edrpou',)
 
 
+class CompanyToKvedSerializer(serializers.ModelSerializer):
+    code = serializers.CharField(source="kved.code")
+    name = serializers.CharField(source="kved.name")
+    group = serializers.CharField(source="kved.group")
+    division = serializers.CharField(source="kved.division")
+    section = serializers.CharField(source="kved.section")
+    section_en = serializers.CharField(source="kved.section.name_en")
+
+    class Meta:
+        model = CompanyToKved
+        fields = ('code', 'name', 'group', 'division', 'section', 'section_en', 'primary_kved')
+
+
 class CompanyListSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     country = serializers.StringRelatedField(
         help_text=Company._meta.get_field('country').help_text
@@ -127,7 +140,7 @@ class CompanyListSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     authority = serializers.StringRelatedField(help_text=Company._meta.get_field('authority').help_text)
     assignees = serializers.StringRelatedField(many=True, help_text=Assignee._meta.get_field('company').help_text)
     signers = serializers.StringRelatedField(many=True, help_text=Signer._meta.get_field('company').help_text)
-    kveds = serializers.StringRelatedField(many=True, help_text=CompanyToKved._meta.get_field('company').help_text)
+    kveds = CompanyToKvedSerializer(many=True, help_text=CompanyToKved._meta.get_field('company').help_text)
     bylaw = serializers.StringRelatedField(help_text=Company._meta.get_field('bylaw').help_text)
     bancruptcy_readjustment = BancruptcyReadjustmentSerializer(
         many=True, help_text=BancruptcyReadjustment._meta.get_field('company').help_text)
@@ -211,7 +224,7 @@ class CompanyDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     authority = serializers.StringRelatedField(help_text=Company._meta.get_field('authority').help_text)
     assignees = serializers.StringRelatedField(many=True, help_text=Assignee._meta.get_field('company').help_text)
     signers = serializers.StringRelatedField(many=True, help_text=Signer._meta.get_field('company').help_text)
-    kveds = serializers.StringRelatedField(many=True, help_text=CompanyToKved._meta.get_field('company').help_text)
+    kveds = CompanyToKvedSerializer(many=True, help_text=CompanyToKved._meta.get_field('company').help_text)
     bylaw = serializers.StringRelatedField(help_text=Company._meta.get_field('bylaw').help_text)
     bancruptcy_readjustment = BancruptcyReadjustmentSerializer(
         many=True, help_text=BancruptcyReadjustment._meta.get_field('company').help_text)

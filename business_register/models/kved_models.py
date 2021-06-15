@@ -6,6 +6,7 @@ from data_ocean.models import DataOceanModel
 class KvedSection(DataOceanModel):
     code = models.CharField('code', max_length=10, unique=True)
     name = models.CharField('name', max_length=500)
+    name_en = models.CharField('name_en', max_length=500, default='', blank=True)
 
     class Meta:
         verbose_name = _('section')
