@@ -98,7 +98,8 @@ class CountFoundedCompaniesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
         fields = (
-            'id', 'name', 'name_en', 'short_name', 'company_type', 'edrpou', 'status', 'founder_of_count',
+            'id', 'name', 'name_en', 'short_name', 'address', 'address_en',
+            'company_type', 'edrpou', 'status', 'founder_of_count',
             'is_closed', 'is_foreign', 'from_antac_only',
         )
 
@@ -108,7 +109,7 @@ class CompanyShortSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Company
-        fields = ('id', 'name', 'edrpou',)
+        fields = ('id', 'name', 'name_en', 'edrpou')
 
 
 class CompanyToKvedSerializer(serializers.ModelSerializer):

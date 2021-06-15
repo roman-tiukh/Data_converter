@@ -127,7 +127,6 @@ class Company(DataOceanModel):  # constraint for not null in both name & short_n
         else:
             return None
 
-
     class Meta:
         verbose_name = _('company')
         verbose_name_plural = _('companies')
