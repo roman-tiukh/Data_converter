@@ -236,9 +236,16 @@ class DeclarationConverter(BusinessConverter):
             'Дохід від зайняття незалежною професійною діяльністю': Income.SELF_EMPLOYMENT,
             'Дивіденди': Income.DIVIDENDS,
             'Інше': Income.OTHER,
+            'Роялті': Income.ROYALTY
         }
         for data in incomes_data:
-            income_type = types.get(data.get('objectType'))
+            income_type = data.get('objectType')
+            # TODO: decide what to do when value income_type == '[Член сім\'ї не надав інформацію]'
+            if income_type and income_type in self.NO_DATA:
+                self.log_error(f'Wrong value for type of income: income_type = {income_type}.Check income data({data})')
+                continue
+            else:
+                income_type = types.get(data.get('objectType'))
             additional_info = data.get('otherObjectType', '')
             amount = data.get('sizeIncome')
             if amount not in self.NO_DATA:
@@ -255,6 +262,8 @@ class DeclarationConverter(BusinessConverter):
             company = None
             company_code = data.get('source_ua_company_code')
             if company_code not in self.NO_DATA and company_code not in self.ENIGMA:
+                company_code = company_code.zfill(8)
+                # FIXME: If the Ukrainian company has source = antac ?
                 company = Company.objects.filter(
                     edrpou=company_code,
                     source=Company.UKRAINE_REGISTER
@@ -267,6 +276,7 @@ class DeclarationConverter(BusinessConverter):
             foreign_company_code = data.get('source_eng_company_code')
             if company_code not in self.NO_DATA and foreign_company_code not in self.ENIGMA:
                 if not company:
+                    # FIXME: If the same company is in a different declaration, will there be two identical companies?
                     Company.objects.create(
                         name=data.get('source_eng_company_name'),
                         edrpou=foreign_company_code,
@@ -311,6 +321,11 @@ class DeclarationConverter(BusinessConverter):
                 recipient_code = recipient_data[0].get('person')
             if recipient_code in self.ENIGMA:
                 recipient = declaration.pep
+            elif recipient_code in self.NO_DATA:
+                recipient_code = ''
+            elif recipient_code.isalpha():
+                self.log_error(f'Wrong value for recipient_code in income: recipient_code = {recipient_code}.'
+                               f'Check income data({data})')
             else:
                 recipient = Pep.objects.filter(nacp_id=int(recipient_code)).first()
             if not recipient:
@@ -402,6 +417,8 @@ class DeclarationConverter(BusinessConverter):
             issuer = None
             issuer_registration_number = data.get('emitent_ua_company_code')
             if issuer_registration_number not in self.NO_DATA:
+                issuer_registration_number = issuer_registration_number.zfill(8)
+                # FIXME: If the Ukrainian company has source = 'antac' ?
                 issuer = Company.objects.filter(
                     edrpou=issuer_registration_number,
                     source=Company.UKRAINE_REGISTER
@@ -415,6 +432,7 @@ class DeclarationConverter(BusinessConverter):
                 issuer_registration_number = ''
             issuer_foreign_registration_number = data.get('emitent_eng_company_code')
             if issuer_foreign_registration_number not in self.NO_DATA:
+                # FIXME: If the same company is in a different declaration, will there be two identical companies?
                 issuer = Company.objects.create(
                     name=issuer_name_eng,
                     edrpou=issuer_foreign_registration_number,
@@ -448,6 +466,8 @@ class DeclarationConverter(BusinessConverter):
             trustee_registration_number = data.get('persons_ua_company_code')
             trustee = None
             if trustee_registration_number not in self.NO_DATA:
+                trustee_registration_number = trustee_registration_number.zfill(8)
+                # FIXME: If the Ukrainian company has source = 'antac' ?
                 trustee = Company.objects.filter(
                     edrpou=trustee_registration_number,
                     source=Company.UKRAINE_REGISTER
@@ -462,6 +482,7 @@ class DeclarationConverter(BusinessConverter):
 
             trustee_foreign_registration_number = data.get('persons_eng_company_code')
             if trustee_foreign_registration_number not in self.NO_DATA:
+                # FIXME: If the same company is in a different declaration, will there be two identical companies?
                 trustee = Company.objects.create(
                     name=trustee_name_eng,
                     edrpou=trustee_foreign_registration_number,
@@ -784,15 +805,26 @@ class DeclarationConverter(BusinessConverter):
                 share = float(share.replace(',', '.'))
             else:
                 share = None
-            owner_info = data.get('rightBelongs')
+            owner_id = data.get('rightBelongs')
             pep = None
             # TODO: store value from ENIGMA
-            if owner_info not in self.NO_DATA and owner_info not in self.ENIGMA:
-                pep = Pep.objects.filter(nacp_id=int(owner_info)).first()
+            if owner_id not in self.NO_DATA:
+                if owner_id == '1':
+                    pep = property.declaration.pep
+                elif owner_id == 'j':
+                    # TODO: decide should we store PEP 'Власником є третя особа' and use it in such case
+                    pass
+                else:
+                    pep = Pep.objects.filter(nacp_id=int(owner_id)).first()
             other_owner_info = data.get('rights_id')
-            # Store value 'Інша особа (фізична або юридична)'
-            if not pep and other_owner_info and other_owner_info not in self.ENIGMA:
+            if not pep and other_owner_info:
+                if other_owner_info == '1':
+                    pep = property.declaration.pep
+                elif other_owner_info == 'j':
+                    # TODO: decide should we store PEP 'Власником є третя особа' and use it in such case
+                    pass
                 pep = Pep.objects.filter(nacp_id=int(other_owner_info)).first()
+
             additional_info = data.get('otherOwnership', '')
             country_of_citizenship_info = data.get('citizen')
             # TODO: return country
@@ -811,10 +843,7 @@ class DeclarationConverter(BusinessConverter):
                 full_name = f'{last_name} {first_name} {middle_name}'
             else:
                 full_name = ''
-            # TODO: check if taxpayer_number can have a value
-            taxpayer_number = data.get('ua_taxNumber')
-            if taxpayer_number and taxpayer_number != '[Конфіденційна інформація]':
-                print(taxpayer_number)
+
             company = None
             company_code = data.get('ua_company_code')
             if company_code not in self.ENIGMA:
@@ -830,8 +859,8 @@ class DeclarationConverter(BusinessConverter):
             # TODO: store 'seller', check if this field is only for changes
             # Possible values = ['Продавець']
             seller = data.get('seller')
-            if seller:
-                print(seller)
+            if seller not in self.NO_DATA:
+                pass
             PropertyRight.objects.create(
                 property=property,
                 type=type,
@@ -877,7 +906,7 @@ class DeclarationConverter(BusinessConverter):
         for data in property_data:
             if type(data['objectType']) != str:
                 self.log_error(f'Invalid value: property_type = {data["objectType"]}')
-                break
+                continue
             property_type = TYPES.get(data['objectType'])
             additional_info = data.get('otherObjectType', '')
             # TODO: add country
@@ -919,12 +948,14 @@ class DeclarationConverter(BusinessConverter):
                 city=city,
                 valuation=valuation,
             )
-            # TODO: store 'sources', 'person'
+            # TODO: investigate 'sources'
             sources = data.get('sources')
-            person = data.get('person')
             rights_data = data.get('rights')
             if rights_data:
                 self.save_property_right(property, acquisition_date, rights_data)
+            else:
+                # TODO: decide how to store property right when there is no 'rights' field - only 'person'
+                person = data.get('person')
 
     # TODO: retrieve country from Country DB
     def find_country(self, property_country_data):
@@ -996,7 +1027,7 @@ class DeclarationConverter(BusinessConverter):
         for relative_data in relatives_data:
             if type(relative_data) != dict:
                 self.log_error(f'Invalid value: relative_data = {relative_data}')
-                break
+                continue
             to_person_relationship_type = relative_data.get('subjectRelation')
             if to_person_relationship_type in SPOUSE_TYPES:
                 spouse = None
@@ -1132,9 +1163,9 @@ class DeclarationConverter(BusinessConverter):
                 #     self.save_spouse(detailed_declaration_data['step_2']['data'], pep, declaration)
 
                 # 'Step_3' - declarant`s family`s properties
-                # if (detailed_declaration_data['step_3']
-                #         and not detailed_declaration_data['step_3'].get('isNotApplicable')):
-                #     self.save_property(detailed_declaration_data['step_3']['data'], declaration)
+                if (detailed_declaration_data['step_3']
+                        and not detailed_declaration_data['step_3'].get('isNotApplicable')):
+                    self.save_property(detailed_declaration_data['step_3']['data'], declaration)
 
                 # 'Step_4' - declarant`s family`s unfinished construction
                 # if (detailed_declaration_data['step_4']
@@ -1171,7 +1202,7 @@ class DeclarationConverter(BusinessConverter):
                 #         and not detailed_declaration_data['step_11'].get('isNotApplicable')):
                 #     self.save_income(detailed_declaration_data['step_11']['data'], declaration)
 
-                # 'Step_11' - declarant`s family`s money
+                # 'Step_12' - declarant`s family`s money
                 # if (detailed_declaration_data['step_12']
                 #         and not detailed_declaration_data['step_12'].get('isNotApplicable')):
                 #     self.save_money(detailed_declaration_data['step_12']['data'], declaration)
