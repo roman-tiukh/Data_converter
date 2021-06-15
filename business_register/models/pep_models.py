@@ -4,7 +4,8 @@ from simple_history.models import HistoricalRecords
 
 from business_register.models.company_models import Company, Founder
 from data_ocean.models import DataOceanModel
-from data_ocean.transliteration.utils import transliterate, translate_country_in_string
+from data_ocean.transliteration.utils import transliterate, translate_company_type_in_string,\
+    translate_country_in_string
 
 
 class Pep(DataOceanModel):
@@ -163,6 +164,13 @@ class Pep(DataOceanModel):
     def place_of_birth_en(self):
         if self.place_of_birth:
             return transliterate(translate_country_in_string(self.place_of_birth))
+        else:
+            return None
+
+    @property
+    def last_employer_en(self):
+        if self.last_employer:
+            return transliterate(translate_company_type_in_string(self.last_employer))
         else:
             return None
 
