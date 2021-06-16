@@ -459,7 +459,7 @@ class PepDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
         model = Pep
         fields = (
             'id', 'first_name', 'last_name', 'middle_name', 'fullname', 'fullname_en',
-            'fullname_transcriptions_eng', 'last_job_title', 'last_employer', 'last_employer_en',
+            'fullname_transcriptions_eng', 'last_job_title', 'last_job_title_en', 'last_employer', 'last_employer_en',
             'is_pep', 'pep_type', 'info', 'sanctions', 'criminal_record', 'assets_info',
             'criminal_proceedings', 'wanted', 'date_of_birth', 'place_of_birth', 'place_of_birth_en', 'is_dead',
             'termination_date', 'reason_of_termination', 'to_person_links', 'from_person_links',
@@ -539,7 +539,7 @@ class PepListSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
         model = Pep
         fields = (
             'id', 'first_name', 'last_name', 'middle_name', 'fullname', 'fullname_en',
-            'fullname_transcriptions_eng', 'last_job_title', 'last_employer', 'last_employer_en',
+            'fullname_transcriptions_eng', 'last_job_title', 'last_job_title_en', 'last_employer', 'last_employer_en',
             'is_pep', 'pep_type', 'info', 'sanctions', 'criminal_record', 'assets_info',
             'criminal_proceedings', 'wanted', 'date_of_birth', 'place_of_birth', 'place_of_birth_en', 'is_dead',
             'termination_date', 'reason_of_termination', 'from_person_links', 'to_person_links',
