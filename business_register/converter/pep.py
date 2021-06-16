@@ -566,6 +566,9 @@ class PepConverterFromDB(Converter):
             country_name = link[10]
             source_id = link[11]
             company_name_en = link[12]
+            if not company_name_en:
+                company_name_en = transliterate(translate_company_type_in_string(company_name))
+                company_update_fields.append('name_en')
             relationship_type = link[13]
             relationship_type_en = link[14]
             country = address_converter.save_or_get_country(country_name) if country_name else None
@@ -580,8 +583,6 @@ class PepConverterFromDB(Converter):
                     company.antac_id = company_antac_id
                     company_update_fields.append('antac_id')
             if not company:
-                if not company_name_en:
-                    company_name_en = transliterate(translate_company_type_in_string(company_name))
                 company = Company.objects.create(name=company_name, name_en=company_name_en, edrpou=edrpou,
                                                  country=country, code=company_name + edrpou, source=Company.ANTAC,
                                                  antac_id=company_antac_id, from_antac_only=True)
@@ -592,9 +593,6 @@ class PepConverterFromDB(Converter):
             else:
                 if company.name_en != company_name_en:
                     company.name_en = company_name_en
-                    company_update_fields.append('name_en')
-                if company.name_en is None and company_name:
-                    company.name_en = transliterate(translate_company_type_in_string(company_name))
                     company_update_fields.append('name_en')
                 if company_update_fields:
                     company_update_fields.append('updated_at')
