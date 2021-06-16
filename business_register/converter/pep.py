@@ -568,7 +568,6 @@ class PepConverterFromDB(Converter):
             company_name_en = link[12]
             if not company_name_en:
                 company_name_en = transliterate(translate_company_type_in_string(company_name))
-                company_update_fields.append('name_en')
             relationship_type = link[13]
             relationship_type_en = link[14]
             country = address_converter.save_or_get_country(country_name) if country_name else None
