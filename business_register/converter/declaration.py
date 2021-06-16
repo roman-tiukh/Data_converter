@@ -611,7 +611,6 @@ class DeclarationConverter(BusinessConverter):
                 country_of_citizenship=country_of_citizenship
             )
 
-
     # TODO: implement
     def is_vehicle_luxury(self, brand, model, year):
         pass
@@ -1043,23 +1042,21 @@ class DeclarationConverter(BusinessConverter):
                 related_person = link.to_person
                 related_person_nacp_id = relative_data.get('id')
                 try:
-                    same_name = is_same_full_name(relative_data, related_person)
+                    if not is_same_full_name(relative_data, related_person):
+                        continue
                 except InvalidRelativeData as e:
                     self.log_error(f'{e}')
                     continue
+                if not isinstance(related_person_nacp_id, int) or related_person_nacp_id == 0:
+                    self.log_error(f'Check invalid declarant NACP id ({related_person_nacp_id})')
+                elif related_person_nacp_id in related_person.nacp_id:
+                    pass
                 else:
-                    if same_name:
-                        if not isinstance(related_person_nacp_id, int) or related_person_nacp_id == 0:
-                            self.log_error(f'Check invalid declarant NACP id ({related_person_nacp_id})')
-                        elif related_person_nacp_id in related_person.nacp_id:
-                            pass
-                        else:
-                            related_person.nacp_id.append(related_person_nacp_id)
-                            related_person.save()
-                        # TODO: decide should we store new Pep that not spouse from relatives_data
-                        if to_person_relationship_type in SPOUSE_TYPES:
-                            declaration.spouse = related_person
-                            declaration.save()
+                    related_person.nacp_id.append(related_person_nacp_id)
+                    related_person.save()
+                    if to_person_relationship_type in SPOUSE_TYPES:
+                        declaration.spouse = related_person
+                        declaration.save()
 
     # possible_keys = [
     #     'actual_streetType', 'actual_apartmentsNum_extendedstatus', 'actual_apartmentsNum', 'country',

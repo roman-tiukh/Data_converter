@@ -31,13 +31,10 @@ class Migration(migrations.Migration):
                     SET nacp_id1 = ARRAY[nacp_id]
                     WHERE nacp_id IS NOT NULL;
                 ''',
-            reverse_sql=f'''
+            reverse_sql=r'''
                     UPDATE business_register_pep
-                    SET nacp_id =
-                      (SELECT nacp_id1[1]
-                       FROM business_register_pep AS pep2
-                       WHERE business_register_pep.id=pep2.id)
-                    WHERE business_register_pep.nacp_id1 IS NOT NULL;
+                    SET nacp_id = nacp_id1[1]
+                    WHERE business_register_pep.nacp_id1!='{}';
             '''
         ),
         migrations.RunSQL(
@@ -46,13 +43,10 @@ class Migration(migrations.Migration):
                     SET nacp_id1 = ARRAY[nacp_id]
                     WHERE nacp_id IS NOT NULL;
                     ''',
-            reverse_sql=f'''
+            reverse_sql=r'''
                     UPDATE business_register_historicalpep
-                    SET nacp_id =
-                      (SELECT nacp_id1[1]
-                       FROM business_register_pep AS pep2
-                       WHERE business_register_historicalpep.id=pep2.id)
-                    WHERE business_register_historicalpep.nacp_id1 IS NOT NULL;
+                    SET nacp_id = nacp_id1[1]
+                    WHERE business_register_historicalpep.nacp_id1!='{}';
                     '''
         ),
         migrations.RemoveField(
