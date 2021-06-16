@@ -204,10 +204,6 @@ class PepFilterSet(filters.FilterSet):
         lookup_expr='icontains',
         help_text='Filter by last employer in Ukrainian.',
     )
-    last_employer_en = filters.CharFilter(
-        lookup_expr='icontains',
-        help_text='Filter by last employer in English.',
-    )
     date_of_birth = filters.CharFilter(
         lookup_expr='icontains',
         help_text='Filter by date_of_birth, string contains type. '
