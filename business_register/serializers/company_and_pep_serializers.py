@@ -164,14 +164,14 @@ class CompanyListSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
 
 
 class PepShortSerializer(serializers.ModelSerializer):
-    pep_type = serializers.CharField(source='get_pep_type_display', help_text=Pep._meta.get_field('pep_type').help_text)
+    pep_type_display = serializers.CharField(source='get_pep_type_display', help_text=Pep._meta.get_field('pep_type').help_text)
     id = serializers.IntegerField(help_text='DataOcean\'s internal unique identifier of the object (PEP).')
 
     class Meta:
         model = Pep
         fields = (
             'id', 'fullname', 'last_job_title', 'last_employer',
-            'is_pep', 'pep_type', 'pep_org_ua_link'
+            'is_pep', 'pep_type', 'pep_type_display', 'pep_org_ua_link'
         )
 
 
@@ -385,7 +385,7 @@ class PepDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     check_companies = serializers.SerializerMethodField(
         help_text='Other companies founded by persons with the same fullname as PEP.'
     )
-    pep_type = serializers.CharField(source='get_pep_type_display', help_text=Pep._meta.get_field('pep_type').help_text)
+    pep_type_display = serializers.CharField(source='get_pep_type_display', help_text=Pep._meta.get_field('pep_type').help_text)
     reason_of_termination = serializers.CharField(source='get_reason_of_termination_display',
                                                   help_text=Pep._meta.get_field('reason_of_termination').help_text)
     id = serializers.IntegerField(help_text='DataOcean\'s internal unique identifier of the object (PEP).')
@@ -460,7 +460,7 @@ class PepDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
         fields = (
             'id', 'first_name', 'last_name', 'middle_name', 'fullname', 'fullname_en',
             'fullname_transcriptions_eng', 'last_job_title', 'last_employer', 'last_employer_en',
-            'is_pep', 'pep_type', 'info', 'sanctions', 'criminal_record', 'assets_info',
+            'is_pep', 'pep_type', 'pep_type_display', 'info', 'sanctions', 'criminal_record', 'assets_info',
             'criminal_proceedings', 'wanted', 'date_of_birth', 'place_of_birth', 'place_of_birth_en', 'is_dead',
             'termination_date', 'reason_of_termination', 'to_person_links', 'from_person_links',
             'related_companies', 'check_companies', 'pep_org_ua_link', 'created_at', 'updated_at',
@@ -481,8 +481,10 @@ class FromRelatedPersonListSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(source='to_person.id',
                                   help_text='DataOcean\'s internal unique identifier of the object (PEP).')
     fullname = serializers.CharField(source='to_person.fullname', help_text=Pep._meta.get_field('fullname').help_text)
-    pep_type = serializers.CharField(source='to_person.get_pep_type_display',
+    pep_type = serializers.CharField(source='to_person.pep_type',
                                      help_text=Pep._meta.get_field('pep_type').help_text)
+    pep_type_display = serializers.CharField(source='to_person.get_pep_type_display',
+                                             help_text=Pep._meta.get_field('pep_type').help_text)
 
     class Meta:
         model = RelatedPersonsLink
@@ -490,6 +492,7 @@ class FromRelatedPersonListSerializer(serializers.ModelSerializer):
             'id',
             'fullname',
             'pep_type',
+            'pep_type_display',
             'to_person_relationship_type',
             'to_person_relationship_type_en',
             'category_display',
@@ -503,7 +506,9 @@ class ToRelatedPersonListSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(source='from_person.id',
                                   help_text='DataOcean\'s internal unique identifier of the object (PEP).')
     fullname = serializers.CharField(source='from_person.fullname', help_text=Pep._meta.get_field('fullname').help_text)
-    pep_type = serializers.CharField(source='from_person.get_pep_type_display',
+    pep_type = serializers.CharField(source='from_person.pep_type',
+                                     help_text=Pep._meta.get_field('pep_type').help_text)
+    pep_type_display = serializers.CharField(source='from_person.get_pep_type_display',
                                      help_text=Pep._meta.get_field('pep_type').help_text)
 
     class Meta:
@@ -512,6 +517,7 @@ class ToRelatedPersonListSerializer(serializers.ModelSerializer):
             'id',
             'fullname',
             'pep_type',
+            'pep_type_display',
             'from_person_relationship_type',
             'from_person_relationship_type_en',
             'category_display',
@@ -530,7 +536,7 @@ class PepListSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
                                                      help_text='Companies related to personal. Connection established '
                                                                'by Anti-Corruption Action Center.')
 
-    pep_type = serializers.CharField(source='get_pep_type_display', help_text=Pep._meta.get_field('pep_type').help_text)
+    pep_type_display = serializers.CharField(source='get_pep_type_display', help_text=Pep._meta.get_field('pep_type').help_text)
     reason_of_termination = serializers.CharField(source='get_reason_of_termination_display',
                                                   help_text=Pep._meta.get_field('reason_of_termination').help_text)
     id = serializers.IntegerField(help_text='DataOcean\'s internal unique identifier of the object (PEP).')
@@ -540,14 +546,14 @@ class PepListSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
         fields = (
             'id', 'first_name', 'last_name', 'middle_name', 'fullname', 'fullname_en',
             'fullname_transcriptions_eng', 'last_job_title', 'last_employer', 'last_employer_en',
-            'is_pep', 'pep_type', 'info', 'sanctions', 'criminal_record', 'assets_info',
+            'is_pep', 'pep_type', 'pep_type_display', 'info', 'sanctions', 'criminal_record', 'assets_info',
             'criminal_proceedings', 'wanted', 'date_of_birth', 'place_of_birth', 'place_of_birth_en', 'is_dead',
             'termination_date', 'reason_of_termination', 'from_person_links', 'to_person_links',
             'related_companies', 'pep_org_ua_link', 'created_at', 'updated_at',
         )
 
 # class PepListFreemiumSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
-#     pep_type = serializers.CharField(
+#     pep_type_display = serializers.CharField(
 #     source='get_pep_type_display',
 #     help_text='Type of politically exposed person. Can be national politically exposed person, '
 #               'foreign politically exposed person, politically exposed person, having '
@@ -562,6 +568,7 @@ class PepListSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
 #             'fullname_transcriptions_eng'
 #             'is_pep',
 #             'pep_type',
+#             'pep_type_display',
 #             'date_of_birth',
 #             'created_at',
 #             'updated_at',
