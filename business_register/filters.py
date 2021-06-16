@@ -149,6 +149,10 @@ class PepFilterSet(filters.FilterSet):
         lookup_expr='search',
         help_text='Filter by full name "last name first name middle name" in Ukrainian.',
     )
+    fullname_en = filters.CharFilter(
+        lookup_expr='search',
+        help_text='Filter by full name in English.',
+    )
     fullname_transcriptions_eng = filters.CharFilter(
         lookup_expr='search',
         help_text='Filter by full name in English transcription.',
@@ -200,14 +204,12 @@ class PepFilterSet(filters.FilterSet):
         lookup_expr='icontains',
         help_text='Filter by last employer in Ukrainian.',
     )
-
     date_of_birth = filters.CharFilter(
         lookup_expr='icontains',
         help_text='Filter by date_of_birth, string contains type. '
                   'Examples: date_of_birth=1964, date_of_birth=1964-02, '
                   'date_of_birth=1964-02-06',
     )
-
     o = filters.OrderingFilter(
         fields=(
             ('fullname', 'fullname'),
