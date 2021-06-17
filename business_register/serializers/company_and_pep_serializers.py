@@ -189,6 +189,7 @@ class CompanyDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     relationships_with_peps = serializers.SerializerMethodField()
     founder_of = serializers.SerializerMethodField()
 
+    @swagger_serializer_method(serializer_or_field=CompanyLinkWithPepSerializer(many=True))
     def get_relationships_with_peps(self, obj):
         return filter_with_parameter(
             obj=obj,
@@ -202,6 +203,7 @@ class CompanyDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
 
         )
 
+    @swagger_serializer_method(serializer_or_field=CountFoundedCompaniesSerializer(many=True))
     def get_founder_of(self, obj):
         return filter_property(
             obj=obj,
