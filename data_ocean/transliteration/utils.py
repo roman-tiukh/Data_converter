@@ -50,6 +50,14 @@ def translate_company_type_in_string(string):
     )
 
 
+def translate_last_position_in_string(string):
+    return replace_translated(
+        string=string,
+        search_pattern="%s",  # search anywhere in string
+        translating_dict=constants.JOB_POSITIONS
+    )
+
+
 def translate_country_in_string(string):
     return replace_translated(
         string=string,
