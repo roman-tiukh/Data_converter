@@ -133,11 +133,11 @@ class TransliterateTestCase(SimpleTestCase):
         variants = (
             (
                 'голова ліквідаційної комісії',
-                'chair likvidatsiinoi komisii'
+                'chairman of the liquidation commission'
             ),
             (
                 'суддя касаційного господарського суду',
-                'judge kasatsiinoho hospodarskoho sudu'
+                'judge of the commercial court of cassation'
             ),
             (
                 'т.в.о. голови рда',
