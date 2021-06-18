@@ -633,5 +633,5 @@ JOB_POSITIONS = {
     "перший заступник міністра": "first deputy minister",
     "заступник міністра": "the deputy minister",
     "міністр": "minister",
-    "надзвичайний і повноважний посол":	"ambassador extraordinary and plenipotentiary",
+    "надзвичайний і повноважний посол": "ambassador extraordinary and plenipotentiary",
 }
