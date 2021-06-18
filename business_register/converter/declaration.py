@@ -79,7 +79,7 @@ class DeclarationConverter(BusinessConverter):
                             return pep
                 self.log_error(f'Cannot find person with nacp_id {pep_id}')
             else:
-                self.log_error(f'relatives_data is None')
+                self.log_error(f'empty relatives_data {self.relatives_data}')
         return None
 
     # looks like data starts with 'debtor_ua' is the data of the owner of the Money.Cash
@@ -1167,6 +1167,8 @@ class DeclarationConverter(BusinessConverter):
                 ):
                     self.relatives_data = detailed_declaration_data['step_2']['data']
                     self.save_related_person(pep, declaration)
+                else:
+                    self.relatives_data = None
 
                 # 'Step_3' - declarant`s family`s properties
                 if (detailed_declaration_data['step_3']
