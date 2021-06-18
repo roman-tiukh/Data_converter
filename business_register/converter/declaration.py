@@ -61,6 +61,7 @@ class DeclarationConverter(BusinessConverter):
         self.ENIGMA = {'1', 'j'}
         self.keys = set()
         self.current_declaration = None
+        self.relatives_data = None
 
     def log_error(self, message):
         logger.error(f'Declaration id {self.current_declaration.nacp_declaration_id} : {message}')
@@ -71,7 +72,14 @@ class DeclarationConverter(BusinessConverter):
         if len(peps) == 1:
             return peps[0]
         elif len(peps) > 1:
-            self.log_error(f'More than one person has nacp_id = {pep_id}')
+            if self.relatives_data:
+                for pep in peps:
+                    for relative_data in self.relatives_data:
+                        if is_same_full_name(relative_data, pep):
+                            return pep
+                self.log_error(f'Cannot find person with nacp_id {pep_id}')
+            else:
+                self.log_error(f'relatives_data is None')
         return None
 
     # looks like data starts with 'debtor_ua' is the data of the owner of the Money.Cash
@@ -974,7 +982,7 @@ class DeclarationConverter(BusinessConverter):
             else:
                 self.log_error(f'Cannot find country id {property_country_data}')
         else:
-            self.log_error(f'Invalid value {property_country_data}')
+            self.log_error(f'Invalid value for country: {property_country_data}')
 
     def split_address_data(self, address_data):
         parts = address_data.lower().split(' / ')
@@ -1029,9 +1037,9 @@ class DeclarationConverter(BusinessConverter):
     #     'postCode', 'passport_extendedstatus'
     # ]
     # TODO: maybe we should simplify spouse to CharField with full name
-    def save_related_person(self, relatives_data, pep, declaration):
+    def save_related_person(self, pep, declaration):
         SPOUSE_TYPES = ['дружина', 'чоловік']
-        for relative_data in relatives_data:
+        for relative_data in self.relatives_data:
             to_person_relationship_type = relative_data.get('subjectRelation')
             related_person_links = RelatedPersonsLink.objects.filter(
                 from_person=pep,
@@ -1054,9 +1062,9 @@ class DeclarationConverter(BusinessConverter):
                 else:
                     related_person.nacp_id.append(related_person_nacp_id)
                     related_person.save()
-                    if to_person_relationship_type in SPOUSE_TYPES:
-                        declaration.spouse = related_person
-                        declaration.save()
+                if to_person_relationship_type in SPOUSE_TYPES:
+                    declaration.spouse = related_person
+                    declaration.save()
 
     # possible_keys = [
     #     'actual_streetType', 'actual_apartmentsNum_extendedstatus', 'actual_apartmentsNum', 'country',
@@ -1152,12 +1160,13 @@ class DeclarationConverter(BusinessConverter):
 
                 # TODO: predict updating
                 # 'Step_2' - declarant`s family
-                # if (
-                #         not declaration.spouse
-                #         and detailed_declaration_data['step_2']
-                #         and not detailed_declaration_data['step_2'].get('isNotApplicable')
-                # ):
-                #    self.save_related_person(detailed_declaration_data['step_2']['data'], pep, declaration)
+                if (
+                        not declaration.spouse
+                        and detailed_declaration_data['step_2']
+                        and not detailed_declaration_data['step_2'].get('isNotApplicable')
+                ):
+                    self.relatives_data = detailed_declaration_data['step_2']['data']
+                    self.save_related_person(pep, declaration)
 
                 # 'Step_3' - declarant`s family`s properties
                 if (detailed_declaration_data['step_3']
