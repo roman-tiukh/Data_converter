@@ -77,9 +77,11 @@ class DeclarationConverter(BusinessConverter):
                     for relative_data in self.relatives_data:
                         if is_same_full_name(relative_data, pep):
                             return pep
-                self.log_error(f'Cannot find person with nacp_id {pep_id}')
+                self.log_error(f'Cannot find person with nacp_id {pep_id}. Check relatives_data {self.relatives_data}')
             else:
                 self.log_error(f'empty relatives_data {self.relatives_data}')
+        else:
+            self.log_error(f'Cannot find person with nacp_id {pep_id}')
         return None
 
     # looks like data starts with 'debtor_ua' is the data of the owner of the Money.Cash
