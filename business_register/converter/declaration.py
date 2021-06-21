@@ -49,7 +49,8 @@ class DeclarationConverter(BusinessConverter):
             '[Не відомо]',
             "[Член сім'ї не надав інформацію]",
             '[Конфіденційна інформація]',
-            'Не визначено'
+            'Не визначено',
+            'невідомо'
         }
         self.BOOLEAN_VALUES = {
             '1': True,
@@ -905,24 +906,32 @@ class DeclarationConverter(BusinessConverter):
             country_of_citizenship_info = data.get('citizen')
             # TODO: return country
             if country_of_citizenship_info:
+                if country_of_citizenship_info == 'Громадянин України':
+                    country_of_citizenship_info = '1'
                 country_of_citizenship = self.find_country(country_of_citizenship_info)
             else:
                 country_of_citizenship = None
             last_name = data.get('ua_lastname')
             first_name = data.get('ua_firstname')
-            middle_name = data.get('ua_middlename')
+            middle_name = data.get('ua_middlename') if data.get('ua_middlename') not in self.NO_DATA else ''
+            ukr_full_name = data.get('ukr_fullname')
+            eng_full_name = data.get('eng_fullname')
             if (
                     last_name not in self.NO_DATA
                     or first_name not in self.NO_DATA
                     or middle_name not in self.NO_DATA
             ):
                 full_name = f'{last_name} {first_name} {middle_name}'
+            elif ukr_full_name and ukr_full_name not in self.NO_DATA:
+                full_name = ukr_full_name
+            elif eng_full_name and eng_full_name not in self.NO_DATA:
+                full_name = eng_full_name
             else:
                 full_name = ''
 
             company = None
             company_code = data.get('ua_company_code')
-            if company_code not in self.ENIGMA:
+            if company_code not in self.ENIGMA and company_code not in self.NO_DATA:
                 company = Company.objects.filter(
                     edrpou=company_code,
                     source=Company.UKRAINE_REGISTER
@@ -1012,9 +1021,12 @@ class DeclarationConverter(BusinessConverter):
                 area = float(area.replace(',', '.'))
             else:
                 area = None
-            acquisition_date = data.get('owningDate')
+            acquisition_date = data.get('owningDate') if data.get('owningDate') not in self.NO_DATA else None
             if acquisition_date:
                 acquisition_date = simple_format_date_to_yymmdd(acquisition_date)
+                if len(acquisition_date) < 10:
+                    self.log_error(f'Wrong value for acquisition_date = {acquisition_date}')
+                    acquisition_date = None
             property = Property.objects.create(
                 declaration=declaration,
                 type=property_type,
