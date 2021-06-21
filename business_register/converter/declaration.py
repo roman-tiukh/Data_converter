@@ -16,6 +16,7 @@ from business_register.models.declaration_models import (Declaration,
                                                          SecuritiesRight,
                                                          Income,
                                                          Money,
+                                                         NgoParticipation,
                                                          )
 from business_register.models.pep_models import Pep, RelatedPersonsLink
 from location_register.models.address_models import Country
@@ -73,6 +74,63 @@ class DeclarationConverter(BusinessConverter):
         elif len(peps) > 1:
             self.log_error(f'More than one person has nacp_id = {pep_id}')
         return None
+
+    def create_ngo_participation(self, data, participation_type, declaration):
+        ngo_types = {
+            'Саморегулівне чи самоврядне професійне об’єднання': NgoParticipation.PROFESSIONAL_UNION,
+            'Громадське об’єднання': NgoParticipation.PUBLIC_ASSOCIATION,
+            'Благодійна організація': NgoParticipation.CHARITY
+        }
+        body_types = {
+            'Ревізійні органи': NgoParticipation.AUDIT_BODY,
+            'Наглядові органи': NgoParticipation.SUPERVISORY_BODY,
+            'Керівні органи': NgoParticipation.GOVERNING_BODY
+        }
+
+        ngo_type = ngo_types.get(data.get('objectType'))
+        ngo_name = data.get('objectName')
+        ngo_body_name = data.get('unitName')
+        if not ngo_body_name:
+            ngo_body_name = ''
+        ngo_body_type = body_types.get(data.get('unitType'))
+        ngo_registration_number = data.get('reestrCode')
+        ngo = None
+        if ngo_registration_number not in self.NO_DATA:
+            ngo = Company.objects.filter(
+                edrpou=ngo_registration_number,
+                source=Company.UKRAINE_REGISTER
+            ).first()
+            if not ngo:
+                self.log_error(
+                    f'Cannot identify ukrainian NGO with edrpou {ngo_registration_number}.'
+                    f'Check NGO data({data})'
+                )
+        else:
+            ngo_registration_number = ''
+        NgoParticipation.objects.create(
+            declaration=declaration,
+            participation_type=participation_type,
+            ngo_type=ngo_type,
+            ngo_name=ngo_name,
+            ngo_registration_number=ngo_registration_number,
+            ngo_body_type=ngo_body_type,
+            ngo_body_name=ngo_body_name,
+            ngo=ngo,
+            pep=declaration.pep
+        )
+
+    def save_ngo_participation(self, ngo_data, declaration):
+        # possible_keys = {'iteration', 'objectType', 'subObjectType', 'objectName', 'reestrCode'}
+        membership_data = ngo_data.get('org')
+        if membership_data:
+            for data in membership_data:
+                self.create_ngo_participation(data, NgoParticipation.MEMBERSHIP, declaration)
+
+        # possible_keys = {'iteration', 'unitType', 'objectType', 'unitName', 'objectName', 'reestrCode'}
+        leadership_data = ngo_data.get('part_org')
+        if leadership_data:
+            for data in leadership_data:
+                self.create_ngo_participation(data, NgoParticipation.LEADERSHIP, declaration)
 
     # looks like data starts with 'debtor_ua' is the data of the owner of the Money.Cash
     # possible_keys = {
@@ -1160,9 +1218,9 @@ class DeclarationConverter(BusinessConverter):
                 #    self.save_related_person(detailed_declaration_data['step_2']['data'], pep, declaration)
 
                 # 'Step_3' - declarant`s family`s properties
-                if (detailed_declaration_data['step_3']
-                        and not detailed_declaration_data['step_3'].get('isNotApplicable')):
-                    self.save_property(detailed_declaration_data['step_3']['data'], declaration)
+                # if (detailed_declaration_data['step_3']
+                #         and not detailed_declaration_data['step_3'].get('isNotApplicable')):
+                #     self.save_property(detailed_declaration_data['step_3']['data'], declaration)
 
                 # 'Step_4' - declarant`s family`s unfinished construction
                 # if (detailed_declaration_data['step_4']
@@ -1203,3 +1261,8 @@ class DeclarationConverter(BusinessConverter):
                 # if (detailed_declaration_data['step_12']
                 #         and not detailed_declaration_data['step_12'].get('isNotApplicable')):
                 #     self.save_money(detailed_declaration_data['step_12']['data'], declaration)
+
+                # 'Step_16' - declarant`s membership in NGOs
+                # if (detailed_declaration_data['step_16']
+                #         and not detailed_declaration_data['step_16'].get('isNotApplicable')):
+                #     self.save_ngo_participation(detailed_declaration_data['step_16']['data'], declaration)

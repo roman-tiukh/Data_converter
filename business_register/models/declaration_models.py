@@ -112,6 +112,92 @@ class Declaration(DataOceanModel):
         return f'declaration of {self.pep} for {self.year} year'
 
 
+class NgoParticipation(DataOceanModel):
+    MEMBERSHIP = 1
+    LEADERSHIP = 2
+    PARTICIPATION_TYPES = (
+        (MEMBERSHIP, _('Membership')),
+        (LEADERSHIP, _('Leadership'))
+    )
+
+    PROFESSIONAL_UNION = 1
+    PUBLIC_ASSOCIATION = 2
+    CHARITY = 3
+    NGO_TYPES = (
+        (PROFESSIONAL_UNION, _('Professional union')),
+        (PUBLIC_ASSOCIATION, _('Public association')),
+        (CHARITY, _('Charity'))
+    )
+
+    AUDIT_BODY = 1
+    SUPERVISORY_BODY = 2
+    GOVERNING_BODY = 3
+    BODY_TYPES = (
+        (AUDIT_BODY, _('Audit body')),
+        (SUPERVISORY_BODY, _('Supervisory body')),
+        (GOVERNING_BODY, _('Governing body')),
+    )
+
+    declaration = models.ForeignKey(
+        Declaration,
+        on_delete=models.PROTECT,
+        related_name='ngo_participation',
+        verbose_name=_('declaration')
+    )
+    participation_type = models.PositiveSmallIntegerField(
+        _('participation type'),
+        choices=PARTICIPATION_TYPES,
+        help_text=_('type of the participation in the NGO')
+    )
+    ngo_type = models.PositiveSmallIntegerField(
+        _('NGO type'),
+        choices=NGO_TYPES,
+        help_text=_('type of the NGO')
+    )
+    ngo_name = models.TextField(
+        _('NGO name'),
+        blank=True,
+        default='',
+        help_text=_('name of the NGO')
+    )
+    ngo_registration_number = models.CharField(
+        _('NGO registration number'),
+        max_length=25,
+        blank=True,
+        default='',
+        help_text=_('number of registration of the NGO')
+    )
+    ngo_body_type = models.PositiveSmallIntegerField(
+        _('NGO body type'),
+        choices=BODY_TYPES,
+        null=True,
+        help_text=_('type of the NGO`s body')
+    )
+    ngo_body_name = models.TextField(
+        _('NGO`s body name'),
+        blank=True,
+        default='',
+        help_text=_('name of the NGO`s body')
+    )
+    ngo = models.ForeignKey(
+        Company,
+        on_delete=models.PROTECT,
+        related_name='participants_peps',
+        verbose_name=_('NGO'),
+        null=True,
+        blank=True,
+        default=None,
+        help_text=_('NGO in which PEP participates')
+    )
+    pep = models.ForeignKey(
+        Pep,
+        on_delete=models.PROTECT,
+        related_name='ngo',
+        verbose_name=_('PEP that has the liability'),
+        help_text=_('politically exposed person that participates in the NGO')
+    )
+
+
 class Liability(DataOceanModel):
     LOAN = 1
     OTHER = 10
