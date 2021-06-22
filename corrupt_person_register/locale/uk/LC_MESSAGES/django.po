@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-04-19 11:40+0300\n"
+"POT-Creation-Date: 2021-06-22 14:10+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -138,8 +138,10 @@ msgid "the name of legal form"
 msgstr "назва ворми власності"
 
 #: corrupt_person_register/models.py:201
-msgid "Legal entity who have committed corruption or corruption-related offenses"
-msgstr "Юридичні особи, які вчинили корупцію або пов'язані з корупцією правопорушення"
+msgid ""
+"Legal entity who have committed corruption or corruption-related offenses"
+msgstr ""
+"Юридичні особи, які вчинили корупцію або пов'язані з корупцією правопорушення"
 
 #: corrupt_person_register/models.py:206
 msgid "last name"
@@ -171,5 +173,5 @@ msgstr "назва сфери діяльності"
 
 #: corrupt_person_register/models.py:258
 msgid "Individual who have committed corruption or corruption-related offenses"
-msgstr "Фізичні особи, які вчинили корупцію або пов'язані з корупцією правопорушення"
-
+msgstr ""
+"Фізичні особи, які вчинили корупцію або пов'язані з корупцією правопорушення"
