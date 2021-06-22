@@ -198,6 +198,79 @@ class NgoParticipation(DataOceanModel):
     )
 
 
+class PartTimeJob(DataOceanModel):
+    declaration = models.ForeignKey(
+        Declaration,
+        on_delete=models.PROTECT,
+        related_name='part_time_jobs',
+        verbose_name=_('declaration')
+    )
+    is_paid = models.BooleanField(
+        _('is_paid'),
+        null=True,
+        blank=True,
+        default=None,
+        help_text=_('is the job paid')
+    )
+    description = models.TextField(
+        _('description'),
+        blank=True,
+        default='',
+        help_text=_('description of the PEP`s part-time job')
+    )
+    employer_from_info = models.CharField(
+        _('info about ukrainian registration'),
+        max_length=55,
+        blank=True,
+        default='',
+        help_text=_('info about ukrainian registration of the employer')
+    )
+    employer_name = models.TextField(
+        _('name of the employer'),
+        max_length=75,
+        blank=True,
+        default='',
+        help_text=_('name of the employer')
+    )
+    employer_name_eng = models.TextField(
+        _('name of the employer in English'),
+        max_length=75,
+        blank=True,
+        default='',
+        help_text=_('name of the employer in English ')
+    )
+    employer_address = models.TextField(
+        _('address of the employer'),
+        blank=True,
+        default='',
+        help_text=_('address of the employer')
+    )
+    employer_registration_number = models.CharField(
+        _('registration number of the employer'),
+        max_length=25,
+        blank=True,
+        default='',
+        help_text=_('number of registration of the employer')
+    )
+    employer = models.ForeignKey(
+        Company,
+        on_delete=models.PROTECT,
+        related_name='peps_employees',
+        null=True,
+        blank=True,
+        default=None,
+        verbose_name=_('employer'),
+        help_text=_('employer of the PEP for part-time job')
+    )
+    employer_full_name = models.CharField(
+        _('employer full name'),
+        max_length=75,
+        blank=True,
+        default='',
+        help_text='full name of the person that gave PEP part-time job'
+    )
+
+
 class Liability(DataOceanModel):
     LOAN = 1
     OTHER = 10

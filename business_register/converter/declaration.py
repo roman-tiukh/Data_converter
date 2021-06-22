@@ -16,6 +16,7 @@ from business_register.models.declaration_models import (Declaration,
                                                          SecuritiesRight,
                                                          Income,
                                                          Money,
+                                                         PartTimeJob,
                                                          NgoParticipation,
                                                          )
 from business_register.models.pep_models import Pep, RelatedPersonsLink
@@ -141,6 +142,81 @@ class DeclarationConverter(BusinessConverter):
         if leadership_data:
             for data in leadership_data:
                 self.create_ngo_participation(data, NgoParticipation.LEADERSHIP, declaration)
+
+    # possible_keys = {
+    #     'emitent_ukr_company_address', 'paid', 'emitent_ua_company_code_extendedstatus',
+    #     'emitent_eng_company_code_extendedstatus', 'emitent_ua_company_code', 'iteration',
+    #     'emitent_eng_company_address', 'emitent_ukr_company_name', 'description', 'emitent_eng_company_code',
+    #     'emitent_ukr_company_name_extendedstatus', 'emitent_citizen', 'emitent_ua_company_name',
+    #     'emitent_eng_company_address_extendedstatus', 'emitent_eng_company_name', 'margin-emitent',
+    #     'emitent_ua_firstname', 'emitent_ua_lastname', 'emitent_ua_middlename'
+    # }
+
+    def save_part_time_job(self, part_time_job_data, declaration):
+        is_paid_booleans = {'Оплачувана': True, 'Не оплачувана': False}
+        for data in part_time_job_data:
+            is_paid = is_paid_booleans.get(data.get('paid'))
+            description = data.get('description', '')
+            employer_from_info = data.get('emitent_citizen', '')
+            employer_name = data.get('emitent_ua_company_name')
+            if employer_name in self.NO_DATA:
+                employer_name = data.get('emitent_ukr_company_name')
+            if employer_name in self.NO_DATA:
+                employer_name = ''
+            employer_name_eng = data.get('emitent_eng_company_name')
+            if employer_name_eng in self.NO_DATA:
+                employer_name_eng = ''
+            employer_address = data.get('emitent_ukr_company_address')
+            if employer_address in self.NO_DATA:
+                employer_address = data.get('emitent_eng_company_address')
+            if employer_address in self.NO_DATA:
+                employer_address = ''
+            employer = None
+            employer_registration_number = data.get('emitent_ua_company_code')
+            if employer_registration_number not in self.NO_DATA:
+                employer_registration_number = employer_registration_number.zfill(8)
+                employer = Company.objects.filter(
+                    edrpou=employer_registration_number,
+                    source=Company.UKRAINE_REGISTER
+                ).first()
+                if not employer:
+                    self.log_error(
+                        f'Cannot identify ukrainian company with edrpou {employer_registration_number}.'
+                        f'Check part-time job data({data})'
+                    )
+            else:
+                employer_registration_number = ''
+            employer_foreign_registration_number = data.get('emitent_eng_company_code')
+            if employer_foreign_registration_number not in self.NO_DATA:
+                employer = Company.objects.create(
+                    name=employer_name_eng,
+                    edrpou=employer_foreign_registration_number,
+                    address=employer_address,
+                    source=Company.DECLARATIONS
+                )
+                employer_registration_number = employer_foreign_registration_number
+
+            employer_last_name = data.get('emitent_ua_lastname')
+            employer_first_name = data.get('emitent_ua_firstname')
+            employer_middle_name = data.get('emitent_ua_middlename')
+            employer_full_name = ''
+            if employer_last_name and employer_first_name:
+                employer_full_name = f'{employer_last_name} {employer_first_name}'
+                if employer_middle_name:
+                    employer_full_name = f'{employer_full_name} {employer_middle_name}'
+
+            PartTimeJob.objects.create(
+                declaration=declaration,
+                is_paid=is_paid,
+                description=description,
+                employer_from_info=employer_from_info,
+                employer_name=employer_name,
+                employer_name_eng=employer_name_eng,
+                employer_address=employer_address,
+                employer_registration_number=employer_registration_number,
+                employer=employer,
+                employer_full_name=employer_full_name
+            )
 
     # looks like data starts with 'debtor_ua' is the data of the owner of the Money.Cash
     # possible_keys = {
@@ -369,8 +445,6 @@ class DeclarationConverter(BusinessConverter):
                 last_name = data.get('source_ukr_lastname')
             if not last_name:
                 last_name = data.get('source_eng_lastname')
-                if last_name:
-                    print(last_name)
             first_name = data.get('source_ua_firstname')
             if not first_name:
                 first_name = data.get('source_ukr_firstname')
@@ -1274,6 +1348,11 @@ class DeclarationConverter(BusinessConverter):
                 # if (detailed_declaration_data['step_12']
                 #         and not detailed_declaration_data['step_12'].get('isNotApplicable')):
                 #     self.save_money(detailed_declaration_data['step_12']['data'], declaration)
+
+                # 'Step_15' - declarant`s part-time job info
+                if (detailed_declaration_data['step_15']
+                        and not detailed_declaration_data['step_15'].get('isNotApplicable')):
+                    self.save_part_time_job(detailed_declaration_data['step_15']['data'], declaration)
 
                 # 'Step_16' - declarant`s membership in NGOs
                 # if (detailed_declaration_data['step_16']
