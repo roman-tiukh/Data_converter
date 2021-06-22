@@ -18,6 +18,7 @@ from business_register.models.declaration_models import (Declaration,
                                                          Money,
                                                          PartTimeJob,
                                                          NgoParticipation,
+                                                         Liability
                                                          )
 from business_register.models.pep_models import Pep, RelatedPersonsLink
 from location_register.models.address_models import Country
@@ -218,6 +219,180 @@ class DeclarationConverter(BusinessConverter):
                 employer_full_name=employer_full_name
             )
 
+    possible_keys = {
+        'emitent_ua_company_code_extendedstatus', 'emitent_ua_company_code', 'guarantor_realty',
+        'emitent_ua_actualAddress', 'emitent_eng_regAddress', 'emitent_eng_birthday', 'emitent_eng_company_name',
+        'emitent_ukr_fullname', 'dateOrigin', 'otherObjectType', 'emitent_ua_birthday_extendedstatus',
+        'emitent_ukr_regAddress_extendedstatus', 'person', 'otherObjectType_extendedstatus',
+        'emitent_eng_company_address', 'emitent_ukr_company_address', 'emitent_ua_middlename',
+        'emitent_eng_taxNumber_extendedstatus', 'iteration', 'dateOrigin_extendedstatus', 'guarantor',
+        'emitent_ukr_company_address_extendedstatus', 'sizeObligation_extendedstatus', 'emitent_ua_birthday',
+        'margin-emitent_extendedstatus', 'emitent_eng_company_code', 'credit_rest_extendedstatus',
+        'currency_extendedstatus', 'emitent_ua_taxNumber', 'credit_percent_paid_extendedstatus', 'person_who_care',
+        'emitent_ua_middlename_extendedstatus', 'margin-emitent', 'emitent_eng_company_code_extendedstatus',
+        'guarantor_realty_exist_', 'emitent_ua_sameRegLivingAddress', 'emitent_eng_company_address_extendedstatus',
+        'emitent_ua_lastname', 'credit_paid', 'emitent_ukr_company_name', 'emitent_ua_firstname', 'currency',
+        'sizeObligation', 'guarantor_exist_', 'emitent_ua_taxNumber_extendedstatus',
+        'emitent_ua_regAddress_extendedstatus', 'emitent_eng_fullname', 'credit_paid_extendedstatus',
+        'emitent_eng_birthday_extendedstatus', 'emitent_citizen', 'emitent_ukr_regAddress', 'credit_rest',
+        'credit_percent_paid', 'emitent_ua_company_name', 'emitent_ua_regAddress', 'emitent_eng_taxNumber',
+        'emitent_ua_actualAddress_extendedstatus', 'emitent_eng_regAddress_extendedstatus', 'objectType'
+    }
+
+    def save_liability(self, liabilities_data, declaration):
+        types = {
+            'Отримані кредити': Liability.LOAN,
+            'Отримані позики': Liability.LOAN,
+            'Розмір сплачених коштів в рахунок процентів за позикою (кредитом)':
+                Liability.INTEREST_LOAN_PAYMENTS,
+            'Розмір сплачених коштів в рахунок основної суми позики (кредиту)':
+                Liability.LOAN_PAYMENTS,
+            "Несплачені податкові зобов'язання": Liability.TAX_DEBT,
+            "Зобов'язання за договорами страхування": Liability.INSURANCE,
+            "Зобов'язання за договорами недержавного пенсійного забезпечення":
+                Liability.PENSION_INSURANCE,
+            "Зобов'язання за договорами лізингу": Liability.LEASING,
+            "Кошти, позичені суб'єкту декларування або члену його сім'ї іншими особами":
+                Liability.BORROWED_MONEY_BY_ANOTHER_PERSON,
+            'Інше': Liability.OTHER
+        }
+
+        for data in liabilities_data:
+            liability_type = types.get(data.get('objectType'))
+            # TODO: check if we should store more fields when liability_type==TAX_DEBT
+            additional_info = data.get('otherObjectType', '')
+            currency = data.get('currency', '')
+            amount = data.get('sizeObligation')
+            if amount not in self.NO_DATA:
+                amount = float(amount)
+            loan_rest = data.get('credit_rest')
+            if loan_rest not in self.NO_DATA:
+                loan_rest = float(loan_rest)
+            else:
+                loan_rest = None
+            loan_paid = data.get('credit_paid')
+            if loan_paid not in self.NO_DATA:
+                loan_paid = float(loan_paid)
+            else:
+                loan_paid = None
+            interest_paid = data.get('credit_percent_paid')
+            if interest_paid not in self.NO_DATA:
+                interest_paid = float(interest_paid)
+            else:
+                interest_paid = None
+
+            date = simple_format_date_to_yymmdd(data.get('dateOrigin'))
+
+            bank_from_info = data.get('emitent_citizen', '')
+            bank_name = data.get('emitent_ua_company_name')
+            if bank_name in self.NO_DATA:
+                bank_name = data.get('emitent_ukr_company_name')
+            if bank_name in self.NO_DATA:
+                bank_name = ''
+            bank_name_eng = data.get('emitent_eng_company_name')
+            if bank_name_eng in self.NO_DATA:
+                bank_name_eng = ''
+            bank_address = data.get('emitent_ukr_company_address')
+            if bank_address in self.NO_DATA:
+                bank_address = data.get('emitent_eng_company_address')
+            if bank_address in self.NO_DATA:
+                bank_address = ''
+            bank = None
+            bank_registration_number = data.get('emitent_ua_company_code')
+            if bank_registration_number not in self.NO_DATA:
+                bank = Company.objects.filter(
+                    edrpou=bank_registration_number,
+                    source=Company.UKRAINE_REGISTER
+                ).first()
+                if not bank:
+                    self.log_error(
+                        f'Cannot identify ukrainian company with edrpou {bank_registration_number}.'
+                        f'Check liability data({data})'
+                    )
+                    continue
+            else:
+                bank_registration_number = ''
+            bank_foreign_registration_number = data.get('emitent_eng_company_code')
+            if bank_foreign_registration_number not in self.NO_DATA:
+                bank = Company.objects.create(
+                    name=bank_name_eng,
+                    edrpou=bank_foreign_registration_number,
+                    address=bank_address,
+                    source=Company.DECLARATIONS
+                )
+                bank_registration_number = bank_foreign_registration_number
+
+            guarantee = ''
+            guarantee_amount = None
+            guarantee_registration = None
+            if data.get('guarantor_realty') not in self.NO_DATA:
+                # An example of this field:
+                # 'guarantor_realty': [
+                #     {'realty_objectType': 'Автомобіль легковий', 'realty_ua_postCode': '[Конфіденційна інформація]',
+                #      'realty_ua_cityPath': '1.2.80', 'realty_ua_apartmentsNum': '[Конфіденційна інформація]',
+                #      'realty_ua_housePartNum_extendedstatus': '1', 'realty_ua_streetType': '[Конфіденційна інформація]',
+                #      'realty_ua_cityType': 'Київ / Україна', 'realty_ua_housePartNum': '[Конфіденційна інформація]',
+                #      'realty_ua_street': '[Конфіденційна інформація]', 'region': '[Конфіденційна інформація]',
+                #      'realty_cost': '931410', 'realty_country': '1',
+                #      'realty_ua_houseNum': '[Конфіденційна інформація]'}]
+                guarantee_info = data.get('guarantor_realty')[0]
+                guarantee = guarantee_info.get('realty_objectType', '')
+                guarantee_amount = guarantee_info.get('realty_cost')
+                if guarantee_amount not in self.NO_DATA:
+                    guarantee_amount = float(guarantee_amount)
+                guarantee_registration = self.find_city(guarantee_info.get('realty_ua_cityType'))
+
+            creditor_from_info = data.get('emitent_citizen', '')
+            creditor_full_name = data.get('emitent_ukr_fullname', '')
+            creditor_full_name_eng = data.get('emitent_eng_fullname', '')
+
+            creditor_last_name = data.get('emitent_ua_lastname')
+            creditor_first_name = data.get('emitent_ua_firstname')
+            creditor_middle_name = data.get('emitent_ua_middlename')
+            if creditor_last_name and creditor_first_name:
+                creditor_full_name = f'{creditor_last_name} {creditor_first_name}'
+                if creditor_middle_name:
+                    creditor_full_name = f'{creditor_full_name} {creditor_middle_name}'
+
+            owner = None
+            owner_id = data.get('person')
+            if owner_id in self.NO_DATA:
+                owner_info = data.get('person_who_care')
+                if owner_info:
+                    owner_id = owner_info[0].get('person')
+            if owner_id not in self.NO_DATA:
+                if owner_id in self.ENIGMA:
+                    owner = declaration.pep
+                else:
+                    owner = Pep.objects.filter(nacp_id=int(owner_id)).first()
+            if not owner:
+                self.log_error(f'Cannot identify owner of the liability from data({data})')
+            else:
+                Liability.objects.create(
+                    declaration=declaration,
+                    type=liability_type,
+                    additional_info=additional_info,
+                    amount=amount,
+                    loan_rest=loan_rest,
+                    loan_paid=loan_paid,
+                    interest_paid=interest_paid,
+                    currency=currency,
+                    date=date,
+                    bank_from_info=bank_from_info,
+                    bank_name=bank_name,
+                    bank_name_eng=bank_name_eng,
+                    bank_address=bank_address,
+                    bank_registration_number=bank_registration_number,
+                    bank=bank,
+                    guarantee=guarantee,
+                    guarantee_amount=guarantee_amount,
+                    guarantee_registration=guarantee_registration,
+                    creditor_from_info=creditor_from_info,
+                    creditor_full_name=creditor_full_name,
+                    creditor_full_name_eng=creditor_full_name_eng,
+                    owner=owner)
+
+    # TODO: discover what are 'guarantor' and 'margin-emitent' (can be 'j') fields
     # looks like data starts with 'debtor_ua' is the data of the owner of the Money.Cash
     # possible_keys = {
     #     'debtor_ua_birthday', 'iteration', 'organization_eng_company_name_extendedstatus', 'debtor_ua_lastname',
@@ -260,7 +435,11 @@ class DeclarationConverter(BusinessConverter):
             # TODO: check records after storing
             currency = data.get('assetsCurrency', '')
 
-            if money_type in [Money.BANK_ACCOUNT, Money.CONTRIBUTION, Money.OTHER]:
+            if money_type in [
+                Money.BANK_ACCOUNT,
+                Money.CONTRIBUTION,
+                Money.OTHER
+            ]:
                 bank_from_info = data.get('organization_type', '')
                 bank_name = data.get('organization_ua_company_name')
                 if bank_name in self.NO_DATA:
@@ -339,10 +518,6 @@ class DeclarationConverter(BusinessConverter):
                     bank=bank,
                     owner=owner
                 )
-
-    # TODO: implement
-    def save_income_right(self, income, rights_data):
-        pass
 
     # possible_keys = {
     #     'source_eng_company_code', 'source_ukr_regAddress', 'incomeSource', 'source_ukr_fullname', 'source_citizen',
@@ -479,6 +654,8 @@ class DeclarationConverter(BusinessConverter):
                                f'Check income data({data})')
             else:
                 recipient = self.find_person(recipient_code)
+            # TODO: Check if we can extract recipient from rights_data like in Money
+            rights_data = data.get('rights')
             if not recipient:
                 self.log_error(
                     f'Cannot identify income recipient with NACP id {recipient_code}.'
@@ -497,10 +674,7 @@ class DeclarationConverter(BusinessConverter):
                 recipient=recipient
             )
 
-            rights_data = data.get('rights')
-            if rights_data:
-                self.save_income_right(income, rights_data)
-            # TODO: store  'iteration'. Example of the value '1614443380219'
+            # TODO: discover  'iteration'. Example of the value '1614443380219'
             iteration = data.get('iteration')
 
     # TODO: implement
@@ -1009,8 +1183,7 @@ class DeclarationConverter(BusinessConverter):
             # TODO: store 'seller', check if this field is only for changes
             # Possible values = ['Продавець']
             seller = data.get('seller')
-            if seller not in self.NO_DATA:
-                pass
+
             PropertyRight.objects.create(
                 property=property,
                 type=type,
@@ -1349,10 +1522,15 @@ class DeclarationConverter(BusinessConverter):
                 #         and not detailed_declaration_data['step_12'].get('isNotApplicable')):
                 #     self.save_money(detailed_declaration_data['step_12']['data'], declaration)
 
+                # 'Step_13' - declarant`s family`s liabilities
+                if (detailed_declaration_data['step_13']
+                        and not detailed_declaration_data['step_13'].get('isNotApplicable')):
+                    self.save_liability(detailed_declaration_data['step_13']['data'], declaration)
+
                 # 'Step_15' - declarant`s part-time job info
-                if (detailed_declaration_data['step_15']
-                        and not detailed_declaration_data['step_15'].get('isNotApplicable')):
-                    self.save_part_time_job(detailed_declaration_data['step_15']['data'], declaration)
+                # if (detailed_declaration_data['step_15']
+                #         and not detailed_declaration_data['step_15'].get('isNotApplicable')):
+                #     self.save_part_time_job(detailed_declaration_data['step_15']['data'], declaration)
 
                 # 'Step_16' - declarant`s membership in NGOs
                 # if (detailed_declaration_data['step_16']
