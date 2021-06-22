@@ -50,7 +50,7 @@ class DeclarationConverter(BusinessConverter):
             "[Член сім'ї не надав інформацію]",
             '[Конфіденційна інформація]',
             'Не визначено',
-            'невідомо'
+            'невідомо',
         }
         self.BOOLEAN_VALUES = {
             '1': True,
@@ -61,6 +61,8 @@ class DeclarationConverter(BusinessConverter):
             "функцій держави або місцевого самоврядування": False,
         }
         self.ENIGMA = {'1', 'j'}
+        self.DECLARANT = '1'
+        self.OTHER_PERSON = 'j'
         self.keys = set()
         self.current_declaration = None
         self.relatives_data = None
@@ -875,6 +877,7 @@ class DeclarationConverter(BusinessConverter):
              'ЗУ «Про запобігання корупції»'): PropertyRight.BENEFICIAL_OWNERSHIP,
             "[Член сім'ї не надав інформацію]": PropertyRight.NO_INFO_FROM_FAMILY_MEMBER,
         }
+        UKRAINE_NACP_ID = '1'
         for data in rights_data:
             type = TYPES.get(data.get('ownershipType'))
             share = data.get('percent-ownership')
@@ -886,28 +889,29 @@ class DeclarationConverter(BusinessConverter):
             pep = None
             # TODO: store value from ENIGMA
             if owner_id not in self.NO_DATA:
-                if owner_id == '1':
+                if owner_id == self.DECLARANT:
                     pep = property.declaration.pep
-                elif owner_id == 'j':
+                elif owner_id == self.OTHER_PERSON:
                     # TODO: decide should we store PEP 'Власником є третя особа' and use it in such case
                     pass
                 else:
                     pep = self.find_person(owner_id)
             other_owner_info = data.get('rights_id')
             if not pep and other_owner_info:
-                if other_owner_info == '1':
+                if other_owner_info == self.DECLARANT:
                     pep = property.declaration.pep
-                elif other_owner_info == 'j':
+                elif other_owner_info == self.OTHER_PERSON:
                     # TODO: decide should we store PEP 'Власником є третя особа' and use it in such case
                     pass
-                pep = self.find_person(other_owner_info)
+                else:
+                    pep = self.find_person(other_owner_info)
 
             additional_info = data.get('otherOwnership', '')
             country_of_citizenship_info = data.get('citizen')
             # TODO: return country
             if country_of_citizenship_info:
                 if country_of_citizenship_info == 'Громадянин України':
-                    country_of_citizenship_info = '1'
+                    country_of_citizenship_info = UKRAINE_NACP_ID
                 country_of_citizenship = self.find_country(country_of_citizenship_info)
             else:
                 country_of_citizenship = None
