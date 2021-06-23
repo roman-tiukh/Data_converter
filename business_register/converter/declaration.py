@@ -644,13 +644,13 @@ class DeclarationConverter(BusinessConverter):
             recipient = None
             # value could be 'j'
             recipient_code = data.get('incomeSource')
-            if not recipient_code or recipient_code == 'j':
+            if not recipient_code or recipient_code == self.OTHER_PERSON:
                 recipient_code = data.get('person')
             if not recipient_code:
                 recipient_data = data.get('person_who_care')
                 if recipient_data:
                     recipient_code = recipient_data[0].get('person')
-            if recipient_code == '1':
+            if recipient_code == self.DECLARANT:
                 recipient = declaration.pep
             elif recipient_code in self.NO_DATA:
                 recipient_code = ''
