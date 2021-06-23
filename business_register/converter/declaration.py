@@ -926,9 +926,9 @@ class DeclarationConverter(BusinessConverter):
                     or middle_name not in self.NO_DATA
             ):
                 full_name = f'{last_name} {first_name} {middle_name}'
-            elif ukr_full_name and ukr_full_name not in self.NO_DATA:
+            elif ukr_full_name not in self.NO_DATA:
                 full_name = ukr_full_name
-            elif eng_full_name and eng_full_name not in self.NO_DATA:
+            elif eng_full_name not in self.NO_DATA:
                 full_name = eng_full_name
             else:
                 full_name = ''
