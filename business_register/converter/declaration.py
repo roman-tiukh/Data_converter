@@ -51,7 +51,8 @@ class DeclarationConverter(BusinessConverter):
             '[Не відомо]',
             "[Член сім'ї не надав інформацію]",
             '[Конфіденційна інформація]',
-            'Не визначено'
+            'Не визначено',
+            'невідомо',
         }
         self.BOOLEAN_VALUES = {
             '1': True,
@@ -62,6 +63,8 @@ class DeclarationConverter(BusinessConverter):
             "функцій держави або місцевого самоврядування": False,
         }
         self.ENIGMA = {'1', 'j'}
+        self.DECLARANT = '1'
+        self.OTHER_PERSON = 'j'
         self.keys = set()
         self.current_declaration = None
         self.relatives_data = None
@@ -1120,6 +1123,7 @@ class DeclarationConverter(BusinessConverter):
              'ЗУ «Про запобігання корупції»'): PropertyRight.BENEFICIAL_OWNERSHIP,
             "[Член сім'ї не надав інформацію]": PropertyRight.NO_INFO_FROM_FAMILY_MEMBER,
         }
+        UKRAINE_NACP_ID = '1'
         for data in rights_data:
             type = TYPES.get(data.get('ownershipType'))
             share = data.get('percent-ownership')
@@ -1131,44 +1135,53 @@ class DeclarationConverter(BusinessConverter):
             pep = None
             # TODO: store value from ENIGMA
             if owner_id not in self.NO_DATA:
-                if owner_id == '1':
+                if owner_id == self.DECLARANT:
                     pep = property.declaration.pep
-                elif owner_id == 'j':
+                elif owner_id == self.OTHER_PERSON:
                     # TODO: decide should we store PEP 'Власником є третя особа' and use it in such case
                     pass
                 else:
                     pep = self.find_person(owner_id)
             other_owner_info = data.get('rights_id')
             if not pep and other_owner_info:
-                if other_owner_info == '1':
+                if other_owner_info == self.DECLARANT:
                     pep = property.declaration.pep
-                elif other_owner_info == 'j':
+                elif other_owner_info == self.OTHER_PERSON:
                     # TODO: decide should we store PEP 'Власником є третя особа' and use it in such case
                     pass
-                pep = self.find_person(other_owner_info)
+                else:
+                    pep = self.find_person(other_owner_info)
 
             additional_info = data.get('otherOwnership', '')
             country_of_citizenship_info = data.get('citizen')
             # TODO: return country
             if country_of_citizenship_info:
+                if country_of_citizenship_info == 'Громадянин України':
+                    country_of_citizenship_info = UKRAINE_NACP_ID
                 country_of_citizenship = self.find_country(country_of_citizenship_info)
             else:
                 country_of_citizenship = None
             last_name = data.get('ua_lastname')
             first_name = data.get('ua_firstname')
-            middle_name = data.get('ua_middlename')
+            middle_name = data.get('ua_middlename') if data.get('ua_middlename') not in self.NO_DATA else ''
+            ukr_full_name = data.get('ukr_fullname')
+            eng_full_name = data.get('eng_fullname')
             if (
                     last_name not in self.NO_DATA
                     or first_name not in self.NO_DATA
                     or middle_name not in self.NO_DATA
             ):
                 full_name = f'{last_name} {first_name} {middle_name}'
+            elif ukr_full_name not in self.NO_DATA:
+                full_name = ukr_full_name
+            elif eng_full_name not in self.NO_DATA:
+                full_name = eng_full_name
             else:
                 full_name = ''
 
             company = None
             company_code = data.get('ua_company_code')
-            if company_code not in self.ENIGMA:
+            if company_code not in self.ENIGMA and company_code not in self.NO_DATA:
                 company = Company.objects.filter(
                     edrpou=company_code,
                     source=Company.UKRAINE_REGISTER
@@ -1257,9 +1270,12 @@ class DeclarationConverter(BusinessConverter):
                 area = float(area.replace(',', '.'))
             else:
                 area = None
-            acquisition_date = data.get('owningDate')
+            acquisition_date = data.get('owningDate') if data.get('owningDate') not in self.NO_DATA else None
             if acquisition_date:
                 acquisition_date = simple_format_date_to_yymmdd(acquisition_date)
+                if len(acquisition_date) < 10:
+                    self.log_error(f'Wrong value for acquisition_date = {acquisition_date}')
+                    acquisition_date = None
             property = Property.objects.create(
                 declaration=declaration,
                 type=property_type,

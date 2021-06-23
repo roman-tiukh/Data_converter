@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-04-15 15:57+0300\n"
+"POT-Creation-Date: 2021-06-22 14:10+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -139,197 +139,197 @@ msgstr "У вас залишилося 0 переглядів"
 msgid "You do not have permission to perform this action."
 msgstr "У вас немає дозволу на виконання цієї дії."
 
-#: payment_system/models.py:23 payment_system/models.py:288
+#: payment_system/models.py:24 payment_system/models.py:289
 msgid "name"
 msgstr "назва"
 
-#: payment_system/models.py:26
+#: payment_system/models.py:27
 msgid "disabled_at"
 msgstr "деактивовано"
 
-#: payment_system/models.py:28
+#: payment_system/models.py:29
 msgid "owner"
 msgstr "власник"
 
-#: payment_system/models.py:30
+#: payment_system/models.py:31
 msgid "user"
 msgstr "користувач"
 
-#: payment_system/models.py:33 payment_system/models.py:339
+#: payment_system/models.py:34 payment_system/models.py:340
 msgid "subscriptions"
 msgstr "тарифні плани"
 
-#: payment_system/models.py:100 payment_system/models.py:130
+#: payment_system/models.py:101 payment_system/models.py:131
 msgid "User already in project"
 msgstr "Користувач вже в проєкті"
 
-#: payment_system/models.py:103
+#: payment_system/models.py:104
 msgid "User already invited"
 msgstr "Користувача вже запрошено"
 
-#: payment_system/models.py:119
+#: payment_system/models.py:120
 msgid "User is not invited"
 msgstr "Користувача не запрошено"
 
-#: payment_system/models.py:143
+#: payment_system/models.py:144
 msgid "You cannot deactivate an owner from his own project"
 msgstr "Ви не можете відключити власника від його власного проєкту"
 
-#: payment_system/models.py:145
+#: payment_system/models.py:146
 msgid "User already deactivated"
 msgstr "Користувача вже деактивовано"
 
-#: payment_system/models.py:153
+#: payment_system/models.py:154
 msgid "User already activated"
 msgstr "Користувач вже активований"
 
-#: payment_system/models.py:161
+#: payment_system/models.py:162
 msgid "You cannot delete an owner from his own project"
 msgstr "Ви не можете видалити власника з його власного проєкту"
 
-#: payment_system/models.py:168
+#: payment_system/models.py:169
 msgid "You cannot disable default project"
 msgstr "Ви не можете вимкнути базовий проєкт"
 
-#: payment_system/models.py:202
+#: payment_system/models.py:203
 msgid "Can't add second future subscription"
 msgstr "Не вдається додати другий майбутній тарифний план"
 
-#: payment_system/models.py:214 payment_system/models.py:239
+#: payment_system/models.py:215 payment_system/models.py:240
 msgid "Project have subscription on a grace period, can't add new subscription"
 msgstr ""
 "Проєкт має тарифний план на пільговому періоді, не можете додати новий "
 "тарифний план"
 
-#: payment_system/models.py:217
+#: payment_system/models.py:218
 msgid "Project already on {}"
 msgstr "Проєкт вже на {}"
 
-#: payment_system/models.py:254
+#: payment_system/models.py:255
 msgid "Project don't have future subscription"
 msgstr "Проект не має майбутньої підписки"
 
-#: payment_system/models.py:276 payment_system/models.py:715
+#: payment_system/models.py:277 payment_system/models.py:789
 msgid "project"
 msgstr "проєкти"
 
-#: payment_system/models.py:277
+#: payment_system/models.py:278
 msgid "projects"
 msgstr "проєкти"
 
-#: payment_system/models.py:289
+#: payment_system/models.py:290
 msgid "description"
 msgstr "опис"
 
-#: payment_system/models.py:290 payment_system/models.py:373
+#: payment_system/models.py:291 payment_system/models.py:374
 msgid "price"
 msgstr "вартість"
 
-#: payment_system/models.py:291 payment_system/models.py:369
+#: payment_system/models.py:292 payment_system/models.py:370
 msgid "requests limit"
 msgstr "ліміт запитів"
 
-#: payment_system/models.py:293
+#: payment_system/models.py:294
 msgid "platform requests limit"
 msgstr "ліміт запитів з платформи"
 
-#: payment_system/models.py:297
+#: payment_system/models.py:298
 msgid "grace_period"
 msgstr "пільговий період"
 
-#: payment_system/models.py:299
+#: payment_system/models.py:300
 msgid "is custom"
 msgstr "є нестандартним"
 
-#: payment_system/models.py:302
+#: payment_system/models.py:303
 msgid "is default"
 msgstr "є проектом за замовченням"
 
-#: payment_system/models.py:327
+#: payment_system/models.py:328
 msgid "Default subscription already exists"
 msgstr "Базовий тарифний план уже існує"
 
-#: payment_system/models.py:338
+#: payment_system/models.py:339
 msgid "subscription"
 msgstr "тарифний план"
 
-#: payment_system/models.py:344
+#: payment_system/models.py:345
 msgid "paid at"
 msgstr "дата оплати"
 
-#: payment_system/models.py:356
+#: payment_system/models.py:357
 msgid "project`s subscription"
 msgstr "тарифний план проекту"
 
-#: payment_system/models.py:359
+#: payment_system/models.py:360
 msgid "is grace period blocked"
 msgstr "чи блоковано пільговий період"
 
-#: payment_system/models.py:367
+#: payment_system/models.py:368
 msgid "start date"
 msgstr "дата початку"
 
-#: payment_system/models.py:368
+#: payment_system/models.py:369
 msgid "end date"
 msgstr "дата завершення"
 
-#: payment_system/models.py:370
+#: payment_system/models.py:371
 msgid "subscription`s name"
 msgstr "назва тарифного плану"
 
-#: payment_system/models.py:371
+#: payment_system/models.py:372
 msgid "project`s name"
 msgstr "назва проекту"
 
-#: payment_system/models.py:372
+#: payment_system/models.py:373
 msgid "is subscription custom"
 msgstr "тарифний план є нестандартним"
 
-#: payment_system/models.py:468
+#: payment_system/models.py:498
 msgid "invoice"
 msgstr "рахунок"
 
-#: payment_system/models.py:469
+#: payment_system/models.py:499
 msgid "invoices"
 msgstr "рахунки"
 
-#: payment_system/models.py:503
+#: payment_system/models.py:533
 msgid "User can only have one default project"
 msgstr "Користувач може мати лише один базовий проєкт"
 
-#: payment_system/models.py:522
+#: payment_system/models.py:552
 msgid "Active"
 msgstr "Активний"
 
-#: payment_system/models.py:523
+#: payment_system/models.py:553
 msgid "Past"
 msgstr "Минулий"
 
-#: payment_system/models.py:524
+#: payment_system/models.py:554
 msgid "Future"
 msgstr "Майбутній"
 
-#: payment_system/models.py:593
+#: payment_system/models.py:635
 msgid "Only one {} subscription in project"
 msgstr "У проєкті лише один {} тарифний план"
 
-#: payment_system/models.py:713
+#: payment_system/models.py:787
 msgid "email"
 msgstr "email"
 
-#: payment_system/models.py:729
+#: payment_system/models.py:803
 msgid "invitation"
 msgstr "запрошення"
 
-#: payment_system/models.py:730
+#: payment_system/models.py:804
 msgid "invitations"
 msgstr "запрошення"
 
-#: payment_system/models.py:767
+#: payment_system/models.py:843
 msgid "custom subscription request"
 msgstr "запит на тарифний план Сustom"
 
-#: payment_system/models.py:768
+#: payment_system/models.py:844
 msgid "custom subscription requests"
 msgstr "запити на тарифні плани Сustom"
 

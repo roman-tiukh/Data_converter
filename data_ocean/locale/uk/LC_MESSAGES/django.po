@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-04-15 15:57+0300\n"
+"POT-Creation-Date: 2021-06-22 14:10+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,11 +21,11 @@ msgstr ""
 "100 > 14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || "
 "(n % 100 >=11 && n % 100 <=14 )) ? 2: 3);\n"
 
-#: data_ocean/emails.py:23
+#: data_ocean/emails.py:28
 msgid "Generation of .xlsx export file completed"
 msgstr "Генерацію .xlsx файла завершено"
 
-#: data_ocean/export.py:61
+#: data_ocean/export.py:60
 #, python-format
 msgid ""
 "Generation of .xlsx file has ended. You may download the file by address "
@@ -34,80 +34,80 @@ msgstr ""
 "Генерацію .xlsx файла завершено. Ви можете скачати файл за адресою "
 "%(address)s"
 
-#: data_ocean/filters.py:18
+#: data_ocean/filters.py:19
 msgid "is invalid request parameter. Could be true, false, 1, 0"
 msgstr ""
 "є некоректним параметром для булєвого запиту. Може бути true, false, 1, 0"
 
-#: data_ocean/models.py:57 data_ocean/models.py:93
+#: data_ocean/models.py:59 data_ocean/models.py:95
 msgid "status"
 msgstr "статус"
 
-#: data_ocean/models.py:65
+#: data_ocean/models.py:67
 msgid "registration authority"
 msgstr "орган реєстрації"
 
-#: data_ocean/models.py:72
+#: data_ocean/models.py:74
 msgid "taxpayer type"
 msgstr "тип платника податків"
 
-#: data_ocean/models.py:80
+#: data_ocean/models.py:82
 msgid "Up-to-date"
 msgstr "Актуальний"
 
-#: data_ocean/models.py:81
+#: data_ocean/models.py:83
 msgid "Outdated"
 msgstr "Дані застарілі"
 
-#: data_ocean/models.py:82
+#: data_ocean/models.py:84
 msgid "Not supported"
 msgstr "Не підтримується"
 
-#: data_ocean/models.py:84
+#: data_ocean/models.py:86
 msgid "name"
 msgstr "назва"
 
-#: data_ocean/models.py:86
+#: data_ocean/models.py:88
 msgid "source"
 msgstr "джерело даних"
 
-#: data_ocean/models.py:87
+#: data_ocean/models.py:89
 msgid "source ID"
 msgstr "ID у джерелі даних"
 
-#: data_ocean/models.py:88
+#: data_ocean/models.py:90
 msgid "source url"
 msgstr "url джерела даних"
 
-#: data_ocean/models.py:89
+#: data_ocean/models.py:91
 msgid "source API"
 msgstr "API джерела даних"
 
-#: data_ocean/models.py:90
+#: data_ocean/models.py:92
 msgid "API list"
 msgstr "API списку"
 
-#: data_ocean/models.py:91
+#: data_ocean/models.py:93
 msgid "API detail"
 msgstr "API об'єкта"
 
-#: data_ocean/models.py:92
+#: data_ocean/models.py:94
 msgid "total records"
 msgstr "кількість записів"
 
-#: data_ocean/models.py:98
+#: data_ocean/models.py:109
 msgid "dataset"
 msgstr "набір даних"
 
-#: data_ocean/models.py:99
+#: data_ocean/models.py:110
 msgid "datasets"
 msgstr "набори даних"
 
-#: data_ocean/models.py:137
+#: data_ocean/models.py:149
 msgid "data update report"
 msgstr "звіт про оновлення даних"
 
-#: data_ocean/models.py:138
+#: data_ocean/models.py:150
 msgid "data update reports"
 msgstr "звіти про оновлення даних"
 
