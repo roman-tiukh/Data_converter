@@ -15,6 +15,8 @@ from data_ocean.downloader import Downloader
 from data_ocean.utils import to_lower_string_if_exists
 from location_register.converter.address import AddressConverter
 from stats.tasks import endpoints_cache_warm_up
+from data_ocean.transliteration.utils import transliterate, translate_company_type_in_string
+
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -564,6 +566,8 @@ class PepConverterFromDB(Converter):
             country_name = link[10]
             source_id = link[11]
             company_name_en = link[12]
+            if not company_name_en:
+                company_name_en = transliterate(translate_company_type_in_string(company_name))
             relationship_type = link[13]
             relationship_type_en = link[14]
             country = address_converter.save_or_get_country(country_name) if country_name else None

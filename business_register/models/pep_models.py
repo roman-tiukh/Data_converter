@@ -1,3 +1,4 @@
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from simple_history.models import HistoricalRecords
@@ -5,7 +6,7 @@ from simple_history.models import HistoricalRecords
 from business_register.models.company_models import Company, Founder
 from data_ocean.models import DataOceanModel
 from data_ocean.transliteration.utils import transliterate, translate_company_type_in_string,\
-    translate_country_in_string
+    translate_country_in_string, translate_last_position_in_string
 
 
 class Pep(DataOceanModel):
@@ -132,13 +133,13 @@ class Pep(DataOceanModel):
     source_id = models.PositiveIntegerField(
         _("id from ANTACs DB"), unique=True, null=True, blank=True
     )
-    nacp_id = models.PositiveBigIntegerField(
+    nacp_id = ArrayField(models.PositiveBigIntegerField(
         _('id from NACP'),
         unique=True,
-        null=True,
+    ),
         blank=True,
-        help_text=_('id from the National agency on corruption prevention')
-    )
+        default=list,
+        help_text=_('id from the National agency on corruption prevention'))
     history = HistoricalRecords(excluded_fields=['url', 'code'])
 
     @property
@@ -171,6 +172,13 @@ class Pep(DataOceanModel):
     def last_employer_en(self):
         if self.last_employer:
             return transliterate(translate_company_type_in_string(self.last_employer))
+        else:
+            return None
+
+    @property
+    def last_job_title_en(self):
+        if self.last_job_title:
+            return transliterate(translate_last_position_in_string(self.last_job_title))
         else:
             return None
 

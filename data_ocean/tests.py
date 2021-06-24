@@ -1,7 +1,7 @@
 from django.test import SimpleTestCase
 
 from data_ocean.transliteration.utils import transliterate, translate_company_type_in_string,\
-    translate_country_in_string
+    translate_country_in_string, translate_last_position_in_string
 
 
 class TransliterateTestCase(SimpleTestCase):
@@ -48,6 +48,28 @@ class TransliterateTestCase(SimpleTestCase):
         )
         for tested, expected in variants:
             self.assertEqual(translate_company_type_in_string(tested), expected)
+
+    def test_translate_last_position_in_string(self):
+        variants = (
+            (
+                'начальник',
+                'chief'
+            ),
+            (
+                'бенефіціарний власник',
+                'beneficial owner'
+            ),
+            (
+                'заступник голови правління',
+                'deputy chairman of the board'
+            ),
+            (
+                'заступник міністра з питань європейської інтеграції',
+                'deputy minister for european integration'
+            )
+        )
+        for tested, expected in variants:
+            self.assertEqual(translate_last_position_in_string(tested), expected)
 
     def test_transliterate(self):
         variants = (
@@ -106,3 +128,25 @@ class TransliterateTestCase(SimpleTestCase):
         )
         for tested, expected in variants:
             self.assertEqual(transliterate(translate_company_type_in_string(tested)), expected)
+
+    def test_translate_last_position_and_transliterate(self):
+        variants = (
+            (
+                'голова ліквідаційної комісії',
+                'chairman of the liquidation commission'
+            ),
+            (
+                'суддя касаційного господарського суду',
+                'judge of the commercial court of cassation'
+            ),
+            (
+                'т.в.о. голови рда',
+                'temporarily acting head of the district state administration'
+            ),
+            (
+                'провідний інженер охорони та захисту лісу',
+                'providnyi inzhener okhorony ta zakhystu lisu'
+            )
+        )
+        for tested, expected in variants:
+            self.assertEqual(transliterate(translate_last_position_in_string(tested)), expected)

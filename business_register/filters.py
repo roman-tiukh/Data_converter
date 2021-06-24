@@ -149,6 +149,10 @@ class PepFilterSet(filters.FilterSet):
         lookup_expr='search',
         help_text='Filter by full name "last name first name middle name" in Ukrainian.',
     )
+    fullname_en = filters.CharFilter(
+        lookup_expr='search',
+        help_text='Filter by full name in English.',
+    )
     fullname_transcriptions_eng = filters.CharFilter(
         lookup_expr='search',
         help_text='Filter by full name in English transcription.',
@@ -200,14 +204,12 @@ class PepFilterSet(filters.FilterSet):
         lookup_expr='icontains',
         help_text='Filter by last employer in Ukrainian.',
     )
-
     date_of_birth = filters.CharFilter(
         lookup_expr='icontains',
         help_text='Filter by date_of_birth, string contains type. '
                   'Examples: date_of_birth=1964, date_of_birth=1964-02, '
                   'date_of_birth=1964-02-06',
     )
-
     o = filters.OrderingFilter(
         fields=(
             ('fullname', 'fullname'),
@@ -294,6 +296,16 @@ class BaseSanctionFilter(filters.FilterSet):
     end_date = filters.DateFromToRangeFilter(
         help_text='You can use key "end_date_before" to select objects before the specified date and '
                   '"end_date_after" key to select objects after the specified date. '
+                  'Date must be in YYYY-MM-DD format.',
+    )
+    updated_at = filters.DateFromToRangeFilter(
+        help_text='You can use key "updated_at_before" to select objects before the specified date and '
+                  '"updated_at_after" key to select objects after the specified date. '
+                  'Date must be in YYYY-MM-DD format.',
+    )
+    created_at = filters.DateFromToRangeFilter(
+        help_text='You can use key "created_at_before" to select objects before the specified date and '
+                  '"created_at_after" key to select objects after the specified date. '
                   'Date must be in YYYY-MM-DD format.',
     )
     reasoning = filters.CharFilter(

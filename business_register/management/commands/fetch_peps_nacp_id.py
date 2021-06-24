@@ -4,7 +4,7 @@ import requests
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
-from business_register.models.pep_models import Pep, RelatedPersonsLink
+from business_register.models.pep_models import Pep
 
 
 # possible_keys = ['previous_eng_middlename_extendedstatus', 'street_extendedstatus', 'eng_full_address',
@@ -56,9 +56,9 @@ def is_same_full_name(relative_data, pep):
     if not middle_name:
         middle_name = ''
     return (
-            pep.last_name.capitalize() == last_name
-            and pep.first_name.capitalize() == first_name
-            and pep.middle_name.capitalize() == middle_name
+            pep.last_name == last_name.lower().strip()
+            and pep.first_name == first_name.lower().strip()
+            and pep.middle_name == middle_name.lower().strip()
     )
 
 
@@ -81,7 +81,7 @@ class Command(BaseCommand):
         """)
         self.peps_without_nacp_id = {getattr(pep, 'source_id'): pep for pep in Pep.objects.filter(
             is_pep=True,
-            nacp_id__isnull=True
+            nacp_id__len=0
         )}
         self.all_nacp_id = [getattr(pep, 'nacp_id') for pep in Pep.objects.filter(is_pep=True)]
         self.check_peps = []
@@ -117,10 +117,10 @@ class Command(BaseCommand):
                 # storing PEP nacp_id from declarations list
                 pep_nacp_id = declaration_data['user_declarant_id']
                 if not isinstance(pep_nacp_id, int) or pep_nacp_id == 0:
-                    self.stdout.write(f'Check invalid declarant NACP id ({relative_data}) from declaration '
+                    self.stdout.write(f'Check invalid declarant NACP id ({pep_nacp_id}) from declaration '
                                       f'with NACP id {declaration_id}')
                 else:
-                    pep.nacp_id = pep_nacp_id
+                    pep.nacp_id.append(pep_nacp_id)
                     pep.save()
 
                 # additional check of matching PEP`s last_name and first_name
@@ -138,37 +138,3 @@ class Command(BaseCommand):
                 #         f'from declaration: {last_name} {first_name}')
                 #     continue
 
-                # storing RelatedPerson (not PEP) NACP id from PEP declaration
-                detailed_declaration_data = declaration_data['data']
-                if (
-                        detailed_declaration_data['step_2']
-                        and not detailed_declaration_data['step_2'].get('isNotApplicable')
-                ):
-                    for relative_data in detailed_declaration_data['step_2']['data']:
-                        to_person_relationship_type = relative_data.get('subjectRelation')
-                        related_person_links = RelatedPersonsLink.objects.filter(
-                            from_person=pep,
-                            to_person_relationship_type=to_person_relationship_type)
-                        for link in related_person_links:
-                            # escaping RelatedPerson that already has nacp_id
-                            if link.to_person.nacp_id:
-                                continue
-                            related_person = link.to_person
-                            try:
-                                if is_same_full_name(
-                                    relative_data,
-                                    related_person
-                                ):
-                                    # FIXME: One person may have different id in different declarations of one
-                                    #  declarant. For example: nacp_declarant_id = 77934 or 38468
-                                    related_person_nacp_id = relative_data.get('id')
-                                    if not isinstance(related_person_nacp_id, int) or related_person_nacp_id == 0:
-                                        self.stdout.write(
-                                            f'Check invalid declarant NACP id ({related_person_nacp_id}) '
-                                            f'from declaration with NACP id {declaration_id}'
-                                        )
-                                    else:
-                                        related_person.nacp_id = related_person_nacp_id
-                                        related_person.save()
-                            except InvalidRelativeData as e:
-                                self.stdout.write(f'{e} from declaration with NACP id {declaration_id}')

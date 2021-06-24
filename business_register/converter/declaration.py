@@ -16,6 +16,9 @@ from business_register.models.declaration_models import (Declaration,
                                                          SecuritiesRight,
                                                          Income,
                                                          Money,
+                                                         PartTimeJob,
+                                                         NgoParticipation,
+                                                         Liability
                                                          )
 from business_register.models.pep_models import Pep, RelatedPersonsLink
 from location_register.models.address_models import Country
@@ -32,9 +35,9 @@ logger.setLevel(logging.INFO)
 class DeclarationConverter(BusinessConverter):
 
     def __init__(self):
-        self.only_peps = {pep.nacp_id: pep for pep in Pep.objects.filter(
+        self.only_peps = {pep.nacp_id[0]: pep for pep in Pep.objects.filter(
             is_pep=True,
-            nacp_id__isnull=False
+            nacp_id__len=1
         )}
         self.all_declarations = self.put_objects_to_dict(
             'nacp_declaration_id',
@@ -48,7 +51,8 @@ class DeclarationConverter(BusinessConverter):
             '[Не відомо]',
             "[Член сім'ї не надав інформацію]",
             '[Конфіденційна інформація]',
-            'Не визначено'
+            'Не визначено',
+            'невідомо',
         }
         self.BOOLEAN_VALUES = {
             '1': True,
@@ -59,12 +63,339 @@ class DeclarationConverter(BusinessConverter):
             "функцій держави або місцевого самоврядування": False,
         }
         self.ENIGMA = {'1', 'j'}
+        self.DECLARANT = '1'
+        self.OTHER_PERSON = 'j'
         self.keys = set()
         self.current_declaration = None
+        self.relatives_data = None
 
     def log_error(self, message):
         logger.error(f'Declaration id {self.current_declaration.nacp_declaration_id} : {message}')
 
+    # TODO: decide what to do if more than one person has the same nacp_id
+    def find_person(self, pep_id):
+        peps = list(Pep.objects.filter(nacp_id__contains=[int(pep_id)]))
+        if len(peps) == 1:
+            return peps[0]
+        elif len(peps) > 1:
+            if self.relatives_data:
+                for pep in peps:
+                    for relative_data in self.relatives_data:
+                        if is_same_full_name(relative_data, pep):
+                            return pep
+                self.log_error(f'Cannot find person with nacp_id {pep_id}. Check relatives_data {self.relatives_data}')
+            else:
+                self.log_error(f'empty relatives_data {self.relatives_data}')
+        else:
+            self.log_error(f'Cannot find person with nacp_id {pep_id}')
+        return None
+
+    def create_ngo_participation(self, data, participation_type, declaration):
+        ngo_types = {
+            'Саморегулівне чи самоврядне професійне об’єднання': NgoParticipation.PROFESSIONAL_UNION,
+            'Громадське об’єднання': NgoParticipation.PUBLIC_ASSOCIATION,
+            'Благодійна організація': NgoParticipation.CHARITY
+        }
+        body_types = {
+            'Ревізійні органи': NgoParticipation.AUDIT_BODY,
+            'Наглядові органи': NgoParticipation.SUPERVISORY_BODY,
+            'Керівні органи': NgoParticipation.GOVERNING_BODY
+        }
+
+        ngo_type = ngo_types.get(data.get('objectType'))
+        ngo_name = data.get('objectName')
+        ngo_body_name = data.get('unitName')
+        if not ngo_body_name:
+            ngo_body_name = ''
+        ngo_body_type = body_types.get(data.get('unitType'))
+        ngo_registration_number = data.get('reestrCode')
+        ngo = None
+        if ngo_registration_number not in self.NO_DATA:
+            ngo = Company.objects.filter(
+                edrpou=ngo_registration_number,
+                source=Company.UKRAINE_REGISTER
+            ).first()
+            if not ngo:
+                self.log_error(
+                    f'Cannot identify ukrainian NGO with edrpou {ngo_registration_number}.'
+                    f'Check NGO data({data})'
+                )
+        else:
+            ngo_registration_number = ''
+        NgoParticipation.objects.create(
+            declaration=declaration,
+            participation_type=participation_type,
+            ngo_type=ngo_type,
+            ngo_name=ngo_name,
+            ngo_registration_number=ngo_registration_number,
+            ngo_body_type=ngo_body_type,
+            ngo_body_name=ngo_body_name,
+            ngo=ngo,
+            pep=declaration.pep
+        )
+
+    def save_ngo_participation(self, ngo_data, declaration):
+        # possible_keys = {'iteration', 'objectType', 'subObjectType', 'objectName', 'reestrCode'}
+        membership_data = ngo_data.get('org')
+        if membership_data:
+            for data in membership_data:
+                self.create_ngo_participation(data, NgoParticipation.MEMBERSHIP, declaration)
+
+        # possible_keys = {'iteration', 'unitType', 'objectType', 'unitName', 'objectName', 'reestrCode'}
+        leadership_data = ngo_data.get('part_org')
+        if leadership_data:
+            for data in leadership_data:
+                self.create_ngo_participation(data, NgoParticipation.LEADERSHIP, declaration)
+
+    # possible_keys = {
+    #     'emitent_ukr_company_address', 'paid', 'emitent_ua_company_code_extendedstatus',
+    #     'emitent_eng_company_code_extendedstatus', 'emitent_ua_company_code', 'iteration',
+    #     'emitent_eng_company_address', 'emitent_ukr_company_name', 'description', 'emitent_eng_company_code',
+    #     'emitent_ukr_company_name_extendedstatus', 'emitent_citizen', 'emitent_ua_company_name',
+    #     'emitent_eng_company_address_extendedstatus', 'emitent_eng_company_name', 'margin-emitent',
+    #     'emitent_ua_firstname', 'emitent_ua_lastname', 'emitent_ua_middlename'
+    # }
+
+    def save_part_time_job(self, part_time_job_data, declaration):
+        is_paid_booleans = {'Оплачувана': True, 'Не оплачувана': False}
+        for data in part_time_job_data:
+            is_paid = is_paid_booleans.get(data.get('paid'))
+            description = data.get('description', '')
+            employer_from_info = data.get('emitent_citizen', '')
+            employer_name = data.get('emitent_ua_company_name')
+            if employer_name in self.NO_DATA:
+                employer_name = data.get('emitent_ukr_company_name')
+            if employer_name in self.NO_DATA:
+                employer_name = ''
+            employer_name_eng = data.get('emitent_eng_company_name')
+            if employer_name_eng in self.NO_DATA:
+                employer_name_eng = ''
+            employer_address = data.get('emitent_ukr_company_address')
+            if employer_address in self.NO_DATA:
+                employer_address = data.get('emitent_eng_company_address')
+            if employer_address in self.NO_DATA:
+                employer_address = ''
+            employer = None
+            employer_registration_number = data.get('emitent_ua_company_code')
+            if employer_registration_number not in self.NO_DATA:
+                employer_registration_number = employer_registration_number.zfill(8)
+                employer = Company.objects.filter(
+                    edrpou=employer_registration_number,
+                    source=Company.UKRAINE_REGISTER
+                ).first()
+                if not employer:
+                    self.log_error(
+                        f'Cannot identify ukrainian company with edrpou {employer_registration_number}.'
+                        f'Check part-time job data({data})'
+                    )
+            else:
+                employer_registration_number = ''
+            employer_foreign_registration_number = data.get('emitent_eng_company_code')
+            if employer_foreign_registration_number not in self.NO_DATA:
+                employer = Company.objects.create(
+                    name=employer_name_eng,
+                    edrpou=employer_foreign_registration_number,
+                    address=employer_address,
+                    source=Company.DECLARATIONS
+                )
+                employer_registration_number = employer_foreign_registration_number
+
+            employer_last_name = data.get('emitent_ua_lastname')
+            employer_first_name = data.get('emitent_ua_firstname')
+            employer_middle_name = data.get('emitent_ua_middlename')
+            employer_full_name = ''
+            if employer_last_name and employer_first_name:
+                employer_full_name = f'{employer_last_name} {employer_first_name}'
+                if employer_middle_name:
+                    employer_full_name = f'{employer_full_name} {employer_middle_name}'
+
+            PartTimeJob.objects.create(
+                declaration=declaration,
+                is_paid=is_paid,
+                description=description,
+                employer_from_info=employer_from_info,
+                employer_name=employer_name,
+                employer_name_eng=employer_name_eng,
+                employer_address=employer_address,
+                employer_registration_number=employer_registration_number,
+                employer=employer,
+                employer_full_name=employer_full_name
+            )
+
+    possible_keys = {
+        'emitent_ua_company_code_extendedstatus', 'emitent_ua_company_code', 'guarantor_realty',
+        'emitent_ua_actualAddress', 'emitent_eng_regAddress', 'emitent_eng_birthday', 'emitent_eng_company_name',
+        'emitent_ukr_fullname', 'dateOrigin', 'otherObjectType', 'emitent_ua_birthday_extendedstatus',
+        'emitent_ukr_regAddress_extendedstatus', 'person', 'otherObjectType_extendedstatus',
+        'emitent_eng_company_address', 'emitent_ukr_company_address', 'emitent_ua_middlename',
+        'emitent_eng_taxNumber_extendedstatus', 'iteration', 'dateOrigin_extendedstatus', 'guarantor',
+        'emitent_ukr_company_address_extendedstatus', 'sizeObligation_extendedstatus', 'emitent_ua_birthday',
+        'margin-emitent_extendedstatus', 'emitent_eng_company_code', 'credit_rest_extendedstatus',
+        'currency_extendedstatus', 'emitent_ua_taxNumber', 'credit_percent_paid_extendedstatus', 'person_who_care',
+        'emitent_ua_middlename_extendedstatus', 'margin-emitent', 'emitent_eng_company_code_extendedstatus',
+        'guarantor_realty_exist_', 'emitent_ua_sameRegLivingAddress', 'emitent_eng_company_address_extendedstatus',
+        'emitent_ua_lastname', 'credit_paid', 'emitent_ukr_company_name', 'emitent_ua_firstname', 'currency',
+        'sizeObligation', 'guarantor_exist_', 'emitent_ua_taxNumber_extendedstatus',
+        'emitent_ua_regAddress_extendedstatus', 'emitent_eng_fullname', 'credit_paid_extendedstatus',
+        'emitent_eng_birthday_extendedstatus', 'emitent_citizen', 'emitent_ukr_regAddress', 'credit_rest',
+        'credit_percent_paid', 'emitent_ua_company_name', 'emitent_ua_regAddress', 'emitent_eng_taxNumber',
+        'emitent_ua_actualAddress_extendedstatus', 'emitent_eng_regAddress_extendedstatus', 'objectType'
+    }
+
+    def save_liability(self, liabilities_data, declaration):
+        types = {
+            'Отримані кредити': Liability.LOAN,
+            'Отримані позики': Liability.LOAN,
+            'Розмір сплачених коштів в рахунок процентів за позикою (кредитом)':
+                Liability.INTEREST_LOAN_PAYMENTS,
+            'Розмір сплачених коштів в рахунок основної суми позики (кредиту)':
+                Liability.LOAN_PAYMENTS,
+            "Несплачені податкові зобов'язання": Liability.TAX_DEBT,
+            "Зобов'язання за договорами страхування": Liability.INSURANCE,
+            "Зобов'язання за договорами недержавного пенсійного забезпечення":
+                Liability.PENSION_INSURANCE,
+            "Зобов'язання за договорами лізингу": Liability.LEASING,
+            "Кошти, позичені суб'єкту декларування або члену його сім'ї іншими особами":
+                Liability.BORROWED_MONEY_BY_ANOTHER_PERSON,
+            'Інше': Liability.OTHER
+        }
+
+        for data in liabilities_data:
+            liability_type = types.get(data.get('objectType'))
+            # TODO: check if we should store more fields when liability_type==TAX_DEBT
+            additional_info = data.get('otherObjectType', '')
+            currency = data.get('currency', '')
+            amount = data.get('sizeObligation')
+            if amount not in self.NO_DATA:
+                amount = float(amount)
+            loan_rest = data.get('credit_rest')
+            if loan_rest not in self.NO_DATA:
+                loan_rest = float(loan_rest)
+            else:
+                loan_rest = None
+            loan_paid = data.get('credit_paid')
+            if loan_paid not in self.NO_DATA:
+                loan_paid = float(loan_paid)
+            else:
+                loan_paid = None
+            interest_paid = data.get('credit_percent_paid')
+            if interest_paid not in self.NO_DATA:
+                interest_paid = float(interest_paid)
+            else:
+                interest_paid = None
+
+            date = simple_format_date_to_yymmdd(data.get('dateOrigin'))
+
+            bank_from_info = data.get('emitent_citizen', '')
+            bank_name = data.get('emitent_ua_company_name')
+            if bank_name in self.NO_DATA:
+                bank_name = data.get('emitent_ukr_company_name')
+            if bank_name in self.NO_DATA:
+                bank_name = ''
+            bank_name_eng = data.get('emitent_eng_company_name')
+            if bank_name_eng in self.NO_DATA:
+                bank_name_eng = ''
+            bank_address = data.get('emitent_ukr_company_address')
+            if bank_address in self.NO_DATA:
+                bank_address = data.get('emitent_eng_company_address')
+            if bank_address in self.NO_DATA:
+                bank_address = ''
+            bank = None
+            bank_registration_number = data.get('emitent_ua_company_code')
+            if bank_registration_number not in self.NO_DATA:
+                bank = Company.objects.filter(
+                    edrpou=bank_registration_number,
+                    source=Company.UKRAINE_REGISTER
+                ).first()
+                if not bank:
+                    self.log_error(
+                        f'Cannot identify ukrainian company with edrpou {bank_registration_number}.'
+                        f'Check liability data({data})'
+                    )
+                    continue
+            else:
+                bank_registration_number = ''
+            bank_foreign_registration_number = data.get('emitent_eng_company_code')
+            if bank_foreign_registration_number not in self.NO_DATA:
+                bank = Company.objects.create(
+                    name=bank_name_eng,
+                    edrpou=bank_foreign_registration_number,
+                    address=bank_address,
+                    source=Company.DECLARATIONS
+                )
+                bank_registration_number = bank_foreign_registration_number
+
+            guarantee = ''
+            guarantee_amount = None
+            guarantee_registration = None
+            if data.get('guarantor_realty') not in self.NO_DATA:
+                # An example of this field:
+                # 'guarantor_realty': [
+                #     {'realty_objectType': 'Автомобіль легковий', 'realty_ua_postCode': '[Конфіденційна інформація]',
+                #      'realty_ua_cityPath': '1.2.80', 'realty_ua_apartmentsNum': '[Конфіденційна інформація]',
+                #      'realty_ua_housePartNum_extendedstatus': '1', 'realty_ua_streetType': '[Конфіденційна інформація]',
+                #      'realty_ua_cityType': 'Київ / Україна', 'realty_ua_housePartNum': '[Конфіденційна інформація]',
+                #      'realty_ua_street': '[Конфіденційна інформація]', 'region': '[Конфіденційна інформація]',
+                #      'realty_cost': '931410', 'realty_country': '1',
+                #      'realty_ua_houseNum': '[Конфіденційна інформація]'}]
+                guarantee_info = data.get('guarantor_realty')[0]
+                guarantee = guarantee_info.get('realty_objectType', '')
+                guarantee_amount = guarantee_info.get('realty_cost')
+                if guarantee_amount not in self.NO_DATA:
+                    guarantee_amount = float(guarantee_amount)
+                guarantee_registration = self.find_city(guarantee_info.get('realty_ua_cityType'))
+
+            creditor_from_info = data.get('emitent_citizen', '')
+            creditor_full_name = data.get('emitent_ukr_fullname', '')
+            creditor_full_name_eng = data.get('emitent_eng_fullname', '')
+
+            creditor_last_name = data.get('emitent_ua_lastname')
+            creditor_first_name = data.get('emitent_ua_firstname')
+            creditor_middle_name = data.get('emitent_ua_middlename')
+            if creditor_last_name and creditor_first_name:
+                creditor_full_name = f'{creditor_last_name} {creditor_first_name}'
+                if creditor_middle_name:
+                    creditor_full_name = f'{creditor_full_name} {creditor_middle_name}'
+
+            owner = None
+            owner_id = data.get('person')
+            if owner_id in self.NO_DATA:
+                owner_info = data.get('person_who_care')
+                if owner_info:
+                    owner_id = owner_info[0].get('person')
+            if owner_id not in self.NO_DATA:
+                if owner_id in self.ENIGMA:
+                    owner = declaration.pep
+                else:
+                    owner = Pep.objects.filter(nacp_id=int(owner_id)).first()
+            if not owner:
+                self.log_error(f'Cannot identify owner of the liability from data({data})')
+            else:
+                Liability.objects.create(
+                    declaration=declaration,
+                    type=liability_type,
+                    additional_info=additional_info,
+                    amount=amount,
+                    loan_rest=loan_rest,
+                    loan_paid=loan_paid,
+                    interest_paid=interest_paid,
+                    currency=currency,
+                    date=date,
+                    bank_from_info=bank_from_info,
+                    bank_name=bank_name,
+                    bank_name_eng=bank_name_eng,
+                    bank_address=bank_address,
+                    bank_registration_number=bank_registration_number,
+                    bank=bank,
+                    guarantee=guarantee,
+                    guarantee_amount=guarantee_amount,
+                    guarantee_registration=guarantee_registration,
+                    creditor_from_info=creditor_from_info,
+                    creditor_full_name=creditor_full_name,
+                    creditor_full_name_eng=creditor_full_name_eng,
+                    owner=owner)
+
+    # TODO: discover what are 'guarantor' and 'margin-emitent' (can be 'j') fields
     # looks like data starts with 'debtor_ua' is the data of the owner of the Money.Cash
     # possible_keys = {
     #     'debtor_ua_birthday', 'iteration', 'organization_eng_company_name_extendedstatus', 'debtor_ua_lastname',
@@ -107,7 +438,11 @@ class DeclarationConverter(BusinessConverter):
             # TODO: check records after storing
             currency = data.get('assetsCurrency', '')
 
-            if money_type in [Money.BANK_ACCOUNT, Money.CONTRIBUTION, Money.OTHER]:
+            if money_type in [
+                Money.BANK_ACCOUNT,
+                Money.CONTRIBUTION,
+                Money.OTHER
+            ]:
                 bank_from_info = data.get('organization_type', '')
                 bank_name = data.get('organization_ua_company_name')
                 if bank_name in self.NO_DATA:
@@ -167,7 +502,7 @@ class DeclarationConverter(BusinessConverter):
                 if owner_id in self.ENIGMA:
                     owner = declaration.pep
                 else:
-                    owner = Pep.objects.filter(nacp_id=int(owner_id)).first()
+                    owner = self.find_person(owner_id)
             if not owner:
                 self.log_error(f'Cannot identify owner of the money from data({data})')
 
@@ -186,10 +521,6 @@ class DeclarationConverter(BusinessConverter):
                     bank=bank,
                     owner=owner
                 )
-
-    # TODO: implement
-    def save_income_right(self, income, rights_data):
-        pass
 
     # possible_keys = {
     #     'source_eng_company_code', 'source_ukr_regAddress', 'incomeSource', 'source_ukr_fullname', 'source_citizen',
@@ -292,8 +623,6 @@ class DeclarationConverter(BusinessConverter):
                 last_name = data.get('source_ukr_lastname')
             if not last_name:
                 last_name = data.get('source_eng_lastname')
-                if last_name:
-                    print(last_name)
             first_name = data.get('source_ua_firstname')
             if not first_name:
                 first_name = data.get('source_ukr_firstname')
@@ -327,7 +656,9 @@ class DeclarationConverter(BusinessConverter):
                 self.log_error(f'Wrong value for recipient_code in income: recipient_code = {recipient_code}.'
                                f'Check income data({data})')
             else:
-                recipient = Pep.objects.filter(nacp_id=int(recipient_code)).first()
+                recipient = self.find_person(recipient_code)
+            # TODO: Check if we can extract recipient from rights_data like in Money
+            rights_data = data.get('rights')
             if not recipient:
                 self.log_error(
                     f'Cannot identify income recipient with NACP id {recipient_code}.'
@@ -346,10 +677,7 @@ class DeclarationConverter(BusinessConverter):
                 recipient=recipient
             )
 
-            rights_data = data.get('rights')
-            if rights_data:
-                self.save_income_right(income, rights_data)
-            # TODO: store  'iteration'. Example of the value '1614443380219'
+            # TODO: discover  'iteration'. Example of the value '1614443380219'
             iteration = data.get('iteration')
 
     # TODO: implement
@@ -550,11 +878,11 @@ class DeclarationConverter(BusinessConverter):
             pep = None
             # TODO: store value from ENIGMA
             if owner_info not in self.NO_DATA and owner_info not in self.ENIGMA:
-                pep = Pep.objects.filter(nacp_id=int(owner_info)).first()
+                pep = self.find_person(owner_info)
             other_owner_info = data.get('rights_id')
             # Store value 'Інша особа (фізична або юридична)'
             if not pep and other_owner_info and other_owner_info not in self.ENIGMA:
-                pep = Pep.objects.filter(nacp_id=int(other_owner_info)).first()
+                pep = self.find_person(owner_info)
             additional_info = data.get('otherOwnership', '')
             country_of_citizenship_info = data.get('citizen')
             # TODO: return country
@@ -601,7 +929,6 @@ class DeclarationConverter(BusinessConverter):
                 full_name=full_name,
                 country_of_citizenship=country_of_citizenship
             )
-
 
     # TODO: implement
     def is_vehicle_luxury(self, brand, model, year):
@@ -678,11 +1005,11 @@ class DeclarationConverter(BusinessConverter):
             pep = None
             # TODO: store value from ENIGMA
             if owner_info not in self.NO_DATA and owner_info not in self.ENIGMA:
-                pep = Pep.objects.filter(nacp_id=int(owner_info)).first()
+                pep = self.find_person(owner_info)
             other_owner_info = data.get('rights_id')
             # Store value 'Інша особа (фізична або юридична)'
             if not pep and other_owner_info and other_owner_info not in self.ENIGMA:
-                pep = Pep.objects.filter(nacp_id=int(other_owner_info)).first()
+                pep = self.find_person(other_owner_info)
 
             last_name = data.get('ua_lastname')
             first_name = data.get('ua_firstname')
@@ -798,6 +1125,7 @@ class DeclarationConverter(BusinessConverter):
              'ЗУ «Про запобігання корупції»'): PropertyRight.BENEFICIAL_OWNERSHIP,
             "[Член сім'ї не надав інформацію]": PropertyRight.NO_INFO_FROM_FAMILY_MEMBER,
         }
+        UKRAINE_NACP_ID = '1'
         for data in rights_data:
             type = TYPES.get(data.get('ownershipType'))
             share = data.get('percent-ownership')
@@ -809,44 +1137,53 @@ class DeclarationConverter(BusinessConverter):
             pep = None
             # TODO: store value from ENIGMA
             if owner_id not in self.NO_DATA:
-                if owner_id == '1':
+                if owner_id == self.DECLARANT:
                     pep = property.declaration.pep
-                elif owner_id == 'j':
+                elif owner_id == self.OTHER_PERSON:
                     # TODO: decide should we store PEP 'Власником є третя особа' and use it in such case
                     pass
                 else:
-                    pep = Pep.objects.filter(nacp_id=int(owner_id)).first()
+                    pep = self.find_person(owner_id)
             other_owner_info = data.get('rights_id')
             if not pep and other_owner_info:
-                if other_owner_info == '1':
+                if other_owner_info == self.DECLARANT:
                     pep = property.declaration.pep
-                elif other_owner_info == 'j':
+                elif other_owner_info == self.OTHER_PERSON:
                     # TODO: decide should we store PEP 'Власником є третя особа' and use it in such case
                     pass
-                pep = Pep.objects.filter(nacp_id=int(other_owner_info)).first()
+                else:
+                    pep = self.find_person(other_owner_info)
 
             additional_info = data.get('otherOwnership', '')
             country_of_citizenship_info = data.get('citizen')
             # TODO: return country
             if country_of_citizenship_info:
+                if country_of_citizenship_info == 'Громадянин України':
+                    country_of_citizenship_info = UKRAINE_NACP_ID
                 country_of_citizenship = self.find_country(country_of_citizenship_info)
             else:
                 country_of_citizenship = None
             last_name = data.get('ua_lastname')
             first_name = data.get('ua_firstname')
-            middle_name = data.get('ua_middlename')
+            middle_name = data.get('ua_middlename') if data.get('ua_middlename') not in self.NO_DATA else ''
+            ukr_full_name = data.get('ukr_fullname')
+            eng_full_name = data.get('eng_fullname')
             if (
                     last_name not in self.NO_DATA
                     or first_name not in self.NO_DATA
                     or middle_name not in self.NO_DATA
             ):
                 full_name = f'{last_name} {first_name} {middle_name}'
+            elif ukr_full_name not in self.NO_DATA:
+                full_name = ukr_full_name
+            elif eng_full_name not in self.NO_DATA:
+                full_name = eng_full_name
             else:
                 full_name = ''
 
             company = None
             company_code = data.get('ua_company_code')
-            if company_code not in self.ENIGMA:
+            if company_code not in self.ENIGMA and company_code not in self.NO_DATA:
                 company = Company.objects.filter(
                     edrpou=company_code,
                     source=Company.UKRAINE_REGISTER
@@ -859,8 +1196,7 @@ class DeclarationConverter(BusinessConverter):
             # TODO: store 'seller', check if this field is only for changes
             # Possible values = ['Продавець']
             seller = data.get('seller')
-            if seller not in self.NO_DATA:
-                pass
+
             PropertyRight.objects.create(
                 property=property,
                 type=type,
@@ -936,9 +1272,12 @@ class DeclarationConverter(BusinessConverter):
                 area = float(area.replace(',', '.'))
             else:
                 area = None
-            acquisition_date = data.get('owningDate')
+            acquisition_date = data.get('owningDate') if data.get('owningDate') not in self.NO_DATA else None
             if acquisition_date:
                 acquisition_date = simple_format_date_to_yymmdd(acquisition_date)
+                if len(acquisition_date) < 10:
+                    self.log_error(f'Wrong value for acquisition_date = {acquisition_date}')
+                    acquisition_date = None
             property = Property.objects.create(
                 declaration=declaration,
                 type=property_type,
@@ -966,7 +1305,7 @@ class DeclarationConverter(BusinessConverter):
             else:
                 self.log_error(f'Cannot find country id {property_country_data}')
         else:
-            self.log_error(f'Invalid value {property_country_data}')
+            self.log_error(f'Invalid value for country: {property_country_data}')
 
     def split_address_data(self, address_data):
         parts = address_data.lower().split(' / ')
@@ -1021,45 +1360,34 @@ class DeclarationConverter(BusinessConverter):
     #     'postCode', 'passport_extendedstatus'
     # ]
     # TODO: maybe we should simplify spouse to CharField with full name
-    def save_spouse(self, relatives_data, pep, declaration):
+    def save_related_person(self, pep, declaration):
         SPOUSE_TYPES = ['дружина', 'чоловік']
-        # TODO: decide should we store new Pep that not spouse from relatives_data
-        for relative_data in relatives_data:
-            if type(relative_data) != dict:
-                self.log_error(f'Invalid value: relative_data = {relative_data}')
-                continue
+        for relative_data in self.relatives_data:
             to_person_relationship_type = relative_data.get('subjectRelation')
-            if to_person_relationship_type in SPOUSE_TYPES:
-                spouse = None
-                nacp_id = relative_data.get('id')
-                if nacp_id:
-                    if type(nacp_id) == int:
-                        spouse = Pep.objects.filter(nacp_id=nacp_id).first()
-                    else:
-                        self.log_error(f'Invalid value: nacp_id = {nacp_id}')
-                if not spouse:
-                    link_from_our_db = RelatedPersonsLink.objects.filter(
-                        from_person=pep,
-                        to_person_relationship_type=to_person_relationship_type,
-                    ).first()
-                    if not link_from_our_db:
-                        # TODO: decide should we store new Pep here
-                        break
-                    else:
-                        spouse_from_our_db = link_from_our_db.to_person
-                        try:
-                            is_same_full_name(
-                                relative_data,
-                                spouse_from_our_db
-                            )
-                            spouse = spouse_from_our_db
-                        except InvalidRelativeData as e:
-                            self.log_error(f'{e}')
-                            break
-                if spouse:
-                    declaration.spouse = spouse
+            related_person_links = RelatedPersonsLink.objects.filter(
+                from_person=pep,
+                to_person_relationship_type=to_person_relationship_type
+            )
+            # TODO: decide should we store new Pep here
+            for link in related_person_links:
+                related_person = link.to_person
+                related_person_nacp_id = relative_data.get('id')
+                try:
+                    if not is_same_full_name(relative_data, related_person):
+                        continue
+                except InvalidRelativeData as e:
+                    self.log_error(f'{e}')
+                    continue
+                if not isinstance(related_person_nacp_id, int) or related_person_nacp_id == 0:
+                    self.log_error(f'Check invalid declarant NACP id ({related_person_nacp_id})')
+                elif related_person_nacp_id in related_person.nacp_id:
+                    pass
+                else:
+                    related_person.nacp_id.append(related_person_nacp_id)
+                    related_person.save()
+                if to_person_relationship_type in SPOUSE_TYPES:
+                    declaration.spouse = related_person
                     declaration.save()
-                    break
 
     # possible_keys = [
     #     'actual_streetType', 'actual_apartmentsNum_extendedstatus', 'actual_apartmentsNum', 'country',
@@ -1155,17 +1483,20 @@ class DeclarationConverter(BusinessConverter):
 
                 # TODO: predict updating
                 # 'Step_2' - declarant`s family
-                # if (
-                #         not declaration.spouse
-                #         and detailed_declaration_data['step_2']
-                #         and not detailed_declaration_data['step_2'].get('isNotApplicable')
-                # ):
-                #     self.save_spouse(detailed_declaration_data['step_2']['data'], pep, declaration)
+                if (
+                        not declaration.spouse
+                        and detailed_declaration_data['step_2']
+                        and not detailed_declaration_data['step_2'].get('isNotApplicable')
+                ):
+                    self.relatives_data = detailed_declaration_data['step_2']['data']
+                    self.save_related_person(pep, declaration)
+                else:
+                    self.relatives_data = None
 
                 # 'Step_3' - declarant`s family`s properties
-                if (detailed_declaration_data['step_3']
-                        and not detailed_declaration_data['step_3'].get('isNotApplicable')):
-                    self.save_property(detailed_declaration_data['step_3']['data'], declaration)
+                # if (detailed_declaration_data['step_3']
+                #         and not detailed_declaration_data['step_3'].get('isNotApplicable')):
+                #     self.save_property(detailed_declaration_data['step_3']['data'], declaration)
 
                 # 'Step_4' - declarant`s family`s unfinished construction
                 # if (detailed_declaration_data['step_4']
@@ -1206,3 +1537,18 @@ class DeclarationConverter(BusinessConverter):
                 # if (detailed_declaration_data['step_12']
                 #         and not detailed_declaration_data['step_12'].get('isNotApplicable')):
                 #     self.save_money(detailed_declaration_data['step_12']['data'], declaration)
+
+                # 'Step_13' - declarant`s family`s liabilities
+                if (detailed_declaration_data['step_13']
+                        and not detailed_declaration_data['step_13'].get('isNotApplicable')):
+                    self.save_liability(detailed_declaration_data['step_13']['data'], declaration)
+
+                # 'Step_15' - declarant`s part-time job info
+                # if (detailed_declaration_data['step_15']
+                #         and not detailed_declaration_data['step_15'].get('isNotApplicable')):
+                #     self.save_part_time_job(detailed_declaration_data['step_15']['data'], declaration)
+
+                # 'Step_16' - declarant`s membership in NGOs
+                # if (detailed_declaration_data['step_16']
+                #         and not detailed_declaration_data['step_16'].get('isNotApplicable')):
+                #     self.save_ngo_participation(detailed_declaration_data['step_16']['data'], declaration)

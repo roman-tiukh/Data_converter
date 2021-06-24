@@ -170,7 +170,7 @@ class PepShortSerializer(serializers.ModelSerializer):
     class Meta:
         model = Pep
         fields = (
-            'id', 'fullname', 'last_job_title', 'last_employer',
+            'id', 'fullname', 'fullname_en', 'last_job_title', 'last_employer',
             'is_pep', 'pep_type', 'pep_type_display', 'pep_org_ua_link'
         )
 
@@ -189,6 +189,7 @@ class CompanyDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     relationships_with_peps = serializers.SerializerMethodField()
     founder_of = serializers.SerializerMethodField()
 
+    @swagger_serializer_method(serializer_or_field=CompanyLinkWithPepSerializer(many=True))
     def get_relationships_with_peps(self, obj):
         return filter_with_parameter(
             obj=obj,
@@ -202,6 +203,7 @@ class CompanyDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
 
         )
 
+    @swagger_serializer_method(serializer_or_field=CountFoundedCompaniesSerializer(many=True))
     def get_founder_of(self, obj):
         return filter_property(
             obj=obj,
@@ -459,7 +461,7 @@ class PepDetailSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
         model = Pep
         fields = (
             'id', 'first_name', 'last_name', 'middle_name', 'fullname', 'fullname_en',
-            'fullname_transcriptions_eng', 'last_job_title', 'last_employer', 'last_employer_en',
+            'fullname_transcriptions_eng', 'last_job_title', 'last_job_title_en', 'last_employer', 'last_employer_en',
             'is_pep', 'pep_type', 'pep_type_display', 'info', 'sanctions', 'criminal_record', 'assets_info',
             'criminal_proceedings', 'wanted', 'date_of_birth', 'place_of_birth', 'place_of_birth_en', 'is_dead',
             'termination_date', 'reason_of_termination', 'to_person_links', 'from_person_links',
@@ -545,7 +547,7 @@ class PepListSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
         model = Pep
         fields = (
             'id', 'first_name', 'last_name', 'middle_name', 'fullname', 'fullname_en',
-            'fullname_transcriptions_eng', 'last_job_title', 'last_employer', 'last_employer_en',
+            'fullname_transcriptions_eng', 'last_job_title', 'last_job_title_en', 'last_employer', 'last_employer_en',
             'is_pep', 'pep_type', 'pep_type_display', 'info', 'sanctions', 'criminal_record', 'assets_info',
             'criminal_proceedings', 'wanted', 'date_of_birth', 'place_of_birth', 'place_of_birth_en', 'is_dead',
             'termination_date', 'reason_of_termination', 'from_person_links', 'to_person_links',
