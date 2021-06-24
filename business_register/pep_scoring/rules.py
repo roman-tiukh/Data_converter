@@ -6,6 +6,7 @@ from business_register.models.declaration_models import (Declaration,
                                                          VehicleRight,
                                                          Income,
                                                          Money,
+                                                         PropertyRight,
                                                          )
 from business_register.models.pep_models import (RelatedPersonsLink, Pep)
 from location_register.models.ratu_models import RatuCity
@@ -33,12 +34,13 @@ class IsRealEstateWithoutValue(BaseScoringRule):
             to_person_links__category=RelatedPersonsLink.FAMILY,
         ).values_list('id', flat=True).all()[::1]
         family_ids.append(self.pep.id)
-        have_weight = Property.objects.filter(
-            declaration__pep_id__in=family_ids,
-            valuation__isnull=True,
+        have_weight = PropertyRight.objects.filter(
+            pep_id__in=family_ids,
+            property__valuation__isnull=True,
             type=Property.SUMMER_HOUSE,
-            created_at__year__gte=2015,
-        ).values_list('id', 'declaration_id').all()[::1]
+            acquisition_date__year__gte=2015,
+        ).values_list('property_id', 'property__declaration_id').all()[::1]
+
         if have_weight:
             value = {
                 "weight": 0.4,
@@ -62,12 +64,12 @@ class IsLandWithoutValue(BaseScoringRule):
             to_person_links__category=RelatedPersonsLink.FAMILY,
         ).values_list('id', flat=True).all()[::1]
         family_ids.append(self.pep.id)
-        have_weight = Property.objects.filter(
-            declaration__pep_id__in=family_ids,
-            valuation__isnull=True,
+        have_weight = PropertyRight.objects.filter(
+            pep_id__in=family_ids,
+            property__valuation__isnull=True,
             type=Property.LAND,
-            created_at__year__gte=2015,
-        ).values_list('id', 'declaration_id').all()[::1]
+            acquisition_date__year__gte=2015,
+        ).values_list('property_id', 'property__declaration_id').all()[::1]
         if have_weight:
             value = {
                 "weight": 0.1,
@@ -91,10 +93,11 @@ class IsAutoWithoutValue(BaseScoringRule):
             to_person_links__category=RelatedPersonsLink.FAMILY,
         ).values_list('id', flat=True).all()[::1]
         family_ids.append(self.pep.id)
-        have_weight = Vehicle.objects.filter(
-            declaration__pep_id__in=family_ids,
-            created_at__year__gte=2015,
-        ).values_list('id', 'declaration_id').all()[::1]
+        have_weight = VehicleRight.objects.filter(
+            pep_id__in=family_ids,
+            car__valuation__isnull=True,
+            acquisition_date__year__gte=2015,
+        ).values_list('car_id', 'car__declaration_id').all()[::1]
         if have_weight:
             value = {
                 "weight": 0.4,
@@ -103,4 +106,3 @@ class IsAutoWithoutValue(BaseScoringRule):
             }
             return json.dumps(value)
         return 0
-    
