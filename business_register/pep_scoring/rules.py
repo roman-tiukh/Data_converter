@@ -95,9 +95,9 @@ class IsAutoWithoutValue(BaseScoringRule):
         family_ids.append(self.pep.id)
         have_weight = VehicleRight.objects.filter(
             pep_id__in=family_ids,
-            car__valuation__isnull=True,
+            vehicle__valuation__isnull=True,
             acquisition_date__year__gte=2015,
-        ).values_list('car_id', 'car__declaration_id').all()[::1]
+        ).values_list('car_id', 'vehicle__declaration_id').all()[::1]
         if have_weight:
             value = {
                 "weight": 0.4,
