@@ -948,6 +948,7 @@ class DeclarationConverter(BusinessConverter):
             'Мотоцикл (мопед)': Vehicle.MOTORBIKE,
             'Водний засіб': Vehicle.BOAT,
             'Сільськогосподарська техніка': Vehicle.AGRICULTURAL_MACHINERY,
+            'Повітряний засіб': Vehicle.AIR_MEANS,
             'Інше': Vehicle.OTHER
         }
         for data in vehicles_data:
@@ -1483,15 +1484,15 @@ class DeclarationConverter(BusinessConverter):
 
                 # TODO: predict updating
                 # 'Step_2' - declarant`s family
-                if (
-                        not declaration.spouse
-                        and detailed_declaration_data['step_2']
-                        and not detailed_declaration_data['step_2'].get('isNotApplicable')
-                ):
-                    self.relatives_data = detailed_declaration_data['step_2']['data']
-                    self.save_related_person(pep, declaration)
-                else:
-                    self.relatives_data = None
+                # if (
+                #         not declaration.spouse
+                #         and detailed_declaration_data['step_2']
+                #         and not detailed_declaration_data['step_2'].get('isNotApplicable')
+                # ):
+                #     self.relatives_data = detailed_declaration_data['step_2']['data']
+                #     self.save_related_person(pep, declaration)
+                # else:
+                #     self.relatives_data = None
 
                 # 'Step_3' - declarant`s family`s properties
                 # if (detailed_declaration_data['step_3']
@@ -1509,9 +1510,9 @@ class DeclarationConverter(BusinessConverter):
                 #     self.save_luxury_item(detailed_declaration_data['step_5']['data'], declaration)
 
                 # 'Step_6' - declarant`s family`s vehicles
-                # if (detailed_declaration_data['step_6']
-                #         and not detailed_declaration_data['step_6'].get('isNotApplicable')):
-                #     self.save_vehicle(detailed_declaration_data['step_6']['data'], declaration)
+                if (detailed_declaration_data['step_6']
+                        and not detailed_declaration_data['step_6'].get('isNotApplicable')):
+                    self.save_vehicle(detailed_declaration_data['step_6']['data'], declaration)
 
                 # 'Step_7' - declarant`s family`s securities
                 # if (detailed_declaration_data['step_7']
@@ -1539,9 +1540,9 @@ class DeclarationConverter(BusinessConverter):
                 #     self.save_money(detailed_declaration_data['step_12']['data'], declaration)
 
                 # 'Step_13' - declarant`s family`s liabilities
-                if (detailed_declaration_data['step_13']
-                        and not detailed_declaration_data['step_13'].get('isNotApplicable')):
-                    self.save_liability(detailed_declaration_data['step_13']['data'], declaration)
+                # if (detailed_declaration_data['step_13']
+                #         and not detailed_declaration_data['step_13'].get('isNotApplicable')):
+                #     self.save_liability(detailed_declaration_data['step_13']['data'], declaration)
 
                 # 'Step_15' - declarant`s part-time job info
                 # if (detailed_declaration_data['step_15']
