@@ -14,6 +14,7 @@ from business_register.models.declaration_models import (Declaration,
                                                          VehicleRight,
                                                          Securities,
                                                          SecuritiesRight,
+                                                         CorporateRights,
                                                          Income,
                                                          Money,
                                                          PartTimeJob,
@@ -62,9 +63,11 @@ class DeclarationConverter(BusinessConverter):
             "Майно набуто У ПЕРІОД здійснення суб'єктом декларування діяльності із виконання "
             "функцій держави або місцевого самоврядування": False,
         }
+        # TODO: delete ENIGMA, keys
         self.ENIGMA = {'1', 'j'}
         self.DECLARANT = '1'
         self.OTHER_PERSON = 'j'
+        self.UKRAINE = Country.objects.get(name='ukraine')
         self.keys = set()
         self.current_declaration = None
         self.relatives_data = None
@@ -679,6 +682,81 @@ class DeclarationConverter(BusinessConverter):
 
             # TODO: discover  'iteration'. Example of the value '1614443380219'
             iteration = data.get('iteration')
+
+    # possible_keys = {
+    #     'corporate_rights_company_code', 'person', 'country', 'is_transferred', 'regNumber', 'cost',
+    #     'corporate_rights_company_code_extendedstatus', 'en_name', 'en_name_extendedstatus', 'cost_percent', 'rights',
+    #     'owningDate_extendedstatus', 'is_transferred_extendedstatus', 'cost_percent_extendedstatus',
+    #     'cost_extendedstatus', 'country_extendedstatus', 'name_extendedstatus', 'owningDate',
+    #     'regNumber_extendedstatus', 'legalForm_extendedstatus', 'legalForm', 'iteration', 'name'
+    # }
+    def save_corporate_rights(self, companies_data, declaration):
+        # possible_values of is_transferred == {
+        #     "[Член сім'ї не надав інформацію]", 'Не передано', 'Передано', None
+        # }
+        is_transferred_booleans = {'Передано': True, 'Не передано': False}
+
+        for data in companies_data:
+            company_name = data.get('name')
+            if company_name in self.NO_DATA:
+                company_name = ''
+            company_name_eng = data.get('name_en')
+            if company_name_eng in self.NO_DATA:
+                company_name_eng = ''
+            company_registration_number = data.get('corporate_rights_company_code')
+            company_type_name = data.get('legalForm', '')
+            country = self.find_country(data.get('country'))
+            company = None
+            if company_registration_number not in self.NO_DATA:
+                if country == self.UKRAINE:
+                    company_registration_number = company_registration_number.zfill(8)
+                    company = Company.objects.filter(
+                        edrpou=company_registration_number,
+                        source=Company.UKRAINE_REGISTER
+                    ).first()
+                    if not company:
+                        self.log_error(
+                            f'Cannot identify ukrainian company with edrpou {company_registration_number}.'
+                            f'Check corporate rights data({data})'
+                        )
+                else:
+                    company = Company.objects.create(
+                        name=company_name,
+                        name_en=company_name_eng,
+                        edrpou=company_registration_number,
+                        source=Company.DECLARATIONS
+                    )
+            else:
+                company_registration_number = ''
+
+            value = data.get('cost')
+            if value not in self.NO_DATA:
+                value = float(value.replace(',', '.'))
+            else:
+                value = None
+            share = data.get('cost_percent')
+            if share not in self.NO_DATA:
+                share = float(share.replace(',', '.'))
+            else:
+                share = None
+            is_transferred = is_transferred_booleans.get(data.get('is_transferred'))
+
+            CorporateRights.objects.create(
+                declaration=declaration,
+                company_name=company_name,
+                company_name_eng=company_name_eng,
+                company_type_name=company_type_name,
+                company_registration_number=company_registration_number,
+                country=country,
+                company=company,
+                value=value,
+                share=share,
+                is_transferred=is_transferred
+            )
+
+            acquisition_date = data.get('owningDate')
+            if acquisition_date not in self.NO_DATA:
+                acquisition_date = simple_format_date_to_yymmdd(acquisition_date)
 
     # TODO: implement
     def save_securities_right(self, securities, acquisition_date, rights_data):
@@ -1518,10 +1596,10 @@ class DeclarationConverter(BusinessConverter):
                 #         and not detailed_declaration_data['step_7'].get('isNotApplicable')):
                 #     self.save_securities(detailed_declaration_data['step_7']['data'], declaration)
 
-                # 'Step_8' - declarant`s family`s companies
+                # 'Step_8' - declarant`s family`s corporate rights
                 # if (detailed_declaration_data['step_8']
                 #         and not detailed_declaration_data['step_8'].get('isNotApplicable')):
-                #     self.save_companies(detailed_declaration_data['step_8']['data'], declaration)
+                #     self.save_corporate_rights(detailed_declaration_data['step_8']['data'], declaration)
 
                 # 'Step_9' - companies where declarant`s family`s members are beneficiaries
                 # if (detailed_declaration_data['step_9']
@@ -1539,9 +1617,9 @@ class DeclarationConverter(BusinessConverter):
                 #     self.save_money(detailed_declaration_data['step_12']['data'], declaration)
 
                 # 'Step_13' - declarant`s family`s liabilities
-                if (detailed_declaration_data['step_13']
-                        and not detailed_declaration_data['step_13'].get('isNotApplicable')):
-                    self.save_liability(detailed_declaration_data['step_13']['data'], declaration)
+                # if (detailed_declaration_data['step_13']
+                #         and not detailed_declaration_data['step_13'].get('isNotApplicable')):
+                #     self.save_liability(detailed_declaration_data['step_13']['data'], declaration)
 
                 # 'Step_15' - declarant`s part-time job info
                 # if (detailed_declaration_data['step_15']

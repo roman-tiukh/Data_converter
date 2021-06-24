@@ -701,6 +701,82 @@ class Income(DataOceanModel):
     )
 
 
+class CorporateRights(DataOceanModel):
+    declaration = models.ForeignKey(
+        Declaration,
+        on_delete=models.PROTECT,
+        related_name='corporate_rights',
+        verbose_name=_('declaration')
+    )
+
+    company_name = models.TextField(
+        _('name of the company'),
+        max_length=75,
+        blank=True,
+        default='',
+        help_text=_('name of the company')
+    )
+    company_name_eng = models.TextField(
+        _('name of the company in English'),
+        max_length=75,
+        blank=True,
+        default='',
+        help_text=_('name in English of the company')
+    )
+    company_type_name = models.CharField(
+        _('name of type of the company'),
+        max_length=65,
+        blank=True,
+        default='',
+        help_text=_('name of type of the company')
+    )
+    company_registration_number = models.CharField(
+        _('registration number of the company'),
+        max_length=20,
+        blank=True,
+        default='',
+        help_text=_('number of registration of the company')
+    )
+    country = models.ForeignKey(
+        Country,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        default=None,
+        related_name='declared_pep_corporate_rights',
+        verbose_name=_('country'),
+        help_text=_('country where the company is registered'))
+    company = models.ForeignKey(
+        Company,
+        on_delete=models.PROTECT,
+        related_name='corporate_rights_from_declarations',
+        null=True,
+        blank=True,
+        default=None,
+        verbose_name=_('company'),
+        help_text=_('company')
+    )
+    value = models.FloatField(
+        _('value'),
+        blank=True,
+        null=True,
+        help_text=_('value of rights')
+    )
+    share = models.FloatField(
+        _('share'),
+        blank=True,
+        null=True,
+        help_text=_('company share')
+    )
+    is_transferred = models.BooleanField(
+        _('is transferred'),
+        null=True,
+        blank=True,
+        default=None,
+        help_text=_('is corporate rights transferred to another person or company')
+    )
+
+
 class Securities(DataOceanModel):
     SHARE = 1
     CORPORATE_RIGHTS = 2
