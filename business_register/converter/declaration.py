@@ -584,6 +584,9 @@ class DeclarationConverter(BusinessConverter):
             amount = data.get('sizeIncome')
             if amount not in self.NO_DATA:
                 amount = int(amount)
+                if amount > 2147483647:
+                    self.log_error(f'Wrong value for amount = {amount}. Check income data {data}')
+                    amount = None
             # TODO: decide what to do when value == '[Член сім\'ї не надав інформацію]'
             else:
                 amount = None
@@ -597,7 +600,6 @@ class DeclarationConverter(BusinessConverter):
             company_code = data.get('source_ua_company_code')
             if company_code not in self.NO_DATA and company_code not in self.ENIGMA:
                 company_code = company_code.zfill(8)
-                # FIXME: If the Ukrainian company has source = antac ?
                 company = Company.objects.filter(
                     edrpou=company_code,
                     source=Company.UKRAINE_REGISTER
@@ -610,7 +612,6 @@ class DeclarationConverter(BusinessConverter):
             foreign_company_code = data.get('source_eng_company_code')
             if company_code not in self.NO_DATA and foreign_company_code not in self.ENIGMA:
                 if not company:
-                    # FIXME: If the same company is in a different declaration, will there be two identical companies?
                     Company.objects.create(
                         name=data.get('source_eng_company_name'),
                         edrpou=foreign_company_code,
@@ -646,12 +647,13 @@ class DeclarationConverter(BusinessConverter):
             recipient = None
             # value could be 'j'
             recipient_code = data.get('incomeSource')
-            if not recipient_code:
+            if not recipient_code or recipient_code == self.OTHER_PERSON:
                 recipient_code = data.get('person')
-            recipient_data = data.get('person_who_care')
-            if recipient_data:
-                recipient_code = recipient_data[0].get('person')
-            if recipient_code in self.ENIGMA:
+            if not recipient_code:
+                recipient_data = data.get('person_who_care')
+                if recipient_data:
+                    recipient_code = recipient_data[0].get('person')
+            if recipient_code == self.DECLARANT:
                 recipient = declaration.pep
             elif recipient_code in self.NO_DATA:
                 recipient_code = ''
@@ -659,7 +661,7 @@ class DeclarationConverter(BusinessConverter):
                 self.log_error(f'Wrong value for recipient_code in income: recipient_code = {recipient_code}.'
                                f'Check income data({data})')
             else:
-                recipient = self.find_person(recipient_code)
+                recipient = self.find_person(recipient_code) if recipient_code.isdigit() else None
             # TODO: Check if we can extract recipient from rights_data like in Money
             rights_data = data.get('rights')
             if not recipient:
@@ -804,7 +806,7 @@ class DeclarationConverter(BusinessConverter):
 
         for data in securities_data:
             securities_type = types.get(data.get('typeProperty'))
-            additional_info = data.get('otherObjectType', '')
+            additional_info = data.get('otherObjectType') if data.get('otherObjectType') not in self.NO_DATA else ''
 
             issuer_from_info = data.get('emitent_type', '')
             issuer_name = data.get('emitent_ua_company_name')
@@ -824,7 +826,6 @@ class DeclarationConverter(BusinessConverter):
             issuer_registration_number = data.get('emitent_ua_company_code')
             if issuer_registration_number not in self.NO_DATA:
                 issuer_registration_number = issuer_registration_number.zfill(8)
-                # FIXME: If the Ukrainian company has source = 'antac' ?
                 issuer = Company.objects.filter(
                     edrpou=issuer_registration_number,
                     source=Company.UKRAINE_REGISTER
@@ -832,13 +833,12 @@ class DeclarationConverter(BusinessConverter):
                 if not issuer:
                     self.log_error(
                         f'Cannot identify ukrainian company with edrpou {issuer_registration_number}.'
-                        f'Check income data({data})'
+                        f'Check securities data({data})'
                     )
             else:
                 issuer_registration_number = ''
             issuer_foreign_registration_number = data.get('emitent_eng_company_code')
             if issuer_foreign_registration_number not in self.NO_DATA:
-                # FIXME: If the same company is in a different declaration, will there be two identical companies?
                 issuer = Company.objects.create(
                     name=issuer_name_eng,
                     edrpou=issuer_foreign_registration_number,
@@ -873,7 +873,6 @@ class DeclarationConverter(BusinessConverter):
             trustee = None
             if trustee_registration_number not in self.NO_DATA:
                 trustee_registration_number = trustee_registration_number.zfill(8)
-                # FIXME: If the Ukrainian company has source = 'antac' ?
                 trustee = Company.objects.filter(
                     edrpou=trustee_registration_number,
                     source=Company.UKRAINE_REGISTER
@@ -881,14 +880,13 @@ class DeclarationConverter(BusinessConverter):
                 if not trustee:
                     self.log_error(
                         f'Cannot identify ukrainian company with edrpou {trustee_registration_number}.'
-                        f'Check income data({data})'
+                        f'Check securities data({data})'
                     )
             else:
                 trustee_registration_number = ''
 
             trustee_foreign_registration_number = data.get('persons_eng_company_code')
             if trustee_foreign_registration_number not in self.NO_DATA:
-                # FIXME: If the same company is in a different declaration, will there be two identical companies?
                 trustee = Company.objects.create(
                     name=trustee_name_eng,
                     edrpou=trustee_foreign_registration_number,
@@ -1441,6 +1439,9 @@ class DeclarationConverter(BusinessConverter):
     def save_related_person(self, pep, declaration):
         SPOUSE_TYPES = ['дружина', 'чоловік']
         for relative_data in self.relatives_data:
+            if type(relative_data) != dict:
+                self.log_error(f'Invalid value: relative_data = {relative_data}')
+                continue
             to_person_relationship_type = relative_data.get('subjectRelation')
             related_person_links = RelatedPersonsLink.objects.filter(
                 from_person=pep,
