@@ -17,6 +17,7 @@ class CountrySanctionSerializer(DynamicFieldsMixin, serializers.ModelSerializer)
         fields = (
             'id', 'country', 'types_of_sanctions', 'start_date', 'end_date',
             'cancellation_condition', 'reasoning', 'reasoning_date',
+            'updated_at', 'created_at',
         )
 
 
@@ -37,6 +38,7 @@ class PersonSanctionSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
             'occupation', 'id_card', 'taxpayer_number', 'additional_info',
             'types_of_sanctions', 'start_date', 'end_date', 'cancellation_condition',
             'reasoning', 'reasoning_date', 'pep',
+            'updated_at', 'created_at',
         )
 
 
@@ -55,4 +57,5 @@ class CompanySanctionSerializer(DynamicFieldsMixin, serializers.ModelSerializer)
             'registration_number', 'country_of_registration', 'taxpayer_number',
             'additional_info', 'types_of_sanctions', 'start_date', 'end_date',
             'cancellation_condition', 'reasoning', 'reasoning_date',
+            'updated_at', 'created_at',
         )

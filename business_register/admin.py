@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib import admin
 from django.contrib.admin.widgets import AutocompleteSelectMultiple
+from django.forms import TextInput
 from rangefilter.filter import DateRangeFilter
 
 from business_register.models.company_models import Company
@@ -32,6 +33,12 @@ def get_sanction_form(model):
                     attrs={
                         'data-dropdown-auto-width': 'true',
                         'data-width': '624px',
+                    }
+                ),
+                'passports': TextInput(
+                    attrs={
+                        'style': 'max-width: 610px; width: 100%;',
+                        'placeholder': 'ВР135468,123456789,987654321'
                     }
                 ),
             }

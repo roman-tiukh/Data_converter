@@ -1,3 +1,5 @@
+from django.contrib.postgres.fields import ArrayField
+from django.core.validators import RegexValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -200,6 +202,13 @@ class PersonSanction(Sanction):
         blank=True,
         default='',
         help_text=_('occupation or professional activity of the person under sanctions'),
+    )
+    passports = ArrayField(
+        base_field=models.CharField(max_length=15, validators=[RegexValidator(regex=r'^[A-ZА-ЯЄЇҐІ0-9]+$')]),
+        verbose_name=_('passports'),
+        help_text='',
+        default=list,
+        blank=True,
     )
     id_card = models.TextField(
         _('id cards info'),
