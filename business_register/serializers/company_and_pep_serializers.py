@@ -170,7 +170,7 @@ class PepShortSerializer(serializers.ModelSerializer):
     class Meta:
         model = Pep
         fields = (
-            'id', 'fullname', 'last_job_title', 'last_employer',
+            'id', 'fullname', 'fullname_en', 'last_job_title', 'last_employer',
             'is_pep', 'pep_type', 'pep_type_display', 'pep_org_ua_link'
         )
 

@@ -298,6 +298,16 @@ class BaseSanctionFilter(filters.FilterSet):
                   '"end_date_after" key to select objects after the specified date. '
                   'Date must be in YYYY-MM-DD format.',
     )
+    updated_at = filters.DateFromToRangeFilter(
+        help_text='You can use key "updated_at_before" to select objects before the specified date and '
+                  '"updated_at_after" key to select objects after the specified date. '
+                  'Date must be in YYYY-MM-DD format.',
+    )
+    created_at = filters.DateFromToRangeFilter(
+        help_text='You can use key "created_at_before" to select objects before the specified date and '
+                  '"created_at_after" key to select objects after the specified date. '
+                  'Date must be in YYYY-MM-DD format.',
+    )
     reasoning = filters.CharFilter(
         lookup_expr='icontains',
         help_text='Filter by reasoning of imposing sanctions',
