@@ -15,6 +15,7 @@ from business_register.models.declaration_models import (Declaration,
                                                          Securities,
                                                          SecuritiesRight,
                                                          CorporateRights,
+                                                         Beneficary,
                                                          Income,
                                                          Money,
                                                          PartTimeJob,
@@ -107,9 +108,7 @@ class DeclarationConverter(BusinessConverter):
 
         ngo_type = ngo_types.get(data.get('objectType'))
         ngo_name = data.get('objectName')
-        ngo_body_name = data.get('unitName')
-        if not ngo_body_name:
-            ngo_body_name = ''
+        ngo_body_name = data.get('unitName', '')
         ngo_body_type = body_types.get(data.get('unitType'))
         ngo_registration_number = data.get('reestrCode')
         ngo = None
@@ -686,6 +685,96 @@ class DeclarationConverter(BusinessConverter):
             iteration = data.get('iteration')
 
     # possible_keys = {
+    #     'en_company_address_beneficial_owner', 'en_company_name_beneficial_owner', 'fax', 'country_extendedstatus',
+    #     'regNumber', 'address', 'mail', 'person', 'phone', 'country', 'country_beneficial_owner',
+    #     'beneficial_owner_company_code_extendedstatus', 'address_extendedstatus', 'legalForm', 'phone_extendedstatus',
+    #     'name_extendedstatus', 'en_name', 'en_name_extendedstatus', 'ua_company_address_beneficial_owner',
+    #     'address_beneficial_owner', 'legalForm_extendedstatus', 'company_code_beneficial_owner', 'fax_extendedstatus',
+    #     'person_who_care', 'iteration', 'mail_extendedstatus', 'ua_company_code_beneficial_owner',
+    #     'ua_company_name_beneficial_owner', 'beneficial_owner_company_code', 'company_name_beneficial_owner', 'name'
+    # }
+    def save_beneficiary_of(self, beneficiary_data, declaration):
+        for data in beneficiary_data:
+
+            company_name = data.get('company_name_beneficial_owner')
+            if company_name in self.NO_DATA:
+                company_name = data.get('name')
+            if company_name in self.NO_DATA:
+                company_name = ''
+            company_name_eng = data.get('en_company_name_beneficial_owner')
+            if company_name_eng in self.NO_DATA:
+                company_name_eng = data.get('en_name')
+            if company_name_eng in self.NO_DATA:
+                company_name_eng = ''
+            company_address = data.get('address')
+            if company_address in self.NO_DATA:
+                company_address = data.get('ua_company_address_beneficial_owner')
+            if company_address in self.NO_DATA:
+                company_address = data.get('address_beneficial_owner')
+            if company_address in self.NO_DATA:
+                company_address = data.get('en_company_address_beneficial_owner')
+            if company_address in self.NO_DATA:
+                company_address = ''
+
+            company_type_name = data.get('legalForm', '')
+            country = data.get('country')
+            if not country:
+                country = data.get('country_beneficial_owner')
+            if country:
+                country = self.find_country(country)
+            company_phone = data.get('phone')
+            if company_phone in self.NO_DATA:
+                company_phone = ''
+            company_fax = data.get('fax')
+            if company_fax in self.NO_DATA:
+                company_fax = ''
+            company_email = data.get('mail')
+            if company_email in self.NO_DATA:
+                company_email = ''
+
+            company_registration_number = data.get('beneficial_owner_company_code')
+            if company_registration_number in self.NO_DATA:
+                company_registration_number = data.get('ua_company_code_beneficial_owner')
+            if company_registration_number in self.NO_DATA:
+                company_registration_number = data.get('company_code_beneficial_owner')
+            company = None
+            if company_registration_number not in self.NO_DATA:
+                if country == self.UKRAINE:
+                    company_registration_number = company_registration_number.zfill(8)
+                    company = Company.objects.filter(
+                        edrpou=company_registration_number,
+                        source=Company.UKRAINE_REGISTER
+                    ).first()
+                    if not company:
+                        self.log_error(
+                            f'Cannot identify ukrainian company with edrpou {company_registration_number}.'
+                            f'Check corporate rights data({data})'
+                        )
+                else:
+                    company = Company.objects.create(
+                        name=company_name,
+                        name_en=company_name_eng,
+                        edrpou=company_registration_number,
+                        source=Company.DECLARATIONS
+                    )
+            else:
+                company_registration_number = ''
+
+            Beneficary.objects.create(
+                declaration=declaration,
+                company_name=company_name,
+                company_name_eng=company_name_eng,
+                company_type_name=company_type_name,
+                company_registration_number=company_registration_number,
+                country=country,
+                company_phone=company_phone,
+                company_fax=company_fax,
+                company_email=company_email,
+                company_address=company_address,
+                company=company
+            )
+
+    # possible_keys = {
     #     'corporate_rights_company_code', 'person', 'country', 'is_transferred', 'regNumber', 'cost',
     #     'corporate_rights_company_code_extendedstatus', 'en_name', 'en_name_extendedstatus', 'cost_percent', 'rights',
     #     'owningDate_extendedstatus', 'is_transferred_extendedstatus', 'cost_percent_extendedstatus',
@@ -707,7 +796,9 @@ class DeclarationConverter(BusinessConverter):
                 company_name_eng = ''
             company_registration_number = data.get('corporate_rights_company_code')
             company_type_name = data.get('legalForm', '')
-            country = self.find_country(data.get('country'))
+            country = data.get('country')
+            if country:
+                country = self.find_country(country)
             company = None
             if company_registration_number not in self.NO_DATA:
                 if country == self.UKRAINE:

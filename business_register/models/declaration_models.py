@@ -101,12 +101,6 @@ class Declaration(DataOceanModel):
         verbose_name='spouse',
         help_text='spouse of the declarant'
     )
-    beneficiary_of = models.ManyToManyField(
-        Company,
-        related_name='beneficiary',
-        verbose_name='beneficiary of',
-        help_text='beneficiary of company'
-    )
 
     def __str__(self):
         return f'declaration of {self.pep} for {self.year} year'
@@ -192,8 +186,8 @@ class NgoParticipation(DataOceanModel):
     pep = models.ForeignKey(
         Pep,
         on_delete=models.PROTECT,
-        related_name='ngo',
-        verbose_name='PEP that has the liability',
+        related_name='ngos',
+        verbose_name='PEP that participates in the NGO',
         help_text='politically exposed person that participates in the NGO'
     )
 
@@ -701,6 +695,88 @@ class Income(DataOceanModel):
     )
 
 
+class Beneficary(DataOceanModel):
+    declaration = models.ForeignKey(
+        Declaration,
+        on_delete=models.PROTECT,
+        related_name='beneficiaries',
+        verbose_name=_('declaration')
+    )
+    company_name = models.TextField(
+        _('name of the company'),
+        max_length=75,
+        blank=True,
+        default='',
+        help_text=_('name of the company')
+    )
+    company_name_eng = models.TextField(
+        _('name of the company in English'),
+        max_length=75,
+        blank=True,
+        default='',
+        help_text=_('name in English of the company')
+    )
+    company_type_name = models.TextField(
+        _('name of type of the company'),
+        blank=True,
+        default='',
+        help_text=_('name of type of the company')
+    )
+    country = models.ForeignKey(
+        Country,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        default=None,
+        related_name='declared_pep_beneficiaries',
+        verbose_name=_('country'),
+        help_text=_('country where the company is registered'))
+    company_phone = models.CharField(
+        _('phone number of the company'),
+        max_length=25,
+        blank=True,
+        default='',
+        help_text=_('phone number of the company')
+    )
+    company_fax = models.CharField(
+        _('fax number of the company'),
+        max_length=25,
+        blank=True,
+        default='',
+        help_text=_('fax number of the company')
+    )
+    company_email = models.CharField(
+        _('email of the company'),
+        max_length=55,
+        blank=True,
+        default='',
+        help_text=_('email of the company')
+    )
+    company_address = models.TextField(
+        'address of the company',
+        blank=True,
+        default='',
+        help_text='address of the company'
+    )
+    company_registration_number = models.CharField(
+        _('registration number of the company'),
+        max_length=20,
+        blank=True,
+        default='',
+        help_text=_('number of registration of the company')
+    )
+    company = models.ForeignKey(
+        Company,
+        on_delete=models.PROTECT,
+        related_name='beneficiaries_from_declarations',
+        null=True,
+        blank=True,
+        default=None,
+        verbose_name=_('company'),
+        help_text=_('company')
+    )
+
+
 class CorporateRights(DataOceanModel):
     declaration = models.ForeignKey(
         Declaration,
@@ -723,9 +799,8 @@ class CorporateRights(DataOceanModel):
         default='',
         help_text=_('name in English of the company')
     )
-    company_type_name = models.CharField(
+    company_type_name = models.TextField(
         _('name of type of the company'),
-        max_length=65,
         blank=True,
         default='',
         help_text=_('name of type of the company')
