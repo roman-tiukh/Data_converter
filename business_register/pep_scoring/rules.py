@@ -103,3 +103,4 @@ class IsAutoWithoutValue(BaseScoringRule):
             }
             return json.dumps(value)
         return 0
+    
