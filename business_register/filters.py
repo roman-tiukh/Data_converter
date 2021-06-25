@@ -362,7 +362,6 @@ class CompanySanctionFilterSet(BaseSanctionFilter):
         help_text='Filter by country_of_registration of company in Ukrainian. Type: case insensitive string contains',
     )
 
-
     class Meta:
         model = CompanySanction
         fields = {}
