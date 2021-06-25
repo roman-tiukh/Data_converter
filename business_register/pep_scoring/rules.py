@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-import json
 from business_register.models.declaration_models import (Declaration,
                                                          Property,
                                                          Vehicle,
@@ -40,15 +39,14 @@ class IsRealEstateWithoutValue(BaseScoringRule):
             type=Property.SUMMER_HOUSE,
             acquisition_date__year__gte=2015,
         ).values_list('property_id', 'property__declaration_id')[::1]
-
         if have_weight:
             weight = 0.4
-            value = {
+            data = {
                 "property_id": have_weight[0][0],
                 "declaration_id": have_weight[0][1],
             }
-            return json.dumps(value), weight
-        return 0
+            return weight, data
+        return 0, {}
 
 
 class IsLandWithoutValue(BaseScoringRule):
@@ -72,12 +70,12 @@ class IsLandWithoutValue(BaseScoringRule):
         ).values_list('property_id', 'property__declaration_id')[::1]
         if have_weight:
             weight = 0.1
-            value = {
+            data = {
                 "property_id": have_weight[0][0],
                 "declaration_id": have_weight[0][1],
             }
-            return json.dumps(value), weight
-        return 0
+            return weight, data
+        return 0, {}
 
 
 class IsAutoWithoutValue(BaseScoringRule):
@@ -100,9 +98,9 @@ class IsAutoWithoutValue(BaseScoringRule):
         ).values_list('car_id', 'car__declaration_id')[::1]
         if have_weight:
             weight = 0.4
-            value = {
+            data = {
                 "vehicle_id": have_weight[0][0],
                 "declaration_id": have_weight[0][1],
             }
-            return json.dumps(value), weight
-        return 0
+            return weight, data
+        return 0, {}
