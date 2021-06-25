@@ -353,8 +353,15 @@ class CompanySanctionFilterSet(BaseSanctionFilter):
         field_name='country_of_registration__name',
         lookup_expr='icontains',
         distinct=True,
-        help_text='Filter by country_of_registration of company. Type: case insensitive string contains',
+        help_text='Filter by country_of_registration of company in English. Type: case insensitive string contains',
     )
+    country_of_registration_uk = filters.CharFilter(
+        field_name='country_of_registration__name_uk',
+        lookup_expr='icontains',
+        distinct=True,
+        help_text='Filter by country_of_registration of company in Ukrainian. Type: case insensitive string contains',
+    )
+
 
     class Meta:
         model = CompanySanction
