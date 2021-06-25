@@ -32,22 +32,22 @@ class IsRealEstateWithoutValue(BaseScoringRule):
     def calculate_weight(self):
         family_ids = self.pep.related_persons.filter(
             to_person_links__category=RelatedPersonsLink.FAMILY,
-        ).values_list('id', flat=True).all()[::1]
+        ).values_list('id', flat=True)[::1]
         family_ids.append(self.pep.id)
         have_weight = PropertyRight.objects.filter(
             pep_id__in=family_ids,
             property__valuation__isnull=True,
             type=Property.SUMMER_HOUSE,
             acquisition_date__year__gte=2015,
-        ).values_list('property_id', 'property__declaration_id').all()[::1]
+        ).values_list('property_id', 'property__declaration_id')[::1]
 
         if have_weight:
+            weight = 0.4
             value = {
-                "weight": 0.4,
                 "property_id": have_weight[0][0],
                 "declaration_id": have_weight[0][1],
             }
-            return json.dumps(value)
+            return json.dumps(value), weight
         return 0
 
 
@@ -62,21 +62,21 @@ class IsLandWithoutValue(BaseScoringRule):
     def calculate_weight(self):
         family_ids = self.pep.related_persons.filter(
             to_person_links__category=RelatedPersonsLink.FAMILY,
-        ).values_list('id', flat=True).all()[::1]
+        ).values_list('id', flat=True)[::1]
         family_ids.append(self.pep.id)
         have_weight = PropertyRight.objects.filter(
             pep_id__in=family_ids,
             property__valuation__isnull=True,
             type=Property.LAND,
             acquisition_date__year__gte=2015,
-        ).values_list('property_id', 'property__declaration_id').all()[::1]
+        ).values_list('property_id', 'property__declaration_id')[::1]
         if have_weight:
+            weight = 0.1
             value = {
-                "weight": 0.1,
                 "property_id": have_weight[0][0],
                 "declaration_id": have_weight[0][1],
             }
-            return json.dumps(value)
+            return json.dumps(value), weight
         return 0
 
 
@@ -91,18 +91,18 @@ class IsAutoWithoutValue(BaseScoringRule):
     def calculate_weight(self):
         family_ids = self.pep.related_persons.filter(
             to_person_links__category=RelatedPersonsLink.FAMILY,
-        ).values_list('id', flat=True).all()[::1]
+        ).values_list('id', flat=True)[::1]
         family_ids.append(self.pep.id)
         have_weight = VehicleRight.objects.filter(
             pep_id__in=family_ids,
-            vehicle__valuation__isnull=True,
+            car__valuation__isnull=True,
             acquisition_date__year__gte=2015,
-        ).values_list('car_id', 'vehicle__declaration_id').all()[::1]
+        ).values_list('car_id', 'car__declaration_id')[::1]
         if have_weight:
+            weight = 0.4
             value = {
-                "weight": 0.4,
-                "property_id": have_weight[0][0],
+                "vehicle_id": have_weight[0][0],
                 "declaration_id": have_weight[0][1],
             }
-            return json.dumps(value)
+            return json.dumps(value), weight
         return 0
