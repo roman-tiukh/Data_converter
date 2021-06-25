@@ -397,6 +397,68 @@ class DeclarationConverter(BusinessConverter):
                     creditor_full_name_eng=creditor_full_name_eng,
                     owner=owner)
 
+    def save_bank_account(self, account_data, declaration, pep):
+        all_banks = list(Money.objects.filter(declaration__pep=pep, type=Money.BANK_ACCOUNT).values_list(
+            'bank_registration_number',
+            flat=True))
+        for data in account_data:
+            bank_code_ua = data.get('establishment_ua_company_code')
+            if bank_code_ua in self.NO_DATA:
+                bank_code_ua = ''
+            bank_code_en = data.get('establishment_eng_company_code')
+            if bank_code_en in self.NO_DATA:
+                bank_code_en = ''
+            if not bank_code_en and not bank_code_ua or bank_code_en in all_banks or bank_code_ua in all_banks:
+                continue
+            bank_name_ukr = data.get('establishment_ua_company_name', '')
+            if not bank_name_ukr:
+                bank_name_ukr = data.get('establishment_ukr_company_name', '')
+            bank_name_en = data.get('establishment_eng_company_name', '')
+            bank_info = data.get('establishment_type', '')
+            if bank_code_ua:
+                registration_number = bank_code_ua
+                company = Company.objects.filter(
+                    edrpou=registration_number,
+                    source=Company.UKRAINE_REGISTER,
+                ).first()
+            elif bank_code_en:
+                registration_number = bank_code_en
+                company = Company.objects.create(
+                    name=bank_name_ukr,
+                    name_en=bank_name_en,
+                    edrpou=registration_number,
+                    source=Company.DECLARATIONS,
+                )
+            else:
+                continue
+            owners = data.get('person_who_care')
+            if not owners:
+                self.log_error(f'Cannot identify owner of the account from data {data}.')
+            for person in owners:
+                owner_id = person.get('person')
+                if owner_id == self.DECLARANT:
+                    owner = pep
+                # TODO decide whether to save data about a third person here
+                elif owner_id == self.OTHER_PERSON:
+                    self.log_error(f'Owner is other person. Check money data {data}')
+                    continue
+                else:
+                    owner = self.find_person(owner_id)
+                if not owner:
+                    self.log_error(f'Cannot find owner of account ({data})')
+                    continue
+                Money.objects.create(
+                    type=Money.BANK_ACCOUNT,
+                    bank_name_eng=bank_name_en,
+                    bank_name=bank_name_ukr,
+                    bank=company,
+                    bank_registration_number=registration_number,
+                    owner=owner,
+                    declaration=declaration,
+                    bank_from_info=bank_info,
+                )
+            all_banks.append(registration_number)
+
     # TODO: discover what are 'guarantor' and 'margin-emitent' (can be 'j') fields
     # looks like data starts with 'debtor_ua' is the data of the owner of the Money.Cash
     # possible_keys = {
@@ -501,13 +563,17 @@ class DeclarationConverter(BusinessConverter):
                     for info in owner_info:
                         owner_id = info.get('rightBelongs')
             if owner_id not in self.NO_DATA:
-                if owner_id in self.ENIGMA:
+                if owner_id == self.DECLARANT:
                     owner = declaration.pep
+                # TODO decide whether to save data about a third person here
+                elif owner_id == self.OTHER_PERSON:
+                    self.log_error(f'Owner is other person. Check money data {data}')
+                    continue
                 else:
                     owner = self.find_person(owner_id)
             if not owner:
                 self.log_error(f'Cannot identify owner of the money from data({data})')
-
+                continue
             else:
                 Money.objects.create(
                     declaration=declaration,
@@ -1722,3 +1788,9 @@ class DeclarationConverter(BusinessConverter):
                 # if (detailed_declaration_data['step_16']
                 #         and not detailed_declaration_data['step_16'].get('isNotApplicable')):
                 #     self.save_ngo_participation(detailed_declaration_data['step_16']['data'], declaration)
+
+                # 'Step_17' Banking and other financial institutions in which the accounts of
+                # the declarant or declarant't family are opened
+                # if (detailed_declaration_data.get('step_17')
+                #         and not detailed_declaration_data['step_17'].get('isNotApplicable')):
+                #     self.save_bank_account(detailed_declaration_data['step_17']['data'], declaration, pep)
