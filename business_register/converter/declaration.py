@@ -442,8 +442,11 @@ class DeclarationConverter(BusinessConverter):
                 elif owner_id == self.OTHER_PERSON:
                     self.log_error(f'Owner is other person. Check money data {data}')
                     continue
-                else:
+                elif owner_id.isdigit():
                     owner = self.find_person(owner_id)
+                else:
+                    self.log_error(f'Wrong value for owner_id. Check money data{data}')
+                    continue
                 if not owner:
                     self.log_error(f'Cannot find owner of account ({data})')
                     continue
@@ -569,8 +572,10 @@ class DeclarationConverter(BusinessConverter):
                 elif owner_id == self.OTHER_PERSON:
                     self.log_error(f'Owner is other person. Check money data {data}')
                     continue
-                else:
+                elif owner_id.isdigit():
                     owner = self.find_person(owner_id)
+                else:
+                    self.log_error(f'Wrong value for owner_id. Check money data{data}')
             if not owner:
                 self.log_error(f'Cannot identify owner of the money from data({data})')
                 continue
