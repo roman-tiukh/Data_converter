@@ -104,3 +104,44 @@ class IsAutoWithoutValue(BaseScoringRule):
             }
             return weight, data
         return 0, {}
+
+
+class IsCostlyPresents(BaseScoringRule):
+    """
+    Rule 15 - PEP15
+    weight - 0.8
+    Declared presents amounting to more than 100 000 UAH
+    """
+
+    def calculate_weight(self):
+        presents_max_amount = 100000
+        declarations = Declaration.objects.filter(
+            pep_id=self.pep.id,
+        ).values('id', 'year')[::1]
+        declaration_ids = {}
+
+        for declaration in declarations:
+            year = declaration['year']
+            if not declaration_ids.__contains__(year):
+                declaration_ids[declaration['year']] = list()
+                declaration_ids[declaration['year']].extend([declaration['id']])
+            elif not declaration['id'] in declaration_ids[year]:
+                declaration_ids[year].extend([declaration['id']])
+
+        for declarations_by_year in declaration_ids.items():
+            presents_prise_UAH = 0
+            for declaration_id in declarations_by_year[1]:
+                incomes = Income.objects.filter(
+                    declaration_id=declaration_id,
+                ).values_list('amount', 'type')[::1]
+                for income in incomes:
+                    if income[1] in (Income.GIFT_IN_CASH, Income.GIFT):
+                        presents_prise_UAH += income[0]
+                if presents_prise_UAH > presents_max_amount:
+                    weight = 0.8
+                    data = {
+                        "presents_prise_UAH": presents_prise_UAH,
+                        "year": declarations_by_year[0],
+                    }
+                    return weight, data
+        return 0, {}
