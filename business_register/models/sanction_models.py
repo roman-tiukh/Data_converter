@@ -74,7 +74,7 @@ class SanctionType(DataOceanModel):
         verbose_name_plural = _('Sanction types')
 
 
-class Sanction(DataOceanModel):
+class BaseSanction(DataOceanModel):
     start_date = models.DateField(
         _('start date'),
         help_text=_('date of imposing sanctions')
@@ -103,12 +103,13 @@ class Sanction(DataOceanModel):
         null=True,
         help_text=_('date of reasoning of imposing sanctions')
     )
+    initial_data = models.TextField(_('initial data'), blank=True, default='')
 
     class Meta:
         abstract = True
 
 
-class CountrySanction(Sanction):
+class CountrySanction(BaseSanction):
     country = models.ForeignKey(
         Country,
         on_delete=models.CASCADE,
@@ -132,7 +133,7 @@ class CountrySanction(Sanction):
         ordering = ['start_date']
 
 
-class PersonSanction(Sanction):
+class PersonSanction(BaseSanction):
     pep = models.ForeignKey(
         Pep,
         on_delete=models.CASCADE,
@@ -246,7 +247,7 @@ class PersonSanction(Sanction):
         ordering = ['start_date']
 
 
-class CompanySanction(Sanction):
+class CompanySanction(BaseSanction):
     company = models.ForeignKey(
         Company,
         on_delete=models.CASCADE,

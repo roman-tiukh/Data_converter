@@ -581,6 +581,10 @@ msgstr "обгрунтування"
 msgid "reasoning of imposing sanctions"
 msgstr "обгрунтування санкцій"
 
+#: business_register/models/sanction_models.py:106
+msgid "initial data"
+msgstr "вихідні дані"
+
 #: business_register/models/sanction_models.py:101
 msgid "reasoning date"
 msgstr "дата обгрунтування"
