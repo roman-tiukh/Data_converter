@@ -433,19 +433,19 @@ class DeclarationConverter(BusinessConverter):
                 continue
             owners = data.get('person_who_care')
             if not owners:
-                self.log_error(f'Cannot identify owner of the account from data {data}.')
+                self.log_error(f'Cannot identify owner in account data ({data}).')
             for person in owners:
                 owner_id = person.get('person')
                 if owner_id == self.DECLARANT:
                     owner = pep
                 # TODO decide whether to save data about a third person here
                 elif owner_id == self.OTHER_PERSON:
-                    self.log_error(f'Owner is other person. Check money data {data}')
+                    self.log_error(f'Owner is other person. Check money data ({data})')
                     continue
                 elif owner_id.isdigit():
                     owner = self.find_person(owner_id)
                 else:
-                    self.log_error(f'Wrong value for owner_id. Check money data{data}')
+                    self.log_error(f'Wrong value for owner_id = {owner_id}. Check account data ({data})')
                     continue
                 if not owner:
                     self.log_error(f'Cannot find owner of account ({data})')
@@ -534,7 +534,7 @@ class DeclarationConverter(BusinessConverter):
                     if not bank:
                         self.log_error(
                             f'Cannot identify ukrainian company with edrpou {bank_registration_number}.'
-                            f'Check money data({data})'
+                            f'Check money data ({data})'
                         )
                         continue
                 else:
@@ -570,14 +570,14 @@ class DeclarationConverter(BusinessConverter):
                     owner = declaration.pep
                 # TODO decide whether to save data about a third person here
                 elif owner_id == self.OTHER_PERSON:
-                    self.log_error(f'Owner is other person. Check money data {data}')
+                    self.log_error(f'Owner is other person. Check money data ({data})')
                     continue
                 elif owner_id.isdigit():
                     owner = self.find_person(owner_id)
                 else:
-                    self.log_error(f'Wrong value for owner_id. Check money data{data}')
+                    self.log_error(f'Wrong value for owner_id = {owner_id}. Check money data ({data})')
             if not owner:
-                self.log_error(f'Cannot identify owner of the money from data({data})')
+                self.log_error(f'Cannot identify owner of the money from data ({data})')
                 continue
             else:
                 Money.objects.create(
