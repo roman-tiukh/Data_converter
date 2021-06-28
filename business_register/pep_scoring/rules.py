@@ -122,8 +122,8 @@ class IsCostlyPresents(BaseScoringRule):
 
         for declaration in declarations:
             year = declaration['year']
-            if not declaration_ids.__contains__(year):
-                declaration_ids[declaration['year']] = list()
+            if year not in declaration_ids:
+                declaration_ids[declaration['year']] = []
                 declaration_ids[declaration['year']].extend([declaration['id']])
             elif not declaration['id'] in declaration_ids[year]:
                 declaration_ids[year].extend([declaration['id']])
