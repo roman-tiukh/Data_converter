@@ -1,5 +1,7 @@
+from datetime import date
+
 from django.contrib.postgres.fields import ArrayField
-from django.core.validators import RegexValidator
+from django.core.validators import RegexValidator, MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -180,6 +182,15 @@ class PersonSanction(BaseSanction):
         default=None,
         help_text=_('date of birth of the person under sanctions')
     )
+    year_of_birth = models.PositiveSmallIntegerField(
+        _('year of birth'),
+        null=True,
+        blank=True,
+        validators=[
+            MinValueValidator(1800),
+            MaxValueValidator(date.today().year),
+        ],
+    )
     place_of_birth = models.CharField(
         _('place of birth'),
         max_length=100,
@@ -240,6 +251,11 @@ class PersonSanction(BaseSanction):
 
     def __str__(self):
         return f'Sanction against {self.full_name} from {self.start_date}'
+
+    def save(self, *args, **kwargs):
+        if self.date_of_birth:
+            self.year_of_birth = self.date_of_birth.year
+        super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = _('Sanction against person')
