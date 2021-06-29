@@ -1,22 +1,43 @@
 from abc import ABC, abstractmethod
-from business_register.models.declaration_models import (Declaration,
-                                                         Property,
-                                                         Vehicle,
-                                                         VehicleRight,
-                                                         Income,
-                                                         Money,
-                                                         PropertyRight,
-                                                         )
+
+from rest_framework import serializers
+
+from business_register.models.declaration_models import (
+    Declaration,
+    Property,
+    Vehicle,
+    VehicleRight,
+    Income,
+    Money,
+    PropertyRight,
+)
 from business_register.models.pep_models import (RelatedPersonsLink, Pep)
 from location_register.models.ratu_models import RatuCity
 
 
 class BaseScoringRule(ABC):
-    def __init__(self, pep):
+    class DataSerializer(serializers.Serializer, ABC):
+        """
+        Overwrite this class in child classes
+        """
+
+    def __init__(self, pep: Pep) -> None:
         self.pep = pep
 
+    def validate_data(self, data) -> None:
+        self.DataSerializer(data=data).is_valid(raise_exception=True)
+
+    def validate_weight(self, weight) -> None:
+        assert type(weight) in (int, float)
+
+    def calculate_with_validation(self) -> tuple[int or float, dict]:
+        weight, data = self.calculate_weight()
+        self.validate_data(data)
+        self.validate_weight(weight)
+        return weight, data
+
     @abstractmethod
-    def calculate_weight(self):
+    def calculate_weight(self) -> tuple[int or float, dict]:
         pass
 
 
@@ -28,7 +49,11 @@ class IsRealEstateWithoutValue(BaseScoringRule):
     family members since 2015
     """
 
-    def calculate_weight(self):
+    class DataSerializer(serializers.Serializer):
+        property_id = serializers.IntegerField(min_value=0, required=True)
+        declaration_id = serializers.IntegerField(min_value=0, required=True)
+
+    def calculate_weight(self) -> tuple[int or float, dict]:
         family_ids = self.pep.related_persons.filter(
             to_person_links__category=RelatedPersonsLink.FAMILY,
         ).values_list('id', flat=True)[::1]
@@ -57,7 +82,11 @@ class IsLandWithoutValue(BaseScoringRule):
     family members since 2015
     """
 
-    def calculate_weight(self):
+    class DataSerializer(serializers.Serializer):
+        property_id = serializers.IntegerField(min_value=0, required=True)
+        declaration_id = serializers.IntegerField(min_value=0, required=True)
+
+    def calculate_weight(self) -> tuple[int or float, dict]:
         family_ids = self.pep.related_persons.filter(
             to_person_links__category=RelatedPersonsLink.FAMILY,
         ).values_list('id', flat=True)[::1]
@@ -86,7 +115,11 @@ class IsAutoWithoutValue(BaseScoringRule):
     family members since 2015
     """
 
-    def calculate_weight(self):
+    class DataSerializer(serializers.Serializer):
+        vehicle_id = serializers.IntegerField(min_value=0, required=True)
+        declaration_id = serializers.IntegerField(min_value=0, required=True)
+
+    def calculate_weight(self) -> tuple[int or float, dict]:
         family_ids = self.pep.related_persons.filter(
             to_person_links__category=RelatedPersonsLink.FAMILY,
         ).values_list('id', flat=True)[::1]
