@@ -18,9 +18,10 @@ from business_register.models.declaration_models import (Declaration,
                                                          Beneficary,
                                                          Income,
                                                          Money,
+                                                         Liability,
+                                                         Transaction,
                                                          PartTimeJob,
                                                          NgoParticipation,
-                                                         Liability
                                                          )
 from business_register.models.pep_models import Pep, RelatedPersonsLink
 from location_register.models.address_models import Country
@@ -75,6 +76,24 @@ class DeclarationConverter(BusinessConverter):
 
     def log_error(self, message):
         logger.error(f'Declaration id {self.current_declaration.nacp_declaration_id} : {message}')
+
+    def to_float(self, value):
+        if value not in self.NO_DATA:
+            return float(value)
+        return
+
+    def find_value(self, dictionary: dict, set_of_keys: set, default_value):
+        counter = 0
+        result = default_value
+        for key in set_of_keys:
+            if dictionary.get(key) not in self.NO_DATA:
+                result = dictionary.get(key)
+                counter += 1
+        if counter > 1:
+            self.log_error(f'There are more then one value. Check this data: {dictionary}')
+            return default_value
+        else:
+            return result
 
     # TODO: decide what to do if more than one person has the same nacp_id
     def find_person(self, pep_id):
@@ -224,26 +243,88 @@ class DeclarationConverter(BusinessConverter):
                 employer_full_name=employer_full_name
             )
 
-    possible_keys = {
-        'emitent_ua_company_code_extendedstatus', 'emitent_ua_company_code', 'guarantor_realty',
-        'emitent_ua_actualAddress', 'emitent_eng_regAddress', 'emitent_eng_birthday', 'emitent_eng_company_name',
-        'emitent_ukr_fullname', 'dateOrigin', 'otherObjectType', 'emitent_ua_birthday_extendedstatus',
-        'emitent_ukr_regAddress_extendedstatus', 'person', 'otherObjectType_extendedstatus',
-        'emitent_eng_company_address', 'emitent_ukr_company_address', 'emitent_ua_middlename',
-        'emitent_eng_taxNumber_extendedstatus', 'iteration', 'dateOrigin_extendedstatus', 'guarantor',
-        'emitent_ukr_company_address_extendedstatus', 'sizeObligation_extendedstatus', 'emitent_ua_birthday',
-        'margin-emitent_extendedstatus', 'emitent_eng_company_code', 'credit_rest_extendedstatus',
-        'currency_extendedstatus', 'emitent_ua_taxNumber', 'credit_percent_paid_extendedstatus', 'person_who_care',
-        'emitent_ua_middlename_extendedstatus', 'margin-emitent', 'emitent_eng_company_code_extendedstatus',
-        'guarantor_realty_exist_', 'emitent_ua_sameRegLivingAddress', 'emitent_eng_company_address_extendedstatus',
-        'emitent_ua_lastname', 'credit_paid', 'emitent_ukr_company_name', 'emitent_ua_firstname', 'currency',
-        'sizeObligation', 'guarantor_exist_', 'emitent_ua_taxNumber_extendedstatus',
-        'emitent_ua_regAddress_extendedstatus', 'emitent_eng_fullname', 'credit_paid_extendedstatus',
-        'emitent_eng_birthday_extendedstatus', 'emitent_citizen', 'emitent_ukr_regAddress', 'credit_rest',
-        'credit_percent_paid', 'emitent_ua_company_name', 'emitent_ua_regAddress', 'emitent_eng_taxNumber',
-        'emitent_ua_actualAddress_extendedstatus', 'emitent_eng_regAddress_extendedstatus', 'objectType'
-    }
+    # possible_keys = {
+    #     'specExpensesMovableSubject', 'specOtherExpensesSubject', 'specExpenses', 'country', 'date_costAmount',
+    #     'date_specExpenses', 'specOtherExpenses', 'specExpensesAssetsSubject', 'specExpensesOtherRealtySubject',
+    #     'specExpensesOtherMovableSubject', 'iteration', 'person', 'costAmount', 'specResultExpenses',
+    #     'specExpensesSubject', 'specExpensesRealtySubject', 'type'
+    # }
+    def save_transaction(self, transactions_data, declaration):
+        is_money_spent_booleans = {'1': True, '2': False}
+        for data in transactions_data:
+            is_money_spent = is_money_spent_booleans.get(data.get('type'))
+            amount = self.to_float(data.get('costAmount'))
+            transaction_object_type = data.get('specExpensesSubject', '')
+            transaction_result = ''
+            if data.get('specExpenses') == 'Інше':
+                transaction_result = data.get('specOtherExpenses')
+            else:
+                transaction_result = self.find_value(data, {'specExpenses', 'specResultExpenses'}, '')
+            if data.get('specExpensesSubject') == 'Інше':
+                transaction_object = data.get('specOtherExpensesSubject')
+            elif data.get('specExpensesRealtySubject') == 'Інше нерухоме майно':
+                transaction_object = data.get('specExpensesOtherRealtySubject')
+            elif data.get('specExpensesMovableSubject') == 'Інше рухоме майно':
+                transaction_object = data.get('specExpensesOtherMovableSubject')
+            else:
+                transaction_object = self.find_value(
+                    data,
+                    {
+                        'specExpensesMovableSubject',
+                        'specExpensesAssetsSubject',
+                        'specExpensesRealtySubject'
+                    },
+                    ''
+                )
 
+            date = self.find_value(data, {'date_specExpenses', 'specExpensesAssetsSubject'}, None)
+            if date:
+                date = simple_format_date_to_yymmdd(date)
+            country = data.get('country')
+            if country:
+                country = self.find_country(country)
+
+            participant = None
+            participant_id = data.get('person')
+            if participant_id not in self.NO_DATA:
+                if participant_id == '1':
+                    participant = declaration.pep
+                else:
+                    participant = self.find_person(participant_id)
+            if not participant:
+                self.log_error(f'Cannot identify participant of the transaction from data({data})')
+
+            Transaction.objects.create(
+                declaration=declaration,
+                is_money_spent=is_money_spent,
+                amount=amount,
+                transaction_object_type=transaction_object_type,
+                transaction_object=transaction_object,
+                transaction_result=transaction_result,
+                date=date,
+                country=country,
+                participant=participant
+            )
+
+    # possible_keys = {
+    #     'emitent_ua_company_code_extendedstatus', 'emitent_ua_company_code', 'guarantor_realty',
+    #     'emitent_ua_actualAddress', 'emitent_eng_regAddress', 'emitent_eng_birthday', 'emitent_eng_company_name',
+    #     'emitent_ukr_fullname', 'dateOrigin', 'otherObjectType', 'emitent_ua_birthday_extendedstatus',
+    #     'emitent_ukr_regAddress_extendedstatus', 'person', 'otherObjectType_extendedstatus',
+    #     'emitent_eng_company_address', 'emitent_ukr_company_address', 'emitent_ua_middlename',
+    #     'emitent_eng_taxNumber_extendedstatus', 'iteration', 'dateOrigin_extendedstatus', 'guarantor',
+    #     'emitent_ukr_company_address_extendedstatus', 'sizeObligation_extendedstatus', 'emitent_ua_birthday',
+    #     'margin-emitent_extendedstatus', 'emitent_eng_company_code', 'credit_rest_extendedstatus',
+    #     'currency_extendedstatus', 'emitent_ua_taxNumber', 'credit_percent_paid_extendedstatus', 'person_who_care',
+    #     'emitent_ua_middlename_extendedstatus', 'margin-emitent', 'emitent_eng_company_code_extendedstatus',
+    #     'guarantor_realty_exist_', 'emitent_ua_sameRegLivingAddress', 'emitent_eng_company_address_extendedstatus',
+    #     'emitent_ua_lastname', 'credit_paid', 'emitent_ukr_company_name', 'emitent_ua_firstname', 'currency',
+    #     'sizeObligation', 'guarantor_exist_', 'emitent_ua_taxNumber_extendedstatus',
+    #     'emitent_ua_regAddress_extendedstatus', 'emitent_eng_fullname', 'credit_paid_extendedstatus',
+    #     'emitent_eng_birthday_extendedstatus', 'emitent_citizen', 'emitent_ukr_regAddress', 'credit_rest',
+    #     'credit_percent_paid', 'emitent_ua_company_name', 'emitent_ua_regAddress', 'emitent_eng_taxNumber',
+    #     'emitent_ua_actualAddress_extendedstatus', 'emitent_eng_regAddress_extendedstatus', 'objectType'
+    # }
     def save_liability(self, liabilities_data, declaration):
         types = {
             'Отримані кредити': Liability.LOAN,
@@ -330,7 +411,8 @@ class DeclarationConverter(BusinessConverter):
             guarantee = ''
             guarantee_amount = None
             guarantee_registration = None
-            if data.get('guarantor_realty') not in self.NO_DATA:
+            guarantee_info = data.get('guarantor_realty')
+            if type(guarantee_info) == list and len(guarantee_info):
                 # An example of this field:
                 # 'guarantor_realty': [
                 #     {'realty_objectType': 'Автомобіль легковий', 'realty_ua_postCode': '[Конфіденційна інформація]',
@@ -340,7 +422,7 @@ class DeclarationConverter(BusinessConverter):
                 #      'realty_ua_street': '[Конфіденційна інформація]', 'region': '[Конфіденційна інформація]',
                 #      'realty_cost': '931410', 'realty_country': '1',
                 #      'realty_ua_houseNum': '[Конфіденційна інформація]'}]
-                guarantee_info = data.get('guarantor_realty')[0]
+                guarantee_info = guarantee_info[0]
                 guarantee = guarantee_info.get('realty_objectType', '')
                 guarantee_amount = guarantee_info.get('realty_cost')
                 if guarantee_amount not in self.NO_DATA:
@@ -366,10 +448,10 @@ class DeclarationConverter(BusinessConverter):
                 if owner_info:
                     owner_id = owner_info[0].get('person')
             if owner_id not in self.NO_DATA:
-                if owner_id in self.ENIGMA:
+                if owner_id == '1':
                     owner = declaration.pep
                 else:
-                    owner = Pep.objects.filter(nacp_id=int(owner_id)).first()
+                    owner = self.find_person(owner_id)
             if not owner:
                 self.log_error(f'Cannot identify owner of the liability from data({data})')
             else:
@@ -1779,6 +1861,11 @@ class DeclarationConverter(BusinessConverter):
                 # if (detailed_declaration_data['step_13']
                 #         and not detailed_declaration_data['step_13'].get('isNotApplicable')):
                 #     self.save_liability(detailed_declaration_data['step_13']['data'], declaration)
+
+                # 'Step_14' - declarant`s family`s transactions
+                # if (detailed_declaration_data['step_14']
+                #         and not detailed_declaration_data['step_14'].get('isNotApplicable')):
+                #     self.save_transaction(detailed_declaration_data['step_14']['data'], declaration)
 
                 # 'Step_15' - declarant`s part-time job info
                 # if (detailed_declaration_data['step_15']
