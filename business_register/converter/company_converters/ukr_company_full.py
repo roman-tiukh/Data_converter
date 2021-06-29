@@ -15,7 +15,7 @@ from business_register.models.company_models import (
 from data_ocean.converter import BulkCreateManager
 from data_ocean.downloader import Downloader
 from data_ocean.utils import (cut_first_word, format_date_to_yymmdd, get_first_word,
-                              to_lower_string_if_exists)
+                              to_lower_string_if_exists, log_records)
 from location_register.converter.address import AddressConverter
 from stats.tasks import endpoints_cache_warm_up
 
@@ -772,11 +772,13 @@ class UkrCompanyFullConverter(CompanyConverter):
             edrpou = record.xpath('EDRPOU')[0].text
             if not edrpou:
                 self.invalid_data_counter += 1
+                log_records(record, self.LOCAL_FOLDER + 'invalid_companies.txt', self.invalid_data_counter)
                 continue
             if record.xpath('NAME')[0].text:
                 name = record.xpath('NAME')[0].text.lower()
             else:
                 self.invalid_data_counter += 1
+                log_records(record, self.LOCAL_FOLDER + 'invalid_companies.txt', self.invalid_data_counter)
                 continue
             code = name + edrpou
             address = record.xpath('ADDRESS')[0].text
