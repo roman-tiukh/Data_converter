@@ -350,20 +350,20 @@ class CompanySanctionFilterSet(BaseSanctionFilter):
         help_text='Filter by additional info of company. Type: case insensitive string contains',
     )
     country_of_registration = filters.CharFilter(
-        method='filter_en_and_uk_fields',
+        method='filter_two_fields',
         distinct=True,
         help_text='Filter by country_of_registration of company in English and Ukrainian.'
                   'Type: case insensitive string contains',
     )
 
-    class Meta:
-        model = CompanySanction
-        fields = {}
-
-    def filter_en_and_uk_fields(self, queryset, name, value):
+    def filter_two_fields(self, queryset, name, value):
         return queryset.filter(
             Q(country_of_registration__name__icontains=value) | Q(country_of_registration__name_uk__icontains=value)
         )
+
+    class Meta:
+        model = CompanySanction
+        fields = {}
 
 
 class PersonSanctionFilterSet(BaseSanctionFilter):
