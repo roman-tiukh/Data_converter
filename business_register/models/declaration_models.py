@@ -1001,6 +1001,7 @@ class Vehicle(DataOceanModel):
     MOTORBIKE = 3
     BOAT = 4
     AGRICULTURAL_MACHINERY = 5
+    AIR_MEANS = 6
     OTHER = 10
 
     ITEM_TYPES = (
@@ -1008,6 +1009,7 @@ class Vehicle(DataOceanModel):
         (TRUCK, 'Truck'),
         (BOAT, 'Boat'),
         (AGRICULTURAL_MACHINERY, 'Agricultural machinery'),
+        (AIR_MEANS, _('Air_means')),
         (OTHER, 'Other'),
     )
     declaration = models.ForeignKey(
@@ -1031,14 +1033,14 @@ class Vehicle(DataOceanModel):
     )
     brand = models.CharField(
         'brand',
-        max_length=40,
+        max_length=80,
         blank=True,
         default='',
         help_text='brand'
     )
     model = models.CharField(
         'model',
-        max_length=75,
+        max_length=140,
         blank=True,
         default='',
         help_text='model'
