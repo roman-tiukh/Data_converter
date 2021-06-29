@@ -1,5 +1,7 @@
+from datetime import date
+
 from django.contrib.postgres.fields import ArrayField
-from django.core.validators import RegexValidator
+from django.core.validators import RegexValidator, MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -74,7 +76,7 @@ class SanctionType(DataOceanModel):
         verbose_name_plural = _('Sanction types')
 
 
-class Sanction(DataOceanModel):
+class BaseSanction(DataOceanModel):
     start_date = models.DateField(
         _('start date'),
         help_text=_('date of imposing sanctions')
@@ -103,12 +105,13 @@ class Sanction(DataOceanModel):
         null=True,
         help_text=_('date of reasoning of imposing sanctions')
     )
+    initial_data = models.TextField(_('initial data'), blank=True, default='')
 
     class Meta:
         abstract = True
 
 
-class CountrySanction(Sanction):
+class CountrySanction(BaseSanction):
     country = models.ForeignKey(
         Country,
         on_delete=models.CASCADE,
@@ -132,7 +135,7 @@ class CountrySanction(Sanction):
         ordering = ['start_date']
 
 
-class PersonSanction(Sanction):
+class PersonSanction(BaseSanction):
     pep = models.ForeignKey(
         Pep,
         on_delete=models.CASCADE,
@@ -178,6 +181,15 @@ class PersonSanction(Sanction):
         blank=True,
         default=None,
         help_text=_('date of birth of the person under sanctions')
+    )
+    year_of_birth = models.PositiveSmallIntegerField(
+        _('year of birth'),
+        null=True,
+        blank=True,
+        validators=[
+            MinValueValidator(1800),
+            MaxValueValidator(date.today().year),
+        ],
     )
     place_of_birth = models.CharField(
         _('place of birth'),
@@ -240,13 +252,18 @@ class PersonSanction(Sanction):
     def __str__(self):
         return f'Sanction against {self.full_name} from {self.start_date}'
 
+    def save(self, *args, **kwargs):
+        if self.date_of_birth:
+            self.year_of_birth = self.date_of_birth.year
+        super().save(*args, **kwargs)
+
     class Meta:
         verbose_name = _('Sanction against person')
         verbose_name_plural = _('Sanctions against persons')
         ordering = ['start_date']
 
 
-class CompanySanction(Sanction):
+class CompanySanction(BaseSanction):
     company = models.ForeignKey(
         Company,
         on_delete=models.CASCADE,

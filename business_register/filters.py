@@ -375,8 +375,6 @@ class PersonSanctionFilterSet(BaseSanctionFilter):
         help_text='Filter by date of birth. Format YYYY-MM-DD',
     )
     year_of_birth = filters.NumberFilter(
-        field_name='date_of_birth',
-        lookup_expr='year__exact',
         help_text='Filter by year of birth',
         min_value=1800,
         max_value=date.today().year,

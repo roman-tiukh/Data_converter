@@ -221,14 +221,12 @@ class PartTimeJob(DataOceanModel):
     )
     employer_name = models.TextField(
         'name of the employer',
-        max_length=75,
         blank=True,
         default='',
         help_text='name of the employer'
     )
     employer_name_eng = models.TextField(
         'name of the employer in English',
-        max_length=75,
         blank=True,
         default='',
         help_text='name of the employer in English '
@@ -256,12 +254,76 @@ class PartTimeJob(DataOceanModel):
         verbose_name='employer',
         help_text='employer of the PEP for part-time job'
     )
-    employer_full_name = models.CharField(
+    employer_full_name = models.TextField(
         'employer full name',
-        max_length=75,
         blank=True,
         default='',
         help_text='full name of the person that gave PEP part-time job'
+    )
+
+
+class Transaction(DataOceanModel):
+    declaration = models.ForeignKey(
+        Declaration,
+        on_delete=models.PROTECT,
+        related_name='transactions',
+        verbose_name='declaration'
+    )
+    is_money_spent = models.BooleanField(
+        'is_money_spent',
+        null=True,
+        blank=True,
+        default=None,
+        help_text='whether the money spent during the transaction'
+    )
+    amount = models.FloatField(
+        'amount',
+        null=True,
+        blank=True,
+        help_text='amount of the liability'
+    )
+    transaction_object_type = models.TextField(
+        'transaction object`s type',
+        blank=True,
+        default='',
+        help_text='type of the object of the transaction'
+    )
+    transaction_object = models.TextField(
+        'transaction`s object',
+        blank=True,
+        default='',
+        help_text='object of the transaction'
+    )
+    transaction_result = models.TextField(
+        'transaction result',
+        blank=True,
+        default='',
+        help_text='result of the transaction'
+    )
+    date = models.DateField(
+        'date',
+        null=True,
+        blank=True,
+        help_text='date of the transaction'
+    )
+    country = models.ForeignKey(
+        Country,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        default=None,
+        related_name='declared_pep_transactions',
+        verbose_name=_('country'),
+        help_text=_('country where the transaction is registered'))
+    participant = models.ForeignKey(
+        Pep,
+        null=True,
+        blank=True,
+        default=None,
+        on_delete=models.PROTECT,
+        related_name='transactions',
+        verbose_name='PEP that executes the transaction',
+        help_text='politically exposed person that executes the transaction'
     )
 
 
@@ -1001,6 +1063,7 @@ class Vehicle(DataOceanModel):
     MOTORBIKE = 3
     BOAT = 4
     AGRICULTURAL_MACHINERY = 5
+    AIR_MEANS = 6
     OTHER = 10
 
     ITEM_TYPES = (
@@ -1008,6 +1071,7 @@ class Vehicle(DataOceanModel):
         (TRUCK, 'Truck'),
         (BOAT, 'Boat'),
         (AGRICULTURAL_MACHINERY, 'Agricultural machinery'),
+        (AIR_MEANS, _('Air_means')),
         (OTHER, 'Other'),
     )
     declaration = models.ForeignKey(
@@ -1031,14 +1095,14 @@ class Vehicle(DataOceanModel):
     )
     brand = models.CharField(
         'brand',
-        max_length=40,
+        max_length=80,
         blank=True,
         default='',
         help_text='brand'
     )
     model = models.CharField(
         'model',
-        max_length=75,
+        max_length=140,
         blank=True,
         default='',
         help_text='model'
