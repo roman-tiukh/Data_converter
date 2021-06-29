@@ -407,8 +407,14 @@ class UkrCompanyFullConverter(CompanyConverter):
         branches = []
         for item in branches_from_record:
             branch = Company()
-            branch.edrpou = item.xpath('CODE')[0].text
-            branch.name = item.xpath('NAME')[0].text
+            if item.xpath('CODE'):
+                branch.edrpou = item.xpath('CODE')[0].text or ''
+            else:
+                branch.edrpou = ''
+            if item.xpath('NAME'):
+                branch.name = item.xpath('NAME')[0].text or ''
+            else:
+                continue
             branch.address = item.xpath('ADDRESS')[0].text
             branch.registration_date = format_date_to_yymmdd(item.xpath('CREATE_DATE')[0].text)
             if item.xpath('CONTACTS'):
@@ -455,15 +461,20 @@ class UkrCompanyFullConverter(CompanyConverter):
                         self.update_exchange_data(item.xpath('EXCHANGE_DATA')[0], branch)
             if not already_stored:
                 branch = Company()
-                branch.edrpou = item.xpath('CODE')[0].text or ''
-                branch.name = item.xpath('NAME')[0].text or ''
+                if item.xpath('CODE'):
+                    branch.edrpou = item.xpath('CODE')[0].text or ''
+                else:
+                    branch.edrpou = ''
+                if item.xpath('NAME'):
+                    branch.name = item.xpath('NAME')[0].text or ''
+                else:
+                    continue
                 branch.address = item.xpath('ADDRESS')[0].text
                 branch.registration_date = format_date_to_yymmdd(item.xpath('CREATE_DATE')[0].text)
                 if item.xpath('CONTACTS'):
                     branch.contact_info = item.xpath('CONTACTS')[0].text
                 branch.code = branch.edrpou + branch.name
                 self.bulk_manager.add(branch)
-                print(company.edrpou)
                 if item.xpath('SIGNER'):
                     self.add_signers([item.xpath('SIGNER')[0]], branch.code)
                 if item.xpath('ACTIVITY_KINDS'):
