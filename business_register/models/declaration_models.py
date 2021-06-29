@@ -1361,10 +1361,16 @@ class BaseRight(DataOceanModel):
     # use this if the owner is a person but not PEP
     full_name = models.CharField(
         'full name',
-        max_length=150,
+        max_length=75,
         blank=True,
         default='',
         help_text='full name of the person that owns the right'
+    )
+    company_name = models.CharField(
+        'company name',
+        max_length=200,
+        blank=True,
+        help_text='name of the company that owns the right'
     )
 
     class Meta:
