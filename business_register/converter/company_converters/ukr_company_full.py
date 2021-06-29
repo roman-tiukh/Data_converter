@@ -27,7 +27,6 @@ class UkrCompanyFullConverter(CompanyConverter):
     """
     Uncomment for switch Timer ON.
     """
-
     # timing = True
 
     def __init__(self):
@@ -54,7 +53,7 @@ class UkrCompanyFullConverter(CompanyConverter):
         self.branches_to_dict = {}
         self.company_country = AddressConverter().save_or_get_country('Ukraine')
         self.source = Company.UKRAINE_REGISTER
-        self.already_stored_companies = \
+        self.already_stored_companies =\
             list(Company.objects.filter(source=Company.UKRAINE_REGISTER).values_list('id', flat=True))
         self.uptodated_companies = []
         self.invalid_data_counter = 0
@@ -114,7 +113,7 @@ class UkrCompanyFullConverter(CompanyConverter):
         if address and len(address) < 15:
             address = None
         # if address and len(address) > 200:
-        # logger.warning(f'Завелика адреса: {address} із запису: {founder_info}')
+            # logger.warning(f'Завелика адреса: {address} із запису: {founder_info}')
         return name, edrpou, address, equity
 
     def extract_founder_data(self, founder_info):
@@ -166,7 +165,7 @@ class UkrCompanyFullConverter(CompanyConverter):
             is_beneficiary = False
             info_beneficiary = None
             for beneficiary in beneficiaries_from_record:
-                name_beneficiary, country_beneficiary, address_beneficiary, edrpou_beneficiary = \
+                name_beneficiary, country_beneficiary, address_beneficiary, edrpou_beneficiary =\
                     self.extract_beneficiary_data(beneficiary.text)
                 name_beneficiary = name_beneficiary.lower()
                 if name_beneficiary == name:
@@ -403,6 +402,39 @@ class UkrCompanyFullConverter(CompanyConverter):
                 assignees.append(assignee)
         self.assignee_to_dict[code] = assignees
 
+    def update_assignees(self, assignees_from_record, company):
+        already_stored_assignees = list(Assignee.include_deleted_objects.filter(company_id=company.id))
+        for item in assignees_from_record:
+            name = item.xpath('NAME')[0].text
+            if name:
+                name = name.lower()
+            else:
+                name = ''
+            edrpou = item.xpath('CODE')[0].text
+            if not edrpou:
+                edrpou = ''
+            if not name and not edrpou:
+                continue
+            already_stored = False
+            if len(already_stored_assignees):
+                for stored_assignee in already_stored_assignees:
+                    if stored_assignee.name == name and stored_assignee.edrpou == edrpou:
+                        already_stored = True
+                        if stored_assignee.deleted_at:
+                            stored_assignee.deleted_at = None
+                            stored_assignee.save(update_fields=['deleted_at', 'updated_at'])
+                        already_stored_assignees.remove(stored_assignee)
+                        break
+            if not already_stored:
+                assignee = Assignee()
+                assignee.name = name
+                assignee.edrpou = edrpou
+                assignee.company = company
+                self.bulk_manager.add(assignee)
+        if len(already_stored_assignees):
+            for outdated_assignees in already_stored_assignees:
+                outdated_assignees.soft_delete()
+
     def add_branches(self, branches_from_record, code):
         branches = []
         for item in branches_from_record:
@@ -480,39 +512,6 @@ class UkrCompanyFullConverter(CompanyConverter):
                 if item.xpath('ACTIVITY_KINDS'):
                     self.add_company_to_kved(item.xpath('ACTIVITY_KINDS')[0], branch.code)
                 self.add_exchange_data(item.xpath('EXCHANGE_DATA')[0], branch.code)
-
-    def update_assignees(self, assignees_from_record, company):
-        already_stored_assignees = list(Assignee.include_deleted_objects.filter(company_id=company.id))
-        for item in assignees_from_record:
-            name = item.xpath('NAME')[0].text
-            if name:
-                name = name.lower()
-            else:
-                name = ''
-            edrpou = item.xpath('CODE')[0].text
-            if not edrpou:
-                edrpou = ''
-            if not name and not edrpou:
-                continue
-            already_stored = False
-            if len(already_stored_assignees):
-                for stored_assignee in already_stored_assignees:
-                    if stored_assignee.name == name and stored_assignee.edrpou == edrpou:
-                        already_stored = True
-                        if stored_assignee.deleted_at:
-                            stored_assignee.deleted_at = None
-                            stored_assignee.save(update_fields=['deleted_at', 'updated_at'])
-                        already_stored_assignees.remove(stored_assignee)
-                        break
-            if not already_stored:
-                assignee = Assignee()
-                assignee.name = name
-                assignee.edrpou = edrpou
-                assignee.company = company
-                self.bulk_manager.add(assignee)
-        if len(already_stored_assignees):
-            for outdated_assignees in already_stored_assignees:
-                outdated_assignees.soft_delete()
 
     def add_bancruptcy_readjustment(self, record, code):
         bancruptcy_readjustment = BancruptcyReadjustment()
@@ -1005,9 +1004,11 @@ class UkrCompanyFullConverter(CompanyConverter):
                 self.update_company_detail(founding_document_number, executive_power, superior_management,
                                            managing_paper, terminated_info, termination_cancel_info, vp_dates, company)
                 self.time_it('update company details\t')
-                self.update_founders(record.xpath('FOUNDERS')[0] if len(record.xpath('FOUNDERS')[0]) else [],
-                                     record.xpath('BENEFICIARIES')[0] if len(record.xpath('BENEFICIARIES')[0]) else [],
-                                     company)
+                self.update_founders(
+                    record.xpath('FOUNDERS')[0] if len(record.xpath('FOUNDERS')[0]) else [],
+                    record.xpath('BENEFICIARIES')[0] if len(record.xpath('BENEFICIARIES')[0]) else [],
+                    company
+                )
                 self.time_it('update founders\t\t')
                 self.update_company_to_kved(record.xpath('ACTIVITY_KINDS')[0], company)
                 self.time_it('update kveds\t\t')
