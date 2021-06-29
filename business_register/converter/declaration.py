@@ -1803,24 +1803,24 @@ class DeclarationConverter(BusinessConverter):
 
                 # TODO: predict updating
                 # 'Step_1' - declarant`s personal data
-                self.save_declarant_data(detailed_declaration_data['step_1']['data'], pep, declaration)
+                # self.save_declarant_data(detailed_declaration_data['step_1']['data'], pep, declaration)
 
                 # TODO: predict updating
                 # 'Step_2' - declarant`s family
-                if (
-                        not declaration.spouse
-                        and detailed_declaration_data['step_2']
-                        and not detailed_declaration_data['step_2'].get('isNotApplicable')
-                ):
-                    self.relatives_data = detailed_declaration_data['step_2']['data']
-                    self.save_related_person(pep, declaration)
-                else:
-                    self.relatives_data = None
+                # if (
+                #         not declaration.spouse
+                #         and detailed_declaration_data['step_2']
+                #         and not detailed_declaration_data['step_2'].get('isNotApplicable')
+                # ):
+                #     self.relatives_data = detailed_declaration_data['step_2']['data']
+                #     self.save_related_person(pep, declaration)
+                # else:
+                #     self.relatives_data = None
 
                 # 'Step_3' - declarant`s family`s properties
-                if (detailed_declaration_data['step_3']
-                        and not detailed_declaration_data['step_3'].get('isNotApplicable')):
-                    self.save_property(detailed_declaration_data['step_3']['data'], declaration)
+                # if (detailed_declaration_data['step_3']
+                #         and not detailed_declaration_data['step_3'].get('isNotApplicable')):
+                #     self.save_property(detailed_declaration_data['step_3']['data'], declaration)
 
                 # 'Step_4' - declarant`s family`s unfinished construction
                 # if (detailed_declaration_data['step_4']
