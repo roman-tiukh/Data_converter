@@ -1427,5 +1427,5 @@ class PepScoring(DataOceanModel):
     data = models.JSONField()
 
     class Meta:
-        verbose_name = 'Ризик обгрунтованості активів'
+        verbose_name = 'оцінка ризику обгрунтованості активів'
 

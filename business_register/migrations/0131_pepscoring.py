@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
                 ('pep', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='scoring', to='business_register.pep')),
             ],
             options={
-                'verbose_name': 'Ризик обгрунтованості активів',
+                'verbose_name': 'оцінка ризику обгрунтованості активів',
             },
         ),
     ]
