@@ -350,11 +350,16 @@ class CompanySanctionFilterSet(BaseSanctionFilter):
         help_text='Filter by additional info of company. Type: case insensitive string contains',
     )
     country_of_registration = filters.CharFilter(
-        field_name='country_of_registration__name',
-        lookup_expr='icontains',
+        method='filter_two_country_of_registration_fields',
         distinct=True,
-        help_text='Filter by country_of_registration of company. Type: case insensitive string contains',
+        help_text='Filter by country_of_registration of company in English and Ukrainian.'
+                  'Type: case insensitive string contains',
     )
+
+    def filter_two_country_of_registration_fields(self, queryset, name, value):
+        return queryset.filter(
+            Q(country_of_registration__name__icontains=value) | Q(country_of_registration__name_uk__icontains=value)
+        )
 
     class Meta:
         model = CompanySanction
@@ -375,8 +380,6 @@ class PersonSanctionFilterSet(BaseSanctionFilter):
         help_text='Filter by date of birth. Format YYYY-MM-DD',
     )
     year_of_birth = filters.NumberFilter(
-        field_name='date_of_birth',
-        lookup_expr='year__exact',
         help_text='Filter by year of birth',
         min_value=1800,
         max_value=date.today().year,

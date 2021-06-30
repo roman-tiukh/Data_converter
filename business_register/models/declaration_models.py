@@ -3,6 +3,7 @@ from django.utils.translation import gettext_lazy as _
 
 from business_register.models.company_models import Company
 from business_register.models.pep_models import Pep
+from business_register.pep_scoring.constants import ScoringRuleEnum
 from data_ocean.models import DataOceanModel
 from location_register.models.address_models import Country
 from location_register.models.ratu_models import RatuCity
@@ -221,14 +222,12 @@ class PartTimeJob(DataOceanModel):
     )
     employer_name = models.TextField(
         'name of the employer',
-        max_length=75,
         blank=True,
         default='',
         help_text='name of the employer'
     )
     employer_name_eng = models.TextField(
         'name of the employer in English',
-        max_length=75,
         blank=True,
         default='',
         help_text='name of the employer in English '
@@ -256,12 +255,78 @@ class PartTimeJob(DataOceanModel):
         verbose_name='employer',
         help_text='employer of the PEP for part-time job'
     )
-    employer_full_name = models.CharField(
+    employer_full_name = models.TextField(
         'employer full name',
-        max_length=75,
         blank=True,
         default='',
         help_text='full name of the person that gave PEP part-time job'
+    )
+
+
+class Transaction(DataOceanModel):
+    declaration = models.ForeignKey(
+        Declaration,
+        on_delete=models.PROTECT,
+        related_name='transactions',
+        verbose_name='declaration'
+    )
+    is_money_spent = models.BooleanField(
+        'is_money_spent',
+        null=True,
+        blank=True,
+        default=None,
+        help_text='whether the money spent during the transaction'
+    )
+    amount = models.DecimalField(
+        'amount',
+        max_digits=12,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text='amount of the liability'
+    )
+    transaction_object_type = models.TextField(
+        'transaction object`s type',
+        blank=True,
+        default='',
+        help_text='type of the object of the transaction'
+    )
+    transaction_object = models.TextField(
+        'transaction`s object',
+        blank=True,
+        default='',
+        help_text='object of the transaction'
+    )
+    transaction_result = models.TextField(
+        'transaction result',
+        blank=True,
+        default='',
+        help_text='result of the transaction'
+    )
+    date = models.DateField(
+        'date',
+        null=True,
+        blank=True,
+        help_text='date of the transaction'
+    )
+    country = models.ForeignKey(
+        Country,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        default=None,
+        related_name='declared_pep_transactions',
+        verbose_name=_('country'),
+        help_text=_('country where the transaction is registered'))
+    participant = models.ForeignKey(
+        Pep,
+        null=True,
+        blank=True,
+        default=None,
+        on_delete=models.PROTECT,
+        related_name='transactions',
+        verbose_name='PEP that executes the transaction',
+        help_text='politically exposed person that executes the transaction'
     )
 
 
@@ -306,24 +371,32 @@ class Liability(DataOceanModel):
         default='',
         help_text='additional info about the liability'
     )
-    amount = models.FloatField(
+    amount = models.DecimalField(
         'amount',
+        max_digits=12,
+        decimal_places=2,
         help_text='amount of the liability'
     )
-    loan_rest = models.FloatField(
+    loan_rest = models.DecimalField(
         'loan rest',
+        max_digits=12,
+        decimal_places=2,
         null=True,
         blank=True,
         help_text='amount of the rest of the loan'
     )
-    loan_paid = models.FloatField(
+    loan_paid = models.DecimalField(
         'loan paid',
+        max_digits=12,
+        decimal_places=2,
         null=True,
         blank=True,
         help_text='amount of the body of the loan that was paid during declaration`s period'
     )
-    interest_paid = models.FloatField(
+    interest_paid = models.DecimalField(
         'interest paid',
+        max_digits=12,
+        decimal_places=2,
         null=True,
         blank=True,
         help_text='amount of the interest of the loan that was paid during declaration`s period'
@@ -398,8 +471,10 @@ class Liability(DataOceanModel):
         default='',
         help_text='loan guarantee'
     )
-    guarantee_amount = models.FloatField(
+    guarantee_amount = models.DecimalField(
         'amount',
+        max_digits=12,
+        decimal_places=2,
         null=True,
         blank=True,
         help_text='amount of the loan guarantee'
@@ -502,8 +577,10 @@ class Money(DataOceanModel):
         help_text='additional info about the money'
     )
     # can be no data for cryptocurrency
-    amount = models.FloatField(
+    amount = models.DecimalField(
         'amount',
+        max_digits=12,
+        decimal_places=2,
         null=True,
         blank=True,
         help_text='amount of money'
@@ -594,7 +671,6 @@ class Income(DataOceanModel):
     SALARY = 1
     INTEREST = 2
     DIVIDENDS = 3
-    PROPERTY_SALE = 4
     SECURITIES_SALE = 5
     BUSINESS = 6
     GIFT_IN_CASH = 7
@@ -618,7 +694,6 @@ class Income(DataOceanModel):
         (SALARY, 'Salary'),
         (INTEREST, 'Interest'),
         (DIVIDENDS, 'Dividends'),
-        (PROPERTY_SALE, 'From sale of property'),
         (SECURITIES_SALE, 'From sale of securities or corporate rights'),
         (BUSINESS, 'Business'),
         (GIFT_IN_CASH, 'Gift in cash'),
@@ -641,7 +716,7 @@ class Income(DataOceanModel):
     declaration = models.ForeignKey(
         Declaration,
         on_delete=models.PROTECT,
-        related_name='income',
+        related_name='incomes',
         verbose_name='declaration'
     )
     type = models.PositiveSmallIntegerField(
@@ -831,14 +906,18 @@ class CorporateRights(DataOceanModel):
         verbose_name=_('company'),
         help_text=_('company')
     )
-    value = models.FloatField(
+    value = models.DecimalField(
         _('value'),
+        max_digits=12,
+        decimal_places=2,
         blank=True,
         null=True,
         help_text=_('value of rights')
     )
-    share = models.FloatField(
+    share = models.DecimalField(
         _('share'),
+        max_digits=12,
+        decimal_places=2,
         blank=True,
         null=True,
         help_text=_('company share')
@@ -987,8 +1066,10 @@ class Securities(DataOceanModel):
         null=True,
         help_text='quantity of securities'
     )
-    nominal_value = models.FloatField(
+    nominal_value = models.DecimalField(
         'nominal value',
+        max_digits=12,
+        decimal_places=2,
         blank=True,
         null=True,
         help_text='nominal value of securities'
@@ -1001,6 +1082,7 @@ class Vehicle(DataOceanModel):
     MOTORBIKE = 3
     BOAT = 4
     AGRICULTURAL_MACHINERY = 5
+    AIR_MEANS = 6
     OTHER = 10
 
     ITEM_TYPES = (
@@ -1008,6 +1090,7 @@ class Vehicle(DataOceanModel):
         (TRUCK, 'Truck'),
         (BOAT, 'Boat'),
         (AGRICULTURAL_MACHINERY, 'Agricultural machinery'),
+        (AIR_MEANS, _('Air_means')),
         (OTHER, 'Other'),
     )
     declaration = models.ForeignKey(
@@ -1031,14 +1114,14 @@ class Vehicle(DataOceanModel):
     )
     brand = models.CharField(
         'brand',
-        max_length=40,
+        max_length=80,
         blank=True,
         default='',
         help_text='brand'
     )
     model = models.CharField(
         'model',
-        max_length=75,
+        max_length=140,
         blank=True,
         default='',
         help_text='model'
@@ -1229,10 +1312,31 @@ class BaseRight(DataOceanModel):
         (OWNER_IS_ANOTHER_PERSON, 'Owner is another person'),
         (NO_INFO_FROM_FAMILY_MEMBER, 'Family member did not provide the information'),
     )
+    DECLARANT = 1
+    FAMILY_MEMBER = 2
+    UKRAINE_CITIZEN = 3
+    FOREIGN_CITIZEN = 4
+    UKRAINE_LEGAL_ENTITY = 5
+    FOREIGN_LEGAL_ENTITY = 6
+    OWNER_TYPE = (
+        (DECLARANT, 'Declarant'),
+        (FAMILY_MEMBER, 'Family member'),
+        (UKRAINE_CITIZEN, 'Ukraine citizen'),
+        (FOREIGN_CITIZEN, 'Foreign citizen'),
+        (UKRAINE_LEGAL_ENTITY, 'Legal entity registered in Ukraine'),
+        (FOREIGN_LEGAL_ENTITY, 'Legal entity registered abroad'),
+    )
     type = models.PositiveSmallIntegerField(
         'type',
         choices=RIGHT_TYPES,
         help_text='type of the right'
+    )
+    owner_type = models.PositiveSmallIntegerField(
+        'owner type',
+        choices=OWNER_TYPE,
+        null=True,
+        blank=True,
+        help_text='type of the owner',
     )
     # please, use this field when the type == OTHER_USAGE_RIGHT
     additional_info = models.TextField(
@@ -1247,8 +1351,10 @@ class BaseRight(DataOceanModel):
         blank=True,
         help_text='date of acquisition of the right'
     )
-    share = models.FloatField(
+    share = models.DecimalField(
         'share of the right',
+        max_digits=12,
+        decimal_places=2,
         blank=True,
         null=True,
         help_text='share of the right'
@@ -1281,15 +1387,12 @@ class BaseRight(DataOceanModel):
         default='',
         help_text='full name of the person that owns the right'
     )
-    country_of_citizenship = models.ForeignKey(
-        Country,
-        on_delete=models.PROTECT,
-        related_name='%(app_label)s_%(class)s_rights',
-        verbose_name='country of citizenship',
-        null=True,
+    company_name = models.CharField(
+        'company name',
+        max_length=200,
         blank=True,
-        default=None,
-        help_text='country of citizenship of the owner of the the right')
+        help_text='name of the company that owns the right'
+    )
 
     class Meta:
         abstract = True
@@ -1333,3 +1436,16 @@ class PropertyRight(BaseRight):
         verbose_name='property_right',
         help_text='right to the property'
     )
+
+
+class PepScoring(DataOceanModel):
+    declaration = models.OneToOneField(Declaration, on_delete=models.PROTECT, related_name='scoring')
+    pep = models.ForeignKey(Pep, on_delete=models.PROTECT, related_name='scoring')
+    rule_id = models.CharField(max_length=10, choices=[(x.name, x.value) for x in ScoringRuleEnum])
+    calculation_date = models.DateField()
+    score = models.FloatField()
+    data = models.JSONField()
+
+    class Meta:
+        verbose_name = 'оцінка ризику обгрунтованості активів'
+

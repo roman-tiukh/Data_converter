@@ -392,6 +392,10 @@ msgstr "розшук"
 msgid "date of birth"
 msgstr "дата народження"
 
+#: business_register/models/sanction_models.py:186
+msgid "year of birth"
+msgstr "рік народження"
+
 #: business_register/models/pep_models.py:118
 #: business_register/models/sanction_models.py:183
 msgid "place of birth"
@@ -580,6 +584,10 @@ msgstr "обгрунтування"
 #: business_register/models/sanction_models.py:98
 msgid "reasoning of imposing sanctions"
 msgstr "обгрунтування санкцій"
+
+#: business_register/models/sanction_models.py:106
+msgid "initial data"
+msgstr "вихідні дані"
 
 #: business_register/models/sanction_models.py:101
 msgid "reasoning date"
