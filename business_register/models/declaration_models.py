@@ -1293,10 +1293,31 @@ class BaseRight(DataOceanModel):
         (OWNER_IS_ANOTHER_PERSON, 'Owner is another person'),
         (NO_INFO_FROM_FAMILY_MEMBER, 'Family member did not provide the information'),
     )
+    DECLARANT = 1
+    FAMILY_MEMBER = 2
+    UKRAINE_CITIZEN = 3
+    FOREIGN_CITIZEN = 4
+    UKRAINE_LEGAL_ENTITY = 5
+    FOREIGN_LEGAL_ENTITY = 6
+    OWNER_TYPE = (
+        (DECLARANT, 'Declarant'),
+        (FAMILY_MEMBER, 'Family member'),
+        (UKRAINE_CITIZEN, 'Ukraine citizen'),
+        (FOREIGN_CITIZEN, 'Foreign citizen'),
+        (UKRAINE_LEGAL_ENTITY, 'Legal entity registered in Ukraine'),
+        (FOREIGN_LEGAL_ENTITY, 'Legal entity registered abroad'),
+    )
     type = models.PositiveSmallIntegerField(
         'type',
         choices=RIGHT_TYPES,
         help_text='type of the right'
+    )
+    owner_type = models.PositiveSmallIntegerField(
+        'owner type',
+        choices=OWNER_TYPE,
+        null=True,
+        blank=True,
+        help_text='type of the owner',
     )
     # please, use this field when the type == OTHER_USAGE_RIGHT
     additional_info = models.TextField(
@@ -1345,15 +1366,12 @@ class BaseRight(DataOceanModel):
         default='',
         help_text='full name of the person that owns the right'
     )
-    country_of_citizenship = models.ForeignKey(
-        Country,
-        on_delete=models.PROTECT,
-        related_name='%(app_label)s_%(class)s_rights',
-        verbose_name='country of citizenship',
-        null=True,
+    company_name = models.CharField(
+        'company name',
+        max_length=200,
         blank=True,
-        default=None,
-        help_text='country of citizenship of the owner of the the right')
+        help_text='name of the company that owns the right'
+    )
 
     class Meta:
         abstract = True
