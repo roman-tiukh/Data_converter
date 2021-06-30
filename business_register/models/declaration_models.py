@@ -277,8 +277,10 @@ class Transaction(DataOceanModel):
         default=None,
         help_text='whether the money spent during the transaction'
     )
-    amount = models.FloatField(
+    amount = models.DecimalField(
         'amount',
+        max_digits=12,
+        decimal_places=2,
         null=True,
         blank=True,
         help_text='amount of the liability'
@@ -369,24 +371,32 @@ class Liability(DataOceanModel):
         default='',
         help_text='additional info about the liability'
     )
-    amount = models.FloatField(
+    amount = models.DecimalField(
         'amount',
+        max_digits=12,
+        decimal_places=2,
         help_text='amount of the liability'
     )
-    loan_rest = models.FloatField(
+    loan_rest = models.DecimalField(
         'loan rest',
+        max_digits=12,
+        decimal_places=2,
         null=True,
         blank=True,
         help_text='amount of the rest of the loan'
     )
-    loan_paid = models.FloatField(
+    loan_paid = models.DecimalField(
         'loan paid',
+        max_digits=12,
+        decimal_places=2,
         null=True,
         blank=True,
         help_text='amount of the body of the loan that was paid during declaration`s period'
     )
-    interest_paid = models.FloatField(
+    interest_paid = models.DecimalField(
         'interest paid',
+        max_digits=12,
+        decimal_places=2,
         null=True,
         blank=True,
         help_text='amount of the interest of the loan that was paid during declaration`s period'
@@ -461,8 +471,10 @@ class Liability(DataOceanModel):
         default='',
         help_text='loan guarantee'
     )
-    guarantee_amount = models.FloatField(
+    guarantee_amount = models.DecimalField(
         'amount',
+        max_digits=12,
+        decimal_places=2,
         null=True,
         blank=True,
         help_text='amount of the loan guarantee'
@@ -565,8 +577,10 @@ class Money(DataOceanModel):
         help_text='additional info about the money'
     )
     # can be no data for cryptocurrency
-    amount = models.FloatField(
+    amount = models.DecimalField(
         'amount',
+        max_digits=12,
+        decimal_places=2,
         null=True,
         blank=True,
         help_text='amount of money'
@@ -657,7 +671,6 @@ class Income(DataOceanModel):
     SALARY = 1
     INTEREST = 2
     DIVIDENDS = 3
-    PROPERTY_SALE = 4
     SECURITIES_SALE = 5
     BUSINESS = 6
     GIFT_IN_CASH = 7
@@ -681,7 +694,6 @@ class Income(DataOceanModel):
         (SALARY, 'Salary'),
         (INTEREST, 'Interest'),
         (DIVIDENDS, 'Dividends'),
-        (PROPERTY_SALE, 'From sale of property'),
         (SECURITIES_SALE, 'From sale of securities or corporate rights'),
         (BUSINESS, 'Business'),
         (GIFT_IN_CASH, 'Gift in cash'),
@@ -704,7 +716,7 @@ class Income(DataOceanModel):
     declaration = models.ForeignKey(
         Declaration,
         on_delete=models.PROTECT,
-        related_name='income',
+        related_name='incomes',
         verbose_name='declaration'
     )
     type = models.PositiveSmallIntegerField(
@@ -894,14 +906,18 @@ class CorporateRights(DataOceanModel):
         verbose_name=_('company'),
         help_text=_('company')
     )
-    value = models.FloatField(
+    value = models.DecimalField(
         _('value'),
+        max_digits=12,
+        decimal_places=2,
         blank=True,
         null=True,
         help_text=_('value of rights')
     )
-    share = models.FloatField(
+    share = models.DecimalField(
         _('share'),
+        max_digits=12,
+        decimal_places=2,
         blank=True,
         null=True,
         help_text=_('company share')
@@ -1050,8 +1066,10 @@ class Securities(DataOceanModel):
         null=True,
         help_text='quantity of securities'
     )
-    nominal_value = models.FloatField(
+    nominal_value = models.DecimalField(
         'nominal value',
+        max_digits=12,
+        decimal_places=2,
         blank=True,
         null=True,
         help_text='nominal value of securities'
@@ -1333,8 +1351,10 @@ class BaseRight(DataOceanModel):
         blank=True,
         help_text='date of acquisition of the right'
     )
-    share = models.FloatField(
+    share = models.DecimalField(
         'share of the right',
+        max_digits=12,
+        decimal_places=2,
         blank=True,
         null=True,
         help_text='share of the right'
