@@ -18,9 +18,11 @@ from business_register.models.declaration_models import (Declaration,
                                                          Beneficary,
                                                          Income,
                                                          Money,
+                                                         Liability,
+                                                         Transaction,
                                                          PartTimeJob,
                                                          NgoParticipation,
-                                                         Liability
+                                                         BaseRight,
                                                          )
 from business_register.models.pep_models import Pep, RelatedPersonsLink
 from location_register.models.address_models import Country
@@ -64,6 +66,12 @@ class DeclarationConverter(BusinessConverter):
             "Майно набуто У ПЕРІОД здійснення суб'єктом декларування діяльності із виконання "
             "функцій держави або місцевого самоврядування": False,
         }
+        self.OTHER_PERSON_TYPES = {
+            'Громадянин України': BaseRight.UKRAINE_CITIZEN,
+            'Іноземний громадянин': BaseRight.FOREIGN_CITIZEN,
+            'Юридична особа, зареєстрована в Україні': BaseRight.UKRAINE_LEGAL_ENTITY,
+            'Юридична особа, зареєстрована за кордоном': BaseRight.FOREIGN_LEGAL_ENTITY,
+        }
         # TODO: delete ENIGMA, keys
         self.ENIGMA = {'1', 'j'}
         self.DECLARANT = '1'
@@ -76,7 +84,24 @@ class DeclarationConverter(BusinessConverter):
     def log_error(self, message):
         logger.error(f'Declaration id {self.current_declaration.nacp_declaration_id} : {message}')
 
-    # TODO: decide what to do if more than one person has the same nacp_id
+    def to_float(self, value):
+        if value not in self.NO_DATA:
+            return float(value.replace(',', '.').strip('.,'))
+        return
+
+    def find_value(self, dictionary: dict, set_of_keys: set, default_value):
+        counter = 0
+        result = default_value
+        for key in set_of_keys:
+            if dictionary.get(key) not in self.NO_DATA:
+                result = dictionary.get(key)
+                counter += 1
+        if counter > 1:
+            self.log_error(f'There are more then one value. Check this data: {dictionary}')
+            return default_value
+        else:
+            return result
+
     def find_person(self, pep_id):
         peps = list(Pep.objects.filter(nacp_id__contains=[int(pep_id)]))
         if len(peps) == 1:
@@ -93,6 +118,66 @@ class DeclarationConverter(BusinessConverter):
         else:
             self.log_error(f'Cannot find person with nacp_id {pep_id}')
         return None
+
+    def find_third_person_rights(self, right_data, name_of_rights):
+        owner_type = self.OTHER_PERSON_TYPES.get(right_data.get('citizen'))
+        if not owner_type:
+            self.log_error(f'Unknown type of owner = {right_data.get("citizen")}. '
+                           f'Check {name_of_rights} right data ({right_data})')
+        company_name = ''
+        full_name = ''
+        company = None
+        if owner_type == BaseRight.UKRAINE_CITIZEN:
+            last_name = right_data.get('ua_lastname')
+            first_name = right_data.get('ua_firstname')
+            middle_name = right_data.get('ua_middlename')
+            if middle_name in self.NO_DATA:
+                middle_name = ''
+            full_name = f'{last_name} {first_name} {middle_name}'
+        elif owner_type == BaseRight.FOREIGN_CITIZEN:
+            ukr_full_name = right_data.get('ukr_fullname')
+            if ukr_full_name in self.NO_DATA:
+                ukr_full_name = ''
+            eng_full_name = right_data.get('eng_fullname')
+            if eng_full_name in self.NO_DATA:
+                eng_full_name = ''
+            full_name = ukr_full_name if ukr_full_name else eng_full_name
+        elif owner_type == BaseRight.UKRAINE_LEGAL_ENTITY:
+            company_name = right_data.get('ua_company_name')
+            if company_name in self.NO_DATA:
+                company_name = ''
+            company_code = right_data.get('ua_company_code')
+            if company_code not in self.NO_DATA:
+                company = Company.objects.filter(
+                    edrpou=company_code,
+                    source=Company.UKRAINE_REGISTER
+                ).first()
+                if not company:
+                    self.log_error(
+                        f'Cannot identify ukrainian company with edrpou {company_code}.'
+                        f'Check {name_of_rights} right data ({right_data})'
+                    )
+        elif owner_type == BaseRight.FOREIGN_LEGAL_ENTITY:
+            company_code = right_data.get('eng_company_code')
+            if company_code not in self.NO_DATA:
+                name = right_data.get('ukr_company_name')
+                if name in self.NO_DATA:
+                    name = ''
+                eng_name = right_data.get('eng_company_name')
+                if eng_name in self.NO_DATA:
+                    eng_name = ''
+                company_name = name if name else eng_name
+                address = right_data.get('ukr_company_address')
+                if address in self.NO_DATA:
+                    address = ''
+                company = Company.objects.create(
+                    name=company_name,
+                    name_en=eng_name,
+                    edrpou=company_code,
+                    address=address,
+                    source=Company.DECLARATIONS,
+                )
+        return owner_type, full_name, company, company_name
 
     def create_ngo_participation(self, data, participation_type, declaration):
         ngo_types = {
@@ -224,26 +309,88 @@ class DeclarationConverter(BusinessConverter):
                 employer_full_name=employer_full_name
             )
 
-    possible_keys = {
-        'emitent_ua_company_code_extendedstatus', 'emitent_ua_company_code', 'guarantor_realty',
-        'emitent_ua_actualAddress', 'emitent_eng_regAddress', 'emitent_eng_birthday', 'emitent_eng_company_name',
-        'emitent_ukr_fullname', 'dateOrigin', 'otherObjectType', 'emitent_ua_birthday_extendedstatus',
-        'emitent_ukr_regAddress_extendedstatus', 'person', 'otherObjectType_extendedstatus',
-        'emitent_eng_company_address', 'emitent_ukr_company_address', 'emitent_ua_middlename',
-        'emitent_eng_taxNumber_extendedstatus', 'iteration', 'dateOrigin_extendedstatus', 'guarantor',
-        'emitent_ukr_company_address_extendedstatus', 'sizeObligation_extendedstatus', 'emitent_ua_birthday',
-        'margin-emitent_extendedstatus', 'emitent_eng_company_code', 'credit_rest_extendedstatus',
-        'currency_extendedstatus', 'emitent_ua_taxNumber', 'credit_percent_paid_extendedstatus', 'person_who_care',
-        'emitent_ua_middlename_extendedstatus', 'margin-emitent', 'emitent_eng_company_code_extendedstatus',
-        'guarantor_realty_exist_', 'emitent_ua_sameRegLivingAddress', 'emitent_eng_company_address_extendedstatus',
-        'emitent_ua_lastname', 'credit_paid', 'emitent_ukr_company_name', 'emitent_ua_firstname', 'currency',
-        'sizeObligation', 'guarantor_exist_', 'emitent_ua_taxNumber_extendedstatus',
-        'emitent_ua_regAddress_extendedstatus', 'emitent_eng_fullname', 'credit_paid_extendedstatus',
-        'emitent_eng_birthday_extendedstatus', 'emitent_citizen', 'emitent_ukr_regAddress', 'credit_rest',
-        'credit_percent_paid', 'emitent_ua_company_name', 'emitent_ua_regAddress', 'emitent_eng_taxNumber',
-        'emitent_ua_actualAddress_extendedstatus', 'emitent_eng_regAddress_extendedstatus', 'objectType'
-    }
+    # possible_keys = {
+    #     'specExpensesMovableSubject', 'specOtherExpensesSubject', 'specExpenses', 'country', 'date_costAmount',
+    #     'date_specExpenses', 'specOtherExpenses', 'specExpensesAssetsSubject', 'specExpensesOtherRealtySubject',
+    #     'specExpensesOtherMovableSubject', 'iteration', 'person', 'costAmount', 'specResultExpenses',
+    #     'specExpensesSubject', 'specExpensesRealtySubject', 'type'
+    # }
+    def save_transaction(self, transactions_data, declaration):
+        is_money_spent_booleans = {'1': True, '2': False}
+        for data in transactions_data:
+            is_money_spent = is_money_spent_booleans.get(data.get('type'))
+            amount = self.to_float(data.get('costAmount'))
+            transaction_object_type = data.get('specExpensesSubject', '')
+            transaction_result = ''
+            if data.get('specExpenses') == 'Інше':
+                transaction_result = data.get('specOtherExpenses')
+            else:
+                transaction_result = self.find_value(data, {'specExpenses', 'specResultExpenses'}, '')
+            if data.get('specExpensesSubject') == 'Інше':
+                transaction_object = data.get('specOtherExpensesSubject')
+            elif data.get('specExpensesRealtySubject') == 'Інше нерухоме майно':
+                transaction_object = data.get('specExpensesOtherRealtySubject')
+            elif data.get('specExpensesMovableSubject') == 'Інше рухоме майно':
+                transaction_object = data.get('specExpensesOtherMovableSubject')
+            else:
+                transaction_object = self.find_value(
+                    data,
+                    {
+                        'specExpensesMovableSubject',
+                        'specExpensesAssetsSubject',
+                        'specExpensesRealtySubject'
+                    },
+                    ''
+                )
 
+            date = self.find_value(data, {'date_specExpenses', 'specExpensesAssetsSubject'}, None)
+            if date:
+                date = simple_format_date_to_yymmdd(date)
+            country = data.get('country')
+            if country:
+                country = self.find_country(country)
+
+            participant = None
+            participant_id = data.get('person')
+            if participant_id not in self.NO_DATA:
+                if participant_id == '1':
+                    participant = declaration.pep
+                else:
+                    participant = self.find_person(participant_id)
+            if not participant:
+                self.log_error(f'Cannot identify participant of the transaction from data({data})')
+
+            Transaction.objects.create(
+                declaration=declaration,
+                is_money_spent=is_money_spent,
+                amount=amount,
+                transaction_object_type=transaction_object_type,
+                transaction_object=transaction_object,
+                transaction_result=transaction_result,
+                date=date,
+                country=country,
+                participant=participant
+            )
+
+    # possible_keys = {
+    #     'emitent_ua_company_code_extendedstatus', 'emitent_ua_company_code', 'guarantor_realty',
+    #     'emitent_ua_actualAddress', 'emitent_eng_regAddress', 'emitent_eng_birthday', 'emitent_eng_company_name',
+    #     'emitent_ukr_fullname', 'dateOrigin', 'otherObjectType', 'emitent_ua_birthday_extendedstatus',
+    #     'emitent_ukr_regAddress_extendedstatus', 'person', 'otherObjectType_extendedstatus',
+    #     'emitent_eng_company_address', 'emitent_ukr_company_address', 'emitent_ua_middlename',
+    #     'emitent_eng_taxNumber_extendedstatus', 'iteration', 'dateOrigin_extendedstatus', 'guarantor',
+    #     'emitent_ukr_company_address_extendedstatus', 'sizeObligation_extendedstatus', 'emitent_ua_birthday',
+    #     'margin-emitent_extendedstatus', 'emitent_eng_company_code', 'credit_rest_extendedstatus',
+    #     'currency_extendedstatus', 'emitent_ua_taxNumber', 'credit_percent_paid_extendedstatus', 'person_who_care',
+    #     'emitent_ua_middlename_extendedstatus', 'margin-emitent', 'emitent_eng_company_code_extendedstatus',
+    #     'guarantor_realty_exist_', 'emitent_ua_sameRegLivingAddress', 'emitent_eng_company_address_extendedstatus',
+    #     'emitent_ua_lastname', 'credit_paid', 'emitent_ukr_company_name', 'emitent_ua_firstname', 'currency',
+    #     'sizeObligation', 'guarantor_exist_', 'emitent_ua_taxNumber_extendedstatus',
+    #     'emitent_ua_regAddress_extendedstatus', 'emitent_eng_fullname', 'credit_paid_extendedstatus',
+    #     'emitent_eng_birthday_extendedstatus', 'emitent_citizen', 'emitent_ukr_regAddress', 'credit_rest',
+    #     'credit_percent_paid', 'emitent_ua_company_name', 'emitent_ua_regAddress', 'emitent_eng_taxNumber',
+    #     'emitent_ua_actualAddress_extendedstatus', 'emitent_eng_regAddress_extendedstatus', 'objectType'
+    # }
     def save_liability(self, liabilities_data, declaration):
         types = {
             'Отримані кредити': Liability.LOAN,
@@ -267,24 +414,10 @@ class DeclarationConverter(BusinessConverter):
             # TODO: check if we should store more fields when liability_type==TAX_DEBT
             additional_info = data.get('otherObjectType', '')
             currency = data.get('currency', '')
-            amount = data.get('sizeObligation')
-            if amount not in self.NO_DATA:
-                amount = float(amount)
-            loan_rest = data.get('credit_rest')
-            if loan_rest not in self.NO_DATA:
-                loan_rest = float(loan_rest)
-            else:
-                loan_rest = None
-            loan_paid = data.get('credit_paid')
-            if loan_paid not in self.NO_DATA:
-                loan_paid = float(loan_paid)
-            else:
-                loan_paid = None
-            interest_paid = data.get('credit_percent_paid')
-            if interest_paid not in self.NO_DATA:
-                interest_paid = float(interest_paid)
-            else:
-                interest_paid = None
+            amount = self.to_float(data.get('sizeObligation'))
+            loan_rest = self.to_float(data.get('credit_rest'))
+            loan_paid = self.to_float(data.get('credit_paid'))
+            interest_paid = self.to_float(data.get('credit_percent_paid'))
 
             date = simple_format_date_to_yymmdd(data.get('dateOrigin'))
 
@@ -330,7 +463,8 @@ class DeclarationConverter(BusinessConverter):
             guarantee = ''
             guarantee_amount = None
             guarantee_registration = None
-            if data.get('guarantor_realty') not in self.NO_DATA:
+            guarantee_info = data.get('guarantor_realty')
+            if type(guarantee_info) == list and len(guarantee_info):
                 # An example of this field:
                 # 'guarantor_realty': [
                 #     {'realty_objectType': 'Автомобіль легковий', 'realty_ua_postCode': '[Конфіденційна інформація]',
@@ -340,11 +474,9 @@ class DeclarationConverter(BusinessConverter):
                 #      'realty_ua_street': '[Конфіденційна інформація]', 'region': '[Конфіденційна інформація]',
                 #      'realty_cost': '931410', 'realty_country': '1',
                 #      'realty_ua_houseNum': '[Конфіденційна інформація]'}]
-                guarantee_info = data.get('guarantor_realty')[0]
+                guarantee_info = guarantee_info[0]
                 guarantee = guarantee_info.get('realty_objectType', '')
-                guarantee_amount = guarantee_info.get('realty_cost')
-                if guarantee_amount not in self.NO_DATA:
-                    guarantee_amount = float(guarantee_amount)
+                guarantee_amount = self.to_float(guarantee_info.get('realty_cost'))
                 guarantee_registration = self.find_city(guarantee_info.get('realty_ua_cityType'))
 
             creditor_from_info = data.get('emitent_citizen', '')
@@ -366,10 +498,10 @@ class DeclarationConverter(BusinessConverter):
                 if owner_info:
                     owner_id = owner_info[0].get('person')
             if owner_id not in self.NO_DATA:
-                if owner_id in self.ENIGMA:
+                if owner_id == '1':
                     owner = declaration.pep
                 else:
-                    owner = Pep.objects.filter(nacp_id=int(owner_id)).first()
+                    owner = self.find_person(owner_id)
             if not owner:
                 self.log_error(f'Cannot identify owner of the liability from data({data})')
             else:
@@ -433,17 +565,20 @@ class DeclarationConverter(BusinessConverter):
                 continue
             owners = data.get('person_who_care')
             if not owners:
-                self.log_error(f'Cannot identify owner of the account from data {data}.')
+                self.log_error(f'Cannot identify owner in account data ({data}).')
             for person in owners:
                 owner_id = person.get('person')
                 if owner_id == self.DECLARANT:
                     owner = pep
                 # TODO decide whether to save data about a third person here
                 elif owner_id == self.OTHER_PERSON:
-                    self.log_error(f'Owner is other person. Check money data {data}')
+                    self.log_error(f'Owner is other person. Check money data ({data})')
                     continue
-                else:
+                elif owner_id.isdigit():
                     owner = self.find_person(owner_id)
+                else:
+                    self.log_error(f'Wrong value for owner_id = {owner_id}. Check account data ({data})')
+                    continue
                 if not owner:
                     self.log_error(f'Cannot find owner of account ({data})')
                     continue
@@ -494,11 +629,7 @@ class DeclarationConverter(BusinessConverter):
         for data in money_data:
             money_type = types.get(data.get('objectType'))
             additional_info = data.get('otherObjectType', '')
-            amount = data.get('sizeAssets')
-            if amount not in self.NO_DATA:
-                amount = float(amount)
-            else:
-                amount = None
+            amount = self.to_float(data.get('sizeAssets'))
             # TODO: check records after storing
             currency = data.get('assetsCurrency', '')
 
@@ -531,7 +662,7 @@ class DeclarationConverter(BusinessConverter):
                     if not bank:
                         self.log_error(
                             f'Cannot identify ukrainian company with edrpou {bank_registration_number}.'
-                            f'Check money data({data})'
+                            f'Check money data ({data})'
                         )
                         continue
                 else:
@@ -567,12 +698,14 @@ class DeclarationConverter(BusinessConverter):
                     owner = declaration.pep
                 # TODO decide whether to save data about a third person here
                 elif owner_id == self.OTHER_PERSON:
-                    self.log_error(f'Owner is other person. Check money data {data}')
+                    self.log_error(f'Owner is other person. Check money data ({data})')
                     continue
-                else:
+                elif owner_id.isdigit():
                     owner = self.find_person(owner_id)
+                else:
+                    self.log_error(f'Wrong value for owner_id = {owner_id}. Check money data ({data})')
             if not owner:
-                self.log_error(f'Cannot identify owner of the money from data({data})')
+                self.log_error(f'Cannot identify owner of the money from data ({data})')
                 continue
             else:
                 Money.objects.create(
@@ -888,16 +1021,8 @@ class DeclarationConverter(BusinessConverter):
             else:
                 company_registration_number = ''
 
-            value = data.get('cost')
-            if value not in self.NO_DATA:
-                value = float(value.replace(',', '.'))
-            else:
-                value = None
-            share = data.get('cost_percent')
-            if share not in self.NO_DATA:
-                share = float(share.replace(',', '.'))
-            else:
-                share = None
+            value = self.to_float(data.get('cost'))
+            share = self.to_float(data.get('cost_percent'))
             is_transferred = is_transferred_booleans.get(data.get('is_transferred'))
 
             CorporateRights.objects.create(
@@ -1057,11 +1182,7 @@ class DeclarationConverter(BusinessConverter):
                 quantity = int(quantity)
             else:
                 quantity = None
-            nominal_value = data.get('cost')
-            if nominal_value not in self.NO_DATA:
-                nominal_value = float(nominal_value.replace(',', '.'))
-            else:
-                nominal_value = None
+            nominal_value = self.to_float(data.get('cost'))
             securities = Securities.objects.create(
                 declaration=declaration,
                 type=securities_type,
@@ -1102,54 +1223,30 @@ class DeclarationConverter(BusinessConverter):
         }
         for data in rights_data:
             type = TYPES.get(data.get('ownershipType'))
-            share = data.get('percent-ownership')
-            if share not in self.NO_DATA:
-                share = float(share.replace(',', '.'))
-            else:
-                share = None
+            share = self.to_float(data.get('percent-ownership'))
             owner_info = data.get('rightBelongs')
             pep = None
-            # TODO: store value from ENIGMA
-            if owner_info not in self.NO_DATA and owner_info not in self.ENIGMA:
-                pep = self.find_person(owner_info)
-            other_owner_info = data.get('rights_id')
-            # Store value 'Інша особа (фізична або юридична)'
-            if not pep and other_owner_info and other_owner_info not in self.ENIGMA:
-                pep = self.find_person(owner_info)
+            company = None
+            full_name = ''
+            owner_type = ''
+            company_name = ''
+            if owner_info not in self.NO_DATA:
+                if owner_info == self.DECLARANT:
+                    pep = vehicle.declaration.pep
+                    owner_type = BaseRight.DECLARANT
+                elif owner_info == self.OTHER_PERSON:
+                    owner_type, full_name, company, company_name = self.find_third_person_rights(data, 'vehicle')
+                elif owner_info.isdigit():
+                    pep = self.find_person(owner_info)
+                    owner_type = BaseRight.FAMILY_MEMBER
+                else:
+                    self.log_error(f'Wrong value for owner_info = {owner_info}. Check vehicle_right ({data})')
             additional_info = data.get('otherOwnership', '')
-            country_of_citizenship_info = data.get('citizen')
             # TODO: return country
-            if country_of_citizenship_info:
-                country_of_citizenship = self.find_country(country_of_citizenship_info)
-            else:
-                country_of_citizenship = None
-            last_name = data.get('ua_lastname')
-            first_name = data.get('ua_firstname')
-            middle_name = data.get('ua_middlename')
-            if (
-                    last_name not in self.NO_DATA
-                    or first_name not in self.NO_DATA
-                    or middle_name not in self.NO_DATA
-            ):
-                full_name = f'{last_name} {first_name} {middle_name}'
-            else:
-                full_name = ''
             # TODO: check if taxpayer_number can have a value
             taxpayer_number = data.get('ua_taxNumber')
             if taxpayer_number and taxpayer_number != '[Конфіденційна інформація]':
                 print(taxpayer_number)
-            company = None
-            company_code = data.get('ua_company_code')
-            if company_code not in self.ENIGMA:
-                company = Company.objects.filter(
-                    edrpou=company_code,
-                    source=Company.UKRAINE_REGISTER
-                ).first()
-                if not company:
-                    self.log_error(
-                        f'Cannot identify ukrainian company with edrpou {company_code}.'
-                        f'Check right data ({data}) to {vehicle.type}'
-                    )
             VehicleRight.objects.create(
                 car=vehicle,
                 type=type,
@@ -1160,7 +1257,8 @@ class DeclarationConverter(BusinessConverter):
                 company=company,
                 # TODO: decide should we use lower() for storing names
                 full_name=full_name,
-                country_of_citizenship=country_of_citizenship
+                company_name=company_name,
+                owner_type=owner_type,
             )
 
     # TODO: implement
@@ -1181,6 +1279,7 @@ class DeclarationConverter(BusinessConverter):
             'Мотоцикл (мопед)': Vehicle.MOTORBIKE,
             'Водний засіб': Vehicle.BOAT,
             'Сільськогосподарська техніка': Vehicle.AGRICULTURAL_MACHINERY,
+            'Повітряний засіб': Vehicle.AIR_MEANS,
             'Інше': Vehicle.OTHER
         }
         for data in vehicles_data:
@@ -1205,9 +1304,11 @@ class DeclarationConverter(BusinessConverter):
                 model=model,
                 year=year,
                 is_luxury=is_luxury,
-                valuation=valuation
+                valuation=valuation,
             )
-            acquisition_date = simple_format_date_to_yymmdd(data.get('owningDate'))
+            acquisition_date = data.get('owningDate')
+            if acquisition_date:
+                acquisition_date = simple_format_date_to_yymmdd(acquisition_date)
             # TODO: store  'person'
             person = data.get('person')
             rights_data = data.get('rights')
@@ -1229,33 +1330,24 @@ class DeclarationConverter(BusinessConverter):
         }
         for data in rights_data:
             type = TYPES.get(data.get('ownershipType'))
-            share = data.get('percent-ownership')
-            if share not in self.NO_DATA:
-                share = float(share.replace(',', '.'))
-            else:
-                share = None
+            share = self.to_float(data.get('percent-ownership'))
             owner_info = data.get('rightBelongs')
             pep = None
-            # TODO: store value from ENIGMA
-            if owner_info not in self.NO_DATA and owner_info not in self.ENIGMA:
-                pep = self.find_person(owner_info)
-            other_owner_info = data.get('rights_id')
-            # Store value 'Інша особа (фізична або юридична)'
-            if not pep and other_owner_info and other_owner_info not in self.ENIGMA:
-                pep = self.find_person(other_owner_info)
-
-            last_name = data.get('ua_lastname')
-            first_name = data.get('ua_firstname')
-            middle_name = data.get('ua_middlename')
-            if (
-                    last_name not in self.NO_DATA
-                    or first_name not in self.NO_DATA
-                    or middle_name not in self.NO_DATA
-            ):
-                full_name = f'{last_name} {first_name} {middle_name}'
-            else:
-                full_name = ''
-
+            company = None
+            full_name = ''
+            owner_type = ''
+            company_name = ''
+            if owner_info not in self.NO_DATA:
+                if owner_info == self.DECLARANT:
+                    pep = luxury_item.declaration.pep
+                    owner_type = BaseRight.DECLARANT
+                elif owner_info == self.OTHER_PERSON:
+                    owner_type, full_name, company, company_name = self.find_third_person_rights(data, 'luxury_item')
+                elif owner_info.isdigit():
+                    pep = self.find_person(owner_info)
+                    owner_type = BaseRight.FAMILY_MEMBER
+                else:
+                    self.log_error(f'Wrong value for owner_info = {owner_info}. Check property_right {data}')
             LuxuryItemRight.objects.create(
                 luxury_item=luxury_item,
                 type=type,
@@ -1263,6 +1355,9 @@ class DeclarationConverter(BusinessConverter):
                 share=share,
                 pep=pep,
                 full_name=full_name,
+                company=company,
+                owner_type=owner_type,
+                company_name=company_name,
             )
 
     # possible_keys = {
@@ -1325,11 +1420,7 @@ class DeclarationConverter(BusinessConverter):
             # TODO: add unfinished_construction_city
             if property_location:
                 city = self.find_city(property_location)
-            area = data.get('totalArea')
-            if area not in self.NO_DATA:
-                area = float(area.replace(',', '.'))
-            else:
-                area = None
+            area = self.to_float(data.get('totalArea'))
             unfinished_construction_property = Property.objects.create(
                 declaration=declaration,
                 type=Property.UNFINISHED_CONSTRUCTION,
@@ -1358,74 +1449,27 @@ class DeclarationConverter(BusinessConverter):
              'ЗУ «Про запобігання корупції»'): PropertyRight.BENEFICIAL_OWNERSHIP,
             "[Член сім'ї не надав інформацію]": PropertyRight.NO_INFO_FROM_FAMILY_MEMBER,
         }
-        UKRAINE_NACP_ID = '1'
         for data in rights_data:
             type = TYPES.get(data.get('ownershipType'))
-            share = data.get('percent-ownership')
-            if share not in self.NO_DATA:
-                share = float(share.replace(',', '.'))
-            else:
-                share = None
-            owner_id = data.get('rightBelongs')
+            share = self.to_float(data.get('percent-ownership'))
+            owner_info = data.get('rightBelongs')
             pep = None
-            # TODO: store value from ENIGMA
-            if owner_id not in self.NO_DATA:
-                if owner_id == self.DECLARANT:
-                    pep = property.declaration.pep
-                elif owner_id == self.OTHER_PERSON:
-                    # TODO: decide should we store PEP 'Власником є третя особа' and use it in such case
-                    pass
-                else:
-                    pep = self.find_person(owner_id)
-            other_owner_info = data.get('rights_id')
-            if not pep and other_owner_info:
-                if other_owner_info == self.DECLARANT:
-                    pep = property.declaration.pep
-                elif other_owner_info == self.OTHER_PERSON:
-                    # TODO: decide should we store PEP 'Власником є третя особа' and use it in such case
-                    pass
-                else:
-                    pep = self.find_person(other_owner_info)
-
-            additional_info = data.get('otherOwnership', '')
-            country_of_citizenship_info = data.get('citizen')
-            # TODO: return country
-            if country_of_citizenship_info:
-                if country_of_citizenship_info == 'Громадянин України':
-                    country_of_citizenship_info = UKRAINE_NACP_ID
-                country_of_citizenship = self.find_country(country_of_citizenship_info)
-            else:
-                country_of_citizenship = None
-            last_name = data.get('ua_lastname')
-            first_name = data.get('ua_firstname')
-            middle_name = data.get('ua_middlename') if data.get('ua_middlename') not in self.NO_DATA else ''
-            ukr_full_name = data.get('ukr_fullname')
-            eng_full_name = data.get('eng_fullname')
-            if (
-                    last_name not in self.NO_DATA
-                    or first_name not in self.NO_DATA
-                    or middle_name not in self.NO_DATA
-            ):
-                full_name = f'{last_name} {first_name} {middle_name}'
-            elif ukr_full_name not in self.NO_DATA:
-                full_name = ukr_full_name
-            elif eng_full_name not in self.NO_DATA:
-                full_name = eng_full_name
-            else:
-                full_name = ''
-
             company = None
-            company_code = data.get('ua_company_code')
-            if company_code not in self.ENIGMA and company_code not in self.NO_DATA:
-                company = Company.objects.filter(
-                    edrpou=company_code,
-                    source=Company.UKRAINE_REGISTER
-                ).first()
-                if not company:
-                    self.log_error(
-                        f'Cannot identify ukrainian company with edrpou {company_code}.'
-                        f'Check right data ({data}) to {property.type}'
-                    )
+            full_name = ''
+            owner_type = ''
+            company_name = ''
+            if owner_info not in self.NO_DATA:
+                if owner_info == self.DECLARANT:
+                    pep = property.declaration.pep
+                    owner_type = BaseRight.DECLARANT
+                elif owner_info == self.OTHER_PERSON:
+                    owner_type, full_name, company, company_name = self.find_third_person_rights(data, 'property')
+                elif owner_info.isdigit():
+                    pep = self.find_person(owner_info)
+                    owner_type = BaseRight.FAMILY_MEMBER
+                else:
+                    self.log_error(f'Wrong value for owner_info = {owner_info}. Check property_right ({data})')
+            additional_info = data.get('otherOwnership', '')
             # TODO: store 'seller', check if this field is only for changes
             # Possible values = ['Продавець']
             seller = data.get('seller')
@@ -1440,7 +1484,8 @@ class DeclarationConverter(BusinessConverter):
                 company=company,
                 # TODO: decide should we use lower() for storing names
                 full_name=full_name,
-                country_of_citizenship=country_of_citizenship
+                company_name=company_name,
+                owner_type=owner_type,
             )
 
     # possible_keys = [
@@ -1492,19 +1537,8 @@ class DeclarationConverter(BusinessConverter):
                 valuation = data.get('costDate')
                 if valuation in self.NO_DATA:
                     valuation = data.get('cost_date_assessment')
-            if valuation not in self.NO_DATA:
-                try:
-                    valuation = float(valuation.replace(',', '.'))
-                except ValueError:
-                    self.log_error(f'Invalid value: valuation = {valuation}')
-                    valuation = None
-            else:
-                valuation = None
-            area = data.get('totalArea')
-            if area not in self.NO_DATA:
-                area = float(area.replace(',', '.'))
-            else:
-                area = None
+            valuation = self.to_float(valuation)
+            area = self.to_float(data.get('totalArea'))
             acquisition_date = data.get('owningDate') if data.get('owningDate') not in self.NO_DATA else None
             if acquisition_date:
                 acquisition_date = simple_format_date_to_yymmdd(acquisition_date)
@@ -1715,7 +1749,7 @@ class DeclarationConverter(BusinessConverter):
 
                 # TODO: predict updating
                 # 'Step_1' - declarant`s personal data
-                # self.save_declarant_data(detailed_declaration_data['step_1']['data'], pep, declaration)
+                self.save_declarant_data(detailed_declaration_data['step_1']['data'], pep, declaration)
 
                 # TODO: predict updating
                 # 'Step_2' - declarant`s family
@@ -1730,67 +1764,72 @@ class DeclarationConverter(BusinessConverter):
                     self.relatives_data = None
 
                 # 'Step_3' - declarant`s family`s properties
-                # if (detailed_declaration_data['step_3']
-                #         and not detailed_declaration_data['step_3'].get('isNotApplicable')):
-                #     self.save_property(detailed_declaration_data['step_3']['data'], declaration)
+                if (detailed_declaration_data['step_3']
+                        and not detailed_declaration_data['step_3'].get('isNotApplicable')):
+                    self.save_property(detailed_declaration_data['step_3']['data'], declaration)
 
                 # 'Step_4' - declarant`s family`s unfinished construction
-                # if (detailed_declaration_data['step_4']
-                #         and not detailed_declaration_data['step_4'].get('isNotApplicable')):
-                #     self.save_unfinished_construction(detailed_declaration_data['step_4']['data'], declaration)
+                if (detailed_declaration_data['step_4']
+                        and not detailed_declaration_data['step_4'].get('isNotApplicable')):
+                    self.save_unfinished_construction(detailed_declaration_data['step_4']['data'], declaration)
 
                 # 'Step_5' - declarant`s family`s luxury items
-                # if (detailed_declaration_data['step_5']
-                #         and not detailed_declaration_data['step_5'].get('isNotApplicable')):
-                #     self.save_luxury_item(detailed_declaration_data['step_5']['data'], declaration)
+                if (detailed_declaration_data['step_5']
+                        and not detailed_declaration_data['step_5'].get('isNotApplicable')):
+                    self.save_luxury_item(detailed_declaration_data['step_5']['data'], declaration)
 
                 # 'Step_6' - declarant`s family`s vehicles
-                # if (detailed_declaration_data['step_6']
-                #         and not detailed_declaration_data['step_6'].get('isNotApplicable')):
-                #     self.save_vehicle(detailed_declaration_data['step_6']['data'], declaration)
+                if (detailed_declaration_data['step_6']
+                        and not detailed_declaration_data['step_6'].get('isNotApplicable')):
+                    self.save_vehicle(detailed_declaration_data['step_6']['data'], declaration)
 
                 # 'Step_7' - declarant`s family`s securities
-                # if (detailed_declaration_data['step_7']
-                #         and not detailed_declaration_data['step_7'].get('isNotApplicable')):
-                #     self.save_securities(detailed_declaration_data['step_7']['data'], declaration)
+                if (detailed_declaration_data['step_7']
+                        and not detailed_declaration_data['step_7'].get('isNotApplicable')):
+                    self.save_securities(detailed_declaration_data['step_7']['data'], declaration)
 
                 # 'Step_8' - declarant`s family`s corporate rights
-                # if (detailed_declaration_data['step_8']
-                #         and not detailed_declaration_data['step_8'].get('isNotApplicable')):
-                #     self.save_corporate_rights(detailed_declaration_data['step_8']['data'], declaration)
+                if (detailed_declaration_data['step_8']
+                        and not detailed_declaration_data['step_8'].get('isNotApplicable')):
+                    self.save_corporate_rights(detailed_declaration_data['step_8']['data'], declaration)
 
                 # 'Step_9' - companies where declarant`s family`s members are beneficiaries
-                # if (detailed_declaration_data['step_9']
-                #         and not detailed_declaration_data['step_9'].get('isNotApplicable')):
-                #     self.save_beneficiary_of(detailed_declaration_data['step_9']['data'], declaration)
+                if (detailed_declaration_data['step_9']
+                        and not detailed_declaration_data['step_9'].get('isNotApplicable')):
+                    self.save_beneficiary_of(detailed_declaration_data['step_9']['data'], declaration)
 
                 # 'Step_11' - declarant`s family`s incomes
-                # if (detailed_declaration_data['step_11']
-                #         and not detailed_declaration_data['step_11'].get('isNotApplicable')):
-                #     self.save_income(detailed_declaration_data['step_11']['data'], declaration)
+                if (detailed_declaration_data['step_11']
+                        and not detailed_declaration_data['step_11'].get('isNotApplicable')):
+                    self.save_income(detailed_declaration_data['step_11']['data'], declaration)
 
                 # 'Step_12' - declarant`s family`s money
-                # if (detailed_declaration_data['step_12']
-                #         and not detailed_declaration_data['step_12'].get('isNotApplicable')):
-                #     self.save_money(detailed_declaration_data['step_12']['data'], declaration)
+                if (detailed_declaration_data['step_12']
+                        and not detailed_declaration_data['step_12'].get('isNotApplicable')):
+                    self.save_money(detailed_declaration_data['step_12']['data'], declaration)
 
                 # 'Step_13' - declarant`s family`s liabilities
-                # if (detailed_declaration_data['step_13']
-                #         and not detailed_declaration_data['step_13'].get('isNotApplicable')):
-                #     self.save_liability(detailed_declaration_data['step_13']['data'], declaration)
+                if (detailed_declaration_data['step_13']
+                        and not detailed_declaration_data['step_13'].get('isNotApplicable')):
+                    self.save_liability(detailed_declaration_data['step_13']['data'], declaration)
+
+                # 'Step_14' - declarant`s family`s transactions
+                if (detailed_declaration_data['step_14']
+                        and not detailed_declaration_data['step_14'].get('isNotApplicable')):
+                    self.save_transaction(detailed_declaration_data['step_14']['data'], declaration)
 
                 # 'Step_15' - declarant`s part-time job info
-                # if (detailed_declaration_data['step_15']
-                #         and not detailed_declaration_data['step_15'].get('isNotApplicable')):
-                #     self.save_part_time_job(detailed_declaration_data['step_15']['data'], declaration)
+                if (detailed_declaration_data['step_15']
+                        and not detailed_declaration_data['step_15'].get('isNotApplicable')):
+                    self.save_part_time_job(detailed_declaration_data['step_15']['data'], declaration)
 
                 # 'Step_16' - declarant`s membership in NGOs
-                # if (detailed_declaration_data['step_16']
-                #         and not detailed_declaration_data['step_16'].get('isNotApplicable')):
-                #     self.save_ngo_participation(detailed_declaration_data['step_16']['data'], declaration)
+                if (detailed_declaration_data['step_16']
+                        and not detailed_declaration_data['step_16'].get('isNotApplicable')):
+                    self.save_ngo_participation(detailed_declaration_data['step_16']['data'], declaration)
 
-                # 'Step_17' Banking and other financial institutions in which the accounts of
+                # 'Step_17' Banks and other financial institutions in which the accounts of
                 # the declarant or declarant't family are opened
-                # if (detailed_declaration_data.get('step_17')
-                #         and not detailed_declaration_data['step_17'].get('isNotApplicable')):
-                #     self.save_bank_account(detailed_declaration_data['step_17']['data'], declaration, pep)
+                if (detailed_declaration_data.get('step_17')
+                        and not detailed_declaration_data['step_17'].get('isNotApplicable')):
+                    self.save_bank_account(detailed_declaration_data['step_17']['data'], declaration, pep)
