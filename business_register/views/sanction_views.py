@@ -67,5 +67,4 @@ class CompanySanctionViewSet(RegisterViewMixin,
         'taxpayer_number',
         'address',
         'types_of_sanctions__name',
-        'country_of_registration__name'
     )
