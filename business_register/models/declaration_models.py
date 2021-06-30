@@ -3,6 +3,7 @@ from django.utils.translation import gettext_lazy as _
 
 from business_register.models.company_models import Company
 from business_register.models.pep_models import Pep
+from business_register.pep_scoring.constants import ScoringRuleEnum
 from data_ocean.models import DataOceanModel
 from location_register.models.address_models import Country
 from location_register.models.ratu_models import RatuCity
@@ -1415,3 +1416,16 @@ class PropertyRight(BaseRight):
         verbose_name='property_right',
         help_text='right to the property'
     )
+
+
+class PepScoring(DataOceanModel):
+    declaration = models.OneToOneField(Declaration, on_delete=models.PROTECT, related_name='scoring')
+    pep = models.ForeignKey(Pep, on_delete=models.PROTECT, related_name='scoring')
+    rule_id = models.CharField(max_length=10, choices=[(x.name, x.value) for x in ScoringRuleEnum])
+    calculation_date = models.DateField()
+    score = models.FloatField()
+    data = models.JSONField()
+
+    class Meta:
+        verbose_name = 'Ризик обгрунтованості активів'
+
