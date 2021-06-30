@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+from django.utils import timezone
 from rest_framework import serializers
 
 from business_register.models.declaration_models import (
@@ -10,19 +11,26 @@ from business_register.models.declaration_models import (
     Income,
     Money,
     PropertyRight,
+    PepScoring,
 )
 from business_register.models.pep_models import (RelatedPersonsLink, Pep)
+from business_register.pep_scoring.constants import ScoringRuleEnum
 from location_register.models.ratu_models import RatuCity
 
 
 class BaseScoringRule(ABC):
-    class DataSerializer(serializers.Serializer, ABC):
-        """
-        Overwrite this class in child classes
-        """
+    rule_id = None
 
-    def __init__(self, pep: Pep) -> None:
-        self.pep = pep
+    class DataSerializer(serializers.Serializer, ABC):
+        """ Overwrite this class in child classes """
+
+    def __init__(self, declaration: Declaration) -> None:
+        assert type(self.rule_id) == ScoringRuleEnum
+        self.rule_id = self.rule_id.value
+        self.declaration: Declaration = declaration
+        self.pep: Pep = declaration.pep
+        self.weight = None
+        self.data = None
 
     def validate_data(self, data) -> None:
         self.DataSerializer(data=data).is_valid(raise_exception=True)
@@ -34,7 +42,20 @@ class BaseScoringRule(ABC):
         weight, data = self.calculate_weight()
         self.validate_data(data)
         self.validate_weight(weight)
+        self.weight = weight
+        self.data = data
         return weight, data
+
+    def save_to_db(self):
+        assert self.weight and self.data
+        PepScoring.objects.create(
+            declaration=self.declaration,
+            pep=self.pep,
+            rule_id=self.rule_id,
+            calculation_date=timezone.localdate(),
+            score=self.weight,
+            data=self.data,
+        )
 
     @abstractmethod
     def calculate_weight(self) -> tuple[int or float, dict]:
@@ -48,6 +69,8 @@ class IsRealEstateWithoutValue(BaseScoringRule):
     There is no information on the value of the real estate owned by PEP or
     family members since 2015
     """
+
+    rule_id = ScoringRuleEnum.PEP03_home
 
     class DataSerializer(serializers.Serializer):
         property_id = serializers.IntegerField(min_value=0, required=True)
@@ -82,6 +105,8 @@ class IsLandWithoutValue(BaseScoringRule):
     family members since 2015
     """
 
+    rule_id = ScoringRuleEnum.PEP03_land
+
     class DataSerializer(serializers.Serializer):
         property_id = serializers.IntegerField(min_value=0, required=True)
         declaration_id = serializers.IntegerField(min_value=0, required=True)
@@ -114,6 +139,8 @@ class IsAutoWithoutValue(BaseScoringRule):
     There is no information on the value of the vehicle owned by PEP or
     family members since 2015
     """
+
+    rule_id = ScoringRuleEnum.PEP03_car
 
     class DataSerializer(serializers.Serializer):
         vehicle_id = serializers.IntegerField(min_value=0, required=True)

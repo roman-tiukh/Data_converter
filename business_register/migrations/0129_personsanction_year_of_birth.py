@@ -19,5 +19,5 @@ class Migration(migrations.Migration):
         migrations.RunSQL("""
             UPDATE business_register_personsanction
             SET year_of_birth = date_part('year', date_of_birth);
-        """)
+        """, reverse_sql='')
     ]
