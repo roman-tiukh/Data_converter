@@ -44,11 +44,11 @@ class DeclarationConverter(BusinessConverter):
             is_pep=True,
             nacp_id__len=1
         )}
-        self.all_declarations = self.put_objects_to_dict(
+        self.all_declarations = {str(item[0]): item[1] for item in self.put_objects_to_dict(
             'nacp_declaration_id',
             'business_register',
             'Declaration'
-        )
+        ).items()}
         self.NO_DATA = {
             None,
             '',

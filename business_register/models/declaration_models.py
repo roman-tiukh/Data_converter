@@ -1,3 +1,5 @@
+import uuid
+
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -29,9 +31,10 @@ class Declaration(DataOceanModel):
         'year of the declaration',
         help_text='year of the declaration'
     )
-    nacp_declaration_id = models.CharField(
+    nacp_declaration_id = models.UUIDField(
         'NACP id',
-        max_length=50,
+        editable=False,
+        default=uuid.uuid4,
         unique=True,
         db_index=True,
         help_text='NACP id of the declaration',
@@ -1399,9 +1402,8 @@ class BaseRight(DataOceanModel):
         default='',
         help_text='full name of the person that owns the right'
     )
-    company_name = models.CharField(
+    company_name = models.TextField(
         'company name',
-        max_length=200,
         blank=True,
         help_text='name of the company that owns the right'
     )
