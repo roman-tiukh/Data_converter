@@ -33,8 +33,8 @@ class PersonSanctionSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
         model = PersonSanction
         fields = (
             'id', 'first_name', 'last_name', 'middle_name',
-            'full_name', 'full_name_original',
-            'date_of_birth', 'place_of_birth', 'address', 'countries_of_citizenship',
+            'full_name', 'full_name_original', 'date_of_birth', 'year_of_birth',
+            'place_of_birth', 'address', 'countries_of_citizenship',
             'occupation', 'id_card', 'taxpayer_number', 'additional_info',
             'types_of_sanctions', 'start_date', 'end_date', 'cancellation_condition',
             'reasoning', 'reasoning_date', 'pep',

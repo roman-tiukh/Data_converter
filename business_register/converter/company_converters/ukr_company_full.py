@@ -15,7 +15,7 @@ from business_register.models.company_models import (
 from data_ocean.converter import BulkCreateManager
 from data_ocean.downloader import Downloader
 from data_ocean.utils import (cut_first_word, format_date_to_yymmdd, get_first_word,
-                              to_lower_string_if_exists)
+                              to_lower_string_if_exists, log_records)
 from location_register.converter.address import AddressConverter
 from stats.tasks import endpoints_cache_warm_up
 
@@ -50,6 +50,7 @@ class UkrCompanyFullConverter(CompanyConverter):
         self.company_to_predecessor_to_dict = {}
         self.assignee_to_dict = {}
         self.exchange_data_to_dict = {}
+        self.branches_to_dict = {}
         self.company_country = AddressConverter().save_or_get_country('Ukraine')
         self.source = Company.UKRAINE_REGISTER
         self.already_stored_companies =\
@@ -434,6 +435,84 @@ class UkrCompanyFullConverter(CompanyConverter):
             for outdated_assignees in already_stored_assignees:
                 outdated_assignees.soft_delete()
 
+    def add_branches(self, branches_from_record, code):
+        branches = []
+        for item in branches_from_record:
+            branch = Company()
+            if item.xpath('CODE'):
+                branch.edrpou = item.xpath('CODE')[0].text or ''
+            else:
+                branch.edrpou = ''
+            if item.xpath('NAME'):
+                branch.name = item.xpath('NAME')[0].text or ''
+            else:
+                continue
+            branch.address = item.xpath('ADDRESS')[0].text
+            branch.registration_date = format_date_to_yymmdd(item.xpath('CREATE_DATE')[0].text)
+            if item.xpath('CONTACTS'):
+                branch.contact_info = item.xpath('CONTACTS')[0].text
+            branch.code = branch.edrpou + branch.name
+            branches.append(branch)
+            if item.xpath('SIGNER'):
+                self.add_signers([item.xpath('SIGNER')[0]], branch.code)
+            if item.xpath('ACTIVITY_KINDS'):
+                self.add_company_to_kved(item.xpath('ACTIVITY_KINDS')[0], branch.code)
+            self.add_exchange_data(item.xpath('EXCHANGE_DATA')[0], branch.code)
+        self.branches_to_dict[code] = branches
+
+    def update_branches(self, branches_from_record, company):
+        already_stored_branches = list(Company.include_deleted_objects.filter(parent_id=company.id))
+        for item in branches_from_record:
+            already_stored = False
+            if len(already_stored_branches):
+                for branch in already_stored_branches:
+                    if branch.name == item.xpath('NAME')[0].text and \
+                            branch.edrpou == item.xpath('CODE')[0].text:
+                        already_stored = True
+                        self.uptodated_companies.append(branch.id)
+                        update_fields = []
+                        if branch.address != item.xpath('ADDRESS')[0].text:
+                            branch.address = item.xpath('ADDRESS')[0].text
+                            update_fields.append('address')
+                        if branch.registration_date != format_date_to_yymmdd(item.xpath('CREATE_DATE')[0].text):
+                            branch.address = format_date_to_yymmdd(item.xpath('CREATE_DATE')[0].text)
+                            update_fields.append('registration_date')
+                        if item.xpath('CONTACTS') and branch.contact_info != item.xpath('CONTACTS')[0].text:
+                            branch.contact_info = item.xpath('CONTACTS')[0].text
+                            update_fields.append('contact_info')
+                        if branch.deleted_at:
+                            branch.deleted_at = None
+                            update_fields.append('deleted_at')
+                        if len(update_fields):
+                            update_fields.append('updated_at')
+                            branch.save(update_fields=update_fields)
+                        if item.xpath('SIGNER'):
+                            self.update_signers([item.xpath('SIGNER')[0]], branch)
+                        if item.xpath('ACTIVITY_KINDS'):
+                            self.update_company_to_kved(item.xpath('ACTIVITY_KINDS')[0], branch)
+                        self.update_exchange_data(item.xpath('EXCHANGE_DATA')[0], branch)
+            if not already_stored:
+                branch = Company()
+                if item.xpath('CODE'):
+                    branch.edrpou = item.xpath('CODE')[0].text or ''
+                else:
+                    branch.edrpou = ''
+                if item.xpath('NAME'):
+                    branch.name = item.xpath('NAME')[0].text or ''
+                else:
+                    continue
+                branch.address = item.xpath('ADDRESS')[0].text
+                branch.registration_date = format_date_to_yymmdd(item.xpath('CREATE_DATE')[0].text)
+                if item.xpath('CONTACTS'):
+                    branch.contact_info = item.xpath('CONTACTS')[0].text
+                branch.code = branch.edrpou + branch.name
+                self.bulk_manager.add(branch)
+                if item.xpath('SIGNER'):
+                    self.add_signers([item.xpath('SIGNER')[0]], branch.code)
+                if item.xpath('ACTIVITY_KINDS'):
+                    self.add_company_to_kved(item.xpath('ACTIVITY_KINDS')[0], branch.code)
+                self.add_exchange_data(item.xpath('EXCHANGE_DATA')[0], branch.code)
+
     def add_bancruptcy_readjustment(self, record, code):
         bancruptcy_readjustment = BancruptcyReadjustment()
         bancruptcy_readjustment.op_date = format_date_to_yymmdd(
@@ -772,11 +851,13 @@ class UkrCompanyFullConverter(CompanyConverter):
             edrpou = record.xpath('EDRPOU')[0].text
             if not edrpou:
                 self.invalid_data_counter += 1
+                log_records(record, self.LOCAL_FOLDER + 'invalid_companies.txt', self.invalid_data_counter)
                 continue
             if record.xpath('NAME')[0].text:
                 name = record.xpath('NAME')[0].text.lower()
             else:
                 self.invalid_data_counter += 1
+                log_records(record, self.LOCAL_FOLDER + 'invalid_companies.txt', self.invalid_data_counter)
                 continue
             code = name + edrpou
             address = record.xpath('ADDRESS')[0].text
@@ -864,6 +945,8 @@ class UkrCompanyFullConverter(CompanyConverter):
                 self.add_founders(record.xpath('FOUNDERS')[0] if len(record.xpath('FOUNDERS')[0]) else [],
                                   record.xpath('BENEFICIARIES')[0] if len(record.xpath('BENEFICIARIES')[0]) else [],
                                   code)
+                if len(record.xpath('BRANCHES')[0]):
+                    self.add_branches(record.xpath('BRANCHES')[0], code)
                 self.time_it('save companies\t')
             else:
                 self.uptodated_companies.append(company.id)
@@ -923,9 +1006,11 @@ class UkrCompanyFullConverter(CompanyConverter):
                 self.update_company_detail(founding_document_number, executive_power, superior_management,
                                            managing_paper, terminated_info, termination_cancel_info, vp_dates, company)
                 self.time_it('update company details\t')
-                self.update_founders(record.xpath('FOUNDERS')[0] if len(record.xpath('FOUNDERS')[0]) else [],
-                                  record.xpath('BENEFICIARIES')[0] if len(record.xpath('BENEFICIARIES')[0]) else [],
-                                  company)
+                self.update_founders(
+                    record.xpath('FOUNDERS')[0] if len(record.xpath('FOUNDERS')[0]) else [],
+                    record.xpath('BENEFICIARIES')[0] if len(record.xpath('BENEFICIARIES')[0]) else [],
+                    company
+                )
                 self.time_it('update founders\t\t')
                 self.update_company_to_kved(record.xpath('ACTIVITY_KINDS')[0], company)
                 self.time_it('update kveds\t\t')
@@ -941,10 +1026,22 @@ class UkrCompanyFullConverter(CompanyConverter):
                 self.time_it('update assignes\t\t')
                 self.update_exchange_data(record.xpath('EXCHANGE_DATA')[0], company)
                 self.time_it('update exchange data\t')
+                self.update_branches(record.xpath('BRANCHES')[0], company)
 
         if len(self.bulk_manager.queues['business_register.Company']):
             self.bulk_manager.commit(Company)
-        for company in self.bulk_manager.queues['business_register.Company']:
+        saved_companies = self.bulk_manager.queues['business_register.Company']
+        self.bulk_manager.queues['business_register.Company'] = []
+        for company in saved_companies:
+            code = company.code
+            if code in self.branches_to_dict:
+                for branch in self.branches_to_dict[code]:
+                    branch.parent = company
+                    self.bulk_manager.add(branch)
+        if len(self.bulk_manager.queues['business_register.Company']):
+            self.bulk_manager.commit(Company)
+        saved_companies.extend(self.bulk_manager.queues['business_register.Company'])
+        for company in saved_companies:
             code = company.code
             if code in self.founder_to_dict:
                 for founder in self.founder_to_dict[code]:
@@ -1007,6 +1104,7 @@ class UkrCompanyFullConverter(CompanyConverter):
         self.company_to_predecessor_to_dict = {}
         self.assignee_to_dict = {}
         self.exchange_data_to_dict = {}
+        self.branches_to_dict = {}
         self.time_it('save others\t\t')
 
     def delete_outdated(self):

@@ -150,3 +150,12 @@ def replace_incorrect_symbols(string):
         .replace("''", '"')
     string = re.sub(r'\s+', ' ', string)
     return string
+
+
+def log_records(record, filename, index):
+    record_to_string = '\n' + str(index) + ' '
+    for element in record:
+        record_to_string += (element.tag or 'NONE') +': ' + (element.text or 'None') + '; '
+    log = open(filename, 'a')
+    log.write(record_to_string)
+    log.close()
