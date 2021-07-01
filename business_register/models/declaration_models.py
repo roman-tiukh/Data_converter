@@ -850,6 +850,16 @@ class Beneficary(DataOceanModel):
         verbose_name=_('company'),
         help_text=_('company')
     )
+    beneficiary = models.ForeignKey(
+        Pep,
+        on_delete=models.PROTECT,
+        related_name='beneficiary_info',
+        null=True,
+        blank=True,
+        default=None,
+        verbose_name='PEP that is beneficiary',
+        help_text='politically exposed person that is beneficiary of the company'
+    )
 
 
 class CorporateRights(DataOceanModel):
@@ -1329,6 +1339,8 @@ class BaseRight(DataOceanModel):
     type = models.PositiveSmallIntegerField(
         'type',
         choices=RIGHT_TYPES,
+        null=True,
+        blank=True,
         help_text='type of the right'
     )
     owner_type = models.PositiveSmallIntegerField(
@@ -1398,6 +1410,16 @@ class BaseRight(DataOceanModel):
         abstract = True
 
 
+class CorporateRightsRight(BaseRight):
+    corporate_rights = models.ForeignKey(
+        CorporateRights,
+        on_delete=models.PROTECT,
+        related_name='rights',
+        verbose_name='corporate rights right',
+        help_text='right to corporate rights'
+    )
+
+
 class SecuritiesRight(BaseRight):
     securities = models.ForeignKey(
         Securities,
@@ -1448,4 +1470,3 @@ class PepScoring(DataOceanModel):
 
     class Meta:
         verbose_name = 'оцінка ризику обгрунтованості активів'
-
