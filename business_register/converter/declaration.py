@@ -39,10 +39,10 @@ logger.setLevel(logging.INFO)
 class DeclarationConverter(BusinessConverter):
 
     def __init__(self):
-        self.only_peps = {pep.nacp_id[0]: pep for pep in Pep.objects.filter(
+        self.only_peps = {nacp_id: pep for pep in Pep.objects.filter(
             is_pep=True,
-            nacp_id__len=1
-        )}
+            nacp_id__len__gt=0
+        ) for nacp_id in pep.nacp_id}
         self.all_declarations = self.put_objects_to_dict(
             'nacp_declaration_id',
             'business_register',
