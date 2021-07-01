@@ -567,13 +567,14 @@ class DeclarationConverter(BusinessConverter):
             owners = data.get('person_who_care')
             if not owners:
                 self.log_error(f'Cannot identify owner in account data ({data}).')
+                continue
             for person in owners:
                 owner_id = person.get('person')
                 if owner_id == self.DECLARANT:
                     owner = pep
                 # TODO decide whether to save data about a third person here
                 elif owner_id == self.OTHER_PERSON:
-                    self.log_error(f'Owner is other person. Check money data ({data})')
+                    self.log_error(f'Owner is other person. Check account data ({data})')
                     continue
                 elif owner_id.isdigit():
                     owner = self.find_person(owner_id)
