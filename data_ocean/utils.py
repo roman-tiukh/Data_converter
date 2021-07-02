@@ -161,7 +161,7 @@ def log_records(record, filename, index):
     log.close()
 
 
-#rates are on December, 31 from https://status.openexchangerates.org/
+#rates are on December, 31 from http://openexchange.org/
 def convert_to_usd(currency: str, amount: float, year: int):
     rates_to_usd = {
         2020: {
