@@ -16,7 +16,7 @@ from business_register.models.declaration_models import (Declaration,
                                                          SecuritiesRight,
                                                          CorporateRights,
                                                          CorporateRightsRight,
-                                                         Beneficary,
+                                                         Beneficiary,
                                                          Income,
                                                          Money,
                                                          Liability,
@@ -987,7 +987,7 @@ class DeclarationConverter(BusinessConverter):
                     if beneficiary_info not in self.NO_DATA:
                         beneficiary = self.extract_beneficiary(beneficiary_info, declaration.pep, data)
 
-            Beneficary.objects.create(
+            Beneficiary.objects.create(
                 declaration=declaration,
                 company_name=company_name,
                 company_name_eng=company_name_eng,

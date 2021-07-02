@@ -283,7 +283,7 @@ class Transaction(DataOceanModel):
         decimal_places=2,
         null=True,
         blank=True,
-        help_text='amount of the liability'
+        help_text='amount of the transaction'
     )
     transaction_object_type = models.TextField(
         'transaction object`s type',
@@ -375,6 +375,8 @@ class Liability(DataOceanModel):
         'amount',
         max_digits=12,
         decimal_places=2,
+        null=True,
+        blank=True,
         help_text='amount of the liability'
     )
     loan_rest = models.DecimalField(
@@ -770,7 +772,7 @@ class Income(DataOceanModel):
     )
 
 
-class Beneficary(DataOceanModel):
+class Beneficiary(DataOceanModel):
     declaration = models.ForeignKey(
         Declaration,
         on_delete=models.PROTECT,
