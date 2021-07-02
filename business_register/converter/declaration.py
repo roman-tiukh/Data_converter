@@ -87,7 +87,11 @@ class DeclarationConverter(BusinessConverter):
 
     def to_float(self, value):
         if value not in self.NO_DATA:
-            return float(value.replace(',', '.').strip('.,'))
+            value = value.replace(',', '.').strip('.,')
+            if len(value.split('.')[0]) <= 10:
+                return float(value)
+            else:
+                self.log_error(f'Too many value for valuation = {value}')
         return
 
     def find_value(self, dictionary: dict, set_of_keys: set, default_value):
