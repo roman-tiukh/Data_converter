@@ -244,6 +244,10 @@ class DeclarationConverter(BusinessConverter):
                                 'share': share,
                                 'pep': pep_owner,
                                 'company': company_owner,
+                                'full_name': full_name,
+                                'company_name': company_name,
+                                'owner_type': owner_type,
+
                             }
                             apps.get_model('business_register', model_name).objects.create(
                                     **field_dict
@@ -278,6 +282,9 @@ class DeclarationConverter(BusinessConverter):
                             'share': None,
                             'pep': pep_owner,
                             'company': company_owner,
+                            'full_name': full_name,
+                            'company_name': company_name,
+                            'owner_type': owner_type,
                         }
                         apps.get_model('business_register', model_name).objects.create(
                             **field_dict
