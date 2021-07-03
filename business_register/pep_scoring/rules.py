@@ -173,37 +173,29 @@ class IsMuchRoyalty(BaseScoringRule):
     Royalty exceeds 20% of the total income indicated in the declaration
     """
 
-    def calculate_weight(self):
-        declarations = Declaration.objects.filter(
-            pep_id=self.pep.id,
-        ).values('id', 'year')[::1]
-        declaration_ids = {}
+    rule_id = ScoringRuleEnum.PEP11
 
-        for declaration in declarations:
-            year = declaration['year']
-            if year not in declaration_ids:
-                declaration_ids[declaration['year']] = []
-                declaration_ids[declaration['year']].extend([declaration['id']])
-            elif not declaration['id'] in declaration_ids[year]:
-                declaration_ids[year].extend([declaration['id']])
+    class DataSerializer(serializers.Serializer):
+        royalty_UAH = serializers.IntegerField(min_value=0, required=True)
+        assets_UAH = serializers.IntegerField(min_value=0, required=True)
+        year = serializers.IntegerField(min_value=0, required=True)
 
-        for declarations_by_year in declaration_ids.items():
-            assets_UAH = 0
-            royalty_UAH = 0
-            for declaration_id in declarations_by_year[1]:
-                incomes = Income.objects.filter(
-                    declaration_id=declaration_id,
-                ).values_list('amount', 'type')[::1]
-                for income in incomes:
-                    assets_UAH += income[0]
-                    if income[1] == Income.DIVIDENDS:
-                        royalty_UAH += income[0]
-                if royalty_UAH * 5 > assets_UAH:
-                    weight = 0.2
-                    data = {
-                        "royalty_UAH": royalty_UAH,
-                        "assets_UAH": assets_UAH,
-                        "year": declarations_by_year[0],
-                    }
-                    return weight, data
+    def calculate_weight(self) -> tuple[int or float, dict]:
+        assets_UAH = 0
+        royalty_UAH = 0
+        incomes = Income.objects.filter(
+            declaration_id=self.declaration.id,
+        ).values_list('amount', 'type')[::1]
+        for income in incomes:
+            assets_UAH += income[0]
+            if income[1] == Income.DIVIDENDS:
+                royalty_UAH += income[0]
+        if royalty_UAH * 5 > assets_UAH:
+            weight = 0.2
+            data = {
+                "royalty_UAH": royalty_UAH,
+                "assets_UAH": assets_UAH,
+                "year": self.declaration.id,
+            }
+            return weight, data
         return 0, {}
