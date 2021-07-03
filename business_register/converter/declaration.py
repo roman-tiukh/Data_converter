@@ -247,7 +247,10 @@ class DeclarationConverter(BusinessConverter):
                                 'acquisition_date': acquisition_date,
                                 'share': share,
                                 'pep': pep_owner,
-                                'company': company_owner
+                                'company': company_owner,
+                                'full_name': full_name,
+                                'company_name': company_name,
+                                'owner_type': owner_type,
                             }
                             apps.get_model('business_register', model_name).objects.create(
                                     **field_dict
@@ -282,6 +285,9 @@ class DeclarationConverter(BusinessConverter):
                             'share': None,
                             'pep': pep_owner,
                             'company': company_owner,
+                            'full_name': full_name,
+                            'company_name': company_name,
+                            'owner_type': owner_type,
                         }
                         apps.get_model('business_register', model_name).objects.create(
                             **field_dict
@@ -430,6 +436,7 @@ class DeclarationConverter(BusinessConverter):
             amount = self.to_float(data.get('costAmount'), data)
             transaction_object_type = data.get('specExpensesSubject', '')
             transaction_result = ''
+            transaction_object = ''
             if data.get('specExpenses') == 'Інше':
                 transaction_result = data.get('specOtherExpenses')
             else:
@@ -440,7 +447,7 @@ class DeclarationConverter(BusinessConverter):
                 transaction_object = data.get('specExpensesOtherRealtySubject')
             elif data.get('specExpensesMovableSubject') == 'Інше рухоме майно':
                 transaction_object = data.get('specExpensesOtherMovableSubject')
-            else:
+            if not transaction_object:
                 transaction_object = self.find_value(
                     data,
                     {
