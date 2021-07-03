@@ -134,7 +134,11 @@ class DeclarationConverter(BusinessConverter):
         company = None
         if owner_type == BaseRight.UKRAINE_CITIZEN:
             last_name = right_data.get('ua_lastname')
+            if last_name in self.NO_DATA:
+                last_name = ''
             first_name = right_data.get('ua_firstname')
+            if first_name in self.NO_DATA:
+                first_name = ''
             middle_name = right_data.get('ua_middlename')
             if middle_name in self.NO_DATA:
                 middle_name = ''
