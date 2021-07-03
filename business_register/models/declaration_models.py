@@ -1088,7 +1088,27 @@ class Securities(DataOceanModel):
     )
 
 
-class Vehicle(DataOceanModel):
+class BaseVehicle(DataOceanModel):
+    brand = models.CharField(
+        'brand',
+        max_length=80,
+        blank=True,
+        default='',
+        help_text='brand'
+    )
+    model = models.CharField(
+        'model',
+        max_length=140,
+        blank=True,
+        default='',
+        help_text='model'
+    )
+
+    class Meta:
+        abstract = True
+
+
+class Vehicle(BaseVehicle):
     CAR = 1
     TRUCK = 2
     MOTORBIKE = 3
@@ -1124,20 +1144,6 @@ class Vehicle(DataOceanModel):
         default='',
         help_text='additional info about the vehicle'
     )
-    brand = models.CharField(
-        'brand',
-        max_length=80,
-        blank=True,
-        default='',
-        help_text='brand'
-    )
-    model = models.CharField(
-        'model',
-        max_length=140,
-        blank=True,
-        default='',
-        help_text='model'
-    )
     year = models.PositiveSmallIntegerField(
         'year of manufacture',
         null=True,
@@ -1156,6 +1162,17 @@ class Vehicle(DataOceanModel):
         null=True,
         blank=True,
         help_text='valuation'
+    )
+
+
+class LuxuryCar(BaseVehicle):
+    from_year = models.PositiveSmallIntegerField(
+        'from year',
+        help_text='to year of manufacture'
+    )
+    to_year = models.PositiveSmallIntegerField(
+        'to year',
+        help_text='from year of manufacture'
     )
 
 
