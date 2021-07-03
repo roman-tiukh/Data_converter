@@ -283,7 +283,7 @@ class Transaction(DataOceanModel):
         decimal_places=2,
         null=True,
         blank=True,
-        help_text='amount of the liability'
+        help_text='amount of the transaction'
     )
     transaction_object_type = models.TextField(
         'transaction object`s type',
@@ -375,6 +375,8 @@ class Liability(DataOceanModel):
         'amount',
         max_digits=12,
         decimal_places=2,
+        null=True,
+        blank=True,
         help_text='amount of the liability'
     )
     loan_rest = models.DecimalField(
@@ -770,7 +772,7 @@ class Income(DataOceanModel):
     )
 
 
-class Beneficary(DataOceanModel):
+class Beneficiary(DataOceanModel):
     declaration = models.ForeignKey(
         Declaration,
         on_delete=models.PROTECT,
@@ -849,6 +851,16 @@ class Beneficary(DataOceanModel):
         default=None,
         verbose_name=_('company'),
         help_text=_('company')
+    )
+    beneficiary = models.ForeignKey(
+        Pep,
+        on_delete=models.PROTECT,
+        related_name='beneficiary_info',
+        null=True,
+        blank=True,
+        default=None,
+        verbose_name='PEP that is beneficiary',
+        help_text='politically exposed person that is beneficiary of the company'
     )
 
 
@@ -1060,8 +1072,10 @@ class Securities(DataOceanModel):
         verbose_name='trustee',
         help_text='trustee of securities'
     )
-    quantity = models.PositiveIntegerField(
+    quantity = models.DecimalField(
         'quantity',
+        max_digits=12,
+        decimal_places=2,
         blank=True,
         null=True,
         help_text='quantity of securities'
@@ -1329,6 +1343,8 @@ class BaseRight(DataOceanModel):
     type = models.PositiveSmallIntegerField(
         'type',
         choices=RIGHT_TYPES,
+        null=True,
+        blank=True,
         help_text='type of the right'
     )
     owner_type = models.PositiveSmallIntegerField(
@@ -1398,6 +1414,16 @@ class BaseRight(DataOceanModel):
         abstract = True
 
 
+class CorporateRightsRight(BaseRight):
+    corporate_rights = models.ForeignKey(
+        CorporateRights,
+        on_delete=models.PROTECT,
+        related_name='rights',
+        verbose_name='corporate rights right',
+        help_text='right to corporate rights'
+    )
+
+
 class SecuritiesRight(BaseRight):
     securities = models.ForeignKey(
         Securities,
@@ -1448,4 +1474,3 @@ class PepScoring(DataOceanModel):
 
     class Meta:
         verbose_name = 'оцінка ризику обгрунтованості активів'
-

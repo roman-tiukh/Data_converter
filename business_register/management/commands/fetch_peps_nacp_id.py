@@ -73,11 +73,16 @@ class Command(BaseCommand):
         self.user = settings.PEP_SOURCE_USER
         self.password = settings.PEP_SOURCE_PASSWORD
         self.PEP_QUERY = ("""
-            SELECT p.id, MAX(d.declaration_id)
-            FROM core_person p
-            LEFT JOIN core_declaration d on p.id = d.person_id
-            WHERE is_pep = True AND d.nacp_declaration = True AND d.confirmed='a'
-            GROUP BY p.id
+                SELECT p.id,
+                       d.declaration_id
+                FROM core_person p
+                LEFT JOIN core_declaration d ON p.id = d.person_id
+                WHERE is_pep = TRUE
+                  AND d.nacp_declaration = TRUE
+                  AND d.confirmed='a'
+                GROUP BY p.id,
+                         d.declaration_id
+                ORDER BY p.id
         """)
         self.peps_without_nacp_id = {getattr(pep, 'source_id'): pep for pep in Pep.objects.filter(
             is_pep=True,
@@ -115,10 +120,12 @@ class Command(BaseCommand):
                 declaration_data = json.loads(response.text)
 
                 # storing PEP nacp_id from declarations list
-                pep_nacp_id = declaration_data['user_declarant_id']
-                if not isinstance(pep_nacp_id, int) or pep_nacp_id == 0:
+                pep_nacp_id = declaration_data.get('user_declarant_id')
+                if not isinstance(pep_nacp_id, int) or not pep_nacp_id:
                     self.stdout.write(f'Check invalid declarant NACP id ({pep_nacp_id}) from declaration '
                                       f'with NACP id {declaration_id}')
+                elif pep_nacp_id in pep.nacp_id:
+                    continue
                 else:
                     pep.nacp_id.append(pep_nacp_id)
                     pep.save()
@@ -137,4 +144,3 @@ class Command(BaseCommand):
                 #         f'PEP data from our DB with id {pep.id}: {pep.last_name} {pep.first_name}, '
                 #         f'from declaration: {last_name} {first_name}')
                 #     continue
-
