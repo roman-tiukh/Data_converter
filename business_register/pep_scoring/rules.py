@@ -21,7 +21,7 @@ from location_register.models.ratu_models import RatuCity
 class BaseScoringRule(ABC):
     rule_id = None
 
-    class DataSerializer(serializers.Serializer, ABC):
+    class DataSerializer(serializers.Serializer):
         """ Overwrite this class in child classes """
 
     def __init__(self, declaration: Declaration) -> None:
