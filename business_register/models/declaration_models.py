@@ -1072,8 +1072,10 @@ class Securities(DataOceanModel):
         verbose_name='trustee',
         help_text='trustee of securities'
     )
-    quantity = models.PositiveIntegerField(
+    quantity = models.DecimalField(
         'quantity',
+        max_digits=12,
+        decimal_places=2,
         blank=True,
         null=True,
         help_text='quantity of securities'
