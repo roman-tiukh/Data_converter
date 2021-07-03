@@ -323,6 +323,7 @@ class DeclarationConverter(BusinessConverter):
             amount = self.to_float(data.get('costAmount'))
             transaction_object_type = data.get('specExpensesSubject', '')
             transaction_result = ''
+            transaction_object = ''
             if data.get('specExpenses') == 'Інше':
                 transaction_result = data.get('specOtherExpenses')
             else:
@@ -333,7 +334,7 @@ class DeclarationConverter(BusinessConverter):
                 transaction_object = data.get('specExpensesOtherRealtySubject')
             elif data.get('specExpensesMovableSubject') == 'Інше рухоме майно':
                 transaction_object = data.get('specExpensesOtherMovableSubject')
-            else:
+            if not transaction_object:
                 transaction_object = self.find_value(
                     data,
                     {
