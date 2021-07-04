@@ -190,7 +190,7 @@ class DeclarationConverter(BusinessConverter):
 
     def save_right(self, property, corporate_rights_data):
         if (
-                corporate_rights_data.get('rights')
+                not corporate_rights_data.get('rights')
                 or corporate_rights_data.get('person') in self.NO_DATA
         ):
             return
