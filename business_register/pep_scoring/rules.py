@@ -178,7 +178,7 @@ class IsMuchRoyalty(BaseScoringRule):
     class DataSerializer(serializers.Serializer):
         royalty_UAH = serializers.IntegerField(min_value=0, required=True)
         assets_UAH = serializers.IntegerField(min_value=0, required=True)
-        year = serializers.IntegerField(min_value=0, required=True)
+        declaration_id = serializers.IntegerField(min_value=0, required=True)
 
     def calculate_weight(self) -> tuple[int or float, dict]:
         assets_UAH = 0
@@ -195,7 +195,7 @@ class IsMuchRoyalty(BaseScoringRule):
             data = {
                 "royalty_UAH": royalty_UAH,
                 "assets_UAH": assets_UAH,
-                "year": self.declaration.id,
+                "declaration_id": self.declaration.id,
             }
             return weight, data
         return 0, {}
