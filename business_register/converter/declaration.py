@@ -85,9 +85,13 @@ class DeclarationConverter(BusinessConverter):
     def log_error(self, message):
         logger.error(f'Declaration id {self.current_declaration.nacp_declaration_id} : {message}')
 
-    def to_float(self, value):
+    def to_float(self, value, data):
         if value not in self.NO_DATA:
-            return float(value.replace(',', '.').strip('.,'))
+            value = value.replace(',', '.').strip('.,')
+            if len(value.split('.')[0]) <= 10:
+                return float(value)
+            else:
+                self.log_error(f'Too many value for valuation = {value}. Check data ({data})')
         return
 
     def find_value(self, dictionary: dict, set_of_keys: set, default_value):
@@ -130,7 +134,11 @@ class DeclarationConverter(BusinessConverter):
         company = None
         if owner_type == BaseRight.UKRAINE_CITIZEN:
             last_name = right_data.get('ua_lastname')
+            if last_name in self.NO_DATA:
+                last_name = ''
             first_name = right_data.get('ua_firstname')
+            if first_name in self.NO_DATA:
+                first_name = ''
             middle_name = right_data.get('ua_middlename')
             if middle_name in self.NO_DATA:
                 middle_name = ''
@@ -215,7 +223,7 @@ class DeclarationConverter(BusinessConverter):
             for right_data in rights_data:
                 type = TYPES.get(right_data.get('ownershipType'))
                 additional_info = right_data.get('otherOwnership', '')
-                share = self.to_float(right_data.get('percent-ownership'))
+                share = self.to_float(right_data.get('percent-ownership'), right_data)
                 owner_info = right_data.get('rightBelongs')
                 if owner_info not in self.NO_DATA:
                     if owner_info == self.DECLARANT:
@@ -247,7 +255,6 @@ class DeclarationConverter(BusinessConverter):
                                 'full_name': full_name,
                                 'company_name': company_name,
                                 'owner_type': owner_type,
-
                             }
                             apps.get_model('business_register', model_name).objects.create(
                                     **field_dict
@@ -430,7 +437,7 @@ class DeclarationConverter(BusinessConverter):
         is_money_spent_booleans = {'1': True, '2': False}
         for data in transactions_data:
             is_money_spent = is_money_spent_booleans.get(data.get('type'))
-            amount = self.to_float(data.get('costAmount'))
+            amount = self.to_float(data.get('costAmount'), data)
             transaction_object_type = data.get('specExpensesSubject', '')
             transaction_result = ''
             transaction_object = ''
@@ -526,10 +533,10 @@ class DeclarationConverter(BusinessConverter):
             # TODO: check if we should store more fields when liability_type==TAX_DEBT
             additional_info = data.get('otherObjectType', '')
             currency = data.get('currency', '')
-            amount = self.to_float(data.get('sizeObligation'))
-            loan_rest = self.to_float(data.get('credit_rest'))
-            loan_paid = self.to_float(data.get('credit_paid'))
-            interest_paid = self.to_float(data.get('credit_percent_paid'))
+            amount = self.to_float(data.get('sizeObligation'), data)
+            loan_rest = self.to_float(data.get('credit_rest'), data)
+            loan_paid = self.to_float(data.get('credit_paid'), data)
+            interest_paid = self.to_float(data.get('credit_percent_paid'), data)
 
             date = simple_format_date_to_yymmdd(data.get('dateOrigin'))
 
@@ -588,7 +595,7 @@ class DeclarationConverter(BusinessConverter):
                 #      'realty_ua_houseNum': '[Конфіденційна інформація]'}]
                 guarantee_info = guarantee_info[0]
                 guarantee = guarantee_info.get('realty_objectType', '')
-                guarantee_amount = self.to_float(guarantee_info.get('realty_cost'))
+                guarantee_amount = self.to_float(guarantee_info.get('realty_cost'), data)
                 guarantee_registration = self.find_city(guarantee_info.get('realty_ua_cityType'))
 
             creditor_from_info = data.get('emitent_citizen', '')
@@ -743,7 +750,7 @@ class DeclarationConverter(BusinessConverter):
         for data in money_data:
             money_type = types.get(data.get('objectType'))
             additional_info = data.get('otherObjectType', '')
-            amount = self.to_float(data.get('sizeAssets'))
+            amount = self.to_float(data.get('sizeAssets'), data)
             # TODO: check records after storing
             currency = data.get('assetsCurrency', '')
 
@@ -1164,8 +1171,8 @@ class DeclarationConverter(BusinessConverter):
             else:
                 company_registration_number = ''
 
-            value = self.to_float(data.get('cost'))
-            share = self.to_float(data.get('cost_percent'))
+            value = self.to_float(data.get('cost'), data)
+            share = self.to_float(data.get('cost_percent'), data)
             is_transferred = is_transferred_booleans.get(data.get('is_transferred'))
 
             corporate_rights = CorporateRights.objects.create(
@@ -1318,7 +1325,7 @@ class DeclarationConverter(BusinessConverter):
                 quantity = int(quantity)
             else:
                 quantity = None
-            nominal_value = self.to_float(data.get('cost'))
+            nominal_value = self.to_float(data.get('cost'), data)
             securities = Securities.objects.create(
                 declaration=declaration,
                 type=securities_type,
@@ -1446,7 +1453,7 @@ class DeclarationConverter(BusinessConverter):
             # TODO: add unfinished_construction_city
             if property_location:
                 city = self.find_city(property_location)
-            area = self.to_float(data.get('totalArea'))
+            area = self.to_float(data.get('totalArea'), data)
             unfinished_construction_property = Property.objects.create(
                 declaration=declaration,
                 type=Property.UNFINISHED_CONSTRUCTION,
@@ -1516,8 +1523,8 @@ class DeclarationConverter(BusinessConverter):
                 valuation = data.get('costDate')
                 if valuation in self.NO_DATA:
                     valuation = data.get('cost_date_assessment')
-            valuation = self.to_float(valuation)
-            area = self.to_float(data.get('totalArea'))
+            valuation = self.to_float(valuation, data)
+            area = self.to_float(data.get('totalArea'), data)
             property = Property.objects.create(
                 declaration=declaration,
                 type=property_type,
@@ -1798,6 +1805,6 @@ class DeclarationConverter(BusinessConverter):
 
                 # 'Step_17' Banks and other financial institutions in which the accounts of
                 # the declarant or declarant't family are opened
-                # if (detailed_declaration_data.get('step_17')
-                #         and not detailed_declaration_data['step_17'].get('isNotApplicable')):
-                #     self.save_bank_account(detailed_declaration_data['step_17']['data'], declaration, pep)
+                if (detailed_declaration_data.get('step_17')
+                        and not detailed_declaration_data['step_17'].get('isNotApplicable')):
+                    self.save_bank_account(detailed_declaration_data['step_17']['data'], declaration, pep)
