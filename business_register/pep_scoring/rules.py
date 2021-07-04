@@ -181,17 +181,17 @@ class IsCostlyPresents(BaseScoringRule):
 
     def calculate_weight(self) -> tuple[int or float, dict]:
         presents_max_amount = 100000
-        presents_prise_UAH = 0
+        presents_price_UAH = 0
         incomes = Income.objects.filter(
             declaration_id=self.declaration.id,
         ).values_list('amount', 'type')[::1]
         for income in incomes:
             if income[1] in (Income.GIFT_IN_CASH, Income.GIFT):
-                presents_prise_UAH += income[0]
-        if presents_prise_UAH > presents_max_amount:
+                presents_price_UAH += income[0]
+        if presents_price_UAH > presents_max_amount:
             weight = 0.8
             data = {
-                "presents_prise_UAH": presents_prise_UAH,
+                "presents_price_UAH": presents_price_UAH,
                 "declaration_id": self.declaration.id,
             }
             return weight, data
