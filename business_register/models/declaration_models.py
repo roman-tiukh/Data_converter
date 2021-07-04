@@ -808,23 +808,20 @@ class Beneficiary(DataOceanModel):
         related_name='declared_pep_beneficiaries',
         verbose_name=_('country'),
         help_text=_('country where the company is registered'))
-    company_phone = models.CharField(
+    company_phone = models.TextField(
         _('phone number of the company'),
-        max_length=25,
         blank=True,
         default='',
         help_text=_('phone number of the company')
     )
-    company_fax = models.CharField(
+    company_fax = models.TextField(
         _('fax number of the company'),
-        max_length=25,
         blank=True,
         default='',
         help_text=_('fax number of the company')
     )
-    company_email = models.CharField(
+    company_email = models.TextField(
         _('email of the company'),
-        max_length=55,
         blank=True,
         default='',
         help_text=_('email of the company')
