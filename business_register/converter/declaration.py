@@ -44,11 +44,7 @@ class DeclarationConverter(BusinessConverter):
             is_pep=True,
             nacp_id__len__gt=0
         ) for nacp_id in pep.nacp_id}
-        self.all_declarations = self.put_objects_to_dict(
-            'nacp_declaration_id',
-            'business_register',
-            'Declaration'
-        )
+        self.all_declarations = {str(obj.nacp_declaration_id): obj for obj in Declaration.objects.all()}
         self.NO_DATA = {
             None,
             '',
@@ -58,6 +54,7 @@ class DeclarationConverter(BusinessConverter):
             '[Конфіденційна інформація]',
             'Не визначено',
             'невідомо',
+            'ст. 5 ЗУ Про захист персональних даних',
         }
         self.BOOLEAN_VALUES = {
             '1': True,
