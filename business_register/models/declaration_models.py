@@ -113,14 +113,9 @@ class Declaration(DataOceanModel):
             rule.calculate_with_validation()
             rule.save_to_db()
 
-    # def destroy(self):
-    #     def destroy_recursive(obj):
-    #         fields = obj._meta.get_fields()
-    #         for field in fields:
-    #             if field.one_to_many or field.one_to_one:
-    #                 for obj in
-    #                 getattr(obj, field.related_name).delete()
-    #     destroy_recursive(self)
+    def destroy(self):
+        PepScoring.objects.filter(declaration=self).delete()
+        self.delete()
 
     def __str__(self):
         return f'declaration of {self.pep} for {self.year} year'
@@ -154,7 +149,7 @@ class NgoParticipation(DataOceanModel):
 
     declaration = models.ForeignKey(
         Declaration,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name='ngo_participation',
         verbose_name='declaration'
     )
@@ -215,7 +210,7 @@ class NgoParticipation(DataOceanModel):
 class PartTimeJob(DataOceanModel):
     declaration = models.ForeignKey(
         Declaration,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name='part_time_jobs',
         verbose_name='declaration'
     )
@@ -285,7 +280,7 @@ class PartTimeJob(DataOceanModel):
 class Transaction(DataOceanModel):
     declaration = models.ForeignKey(
         Declaration,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name='transactions',
         verbose_name='declaration'
     )
@@ -374,7 +369,7 @@ class Liability(DataOceanModel):
     )
     declaration = models.ForeignKey(
         Declaration,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name='liabilities',
         verbose_name='declaration'
     )
@@ -581,7 +576,7 @@ class Money(DataOceanModel):
     # )
     declaration = models.ForeignKey(
         Declaration,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name='money',
         verbose_name='declaration'
     )
@@ -736,7 +731,7 @@ class Income(DataOceanModel):
     )
     declaration = models.ForeignKey(
         Declaration,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name='incomes',
         verbose_name='declaration'
     )
@@ -798,7 +793,7 @@ class Income(DataOceanModel):
 class Beneficiary(DataOceanModel):
     declaration = models.ForeignKey(
         Declaration,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name='beneficiaries',
         verbose_name=_('declaration')
     )
@@ -887,7 +882,7 @@ class Beneficiary(DataOceanModel):
 class CorporateRights(DataOceanModel):
     declaration = models.ForeignKey(
         Declaration,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name='corporate_rights',
         verbose_name=_('declaration')
     )
@@ -988,7 +983,7 @@ class Securities(DataOceanModel):
     )
     declaration = models.ForeignKey(
         Declaration,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name='securities',
         verbose_name='declaration'
     )
@@ -1129,7 +1124,7 @@ class Vehicle(DataOceanModel):
     )
     declaration = models.ForeignKey(
         Declaration,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name='vehicles',
         verbose_name='declaration'
     )
@@ -1198,7 +1193,7 @@ class LuxuryItem(DataOceanModel):
     )
     declaration = models.ForeignKey(
         Declaration,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name='luxuries',
         verbose_name='declaration'
     )
@@ -1271,7 +1266,7 @@ class Property(DataOceanModel):
     )
     declaration = models.ForeignKey(
         Declaration,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name='properties',
         verbose_name='declaration'
     )
@@ -1437,7 +1432,7 @@ class BaseRight(DataOceanModel):
 class CorporateRightsRight(BaseRight):
     corporate_rights = models.ForeignKey(
         CorporateRights,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name='rights',
         verbose_name='corporate rights right',
         help_text='right to corporate rights'
@@ -1447,7 +1442,7 @@ class CorporateRightsRight(BaseRight):
 class SecuritiesRight(BaseRight):
     securities = models.ForeignKey(
         Securities,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name='rights',
         verbose_name='securities_right',
         help_text='right to securities'
@@ -1457,7 +1452,7 @@ class SecuritiesRight(BaseRight):
 class VehicleRight(BaseRight):
     car = models.ForeignKey(
         Vehicle,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name='rights',
         verbose_name='vehicle_right',
         help_text='right to the vehicle'
@@ -1467,7 +1462,7 @@ class VehicleRight(BaseRight):
 class LuxuryItemRight(BaseRight):
     luxury_item = models.ForeignKey(
         LuxuryItem,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name='rights',
         verbose_name='luxury_item_right',
         help_text='right to the luxury item'
@@ -1477,7 +1472,7 @@ class LuxuryItemRight(BaseRight):
 class PropertyRight(BaseRight):
     property = models.ForeignKey(
         Property,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name='rights',
         verbose_name='property_right',
         help_text='right to the property'
