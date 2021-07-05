@@ -189,6 +189,11 @@ class DeclarationConverter(BusinessConverter):
         return owner_type, full_name, company, company_name
 
     def save_right(self, property, corporate_rights_data):
+        if (
+                not corporate_rights_data.get('rights')
+                or corporate_rights_data.get('person') in self.NO_DATA
+        ):
+            return
         TYPES = {
             'Власність': BaseRight.OWNERSHIP,
             'Спільна власність': BaseRight.JOINT_OWNERSHIP,
@@ -200,7 +205,8 @@ class DeclarationConverter(BusinessConverter):
              'ЗУ «Про запобігання корупції»'): BaseRight.BENEFICIAL_OWNERSHIP,
             "[Член сім'ї не надав інформацію]": BaseRight.NO_INFO_FROM_FAMILY_MEMBER,
         }
-        acquisition_date = corporate_rights_data.get('owningDate') if corporate_rights_data.get('owningDate') not in self.NO_DATA else None
+        acquisition_date = corporate_rights_data.get('owningDate') if corporate_rights_data.get(
+            'owningDate') not in self.NO_DATA else None
         if acquisition_date:
             acquisition_date = simple_format_date_to_yymmdd(acquisition_date)
             if len(acquisition_date) < 10:
@@ -219,7 +225,6 @@ class DeclarationConverter(BusinessConverter):
         }
         rights_data = corporate_rights_data.get('rights')
         if rights_data:
-            owner_type = None
             for right_data in rights_data:
                 type = TYPES.get(right_data.get('ownershipType'))
                 additional_info = right_data.get('otherOwnership', '')
@@ -257,7 +262,7 @@ class DeclarationConverter(BusinessConverter):
                                 'owner_type': owner_type,
                             }
                             apps.get_model('business_register', model_name).objects.create(
-                                    **field_dict
+                                **field_dict
                             )
         else:
             owner_info = corporate_rights_data.get('person')
@@ -844,7 +849,6 @@ class DeclarationConverter(BusinessConverter):
                     owner=owner
                 )
 
-
     # possible_keys = {
     #     'source_eng_company_code', 'source_ukr_regAddress', 'incomeSource', 'source_ukr_fullname', 'source_citizen',
     #     'source_ua_taxNumber', 'source_ua_actualAddress', 'source_ukr_middlename', 'sizeIncome_extendedstatus',
@@ -901,15 +905,7 @@ class DeclarationConverter(BusinessConverter):
             else:
                 income_type = types.get(data.get('objectType'))
             additional_info = data.get('otherObjectType', '')
-            amount = data.get('sizeIncome')
-            if amount not in self.NO_DATA:
-                amount = int(amount)
-                if amount > 2147483647:
-                    self.log_error(f'Wrong value for amount = {amount}. Check income data {data}')
-                    amount = None
-            # TODO: decide what to do when value == '[Член сім\'ї не надав інформацію]'
-            else:
-                amount = None
+            amount = self.to_float(data.get('sizeIncome'), data)
 
             # examples of the value: 'Юридична особа, зареєстрована в Україні',
             # 'Юридична особа, зареєстрована за кордоном', 'Громадянин України'
@@ -1004,7 +1000,6 @@ class DeclarationConverter(BusinessConverter):
 
             # TODO: discover  'iteration'. Example of the value '1614443380219'
             iteration = data.get('iteration')
-
 
     def extract_beneficiary(self, beneficiary_info, pep, data):
         if beneficiary_info == self.DECLARANT:
@@ -1320,11 +1315,7 @@ class DeclarationConverter(BusinessConverter):
                 )
                 trustee_registration_number = trustee_foreign_registration_number
 
-            quantity = data.get('amount')
-            if quantity not in self.NO_DATA:
-                quantity = int(quantity)
-            else:
-                quantity = None
+            quantity = self.to_float(data.get('amount'), data)
             nominal_value = self.to_float(data.get('cost'), data)
             securities = Securities.objects.create(
                 declaration=declaration,
@@ -1345,9 +1336,7 @@ class DeclarationConverter(BusinessConverter):
                 quantity=quantity,
                 nominal_value=nominal_value
             )
-            rights_data = data.get('rights')
-            if rights_data:
-                self.save_right(securities, data)
+            self.save_right(securities, data)
 
     # TODO: implement
     def is_vehicle_luxury(self, brand, model, year):
@@ -1394,9 +1383,7 @@ class DeclarationConverter(BusinessConverter):
                 is_luxury=is_luxury,
                 valuation=valuation,
             )
-            rights_data = data.get('rights')
-            if rights_data:
-                self.save_right(vehicle, data)
+            self.save_right(vehicle, data)
 
     # possible_keys = {
     #     'otherObjectType', 'costDateUse_extendedstatus', 'dateUse', 'manufacturerName',
@@ -1438,9 +1425,7 @@ class DeclarationConverter(BusinessConverter):
                 description=description,
                 valuation=valuation
             )
-            rights_data = data.get('rights')
-            if rights_data:
-                self.save_right(luxury_item, data)
+            self.save_right(luxury_item, data)
 
     # TODO: implement as save_property()
     def save_unfinished_construction(self, unfinished_construction_data, declaration):
@@ -1462,9 +1447,7 @@ class DeclarationConverter(BusinessConverter):
                 country=country,
                 city=city,
             )
-            rights_data = data.get('rights')
-            if rights_data:
-                self.save_right(unfinished_construction_property, data)
+            self.save_right(unfinished_construction_property, data)
 
     # possible_keys = [
     #     {'ua_sameRegLivingAddress', 'percent-ownership', 'ua_regAddressFull', 'otherOwnership', 'citizen',
@@ -1534,9 +1517,7 @@ class DeclarationConverter(BusinessConverter):
                 city=city,
                 valuation=valuation,
             )
-            rights_data = data.get('rights')
-            if rights_data:
-                self.save_right(property, data)
+            self.save_right(property, data)
 
     # TODO: retrieve country from Country DB
     def find_country(self, property_country_data):
