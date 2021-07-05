@@ -743,6 +743,8 @@ class Income(DataOceanModel):
     type = models.PositiveSmallIntegerField(
         'type',
         choices=INCOME_TYPES,
+        null=True,
+        blank=True,
         help_text='type of income'
     )
     # please, use this field when the type == OTHER
