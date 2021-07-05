@@ -733,10 +733,12 @@ class Income(DataOceanModel):
         default='',
         help_text='additional info about the income'
     )
-    amount = models.PositiveIntegerField(
+    amount = models.DecimalField(
         'amount',
-        null=True,
+        max_digits=12,
+        decimal_places=2,
         blank=True,
+        null=True,
         help_text='amount of income'
     )
     paid_by_company = models.ForeignKey(

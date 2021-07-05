@@ -905,15 +905,7 @@ class DeclarationConverter(BusinessConverter):
             else:
                 income_type = types.get(data.get('objectType'))
             additional_info = data.get('otherObjectType', '')
-            amount = data.get('sizeIncome')
-            if amount not in self.NO_DATA:
-                amount = int(amount)
-                if amount > 2147483647:
-                    self.log_error(f'Wrong value for amount = {amount}. Check income data {data}')
-                    amount = None
-            # TODO: decide what to do when value == '[Член сім\'ї не надав інформацію]'
-            else:
-                amount = None
+            amount = self.to_float(data.get('sizeIncome'), data)
 
             # examples of the value: 'Юридична особа, зареєстрована в Україні',
             # 'Юридична особа, зареєстрована за кордоном', 'Громадянин України'
