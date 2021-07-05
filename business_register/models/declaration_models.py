@@ -1403,10 +1403,10 @@ class BaseRight(DataOceanModel):
         default='',
         help_text='full name of the person that owns the right'
     )
-    company_name = models.CharField(
+    company_name = models.TextField(
         'company name',
-        max_length=200,
         blank=True,
+        default='',
         help_text='name of the company that owns the right'
     )
 
