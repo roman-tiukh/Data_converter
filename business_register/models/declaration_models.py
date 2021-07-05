@@ -1,5 +1,4 @@
 import uuid
-
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -7,6 +6,7 @@ from business_register.models.company_models import Company
 from business_register.models.pep_models import Pep
 from business_register.pep_scoring.constants import ScoringRuleEnum
 from business_register.pep_scoring.messages import SCORING_MESSAGES
+from business_register.pep_scoring.rules import ALL_RULES, BaseScoringRule
 from data_ocean.models import DataOceanModel
 from location_register.models.address_models import Country
 from location_register.models.ratu_models import RatuCity
@@ -106,6 +106,21 @@ class Declaration(DataOceanModel):
         verbose_name='spouse',
         help_text='spouse of the declarant'
     )
+
+    def recalculate_scoring(self):
+        for rule_id, RuleClass in ALL_RULES.items():
+            rule: BaseScoringRule = RuleClass(self)
+            rule.calculate_with_validation()
+            rule.save_to_db()
+
+    # def destroy(self):
+    #     def destroy_recursive(obj):
+    #         fields = obj._meta.get_fields()
+    #         for field in fields:
+    #             if field.one_to_many or field.one_to_one:
+    #                 for obj in
+    #                 getattr(obj, field.related_name).delete()
+    #     destroy_recursive(self)
 
     def __str__(self):
         return f'declaration of {self.pep} for {self.year} year'
@@ -1468,7 +1483,7 @@ class PropertyRight(BaseRight):
 
 
 class PepScoring(DataOceanModel):
-    declaration = models.OneToOneField(Declaration, on_delete=models.PROTECT, related_name='scoring')
+    declaration = models.ForeignKey(Declaration, on_delete=models.PROTECT, related_name='scoring')
     pep = models.ForeignKey(Pep, on_delete=models.PROTECT, related_name='scoring')
     rule_id = models.CharField(max_length=10, choices=[(x.name, x.value) for x in ScoringRuleEnum])
     calculation_datetime = models.DateTimeField()
@@ -1496,4 +1511,5 @@ class PepScoring(DataOceanModel):
         return f'[{self.id}] PEP Score: {self.pep} - {self.declaration.year}'
 
     class Meta:
+        unique_together = (('declaration', 'rule_id'),)
         verbose_name = 'оцінка ризику обгрунтованості активів'

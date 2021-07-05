@@ -18,6 +18,14 @@ from business_register.pep_scoring.constants import ScoringRuleEnum
 from location_register.models.ratu_models import RatuCity
 
 
+ALL_RULES = {}
+
+
+def register_rule(class_):
+    ALL_RULES[class_.rule_id.value] = class_
+    return class_
+
+
 class BaseScoringRule(ABC):
     rule_id = None
 
@@ -40,21 +48,24 @@ class BaseScoringRule(ABC):
 
     def calculate_with_validation(self) -> tuple[int or float, dict]:
         weight, data = self.calculate_weight()
-        self.validate_data(data)
-        self.validate_weight(weight)
+        if weight != 0:
+            self.validate_data(data)
+            self.validate_weight(weight)
         self.weight = weight
         self.data = data
         return weight, data
 
     def save_to_db(self):
-        assert self.weight and self.data
-        PepScoring.objects.create(
+        assert self.weight is not None and self.data is not None
+        PepScoring.objects.update_or_create(
             declaration=self.declaration,
             pep=self.pep,
             rule_id=self.rule_id,
-            calculation_datetime=timezone.now(),
-            score=self.weight,
-            data=self.data,
+            defaults={
+                'data': self.data,
+                'score': self.weight,
+                'calculation_datetime': timezone.now(),
+            }
         )
 
     @abstractmethod
@@ -62,6 +73,7 @@ class BaseScoringRule(ABC):
         pass
 
 
+@register_rule
 class IsRealEstateWithoutValue(BaseScoringRule):
     """
     Rule 3.1 - PEP03_home
@@ -97,6 +109,7 @@ class IsRealEstateWithoutValue(BaseScoringRule):
         return 0, {}
 
 
+@register_rule
 class IsLandWithoutValue(BaseScoringRule):
     """
     Rule 3.2 - PEP03_land
@@ -132,6 +145,7 @@ class IsLandWithoutValue(BaseScoringRule):
         return 0, {}
 
 
+@register_rule
 class IsAutoWithoutValue(BaseScoringRule):
     """
     Rule 3.3 - PEP03_car
@@ -165,9 +179,3 @@ class IsAutoWithoutValue(BaseScoringRule):
             return weight, data
         return 0, {}
 
-
-RULES_BY_ID = {
-    ScoringRuleEnum.PEP03_home.value: IsRealEstateWithoutValue,
-    ScoringRuleEnum.PEP03_land.value: IsLandWithoutValue,
-    ScoringRuleEnum.PEP03_car.value: IsAutoWithoutValue,
-}
