@@ -4,6 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from business_register.models.company_models import Company
 from business_register.models.pep_models import Pep
 from business_register.pep_scoring.constants import ScoringRuleEnum
+from business_register.pep_scoring.messages import SCORING_MESSAGES
 from data_ocean.models import DataOceanModel
 from location_register.models.address_models import Country
 from location_register.models.ratu_models import RatuCity
@@ -1467,9 +1468,29 @@ class PepScoring(DataOceanModel):
     declaration = models.OneToOneField(Declaration, on_delete=models.PROTECT, related_name='scoring')
     pep = models.ForeignKey(Pep, on_delete=models.PROTECT, related_name='scoring')
     rule_id = models.CharField(max_length=10, choices=[(x.name, x.value) for x in ScoringRuleEnum])
-    calculation_date = models.DateField()
+    calculation_datetime = models.DateTimeField()
     score = models.FloatField()
     data = models.JSONField()
+
+    def get_message_for_locale(self, locale: str):
+        message = SCORING_MESSAGES.get(self.rule_id, '')
+        if not message:
+            return ''
+        message = message.get(locale, '')
+        if not message:
+            return ''
+        return message.format(**self.data)
+
+    @property
+    def message_uk(self):
+        return self.get_message_for_locale('uk')
+
+    @property
+    def message_en(self):
+        return self.get_message_for_locale('en')
+
+    def __str__(self):
+        return f'[{self.id}] PEP Score: {self.pep} - {self.declaration.year}'
 
     class Meta:
         verbose_name = 'оцінка ризику обгрунтованості активів'

@@ -52,7 +52,7 @@ class BaseScoringRule(ABC):
             declaration=self.declaration,
             pep=self.pep,
             rule_id=self.rule_id,
-            calculation_date=timezone.localdate(),
+            calculation_datetime=timezone.now(),
             score=self.weight,
             data=self.data,
         )
@@ -164,3 +164,10 @@ class IsAutoWithoutValue(BaseScoringRule):
             }
             return weight, data
         return 0, {}
+
+
+RULES_BY_ID = {
+    ScoringRuleEnum.PEP03_home.value: IsRealEstateWithoutValue,
+    ScoringRuleEnum.PEP03_land.value: IsLandWithoutValue,
+    ScoringRuleEnum.PEP03_car.value: IsAutoWithoutValue,
+}
