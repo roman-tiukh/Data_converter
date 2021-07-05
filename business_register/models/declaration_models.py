@@ -6,7 +6,6 @@ from business_register.models.company_models import Company
 from business_register.models.pep_models import Pep
 from business_register.pep_scoring.constants import ScoringRuleEnum
 from business_register.pep_scoring.messages import SCORING_MESSAGES
-from business_register.pep_scoring.rules import ALL_RULES, BaseScoringRule
 from data_ocean.models import DataOceanModel
 from location_register.models.address_models import Country
 from location_register.models.ratu_models import RatuCity
@@ -108,6 +107,7 @@ class Declaration(DataOceanModel):
     )
 
     def recalculate_scoring(self):
+        from business_register.pep_scoring.rules import ALL_RULES, BaseScoringRule
         for rule_id, RuleClass in ALL_RULES.items():
             rule: BaseScoringRule = RuleClass(self)
             rule.calculate_with_validation()
