@@ -177,7 +177,6 @@ class IsCostlyPresents(BaseScoringRule):
 
     class DataSerializer(serializers.Serializer):
         presents_prise_UAH = serializers.IntegerField(min_value=0, required=True)
-        declaration_id = serializers.IntegerField(min_value=0, required=True)
 
     def calculate_weight(self) -> tuple[int or float, dict]:
         presents_max_amount = 100000
@@ -192,7 +191,6 @@ class IsCostlyPresents(BaseScoringRule):
             weight = 0.8
             data = {
                 "presents_price_UAH": presents_price_UAH,
-                "declaration_id": self.declaration.id,
             }
             return weight, data
         return 0, {}
