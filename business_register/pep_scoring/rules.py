@@ -180,3 +180,31 @@ class IsAutoWithoutValue(BaseScoringRule):
             return weight, data
         return 0, {}
 
+
+@register_rule
+class IsCostlyPresents(BaseScoringRule):
+    """
+    Rule 15 - PEP15
+    weight - 0.8
+    Declared presents amounting to more than 100 000 UAH
+    """
+    rule_id = ScoringRuleEnum.PEP15
+    class DataSerializer(serializers.Serializer):
+        presents_prise_UAH = serializers.IntegerField(min_value=0, required=True)
+
+    def calculate_weight(self) -> Tuple[Union[int, float], dict]:
+        presents_max_amount = 100000
+        presents_price_UAH = 0
+        incomes = Income.objects.filter(
+            declaration_id=self.declaration.id,
+        ).values_list('amount', 'type')[::1]
+        for income in incomes:
+            if income[1] in (Income.GIFT_IN_CASH, Income.GIFT):
+                presents_price_UAH += income[0]
+        if presents_price_UAH > presents_max_amount:
+            weight = 0.8
+            data = {
+                "presents_price_UAH": presents_price_UAH,
+            }
+            return weight, data
+        return 0, {}
