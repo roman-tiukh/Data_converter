@@ -621,6 +621,10 @@ class DeclarationConverter(BusinessConverter):
             if owner_id not in self.NO_DATA:
                 if owner_id == '1':
                     owner = declaration.pep
+                # TODO: store records with OTHER_PERSON here and check other methods (definitely save_money)
+                elif owner_id == self.OTHER_PERSON:
+                    self.log_error(f'Check liability data ({data})')
+                    continue
                 else:
                     owner = self.find_person(owner_id)
             if not owner:
