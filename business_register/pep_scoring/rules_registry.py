@@ -29,3 +29,11 @@ class ScoringRuleEnum(Enum):
     PEP25 = 'PEP25'
     PEP26 = 'PEP26'
     PEP27 = 'PEP27'
+
+
+ALL_RULES = {}
+
+
+def register_rule(class_):
+    ALL_RULES[class_.rule_id.value] = class_
+    return class_

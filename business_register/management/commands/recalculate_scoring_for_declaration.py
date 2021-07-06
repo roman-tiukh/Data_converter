@@ -1,7 +1,5 @@
 from django.core.management.base import BaseCommand
 from business_register.models.declaration_models import Declaration
-from business_register.pep_scoring.constants import ScoringRuleEnum
-from business_register.pep_scoring.rules import ALL_RULES, BaseScoringRule
 
 
 class Command(BaseCommand):

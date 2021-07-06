@@ -15,26 +15,31 @@ from business_register.models.declaration_models import (
     PepScoring,
 )
 from business_register.models.pep_models import (RelatedPersonsLink, Pep)
-from business_register.pep_scoring.constants import ScoringRuleEnum
+from business_register.pep_scoring.rules_registry import register_rule, ScoringRuleEnum
 from location_register.models.ratu_models import RatuCity
 
-
-ALL_RULES = {}
-
-
-def register_rule(class_):
-    ALL_RULES[class_.rule_id.value] = class_
-    return class_
+SPOUSE_TYPES = ['дружина', 'чоловік']
 
 
 class BaseScoringRule(ABC):
     rule_id = None
+    message_uk = ''
+    message_en = ''
 
     class DataSerializer(serializers.Serializer):
         """ Overwrite this class in child classes """
 
     def __init__(self, declaration: Declaration) -> None:
         assert type(self.rule_id) == ScoringRuleEnum
+        # if not self.message_uk or not self.message_en:
+        #     message = (
+        #         f'{self.__class__.__name__} don`t have messages (en, uk), '
+        #         'pls provide they. Messages use `data` dict and `.format()` function '
+        #         'for render full message'
+        #     )
+        #     print(message)
+        #     logger.warning(message)
+
         self.rule_id = self.rule_id.value
         self.declaration: Declaration = declaration
         self.pep: Pep = declaration.pep
@@ -43,6 +48,11 @@ class BaseScoringRule(ABC):
 
     def validate_data(self, data) -> None:
         self.DataSerializer(data=data).is_valid(raise_exception=True)
+        try:
+            self.message_uk.format(**data)
+            self.message_en.format(**data)
+        except KeyError:
+            raise ValueError(f'{self.__class__.__name__}[{self.rule_id}]: `data` dont have keys for render messages')
 
     def validate_weight(self, weight) -> None:
         assert type(weight) in (int, float)
@@ -72,6 +82,40 @@ class BaseScoringRule(ABC):
     @abstractmethod
     def calculate_weight(self) -> Tuple[Union[int, float], dict]:
         pass
+
+
+@register_rule
+class IsSpouseDeclared(BaseScoringRule):
+    """
+    Rule 1 - PEP01
+    weight - 0.1
+    Asset declaration does not indicate PEP’s spouse, while pep.org.ua register has information on them
+    """
+
+    rule_id = ScoringRuleEnum.PEP01
+    message_uk =  ('У декларації про майно немає даних про члена родини, '
+    'тоді як у реєстрі pep.org.ua є {relationship_type} {spouse_full_name}')
+    message_en = 'Asset declaration does not indicate PEP\'s spouse',
+
+    class DataSerializer(serializers.Serializer):
+        relationship_type = serializers.CharField(required=True)
+        spouse_full_name = serializers.CharField(required=True)
+
+    def calculate_weight(self) -> Tuple[Union[int, float], dict]:
+        link_to_spouse_from_antac_db = RelatedPersonsLink.objects.filter(
+            from_person=self.pep,
+            to_person_relationship_type__in=SPOUSE_TYPES
+        ).first()
+        if link_to_spouse_from_antac_db:
+            is_spouse_declared = self.declaration.spouse
+            if not is_spouse_declared:
+                weight = 0.1
+                data = {
+                    'relationship_type': link_to_spouse_from_antac_db.to_person_relationship_type,
+                    "spouse_full_name": link_to_spouse_from_antac_db.to_person.fullname.title()
+                }
+                return weight, data
+        return 0, {}
 
 
 @register_rule
@@ -182,32 +226,30 @@ class IsAutoWithoutValue(BaseScoringRule):
 
 
 @register_rule
-class IsRentManyRE(BaseScoringRule):
+class IsCostlyPresents(BaseScoringRule):
     """
-    Rule 27 - PEP27
-    weight - 0.3
-    PEP declared rent of real estate exceeding 300 sq. m.
+    Rule 15 - PEP15
+    weight - 0.8
+    Declared presents amounting to more than 100 000 UAH
     """
-
-    rule_id = ScoringRuleEnum.PEP27
+    rule_id = ScoringRuleEnum.PEP15
 
     class DataSerializer(serializers.Serializer):
-        square_meters = serializers.IntegerField(min_value=0, required=True)
+        presents_prise_UAH = serializers.IntegerField(min_value=0, required=True)
 
     def calculate_weight(self) -> Tuple[Union[int, float], dict]:
-        square_meters = 0
-        property_types = [Property.SUMMER_HOUSE, Property.HOUSE, Property.APARTMENT, Property.ROOM,
-                          Property.GARAGE, Property.UNFINISHED_CONSTRUCTION, Property.OTHER, Property.OFFICE]
-        for property in PropertyRight.objects.filter(
-            property__declaration_id=self.declaration.id,
-            property__type__in=property_types,
-            type=PropertyRight.RENT,
-        ).values_list('property__area', flat=True)[::1]:
-            square_meters += property
-        if square_meters > 300:
-            weight = 0.3
+        presents_max_amount = 100000
+        presents_price_UAH = 0
+        incomes = Income.objects.filter(
+            declaration_id=self.declaration.id,
+        ).values_list('amount', 'type')[::1]
+        for income in incomes:
+            if income[1] in (Income.GIFT_IN_CASH, Income.GIFT):
+                presents_price_UAH += income[0]
+        if presents_price_UAH > presents_max_amount:
+            weight = 0.8
             data = {
-                "square_meters": square_meters,
+                "presents_price_UAH": presents_price_UAH,
             }
             return weight, data
         return 0, {}
