@@ -181,6 +181,7 @@ class IsAutoWithoutValue(BaseScoringRule):
         return 0, {}
 
 
+@register_rule
 class IsCostlyPresents(BaseScoringRule):
     """
     Rule 15 - PEP15
