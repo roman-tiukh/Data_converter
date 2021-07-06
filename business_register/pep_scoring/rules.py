@@ -253,3 +253,33 @@ class IsCostlyPresents(BaseScoringRule):
             }
             return weight, data
         return 0, {}
+
+
+@register_rule
+class IsRentManyRE(BaseScoringRule):
+    """
+    Rule 27 - PEP27
+    weight - 0.3
+    PEP declared rent of real estate exceeding 300 sq. m.
+    """
+
+    rule_id = ScoringRuleEnum.PEP27
+
+    class DataSerializer(serializers.Serializer):
+        square_meters = serializers.IntegerField(min_value=0, required=True)
+
+    def calculate_weight(self) -> Tuple[Union[int, float], dict]:
+        property_types = [Property.SUMMER_HOUSE, Property.HOUSE, Property.APARTMENT, Property.ROOM,
+                          Property.GARAGE, Property.UNFINISHED_CONSTRUCTION, Property.OTHER, Property.OFFICE]
+        for property_area in PropertyRight.objects.filter(
+                property__declaration_id=self.declaration.id,
+                property__type__in=property_types,
+                type=PropertyRight.RENT,
+        ).values_list('property__area', flat=True)[::1]:
+            if property_area > 300:
+                weight = 0.3
+                data = {
+                "square_meters": property_area,
+                }
+                return weight, data
+        return 0, {}
