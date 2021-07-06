@@ -120,7 +120,7 @@ class IsSpouseDeclared(BaseScoringRule):
         return 0, {}
 
 
-@register_rule
+# @register_rule
 class IsRealEstateWithoutValue(BaseScoringRule):
     """
     Rule 3.1 - PEP03_home
@@ -156,7 +156,7 @@ class IsRealEstateWithoutValue(BaseScoringRule):
         return 0, {}
 
 
-@register_rule
+# @register_rule
 class IsLandWithoutValue(BaseScoringRule):
     """
     Rule 3.2 - PEP03_land
@@ -192,7 +192,7 @@ class IsLandWithoutValue(BaseScoringRule):
         return 0, {}
 
 
-@register_rule
+# @register_rule
 class IsAutoWithoutValue(BaseScoringRule):
     """
     Rule 3.3 - PEP03_car
@@ -247,7 +247,8 @@ class IsCostlyPresents(BaseScoringRule):
         ).values_list('amount', 'type')[::1]
         for income in incomes:
             if income[1] in (Income.GIFT_IN_CASH, Income.GIFT):
-                presents_price_UAH += income[0]
+                if income[0] is not None:
+                    presents_price_UAH += income[0]
         if presents_price_UAH > presents_max_amount:
             weight = 0.8
             data = {
