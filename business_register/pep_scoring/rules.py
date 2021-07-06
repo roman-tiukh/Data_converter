@@ -244,11 +244,11 @@ class IsCostlyPresents(BaseScoringRule):
         presents_price_UAH = 0
         incomes = Income.objects.filter(
             declaration_id=self.declaration.id,
+            amount__isnull=False,
         ).values_list('amount', 'type')[::1]
         for income in incomes:
             if income[1] in (Income.GIFT_IN_CASH, Income.GIFT):
-                if income[0] is not None:
-                    presents_price_UAH += income[0]
+                presents_price_UAH += income[0]
         if presents_price_UAH > presents_max_amount:
             weight = 0.8
             data = {
