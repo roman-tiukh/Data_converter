@@ -4,6 +4,7 @@ from data_ocean.utils import replace_incorrect_symbols
 
 
 general_field = (
+    'initial_data',
     'cancellation_condition',
     'reasoning',
 )

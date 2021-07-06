@@ -33,6 +33,7 @@ from business_register.views.pep_views import PepViewSet
 from business_register.views.sanction_views import (CountrySanctionViewSet,
                                                     PersonSanctionViewSet,
                                                     CompanySanctionViewSet)
+from business_register.views.scoring_views import PepScoringListView
 from data_ocean.views import RegisterView, SchemaView
 from location_register.views.drv_views import DrvBuildingViewSet
 from location_register.views.ratu_views import (RatuRegionView, RatuCityView, RatuStreetView,
@@ -128,6 +129,7 @@ urlpatterns = [
         name='schema-redoc'
     ),
 
+    path('api/pep/scoring/', PepScoringListView.as_view()),
     path('api/', include((router.urls, 'registers'), namespace='registers')),
 ]
 
