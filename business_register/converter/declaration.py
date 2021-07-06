@@ -1654,7 +1654,7 @@ class DeclarationConverter(BusinessConverter):
         def has_step_data(step_name):
             if not data[step_name]:
                 return False
-            return bool(data[step_name].get('isNotApplicable'))
+            return not bool(data[step_name].get('isNotApplicable'))
 
         # TODO: predict updating
         # 'Step_2' - declarant`s family
