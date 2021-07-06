@@ -13,10 +13,12 @@ class Command(BaseExportCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('rule_id', type=str, choices=[rule.value for rule in ScoringRuleEnum], nargs=1)
+        parser.add_argument('-y', '--year', dest='year', nargs='?', type=int)
         parser.add_argument('-s', '--s3', dest='s3', action='store_true')
 
     def handle(self, *args, **options):
         rule_id = options['rule_id'][0]
+        year = options['year']
         export_to_s3 = options['s3']
 
         stream = io.StringIO()
@@ -32,7 +34,10 @@ class Command(BaseExportCommand):
             'Вирахувана вага',
             'Додаткові дані',
         ])
-        for ps in PepScoring.objects.filter(rule_id=rule_id).order_by('pep_id'):
+        qs = PepScoring.objects.filter(rule_id=rule_id)
+        if year:
+            qs = qs.filter(declaration__year=year)
+        for ps in qs.order_by('pep_id'):
             writer.writerow([
                 ps.declaration.nacp_url,
                 ps.declaration.year,
@@ -47,7 +52,10 @@ class Command(BaseExportCommand):
 
         data = stream.getvalue()
         now_str = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
-        file_name = f'pep_scoring_{rule_id}_{now_str}.csv'
+        if year:
+            file_name = f'pep_scoring_{year}_{rule_id}_{now_str}.csv'
+        else:
+            file_name = f'pep_scoring_{rule_id}_{now_str}.csv'
 
         if export_to_s3:
             url = s3bucket.save_file(f'scoring/{file_name}', data)
