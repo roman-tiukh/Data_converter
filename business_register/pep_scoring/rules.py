@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 from django.utils import timezone
 from rest_framework import serializers
-
+from typing import Tuple, Union
 from business_register.models.declaration_models import (
     Declaration,
     Property,
@@ -192,7 +192,7 @@ class IsCostlyPresents(BaseScoringRule):
     class DataSerializer(serializers.Serializer):
         presents_prise_UAH = serializers.IntegerField(min_value=0, required=True)
 
-    def calculate_weight(self) -> tuple[int or float, dict]:
+    def calculate_weight(self) -> Tuple[Union[int, float], dict]:
         presents_max_amount = 100000
         presents_price_UAH = 0
         incomes = Income.objects.filter(
