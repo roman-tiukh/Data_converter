@@ -115,6 +115,10 @@ class Declaration(DataOceanModel):
         PepScoring.objects.filter(declaration=self).delete()
         self.delete()
 
+    @property
+    def nacp_url(self):
+        return f'https://public.nazk.gov.ua/documents/{self.nacp_declaration_id}'
+
     def __str__(self):
         return f'declaration of {self.pep} for {self.year} year'
 
