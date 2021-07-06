@@ -1,12 +1,13 @@
+import uuid
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from business_register.models.company_models import Company
 from business_register.models.pep_models import Pep
-from business_register.pep_scoring.constants import ScoringRuleEnum
 from data_ocean.models import DataOceanModel
 from location_register.models.address_models import Country
 from location_register.models.ratu_models import RatuCity
+from business_register.pep_scoring.rules_registry import ALL_RULES, ScoringRuleEnum
 
 
 class Declaration(DataOceanModel):
@@ -29,9 +30,10 @@ class Declaration(DataOceanModel):
         'year of the declaration',
         help_text='year of the declaration'
     )
-    nacp_declaration_id = models.CharField(
+    nacp_declaration_id = models.UUIDField(
         'NACP id',
-        max_length=50,
+        editable=False,
+        default=uuid.uuid4,
         unique=True,
         db_index=True,
         help_text='NACP id of the declaration',
@@ -103,6 +105,16 @@ class Declaration(DataOceanModel):
         help_text='spouse of the declarant'
     )
 
+    def recalculate_scoring(self):
+        for rule_id, RuleClass in ALL_RULES.items():
+            rule = RuleClass(self)
+            rule.calculate_with_validation()
+            rule.save_to_db()
+
+    def destroy(self):
+        PepScoring.objects.filter(declaration=self).delete()
+        self.delete()
+
     def __str__(self):
         return f'declaration of {self.pep} for {self.year} year'
 
@@ -135,7 +147,7 @@ class NgoParticipation(DataOceanModel):
 
     declaration = models.ForeignKey(
         Declaration,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name='ngo_participation',
         verbose_name='declaration'
     )
@@ -196,7 +208,7 @@ class NgoParticipation(DataOceanModel):
 class PartTimeJob(DataOceanModel):
     declaration = models.ForeignKey(
         Declaration,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name='part_time_jobs',
         verbose_name='declaration'
     )
@@ -266,7 +278,7 @@ class PartTimeJob(DataOceanModel):
 class Transaction(DataOceanModel):
     declaration = models.ForeignKey(
         Declaration,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name='transactions',
         verbose_name='declaration'
     )
@@ -355,7 +367,7 @@ class Liability(DataOceanModel):
     )
     declaration = models.ForeignKey(
         Declaration,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name='liabilities',
         verbose_name='declaration'
     )
@@ -562,7 +574,7 @@ class Money(DataOceanModel):
     # )
     declaration = models.ForeignKey(
         Declaration,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name='money',
         verbose_name='declaration'
     )
@@ -717,13 +729,15 @@ class Income(DataOceanModel):
     )
     declaration = models.ForeignKey(
         Declaration,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name='incomes',
         verbose_name='declaration'
     )
     type = models.PositiveSmallIntegerField(
         'type',
         choices=INCOME_TYPES,
+        null=True,
+        blank=True,
         help_text='type of income'
     )
     # please, use this field when the type == OTHER
@@ -777,7 +791,7 @@ class Income(DataOceanModel):
 class Beneficiary(DataOceanModel):
     declaration = models.ForeignKey(
         Declaration,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name='beneficiaries',
         verbose_name=_('declaration')
     )
@@ -866,7 +880,7 @@ class Beneficiary(DataOceanModel):
 class CorporateRights(DataOceanModel):
     declaration = models.ForeignKey(
         Declaration,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name='corporate_rights',
         verbose_name=_('declaration')
     )
@@ -967,7 +981,7 @@ class Securities(DataOceanModel):
     )
     declaration = models.ForeignKey(
         Declaration,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name='securities',
         verbose_name='declaration'
     )
@@ -1108,7 +1122,7 @@ class Vehicle(DataOceanModel):
     )
     declaration = models.ForeignKey(
         Declaration,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name='vehicles',
         verbose_name='declaration'
     )
@@ -1177,7 +1191,7 @@ class LuxuryItem(DataOceanModel):
     )
     declaration = models.ForeignKey(
         Declaration,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name='luxuries',
         verbose_name='declaration'
     )
@@ -1250,7 +1264,7 @@ class Property(DataOceanModel):
     )
     declaration = models.ForeignKey(
         Declaration,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name='properties',
         verbose_name='declaration'
     )
@@ -1402,10 +1416,10 @@ class BaseRight(DataOceanModel):
         default='',
         help_text='full name of the person that owns the right'
     )
-    company_name = models.CharField(
+    company_name = models.TextField(
         'company name',
-        max_length=200,
         blank=True,
+        default='',
         help_text='name of the company that owns the right'
     )
 
@@ -1416,7 +1430,7 @@ class BaseRight(DataOceanModel):
 class CorporateRightsRight(BaseRight):
     corporate_rights = models.ForeignKey(
         CorporateRights,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name='rights',
         verbose_name='corporate rights right',
         help_text='right to corporate rights'
@@ -1426,7 +1440,7 @@ class CorporateRightsRight(BaseRight):
 class SecuritiesRight(BaseRight):
     securities = models.ForeignKey(
         Securities,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name='rights',
         verbose_name='securities_right',
         help_text='right to securities'
@@ -1436,7 +1450,7 @@ class SecuritiesRight(BaseRight):
 class VehicleRight(BaseRight):
     car = models.ForeignKey(
         Vehicle,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name='rights',
         verbose_name='vehicle_right',
         help_text='right to the vehicle'
@@ -1446,7 +1460,7 @@ class VehicleRight(BaseRight):
 class LuxuryItemRight(BaseRight):
     luxury_item = models.ForeignKey(
         LuxuryItem,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name='rights',
         verbose_name='luxury_item_right',
         help_text='right to the luxury item'
@@ -1456,7 +1470,7 @@ class LuxuryItemRight(BaseRight):
 class PropertyRight(BaseRight):
     property = models.ForeignKey(
         Property,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name='rights',
         verbose_name='property_right',
         help_text='right to the property'
@@ -1464,12 +1478,35 @@ class PropertyRight(BaseRight):
 
 
 class PepScoring(DataOceanModel):
-    declaration = models.OneToOneField(Declaration, on_delete=models.PROTECT, related_name='scoring')
+    declaration = models.ForeignKey(Declaration, on_delete=models.PROTECT, related_name='scoring')
     pep = models.ForeignKey(Pep, on_delete=models.PROTECT, related_name='scoring')
     rule_id = models.CharField(max_length=10, choices=[(x.name, x.value) for x in ScoringRuleEnum])
-    calculation_date = models.DateField()
+    calculation_datetime = models.DateTimeField()
     score = models.FloatField()
     data = models.JSONField()
 
+    def get_message_for_locale(self, locale: str):
+        rule = ALL_RULES.get(self.rule_id, None)
+        if self.score == 0 or not rule:
+            return ''
+        message = getattr(rule, f'message_{locale}', '')
+        try:
+            message = message.format(**self.data)
+        except KeyError:
+            return ''
+        return message
+
+    @property
+    def message_uk(self):
+        return self.get_message_for_locale('uk')
+
+    @property
+    def message_en(self):
+        return self.get_message_for_locale('en')
+
+    def __str__(self):
+        return f'[{self.id}] PEP Score: {self.pep} - {self.declaration.year}'
+
     class Meta:
+        unique_together = (('declaration', 'rule_id'),)
         verbose_name = 'оцінка ризику обгрунтованості активів'

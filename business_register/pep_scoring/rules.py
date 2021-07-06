@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 
 from django.utils import timezone
 from rest_framework import serializers
+from typing import Tuple, Union
 
 from business_register.models.declaration_models import (
     Declaration,
@@ -14,18 +15,31 @@ from business_register.models.declaration_models import (
     PepScoring,
 )
 from business_register.models.pep_models import (RelatedPersonsLink, Pep)
-from business_register.pep_scoring.constants import ScoringRuleEnum
+from business_register.pep_scoring.rules_registry import register_rule, ScoringRuleEnum
 from location_register.models.ratu_models import RatuCity
+
+SPOUSE_TYPES = ['дружина', 'чоловік']
 
 
 class BaseScoringRule(ABC):
     rule_id = None
+    message_uk = ''
+    message_en = ''
 
     class DataSerializer(serializers.Serializer):
         """ Overwrite this class in child classes """
 
     def __init__(self, declaration: Declaration) -> None:
         assert type(self.rule_id) == ScoringRuleEnum
+        # if not self.message_uk or not self.message_en:
+        #     message = (
+        #         f'{self.__class__.__name__} don`t have messages (en, uk), '
+        #         'pls provide they. Messages use `data` dict and `.format()` function '
+        #         'for render full message'
+        #     )
+        #     print(message)
+        #     logger.warning(message)
+
         self.rule_id = self.rule_id.value
         self.declaration: Declaration = declaration
         self.pep: Pep = declaration.pep
@@ -34,34 +48,77 @@ class BaseScoringRule(ABC):
 
     def validate_data(self, data) -> None:
         self.DataSerializer(data=data).is_valid(raise_exception=True)
+        try:
+            self.message_uk.format(**data)
+            self.message_en.format(**data)
+        except KeyError:
+            raise ValueError(f'{self.__class__.__name__}[{self.rule_id}]: `data` dont have keys for render messages')
 
     def validate_weight(self, weight) -> None:
         assert type(weight) in (int, float)
 
-    def calculate_with_validation(self) -> tuple[int or float, dict]:
+    def calculate_with_validation(self) -> Tuple[Union[int, float], dict]:
         weight, data = self.calculate_weight()
-        self.validate_data(data)
-        self.validate_weight(weight)
+        if weight != 0:
+            self.validate_data(data)
+            self.validate_weight(weight)
         self.weight = weight
         self.data = data
         return weight, data
 
     def save_to_db(self):
-        assert self.weight and self.data
-        PepScoring.objects.create(
+        assert self.weight is not None and self.data is not None
+        PepScoring.objects.update_or_create(
             declaration=self.declaration,
             pep=self.pep,
             rule_id=self.rule_id,
-            calculation_date=timezone.localdate(),
-            score=self.weight,
-            data=self.data,
+            defaults={
+                'data': self.data,
+                'score': self.weight,
+                'calculation_datetime': timezone.now(),
+            }
         )
 
     @abstractmethod
-    def calculate_weight(self) -> tuple[int or float, dict]:
+    def calculate_weight(self) -> Tuple[Union[int, float], dict]:
         pass
 
 
+@register_rule
+class IsSpouseDeclared(BaseScoringRule):
+    """
+    Rule 1 - PEP01
+    weight - 0.1
+    Asset declaration does not indicate PEP’s spouse, while pep.org.ua register has information on them
+    """
+
+    rule_id = ScoringRuleEnum.PEP01
+    message_uk =  ('У декларації про майно немає даних про члена родини, '
+    'тоді як у реєстрі pep.org.ua є {relationship_type} {spouse_full_name}')
+    message_en = 'Asset declaration does not indicate PEP\'s spouse',
+
+    class DataSerializer(serializers.Serializer):
+        relationship_type = serializers.CharField(required=True)
+        spouse_full_name = serializers.CharField(required=True)
+
+    def calculate_weight(self) -> Tuple[Union[int, float], dict]:
+        link_to_spouse_from_antac_db = RelatedPersonsLink.objects.filter(
+            from_person=self.pep,
+            to_person_relationship_type__in=SPOUSE_TYPES
+        ).first()
+        if link_to_spouse_from_antac_db:
+            is_spouse_declared = self.declaration.spouse
+            if not is_spouse_declared:
+                weight = 0.1
+                data = {
+                    'relationship_type': link_to_spouse_from_antac_db.to_person_relationship_type,
+                    "spouse_full_name": link_to_spouse_from_antac_db.to_person.fullname.title()
+                }
+                return weight, data
+        return 0, {}
+
+
+@register_rule
 class IsRealEstateWithoutValue(BaseScoringRule):
     """
     Rule 3.1 - PEP03_home
@@ -76,7 +133,7 @@ class IsRealEstateWithoutValue(BaseScoringRule):
         property_id = serializers.IntegerField(min_value=0, required=True)
         declaration_id = serializers.IntegerField(min_value=0, required=True)
 
-    def calculate_weight(self) -> tuple[int or float, dict]:
+    def calculate_weight(self) -> Tuple[Union[int, float], dict]:
         family_ids = self.pep.related_persons.filter(
             to_person_links__category=RelatedPersonsLink.FAMILY,
         ).values_list('id', flat=True)[::1]
@@ -97,6 +154,7 @@ class IsRealEstateWithoutValue(BaseScoringRule):
         return 0, {}
 
 
+@register_rule
 class IsLandWithoutValue(BaseScoringRule):
     """
     Rule 3.2 - PEP03_land
@@ -111,7 +169,7 @@ class IsLandWithoutValue(BaseScoringRule):
         property_id = serializers.IntegerField(min_value=0, required=True)
         declaration_id = serializers.IntegerField(min_value=0, required=True)
 
-    def calculate_weight(self) -> tuple[int or float, dict]:
+    def calculate_weight(self) -> Tuple[Union[int, float], dict]:
         family_ids = self.pep.related_persons.filter(
             to_person_links__category=RelatedPersonsLink.FAMILY,
         ).values_list('id', flat=True)[::1]
@@ -132,6 +190,7 @@ class IsLandWithoutValue(BaseScoringRule):
         return 0, {}
 
 
+@register_rule
 class IsAutoWithoutValue(BaseScoringRule):
     """
     Rule 3.3 - PEP03_car
@@ -146,7 +205,7 @@ class IsAutoWithoutValue(BaseScoringRule):
         vehicle_id = serializers.IntegerField(min_value=0, required=True)
         declaration_id = serializers.IntegerField(min_value=0, required=True)
 
-    def calculate_weight(self) -> tuple[int or float, dict]:
+    def calculate_weight(self) -> Tuple[Union[int, float], dict]:
         family_ids = self.pep.related_persons.filter(
             to_person_links__category=RelatedPersonsLink.FAMILY,
         ).values_list('id', flat=True)[::1]
@@ -166,36 +225,31 @@ class IsAutoWithoutValue(BaseScoringRule):
         return 0, {}
 
 
-class IsMuchRoyalty(BaseScoringRule):
+@register_rule
+class IsCostlyPresents(BaseScoringRule):
     """
-    Rule 11 - PEP11
-    weight - 0.2
-    Royalty exceeds 20% of the total income indicated in the declaration
+    Rule 15 - PEP15
+    weight - 0.8
+    Declared presents amounting to more than 100 000 UAH
     """
-
-    rule_id = ScoringRuleEnum.PEP11
+    rule_id = ScoringRuleEnum.PEP15
 
     class DataSerializer(serializers.Serializer):
-        royalty_UAH = serializers.IntegerField(min_value=0, required=True)
-        assets_UAH = serializers.IntegerField(min_value=0, required=True)
-        declaration_id = serializers.IntegerField(min_value=0, required=True)
+        presents_prise_UAH = serializers.IntegerField(min_value=0, required=True)
 
-    def calculate_weight(self) -> tuple[int or float, dict]:
-        assets_UAH = 0
-        royalty_UAH = 0
+    def calculate_weight(self) -> Tuple[Union[int, float], dict]:
+        presents_max_amount = 100000
+        presents_price_UAH = 0
         incomes = Income.objects.filter(
             declaration_id=self.declaration.id,
         ).values_list('amount', 'type')[::1]
         for income in incomes:
-            assets_UAH += income[0]
-            if income[1] == Income.DIVIDENDS:
-                royalty_UAH += income[0]
-        if royalty_UAH * 5 > assets_UAH:
-            weight = 0.2
+            if income[1] in (Income.GIFT_IN_CASH, Income.GIFT):
+                presents_price_UAH += income[0]
+        if presents_price_UAH > presents_max_amount:
+            weight = 0.8
             data = {
-                "royalty_UAH": royalty_UAH,
-                "assets_UAH": assets_UAH,
-                "declaration_id": self.declaration.id,
+                "presents_price_UAH": presents_price_UAH,
             }
             return weight, data
         return 0, {}
