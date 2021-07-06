@@ -12,11 +12,11 @@ class Command(BaseExportCommand):
     help = '---'
 
     def add_arguments(self, parser):
-        parser.add_argument('rule_ids', type=str, choices=[rule.value for rule in ScoringRuleEnum], nargs="+")
+        parser.add_argument('rule_id', type=str, choices=[rule.value for rule in ScoringRuleEnum], nargs=1)
         parser.add_argument('-s', '--s3', dest='s3', action='store_true')
 
     def handle(self, *args, **options):
-        rule_ids = options['rule_ids']
+        rule_id = options['rule_id'][0]
         export_to_s3 = options['s3']
 
         stream = io.StringIO()
@@ -32,7 +32,7 @@ class Command(BaseExportCommand):
             'Вирахувана вага',
             'Додаткові дані',
         ])
-        for ps in PepScoring.objects.filter(rule_id__in=rule_ids).order_by('pep_id'):
+        for ps in PepScoring.objects.filter(rule_id=rule_id).order_by('pep_id'):
             writer.writerow([
                 ps.declaration.nacp_url,
                 ps.declaration.year,
@@ -47,7 +47,7 @@ class Command(BaseExportCommand):
 
         data = stream.getvalue()
         now_str = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
-        file_name = f'pep_scoring_{now_str}.csv'
+        file_name = f'pep_scoring_{rule_id}_{now_str}.csv'
 
         if export_to_s3:
             url = s3bucket.save_file(f'scoring/{file_name}', data)
