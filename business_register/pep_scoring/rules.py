@@ -15,26 +15,29 @@ from business_register.models.declaration_models import (
     PepScoring,
 )
 from business_register.models.pep_models import (RelatedPersonsLink, Pep)
-from business_register.pep_scoring.constants import ScoringRuleEnum
+from business_register.pep_scoring.rules_registry import register_rule, ScoringRuleEnum
 from location_register.models.ratu_models import RatuCity
-
-
-ALL_RULES = {}
-
-
-def register_rule(class_):
-    ALL_RULES[class_.rule_id.value] = class_
-    return class_
 
 
 class BaseScoringRule(ABC):
     rule_id = None
+    message_uk = ''
+    message_en = ''
 
     class DataSerializer(serializers.Serializer):
         """ Overwrite this class in child classes """
 
     def __init__(self, declaration: Declaration) -> None:
         assert type(self.rule_id) == ScoringRuleEnum
+        # if not self.message_uk or not self.message_en:
+        #     message = (
+        #         f'{self.__class__.__name__} don`t have messages (en, uk), '
+        #         'pls provide they. Messages use `data` dict and `.format()` function '
+        #         'for render full message'
+        #     )
+        #     print(message)
+        #     logger.warning(message)
+
         self.rule_id = self.rule_id.value
         self.declaration: Declaration = declaration
         self.pep: Pep = declaration.pep
@@ -43,6 +46,11 @@ class BaseScoringRule(ABC):
 
     def validate_data(self, data) -> None:
         self.DataSerializer(data=data).is_valid(raise_exception=True)
+        try:
+            self.message_uk.format(**data)
+            self.message_en.format(**data)
+        except KeyError:
+            raise ValueError(f'{self.__class__.__name__}[{self.rule_id}]: `data` dont have keys for render messages')
 
     def validate_weight(self, weight) -> None:
         assert type(weight) in (int, float)
