@@ -226,7 +226,7 @@ class IsAutoWithoutValue(BaseScoringRule):
 
 
 @register_rule
-class IsMuchRoyalty(BaseScoringRule):
+class IsRoyaltyPart(BaseScoringRule):
     """
     Rule 11 - PEP11
     weight - 0.2
