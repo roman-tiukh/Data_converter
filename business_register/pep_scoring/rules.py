@@ -93,9 +93,11 @@ class IsSpouseDeclared(BaseScoringRule):
     """
 
     rule_id = ScoringRuleEnum.PEP01
-    message_uk =  ('У декларації про майно немає даних про члена родини, '
-    'тоді як у реєстрі pep.org.ua є {relationship_type} {spouse_full_name}')
-    message_en = 'Asset declaration does not indicate PEP\'s spouse',
+    message_uk = (
+        'У декларації про майно немає даних про члена родини, '
+        'тоді як у реєстрі pep.org.ua є {relationship_type} {spouse_full_name}'
+    )
+    message_en = 'Asset declaration does not indicate PEP\'s spouse'
 
     class DataSerializer(serializers.Serializer):
         relationship_type = serializers.CharField(required=True)
