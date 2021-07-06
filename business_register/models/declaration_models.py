@@ -1,4 +1,6 @@
 import uuid
+
+from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -1487,7 +1489,7 @@ class PepScoring(DataOceanModel):
     rule_id = models.CharField(max_length=10, choices=[(x.name, x.value) for x in ScoringRuleEnum])
     calculation_datetime = models.DateTimeField()
     score = models.FloatField()
-    data = models.JSONField()
+    data = models.JSONField(encoder=DjangoJSONEncoder)
 
     def get_message_for_locale(self, locale: str):
         rule = ALL_RULES.get(self.rule_id, None)
