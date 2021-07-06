@@ -18,6 +18,8 @@ from business_register.models.pep_models import (RelatedPersonsLink, Pep)
 from business_register.pep_scoring.rules_registry import register_rule, ScoringRuleEnum
 from location_register.models.ratu_models import RatuCity
 
+SPOUSE_TYPES = ['дружина', 'чоловік']
+
 
 class BaseScoringRule(ABC):
     rule_id = None
@@ -80,6 +82,40 @@ class BaseScoringRule(ABC):
     @abstractmethod
     def calculate_weight(self) -> Tuple[Union[int, float], dict]:
         pass
+
+
+@register_rule
+class IsSpouseDeclared(BaseScoringRule):
+    """
+    Rule 1 - PEP01
+    weight - 0.1
+    Asset declaration does not indicate PEP’s spouse, while pep.org.ua register has information on them
+    """
+
+    rule_id = ScoringRuleEnum.PEP01
+    message_uk =  ('У декларації про майно немає даних про члена родини, '
+    'тоді як у реєстрі pep.org.ua є {relationship_type} {spouse_full_name}')
+    message_en = 'Asset declaration does not indicate PEP\'s spouse',
+
+    class DataSerializer(serializers.Serializer):
+        relationship_type = serializers.CharField(required=True)
+        spouse_full_name = serializers.CharField(required=True)
+
+    def calculate_weight(self) -> Tuple[Union[int, float], dict]:
+        link_to_spouse_from_antac_db = RelatedPersonsLink.objects.filter(
+            from_person=self.pep,
+            to_person_relationship_type__in=SPOUSE_TYPES
+        ).first()
+        if link_to_spouse_from_antac_db:
+            is_spouse_declared = self.declaration.spouse
+            if not is_spouse_declared:
+                weight = 0.1
+                data = {
+                    'relationship_type': link_to_spouse_from_antac_db.to_person_relationship_type,
+                    "spouse_full_name": link_to_spouse_from_antac_db.to_person.fullname.title()
+                }
+                return weight, data
+        return 0, {}
 
 
 @register_rule
@@ -197,6 +233,7 @@ class IsCostlyPresents(BaseScoringRule):
     Declared presents amounting to more than 100 000 UAH
     """
     rule_id = ScoringRuleEnum.PEP15
+
     class DataSerializer(serializers.Serializer):
         presents_prise_UAH = serializers.IntegerField(min_value=0, required=True)
 
