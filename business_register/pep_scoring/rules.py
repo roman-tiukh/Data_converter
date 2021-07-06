@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from django.utils import timezone
 from rest_framework import serializers
 from typing import Tuple, Union
+
 from business_register.models.declaration_models import (
     Declaration,
     Property,
@@ -46,7 +47,7 @@ class BaseScoringRule(ABC):
     def validate_weight(self, weight) -> None:
         assert type(weight) in (int, float)
 
-    def calculate_with_validation(self) -> tuple[int or float, dict]:
+    def calculate_with_validation(self) -> Tuple[Union[int, float], dict]:
         weight, data = self.calculate_weight()
         if weight != 0:
             self.validate_data(data)
@@ -69,7 +70,7 @@ class BaseScoringRule(ABC):
         )
 
     @abstractmethod
-    def calculate_weight(self) -> tuple[int or float, dict]:
+    def calculate_weight(self) -> Tuple[Union[int, float], dict]:
         pass
 
 
@@ -88,7 +89,7 @@ class IsRealEstateWithoutValue(BaseScoringRule):
         property_id = serializers.IntegerField(min_value=0, required=True)
         declaration_id = serializers.IntegerField(min_value=0, required=True)
 
-    def calculate_weight(self) -> tuple[int or float, dict]:
+    def calculate_weight(self) -> Tuple[Union[int, float], dict]:
         family_ids = self.pep.related_persons.filter(
             to_person_links__category=RelatedPersonsLink.FAMILY,
         ).values_list('id', flat=True)[::1]
@@ -124,7 +125,7 @@ class IsLandWithoutValue(BaseScoringRule):
         property_id = serializers.IntegerField(min_value=0, required=True)
         declaration_id = serializers.IntegerField(min_value=0, required=True)
 
-    def calculate_weight(self) -> tuple[int or float, dict]:
+    def calculate_weight(self) -> Tuple[Union[int, float], dict]:
         family_ids = self.pep.related_persons.filter(
             to_person_links__category=RelatedPersonsLink.FAMILY,
         ).values_list('id', flat=True)[::1]
@@ -160,7 +161,7 @@ class IsAutoWithoutValue(BaseScoringRule):
         vehicle_id = serializers.IntegerField(min_value=0, required=True)
         declaration_id = serializers.IntegerField(min_value=0, required=True)
 
-    def calculate_weight(self) -> tuple[int or float, dict]:
+    def calculate_weight(self) -> Tuple[Union[int, float], dict]:
         family_ids = self.pep.related_persons.filter(
             to_person_links__category=RelatedPersonsLink.FAMILY,
         ).values_list('id', flat=True)[::1]
@@ -179,32 +180,3 @@ class IsAutoWithoutValue(BaseScoringRule):
             return weight, data
         return 0, {}
 
-
-class IsCostlyPresents(BaseScoringRule):
-    """
-    Rule 15 - PEP15
-    weight - 0.8
-    Declared presents amounting to more than 100 000 UAH
-    """
-
-    rule_id = ScoringRuleEnum.PEP15
-
-    class DataSerializer(serializers.Serializer):
-        presents_prise_UAH = serializers.IntegerField(min_value=0, required=True)
-
-    def calculate_weight(self) -> Tuple[Union[int, float], dict]:
-        presents_max_amount = 100000
-        presents_price_UAH = 0
-        incomes = Income.objects.filter(
-            declaration_id=self.declaration.id,
-        ).values_list('amount', 'type')[::1]
-        for income in incomes:
-            if income[1] in (Income.GIFT_IN_CASH, Income.GIFT):
-                presents_price_UAH += income[0]
-        if presents_price_UAH > presents_max_amount:
-            weight = 0.8
-            data = {
-                "presents_price_UAH": presents_price_UAH,
-            }
-            return weight, data
-        return 0, {}
