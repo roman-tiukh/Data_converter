@@ -194,7 +194,7 @@ class IsRentManyRE(BaseScoringRule):
     class DataSerializer(serializers.Serializer):
         square_meters = serializers.IntegerField(min_value=0, required=True)
 
-    def calculate_weight(self) -> tuple[int or float, dict]:
+    def calculate_weight(self) -> Tuple[Union[int, float], dict]:
         square_meters = 0
         property_types = [Property.SUMMER_HOUSE, Property.HOUSE, Property.APARTMENT, Property.ROOM,
                           Property.GARAGE, Property.UNFINISHED_CONSTRUCTION, Property.OTHER, Property.OFFICE]
