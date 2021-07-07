@@ -239,8 +239,14 @@ class IsRoyaltyPart(BaseScoringRule):
     rule_id = ScoringRuleEnum.PEP11
 
     class DataSerializer(serializers.Serializer):
-        royalty_UAH = serializers.IntegerField(min_value=0, required=True)
-        assets_UAH = serializers.IntegerField(min_value=0, required=True)
+        royalty_UAH = serializers.DecimalField(
+            max_digits=12, decimal_places=2,
+            min_value=0, required=True
+        )
+        assets_UAH = serializers.DecimalField(
+            max_digits=12, decimal_places=2,
+            min_value=0, required=True,
+        )
 
     def calculate_weight(self) -> Tuple[Union[int, float], dict]:
         assets_UAH = 0
@@ -273,7 +279,10 @@ class IsCostlyPresents(BaseScoringRule):
     rule_id = ScoringRuleEnum.PEP15
 
     class DataSerializer(serializers.Serializer):
-        presents_price_UAH = serializers.IntegerField(min_value=0, required=True)
+        presents_price_UAH = serializers.DecimalField(
+            max_digits=12, decimal_places=2,
+            min_value=0, required=True,
+        )
 
     def calculate_weight(self) -> Tuple[Union[int, float], dict]:
         presents_max_amount = 100000
