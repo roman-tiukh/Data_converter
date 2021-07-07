@@ -93,8 +93,8 @@ class IsSpouseDeclared(BaseScoringRule):
     """
 
     rule_id = ScoringRuleEnum.PEP01
-    message_uk =  ('У декларації про майно немає даних про члена родини, '
-    'тоді як у реєстрі pep.org.ua є {relationship_type} {spouse_full_name}')
+    message_uk = ('У декларації про майно немає даних про члена родини, '
+                  'тоді як у реєстрі pep.org.ua є {relationship_type} {spouse_full_name}')
     message_en = 'Asset declaration does not indicate PEP\'s spouse',
 
     class DataSerializer(serializers.Serializer):
@@ -274,14 +274,12 @@ class IsRentManyRE(BaseScoringRule):
                 property__declaration_id=self.declaration.id,
                 property__type__in=property_types,
                 type=PropertyRight.RENT,
+                property__area__isnull=False,
         ).values_list('property__area', flat=True)[::1]:
-            try:
-                if property_area > 300:
-                    weight = 0.3
-                    data = {
+            if property_area > 300:
+                weight = 0.3
+                data = {
                     "square_meters": property_area,
-                    }
-                    return weight, data
-            except:
-                pass
+                }
+                return weight, data
         return 0, {}
