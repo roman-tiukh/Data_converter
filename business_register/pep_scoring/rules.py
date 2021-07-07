@@ -303,3 +303,36 @@ class IsCostlyPresents(BaseScoringRule):
             }
             return weight, data
         return 0, {}
+
+
+@register_rule
+class IsRentManyRE(BaseScoringRule):
+    """
+    Rule 27 - PEP27
+    weight - 0.3
+    PEP declared rent of real estate exceeding 300 sq. m.
+    """
+
+    rule_id = ScoringRuleEnum.PEP27
+    message_uk = ('кількість об’єктів орендованої жилої нерухомості, що перевищують '
+                  'площу 300 м. кв. {bigger_area_counter}')
+    message_en = 'amount of rented real estate exceeding 300 sq.m. {bigger_area_counter}'
+
+    class DataSerializer(serializers.Serializer):
+        bigger_area_counter = serializers.IntegerField(min_value=0, required=True)
+
+    def calculate_weight(self) -> Tuple[Union[int, float], dict]:
+        property_types = [Property.SUMMER_HOUSE, Property.HOUSE, Property.APARTMENT, Property.ROOM]
+        bigger_area = PropertyRight.objects.filter(
+                property__declaration_id=self.declaration.id,
+                property__type__in=property_types,
+                type=PropertyRight.RENT,
+                property__area__gt=300,
+        ).all().count()
+        if bigger_area > 0:
+            weight = 0.3
+            data = {
+                "bigger_area_counter": bigger_area,
+            }
+            return weight, data
+        return 0, {}
