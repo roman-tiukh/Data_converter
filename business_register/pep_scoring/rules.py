@@ -93,9 +93,11 @@ class IsSpouseDeclared(BaseScoringRule):
     """
 
     rule_id = ScoringRuleEnum.PEP01
-    message_uk =  ('У декларації про майно немає даних про члена родини, '
-    'тоді як у реєстрі pep.org.ua є {relationship_type} {spouse_full_name}')
-    message_en = 'Asset declaration does not indicate PEP\'s spouse',
+    message_uk = (
+        'У декларації про майно немає даних про члена родини, '
+        'тоді як у реєстрі pep.org.ua є {relationship_type} {spouse_full_name}'
+    )
+    message_en = 'Asset declaration does not indicate PEP\'s spouse'
 
     class DataSerializer(serializers.Serializer):
         relationship_type = serializers.CharField(required=True)
@@ -118,7 +120,7 @@ class IsSpouseDeclared(BaseScoringRule):
         return 0, {}
 
 
-@register_rule
+# @register_rule
 class IsRealEstateWithoutValue(BaseScoringRule):
     """
     Rule 3.1 - PEP03_home
@@ -154,7 +156,7 @@ class IsRealEstateWithoutValue(BaseScoringRule):
         return 0, {}
 
 
-@register_rule
+# @register_rule
 class IsLandWithoutValue(BaseScoringRule):
     """
     Rule 3.2 - PEP03_land
@@ -190,7 +192,7 @@ class IsLandWithoutValue(BaseScoringRule):
         return 0, {}
 
 
-@register_rule
+# @register_rule
 class IsAutoWithoutValue(BaseScoringRule):
     """
     Rule 3.3 - PEP03_car
@@ -278,13 +280,14 @@ class IsCostlyPresents(BaseScoringRule):
     rule_id = ScoringRuleEnum.PEP15
 
     class DataSerializer(serializers.Serializer):
-        presents_prise_UAH = serializers.IntegerField(min_value=0, required=True)
+        presents_price_UAH = serializers.IntegerField(min_value=0, required=True)
 
     def calculate_weight(self) -> Tuple[Union[int, float], dict]:
         presents_max_amount = 100000
         presents_price_UAH = 0
         incomes = Income.objects.filter(
             declaration_id=self.declaration.id,
+            amount__isnull=False,
         ).values_list('amount', 'type')[::1]
         for income in incomes:
             if income[1] in (Income.GIFT_IN_CASH, Income.GIFT):

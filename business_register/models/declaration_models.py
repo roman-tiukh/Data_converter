@@ -1,4 +1,6 @@
 import uuid
+
+from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -114,6 +116,10 @@ class Declaration(DataOceanModel):
     def destroy(self):
         PepScoring.objects.filter(declaration=self).delete()
         self.delete()
+
+    @property
+    def nacp_url(self):
+        return f'https://public.nazk.gov.ua/documents/{self.nacp_declaration_id}'
 
     def __str__(self):
         return f'declaration of {self.pep} for {self.year} year'
@@ -1483,7 +1489,7 @@ class PepScoring(DataOceanModel):
     rule_id = models.CharField(max_length=10, choices=[(x.name, x.value) for x in ScoringRuleEnum])
     calculation_datetime = models.DateTimeField()
     score = models.FloatField()
-    data = models.JSONField()
+    data = models.JSONField(encoder=DjangoJSONEncoder)
 
     def get_message_for_locale(self, locale: str):
         rule = ALL_RULES.get(self.rule_id, None)
