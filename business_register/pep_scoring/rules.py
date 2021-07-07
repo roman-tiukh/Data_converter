@@ -1,3 +1,4 @@
+import decimal
 from abc import ABC, abstractmethod
 
 from django.utils import timezone
@@ -244,14 +245,13 @@ class IsRoyaltyPart(BaseScoringRule):
         royalty_UAH = 0
         incomes = Income.objects.filter(
             declaration_id=self.declaration.id,
+            amount__isnull=False,
         ).values_list('amount', 'type')[::1]
         for income in incomes:
-            try:
+            if isinstance(income[0], decimal.Decimal):
                 assets_UAH += income[0]
                 if income[1] == Income.DIVIDENDS:
                     royalty_UAH += income[0]
-            except:
-                pass
         if royalty_UAH * 5 > assets_UAH:
             weight = 0.2
             data = {
