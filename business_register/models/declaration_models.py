@@ -771,9 +771,8 @@ class Income(DataOceanModel):
         verbose_name='paid by',
         help_text='company or organisation that paid'
     )
-    paid_by_person = models.CharField(
+    paid_by_person = models.TextField(
         'paid by person',
-        max_length=100,
         blank=True,
         default='',
         help_text='full name of the person that paid'

@@ -1651,12 +1651,12 @@ class DeclarationConverter(BusinessConverter):
         declaration.last_job_title = declarant_data.get('workPost')
         declaration.save()
 
-    def save_all_steps(self, data, pep, declaration):
+    def save_all_steps(self, data: dict, pep: Pep, declaration: Declaration):
         # 'Step_1' - declarant`s personal data
         self.save_declarant_data(data['step_1']['data'], pep, declaration)
 
         def has_step_data(step_name):
-            if not data[step_name]:
+            if not data.get(step_name):
                 return False
             return not bool(data[step_name].get('isNotApplicable'))
 
