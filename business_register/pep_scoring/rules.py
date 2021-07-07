@@ -1,3 +1,4 @@
+import decimal
 from abc import ABC, abstractmethod
 
 from django.utils import timezone
@@ -222,6 +223,41 @@ class IsAutoWithoutValue(BaseScoringRule):
             data = {
                 "vehicle_id": have_weight[0][0],
                 "declaration_id": have_weight[0][1],
+            }
+            return weight, data
+        return 0, {}
+
+
+@register_rule
+class IsRoyaltyPart(BaseScoringRule):
+    """
+    Rule 11 - PEP11
+    weight - 0.2
+    Royalty exceeds 20% of the total income indicated in the declaration
+    """
+
+    rule_id = ScoringRuleEnum.PEP11
+
+    class DataSerializer(serializers.Serializer):
+        royalty_UAH = serializers.IntegerField(min_value=0, required=True)
+        assets_UAH = serializers.IntegerField(min_value=0, required=True)
+
+    def calculate_weight(self) -> Tuple[Union[int, float], dict]:
+        assets_UAH = 0
+        royalty_UAH = 0
+        incomes = Income.objects.filter(
+            declaration_id=self.declaration.id,
+            amount__isnull=False,
+        ).values_list('amount', 'type')[::1]
+        for income in incomes:
+            assets_UAH += income[0]
+            if income[1] == Income.DIVIDENDS:
+                royalty_UAH += income[0]
+        if royalty_UAH * 5 > assets_UAH:
+            weight = 0.2
+            data = {
+                "royalty_UAH": royalty_UAH,
+                "assets_UAH": assets_UAH,
             }
             return weight, data
         return 0, {}
