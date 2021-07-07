@@ -248,10 +248,9 @@ class IsRoyaltyPart(BaseScoringRule):
             amount__isnull=False,
         ).values_list('amount', 'type')[::1]
         for income in incomes:
-            if isinstance(income[0], decimal.Decimal):
-                assets_UAH += income[0]
-                if income[1] == Income.DIVIDENDS:
-                    royalty_UAH += income[0]
+            assets_UAH += income[0]
+            if income[1] == Income.DIVIDENDS:
+                royalty_UAH += income[0]
         if royalty_UAH * 5 > assets_UAH:
             weight = 0.2
             data = {
