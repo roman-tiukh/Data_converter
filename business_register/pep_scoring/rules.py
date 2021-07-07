@@ -266,7 +266,7 @@ class IsRentManyRE(BaseScoringRule):
     rule_id = ScoringRuleEnum.PEP27
     message_uk = ('кількість об’єктів орендованої жилої нерухомості, що перевищують '
                   'площу 300 м. кв. {bigger_area_counter}')
-    message_en = 'amount of rented real estate exceeding 300 sq.m. {bigger_area_counter}',
+    message_en = 'amount of rented real estate exceeding 300 sq.m. {bigger_area_counter}'
 
     class DataSerializer(serializers.Serializer):
         bigger_area_counter = serializers.IntegerField(min_value=0, required=True)
