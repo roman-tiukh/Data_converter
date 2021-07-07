@@ -84,9 +84,8 @@ class Command(BaseCommand):
                          d.declaration_id
                 ORDER BY p.id
         """)
-        self.peps_without_nacp_id = {getattr(pep, 'source_id'): pep for pep in Pep.objects.filter(
-            is_pep=True,
-            nacp_id__len=0
+        self.all_peps = {getattr(pep, 'source_id'): pep for pep in Pep.objects.filter(
+            is_pep=True
         )}
         self.all_nacp_id = [getattr(pep, 'nacp_id') for pep in Pep.objects.filter(is_pep=True)]
         self.check_peps = []
@@ -111,7 +110,10 @@ class Command(BaseCommand):
         with connection.cursor() as cursor:
             cursor.execute(self.PEP_QUERY)
             for pep_data in cursor.fetchall():
-                pep = self.peps_without_nacp_id.get(pep_data[0])
+                pep = self.all_peps.get(pep_data[0])
+                if not pep:
+                    self.stdout.write(f'No PEP from ANTAC`s DB with id={pep_data[0]} in our database')
+                    continue
                 declaration_id = pep_data[1].replace('nacp_', '')
                 response = requests.get(settings.NACP_DECLARATION_RETRIEVE + declaration_id)
                 if response.status_code != 200:
