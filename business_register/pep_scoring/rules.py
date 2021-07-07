@@ -15,6 +15,8 @@ from business_register.models.declaration_models import (
     PropertyRight,
     PepScoring,
 )
+from business_register.models.pep_models import CompanyLinkWithPep
+from business_register.models.company_models import Company
 from business_register.models.pep_models import (RelatedPersonsLink, Pep)
 from business_register.pep_scoring.rules_registry import register_rule, ScoringRuleEnum
 from location_register.models.ratu_models import RatuCity
@@ -96,13 +98,15 @@ class IsSpouseDeclared(BaseScoringRule):
     rule_id = ScoringRuleEnum.PEP01
     message_uk = (
         'У декларації про майно немає даних про члена родини, '
-        'тоді як у реєстрі pep.org.ua є {relationship_type} {spouse_full_name}'
+        'тоді як у реєстрі pep.org.ua є {relationship_type} {spouse_full_name} '
+        '{spouse_foreign_companies_info}. '
     )
     message_en = 'Asset declaration does not indicate PEP\'s spouse'
 
     class DataSerializer(serializers.Serializer):
         relationship_type = serializers.CharField(required=True)
         spouse_full_name = serializers.CharField(required=True)
+        spouse_foreign_companies_info = serializers.CharField(required=True)
 
     def calculate_weight(self) -> Tuple[Union[int, float], dict]:
         link_to_spouse_from_antac_db = RelatedPersonsLink.objects.filter(
@@ -112,12 +116,29 @@ class IsSpouseDeclared(BaseScoringRule):
         if link_to_spouse_from_antac_db:
             is_spouse_declared = self.declaration.spouse
             if not is_spouse_declared:
-                weight = 0.1
-                data = {
+                spouse_from_antac_db = link_to_spouse_from_antac_db.to_person
+
+                spouse_foreign_companies_links = CompanyLinkWithPep.objects.filter(
+                    pep=spouse_from_antac_db,
+                    category=CompanyLinkWithPep.OWNER,
+                    # looking for only foreign companies
+                    # TODO: check if Company.ANTAC stores only foreign companies
+                    company__source=Company.ANTAC
+                )
+                if spouse_foreign_companies_links:
+                    weight = 0.7
+                    spouse_foreign_companies_info = (f'з кількістю компаній, зареєстрованих за кордоном - '
+                                                     f'{spouse_foreign_companies_links.count()}')
+                else:
+                    weight = 0.1
+                    spouse_foreign_companies_info = ''
+
+                return weight, {
                     'relationship_type': link_to_spouse_from_antac_db.to_person_relationship_type,
-                    "spouse_full_name": link_to_spouse_from_antac_db.to_person.fullname.title()
+                    'spouse_full_name': spouse_from_antac_db.fullname.title(),
+                    'spouse_foreign_companies_info': spouse_foreign_companies_info
                 }
-                return weight, data
+
         return 0, {}
 
 
