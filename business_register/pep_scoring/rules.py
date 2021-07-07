@@ -264,22 +264,25 @@ class IsRentManyRE(BaseScoringRule):
     """
 
     rule_id = ScoringRuleEnum.PEP27
+    message_uk = ('кількість об’єктів орендованої жилої нерухомості, що перевищують '
+                  'площу 300 м. кв. {bigger_area_counter}')
+    message_en = 'amount of rented real estate exceeding 300 sq.m. {bigger_area_counter}',
 
     class DataSerializer(serializers.Serializer):
-        square_meters = serializers.IntegerField(min_value=0, required=True)
+        bigger_area_counter = serializers.IntegerField(min_value=0, required=True)
 
     def calculate_weight(self) -> Tuple[Union[int, float], dict]:
         property_types = [Property.SUMMER_HOUSE, Property.HOUSE, Property.APARTMENT, Property.ROOM]
-        for property_area in PropertyRight.objects.filter(
+        bigger_area = PropertyRight.objects.filter(
                 property__declaration_id=self.declaration.id,
                 property__type__in=property_types,
                 type=PropertyRight.RENT,
-                property__area__isnull=False,
-        ).values_list('property__area', flat=True)[::1]:
-            if property_area > 300:
-                weight = 0.3
-                data = {
-                    "square_meters": property_area,
-                }
-                return weight, data
+                property__area__gt=300,
+        ).all().count()
+        if bigger_area > 0:
+            weight = 0.3
+            data = {
+                "bigger_area_counter": bigger_area,
+            }
+            return weight, data
         return 0, {}
