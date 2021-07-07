@@ -1,3 +1,4 @@
+import decimal
 from abc import ABC, abstractmethod
 
 from django.utils import timezone
@@ -280,7 +281,10 @@ class IsCostlyPresents(BaseScoringRule):
     rule_id = ScoringRuleEnum.PEP15
 
     class DataSerializer(serializers.Serializer):
-        presents_price_UAH = serializers.IntegerField(min_value=0, required=True)
+        presents_price_UAH = serializers.DecimalField(
+            max_digits=12, decimal_places=2,
+            min_value=0, required=True,
+        )
 
     def calculate_weight(self) -> Tuple[Union[int, float], dict]:
         presents_max_amount = 100000
