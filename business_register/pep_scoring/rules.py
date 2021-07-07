@@ -1,4 +1,3 @@
-import decimal
 from abc import ABC, abstractmethod
 
 from django.utils import timezone
@@ -235,10 +234,18 @@ class IsRoyaltyPart(BaseScoringRule):
     """
 
     rule_id = ScoringRuleEnum.PEP11
+    message_uk = 'Роялті {royalty_UAH} перевищує 20% від загального доходу {assets_UAH}, зазначеного в декларації'
+    message_en = 'Royalty {royalty_UAH} exceeds 20% of the total income {assets_UAH} indicated in the declaration'
 
     class DataSerializer(serializers.Serializer):
-        royalty_UAH = serializers.IntegerField(min_value=0, required=True)
-        assets_UAH = serializers.IntegerField(min_value=0, required=True)
+        royalty_UAH = serializers.DecimalField(
+            max_digits=12, decimal_places=2,
+            min_value=0, required=True,
+        )
+        assets_UAH = serializers.DecimalField(
+            max_digits=12, decimal_places=2,
+            min_value=0, required=True,
+        )
 
     def calculate_weight(self) -> Tuple[Union[int, float], dict]:
         assets_UAH = 0
