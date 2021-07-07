@@ -124,6 +124,7 @@ class Command(BaseCommand):
                 if not isinstance(pep_nacp_id, int) or not pep_nacp_id:
                     self.stdout.write(f'Check invalid declarant NACP id ({pep_nacp_id}) from declaration '
                                       f'with NACP id {declaration_id}')
+                    continue
                 elif pep_nacp_id in pep.nacp_id:
                     continue
                 else:
