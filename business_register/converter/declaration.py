@@ -600,7 +600,11 @@ class DeclarationConverter(BusinessConverter):
                 guarantee_info = guarantee_info[0]
                 guarantee = guarantee_info.get('realty_objectType', '')
                 guarantee_amount = self.to_float(guarantee_info.get('realty_cost'), data)
-                guarantee_registration = self.find_city(guarantee_info.get('realty_ua_cityType'))
+                guarantee_registration = guarantee_info.get('realty_ua_cityType')
+                if guarantee_registration:
+                    guarantee_registration = self.find_city(guarantee_registration)
+                else:
+                    guarantee_registration = None
 
             creditor_from_info = data.get('emitent_citizen', '')
             creditor_full_name = data.get('emitent_ukr_fullname', '')
