@@ -91,7 +91,7 @@ class BaseScoringRule(ABC):
 class IsSpouseDeclared(BaseScoringRule):
     """
     Rule 1 - PEP01
-    weight - 0.1
+    weight - 0.1, 0.7
     Asset declaration does not indicate PEP’s spouse, while pep.org.ua register has information on them
     """
 
@@ -293,37 +293,45 @@ class IsRoyaltyPart(BaseScoringRule):
 
 
 @register_rule
-class IsCostlyPresents(BaseScoringRule):
+class IsGiftExpensive(BaseScoringRule):
     """
     Rule 15 - PEP15
-    weight - 0.8
-    Declared presents amounting to more than 100 000 UAH
+    weight - 0.8, 1
+    Declared gift amounting to more than 300 000 UAH
     """
     rule_id = ScoringRuleEnum.PEP15
+    message_uk = (
+        "Загальна вартість задекларованих порадунків перевищує 300 тисяч гривень - {total_valuation}"
+    )
+    message_en = 'Total valuation of declared gifts exceeds UAH 300 000 - {total_valuation}'
 
     class DataSerializer(serializers.Serializer):
-        presents_price_UAH = serializers.DecimalField(
-            max_digits=12, decimal_places=2,
-            min_value=0, required=True,
+        total_valuation = serializers.IntegerField(
+            max_digits=12, decimal_places=2, min_value=0, required=True
         )
 
     def calculate_weight(self) -> Tuple[Union[int, float], dict]:
-        presents_max_amount = 100000
-        presents_price_UAH = 0
-        incomes = Income.objects.filter(
+        first_limit = 300000
+        second_limit = 1000000
+        total_valuation = 0
+        gifts_data = Income.objects.filter(
             declaration_id=self.declaration.id,
             amount__isnull=False,
         ).values_list('amount', 'type')[::1]
-        for income in incomes:
-            if income[1] in (Income.GIFT_IN_CASH, Income.GIFT):
-                presents_price_UAH += income[0]
-        if presents_price_UAH > presents_max_amount:
+        for gift_data in gifts_data:
+            if gift_data[1] in (Income.GIFT_IN_CASH, Income.GIFT):
+                total_valuation += gift_data[0]
+        if total_valuation > first_limit:
             weight = 0.8
-            data = {
-                "presents_price_UAH": presents_price_UAH,
+        if total_valuation > second_limit:
+            weight = 1
+
+            return weight, {
+                'total_valuation': total_valuation,
             }
-            return weight, data
         return 0, {}
+
+
 
 
 @register_rule
