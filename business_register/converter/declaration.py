@@ -1773,7 +1773,9 @@ class DeclarationConverter(BusinessConverter):
                         self.log_error('cannot find declarations')
                         continue
                     self.save_all_steps(response.json()['data'], pep, declaration)
-                except Exception:
+                except Exception as e:
+                    message = f'Error at declaration {declaration.nacp_declaration_id}: {e}'
+                    print(message)
+                    logger.error(message)
                     declaration.destroy()
                     raise
-
