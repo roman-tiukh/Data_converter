@@ -340,6 +340,48 @@ class IsGiftExpensive(BaseScoringRule):
 
 
 @register_rule
+class IsCarUnderestimated(BaseScoringRule):
+    """
+    Rule 17 - PEP17
+    weight - 0.8
+    Declared car produced more than 5 year ago with valuation less than 150000 UAH
+    """
+
+    rule_id = ScoringRuleEnum.PEP17
+    message_uk = (
+        'Задекларована вартість менше ніж 150000 гривень у {total_underestimated_cars} авто '
+        'після {manufacture_year_limit} року випуску'
+    )
+    message_en = (
+        'Declared valuation is less then UAH 150000 of {total_underestimated_cars} cars '
+        'that were manufactured after {manufacture_year_limit} year'
+    )
+
+    class DataSerializer(serializers.Serializer):
+        manufacture_year_limit = serializers.IntegerField(min_value=0, required=True)
+        total_underestimated_cars = serializers.IntegerField(min_value=0, required=True)
+
+    def calculate_weight(self) -> Tuple[Union[int, float], dict]:
+        limit_valuation = 150000
+        manufacture_year_limit = self.declaration.year - 5
+
+        total_underestimated_cars = Vehicle.objects.filter(
+            declaration_id=self.declaration.id,
+            year__gte=manufacture_year_limit,
+            # null is the case for PEP03_car rule
+            valuation__isnull=False,
+            valuation__lte=limit_valuation,
+        ).count()
+        # we can add here car`s data like via values_list('brand', 'model', 'year', 'valuation').
+        if total_underestimated_cars:
+            return 0.8, {
+                'manufacture_year_limit': manufacture_year_limit,
+                'total_underestimated_cars': total_underestimated_cars
+            }
+        return 0, {}
+
+
+@register_rule
 class IsRentManyRE(BaseScoringRule):
     """
     Rule 27 - PEP27
