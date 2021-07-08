@@ -1188,11 +1188,11 @@ class Vehicle(BaseVehicle):
 class LuxuryCar(BaseVehicle):
     from_year = models.PositiveSmallIntegerField(
         'from year',
-        help_text='to year of manufacture'
+        help_text='from year of manufacture'
     )
     to_year = models.PositiveSmallIntegerField(
         'to year',
-        help_text='from year of manufacture'
+        help_text='to year of manufacture'
     )
 
 
