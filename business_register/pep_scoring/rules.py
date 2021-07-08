@@ -439,7 +439,8 @@ class IsCarUnderestimated(BaseScoringRule):
 
         total_underestimated_cars = Vehicle.objects.filter(
             declaration_id=self.declaration.id,
-            year__gte=manufacture_year_limit,
+            type=Vehicle.CAR,
+            year__gt=manufacture_year_limit,
             # null is the case for PEP03_car rule
             valuation__isnull=False,
             valuation__lt=limit_valuation,
