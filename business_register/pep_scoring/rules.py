@@ -49,11 +49,17 @@ class BaseScoringRule(ABC):
         self.weight = None
         self.data = None
 
+    def get_message_uk(self, data: dict) -> str:
+        return self.message_uk
+
+    def get_message_en(self, data: dict) -> str:
+        return self.message_en
+
     def validate_data(self, data) -> None:
         self.DataSerializer(data=data).is_valid(raise_exception=True)
         try:
-            self.message_uk.format(**data)
-            self.message_en.format(**data)
+            self.get_message_uk(data).format(**data)
+            self.get_message_en(data).format(**data)
         except KeyError:
             raise ValueError(f'{self.__class__.__name__}[{self.rule_id}]: `data` dont have keys for render messages')
 
@@ -300,6 +306,8 @@ class IsCostlyPresents(BaseScoringRule):
     Declared presents amounting to more than 100 000 UAH
     """
     rule_id = ScoringRuleEnum.PEP15
+    message_uk = 'Задекларовано подарунків на суму {presents_price_UAH} грн.'
+    message_en = 'Declared presents of {presents_price_UAH} UAH'
 
     class DataSerializer(serializers.Serializer):
         presents_price_UAH = serializers.DecimalField(

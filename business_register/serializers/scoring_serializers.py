@@ -23,8 +23,8 @@ class DeclarationSerializer(serializers.ModelSerializer):
 
 
 class PepScoringSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
-    declaration = DeclarationSerializer()
-    pep = PepShortSerializer()
+    # declaration = DeclarationSerializer()
+    # pep = PepShortSerializer()
 
     class Meta:
         model = PepScoring
@@ -36,8 +36,8 @@ class PepScoringSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
             'data',
             'message_uk',
             'message_en',
-            'declaration',
-            'pep',
+            # 'declaration',
+            # 'pep',
             'updated_at',
             'created_at',
         )
