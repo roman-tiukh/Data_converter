@@ -370,7 +370,7 @@ class IsCarUnderestimated(BaseScoringRule):
             year__gte=manufacture_year_limit,
             # null is the case for PEP03_car rule
             valuation__isnull=False,
-            valuation__lte=limit_valuation,
+            valuation__lt=limit_valuation,
         ).count()
         # we can add here car`s data like via values_list('brand', 'model', 'year', 'valuation').
         if total_underestimated_cars:
