@@ -360,8 +360,7 @@ class IsGiftExpensive(BaseScoringRule):
             if total_valuation > second_limit:
                 weight = 1
             return weight, data
-        else:
-            return 0, {}
+        return 0, {}
 
 
 @register_rule
@@ -407,8 +406,7 @@ class IsBigPrize(BaseScoringRule):
                     'total_prizes': prizes_amount.count(),
                     'total_prizes_amount': total_prizes_amount
                 }
-        else:
-            return 0, {}
+        return 0, {}
 
 
 @register_rule
