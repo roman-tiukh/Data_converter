@@ -159,7 +159,7 @@ class Pep(DataOceanModel):
 
     @property
     def pep_org_ua_link(self):
-        return 'https://pep.org.ua/uk/person/' + str(self.source_id)
+        return f'https://pep.org.ua/uk/person/{str(self.source_id)}'
 
     @property
     def place_of_birth_en(self):

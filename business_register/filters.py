@@ -10,6 +10,7 @@ from business_register.models.fop_models import Fop
 from business_register.models.pep_models import Pep, CompanyLinkWithPep
 from business_register.models.sanction_models import CompanySanction, PersonSanction
 from data_ocean.filters import ValidatedBooleanWidget
+from .models.declaration_models import PepScoring
 from .models.kved_models import Kved
 
 
@@ -363,7 +364,7 @@ class CompanySanctionFilterSet(BaseSanctionFilter):
 
     class Meta:
         model = CompanySanction
-        fields = {}
+        fields = ()
 
 
 class PersonSanctionFilterSet(BaseSanctionFilter):
@@ -400,4 +401,24 @@ class PersonSanctionFilterSet(BaseSanctionFilter):
 
     class Meta:
         model = PersonSanction
-        fields = {}
+        fields = ()
+
+
+class PepScoringFilterSet(filters.FilterSet):
+    declaration_year = filters.NumberFilter(
+        field_name='declaration__year',
+        min_value=2015,
+        max_value=date.today().year,
+    )
+    pep_id = filters.NumberFilter(
+        field_name='pep__id',
+        min_value=1,
+    )
+    pep_source_id = filters.NumberFilter(
+        field_name='pep__source_id',
+        min_value=1,
+    )
+
+    class Meta:
+        model = PepScoring
+        fields = ('rule_id',)
