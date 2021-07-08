@@ -379,7 +379,7 @@ class IsBigPrize(BaseScoringRule):
         "{total_prizes_amount}"
     )
     message_en = (
-        "Declared amounting of {total_prizes} lottery wins or prizes exceed UAH 300 000 - "
+        "Declared amounting of {total_prizes} lottery wins or prizes exceed UAH 300000 - "
         "{total_prizes_amount}"
     )
 
@@ -392,7 +392,7 @@ class IsBigPrize(BaseScoringRule):
         )
 
     def calculate_weight(self) -> Tuple[Union[int, float], dict]:
-        limit = 10000
+        limit = 300000
         prizes_amount = Income.objects.filter(
             declaration_id=self.declaration.id,
             amount__isnull=False,
