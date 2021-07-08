@@ -20,9 +20,33 @@ from business_register.models.company_models import Company
 from business_register.models.pep_models import (RelatedPersonsLink, Pep)
 from business_register.pep_scoring.rules_registry import register_rule, ScoringRuleEnum
 from location_register.models.ratu_models import RatuCity
+from data_ocean.utils import convert_to_usd
 
 SPOUSE_TYPES = ['дружина', 'чоловік']
 GIFT_TYPES = [Income.GIFT_IN_CASH, Income.GIFT]
+UAH = 'UAH'
+
+
+def count_total_income(declaration_id):
+    total_income = 0
+
+    incomes_amount = Income.objects.filter(
+        declaration=declaration_id,
+        amount__isnull=False
+    ).values_list('amount', flat=True)
+    if incomes_amount:
+        for amount in incomes_amount:
+            total_income += amount
+    return total_income
+
+
+def get_total_in_USD(data, year):
+    total_USD = 0
+
+    if data:
+        for currency, amount in data:
+            total_USD += convert_to_usd(currency, float(amount), year)
+    return total_USD
 
 
 class BaseScoringRule(ABC):
@@ -409,6 +433,67 @@ class IsManyCars(BaseScoringRule):
         ).count()
         if total_cars > limit:
             return 0.5, {'total_cars': total_cars}
+        return 0, {}
+
+
+@register_rule
+class IsMoneyFromNowhere(BaseScoringRule):
+    """
+    Rule 21 - PEP21
+    weight - 0.8
+    Monetary assets declared this year exceed the sum of
+    income and amount of monetary assets of the previous year
+    """
+
+    rule_id = ScoringRuleEnum.PEP21
+    message_uk = (
+        "Задекларовані грошові активи - еквівалент {total_money_USD} USD перевищують суму "
+        "задекларованих доходів та грошових активів на кінець попереднього року - "
+        "еквівалент {declared_assets_USD} USD"
+    )
+    message_en = (
+        "Monetary assets declared this year - USD {total_money_USD} exceed the sum of income "
+        "and amount of monetary assets of the previous year - "
+        "USD {declared_assets_USD}"
+    )
+
+    class DataSerializer(serializers.Serializer):
+        total_money_USD = serializers.DecimalField(
+            max_digits=12, decimal_places=2, min_value=0, required=True
+        )
+        declared_assets_USD = serializers.DecimalField(
+            max_digits=12, decimal_places=2, min_value=0, required=True
+        )
+
+    def calculate_weight(self) -> Tuple[Union[int, float], dict]:
+        year = self.declaration.year
+        previous_declaration = Declaration.objects.filter(
+            pep_id=self.pep.id,
+            type=Declaration.ANNUAL,
+            year=year - 1
+            ).first()
+        if not previous_declaration:
+            return 0, {}
+        previous_money_data = Money.objects.filter(
+            declaration=previous_declaration.id,
+            amount__isnull=False,
+            currency__isnull=False
+        ).values_list('currency', 'amount')
+        money_data = Money.objects.filter(
+            declaration=self.declaration.id,
+            amount__isnull=False,
+            currency__isnull=False
+        ).values_list('currency', 'amount')
+        previous_total_money_USD = get_total_in_USD(previous_money_data, year-1)
+        total_money_USD = get_total_in_USD(money_data, year)
+        total_income_USD = convert_to_usd(UAH, float(count_total_income(self.declaration.id)), year)
+        declared_assets_USD = total_income_USD + previous_total_money_USD
+
+        if total_money_USD > declared_assets_USD:
+            return 0.8, {
+                "total_money_USD": total_money_USD,
+                "declared_assets_USD": declared_assets_USD
+            }
         return 0, {}
 
 
