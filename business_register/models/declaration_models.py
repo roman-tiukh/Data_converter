@@ -175,7 +175,7 @@ class NgoParticipation(DataOceanModel):
     )
     ngo_registration_number = models.CharField(
         'NGO registration number',
-        max_length=25,
+        max_length=100,
         blank=True,
         default='',
         help_text='number of registration of the NGO'
@@ -258,7 +258,7 @@ class PartTimeJob(DataOceanModel):
     )
     employer_registration_number = models.CharField(
         'registration number of the employer',
-        max_length=25,
+        max_length=100,
         blank=True,
         default='',
         help_text='number of registration of the employer'
@@ -469,7 +469,7 @@ class Liability(DataOceanModel):
     )
     bank_registration_number = models.CharField(
         'registration number of the bank',
-        max_length=25,
+        max_length=100,
         blank=True,
         default='',
         help_text='number of registration of the bank'
@@ -648,7 +648,7 @@ class Money(DataOceanModel):
     )
     bank_registration_number = models.CharField(
         'registration number of the bank',
-        max_length=25,
+        max_length=100,
         blank=True,
         default='',
         help_text='number of registration of the bank'
@@ -855,7 +855,7 @@ class Beneficiary(DataOceanModel):
     )
     company_registration_number = models.CharField(
         _('registration number of the company'),
-        max_length=20,
+        max_length=100,
         blank=True,
         default='',
         help_text=_('number of registration of the company')
@@ -912,7 +912,7 @@ class CorporateRights(DataOceanModel):
     )
     company_registration_number = models.CharField(
         _('registration number of the company'),
-        max_length=20,
+        max_length=100,
         blank=True,
         default='',
         help_text=_('number of registration of the company')
@@ -1031,7 +1031,7 @@ class Securities(DataOceanModel):
     )
     issuer_registration_number = models.CharField(
         'registration number of the issuer',
-        max_length=20,
+        max_length=100,
         blank=True,
         default='',
         help_text='number of registration of the issuer of securities'
@@ -1075,7 +1075,7 @@ class Securities(DataOceanModel):
     )
     trustee_registration_number = models.CharField(
         'registration number of the trustee',
-        max_length=20,
+        max_length=100,
         blank=True,
         default='',
         help_text='number of registration of the trustee of securities'
