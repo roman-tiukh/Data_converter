@@ -306,8 +306,6 @@ class IsCostlyPresents(BaseScoringRule):
     Declared presents amounting to more than 100 000 UAH
     """
     rule_id = ScoringRuleEnum.PEP15
-    message_uk = 'Задекларовано подарунків на суму {presents_price_UAH} грн.'
-    message_en = 'Declared presents of {presents_price_UAH} UAH'
 
     class DataSerializer(serializers.Serializer):
         presents_price_UAH = serializers.DecimalField(
