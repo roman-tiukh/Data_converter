@@ -66,9 +66,10 @@ def format_date_to_yymmdd(str_ddmmyy):
             str_ddmmyy = str_ddmmyy.replace("/", ".")
         try:
             if sys.platform.startswith('linux'):
-                date = datetime.datetime.strptime(str_ddmmyy, "%d.%m.%Y").strftime("%4Y-%m-%d")
+                format = '%4Y-%m-%d'
             else:
-                date = datetime.datetime.strptime(str_ddmmyy, "%d.%m.%Y").strftime("%Y-%m-%d")
+                format = '%Y-%m-%d'
+            date = datetime.datetime.strptime(str_ddmmyy, "%d.%m.%Y").strftime(format)
         except ValueError:
             return None
         return date
@@ -77,7 +78,11 @@ def format_date_to_yymmdd(str_ddmmyy):
 #  converting datetime format from '%d.%m.%Y' to 'Y-m-d'
 def simple_format_date_to_yymmdd(str_ddmmyy):
     try:
-        date = datetime.datetime.strptime(str_ddmmyy, "%d.%m.%Y").strftime("%Y-%m-%d")
+        if sys.platform.startswith('linux'):
+            format = '%4Y-%m-%d'
+        else:
+            format = '%Y-%m-%d'
+        date = datetime.datetime.strptime(str_ddmmyy, '%d.%m.%Y').strftime(format)
     except ValueError:
         return None
     return date
