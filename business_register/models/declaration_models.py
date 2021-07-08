@@ -1224,6 +1224,9 @@ class LuxuryCar(DataOceanModel):
         help_text='fuel type',
     )
 
+    class Meta:
+        unique_together = (('brand', 'model', 'after_year'),)
+
 
 class LuxuryItem(DataOceanModel):
     ART = 1
