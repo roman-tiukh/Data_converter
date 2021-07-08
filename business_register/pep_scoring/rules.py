@@ -538,7 +538,7 @@ class IsMoneyFromNowhere(BaseScoringRule):
 
         if total_money_USD > declared_assets_USD:
             return 0.8, {
-                "total_money_USD": total_money_USD,
+                "total_money_USD": round(total_money_USD, 2),
                 "declared_assets_USD": round(declared_assets_USD, 2)
             }
         return 0, {}
