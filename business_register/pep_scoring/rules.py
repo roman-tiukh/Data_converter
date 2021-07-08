@@ -382,6 +382,35 @@ class IsCarUnderestimated(BaseScoringRule):
 
 
 @register_rule
+class IsManyCars(BaseScoringRule):
+    """
+    Rule 19 - PEP19
+    weight - 0.5
+    Declared ownership and/or right of use of more than 5 cars
+    """
+
+    rule_id = ScoringRuleEnum.PEP19
+    message_uk = (
+        "Задекларовано більше п'яти авто - {total_cars}"
+    )
+    message_en = 'Declared more than five cars - {total_cars}'
+
+    class DataSerializer(serializers.Serializer):
+        total_cars = serializers.IntegerField(min_value=0, required=True)
+
+    def calculate_weight(self) -> Tuple[Union[int, float], dict]:
+        limit = 5
+
+        total_cars = Vehicle.objects.filter(
+            declaration=self.declaration.id,
+            type=Vehicle.CAR
+        ).count()
+        if total_cars > limit:
+            return 0.5, {'total_cars': total_cars}
+        return 0, {}
+
+
+@register_rule
 class IsRentManyRE(BaseScoringRule):
     """
     Rule 27 - PEP27
