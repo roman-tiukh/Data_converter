@@ -80,7 +80,7 @@ class DeclarationConverter(BusinessConverter):
         self.relatives_data = None
 
     def log_error(self, message):
-        logger.error(f'Declaration id {self.current_declaration.nacp_declaration_id} : {message}')
+        logger.warning(f'Declaration id {self.current_declaration.nacp_declaration_id} : {message}')
 
     def to_float(self, value, data):
         if value not in self.NO_DATA:
@@ -1739,7 +1739,7 @@ class DeclarationConverter(BusinessConverter):
             )
             declarations_data = response.json().get('data')
             if response.status_code != 200 or not declarations_data:
-                logger.error(
+                logger.warning(
                     f'cannot find declarations of the PEP with nacp_declarant_id: {nacp_declarant_id}'
                 )
                 continue
