@@ -61,15 +61,6 @@ class BaseScoringRule(ABC):
 
     def __init__(self, declaration: Declaration) -> None:
         assert type(self.rule_id) == ScoringRuleEnum
-        # if not self.message_uk or not self.message_en:
-        #     message = (
-        #         f'{self.__class__.__name__} don`t have messages (en, uk), '
-        #         'pls provide they. Messages use `data` dict and `.format()` function '
-        #         'for render full message'
-        #     )
-        #     print(message)
-        #     logger.warning(message)
-
         self.rule_id = self.rule_id.value
         self.declaration: Declaration = declaration
         self.pep: Pep = declaration.pep
@@ -84,18 +75,19 @@ class BaseScoringRule(ABC):
     def get_message_en(cls, data: dict) -> str:
         return cls.message_en
 
+    def get_error_message(self, message: str) -> str:
+        return f'{self.__class__.__name__}[{self.rule_id}][{self.declaration.nacp_declaration_id}]: {message}'
+
     def validate_data(self, data) -> None:
         try:
             self.DataSerializer(data=data).is_valid(raise_exception=True)
         except ValidationError as e:
-            raise ValidationError(
-                f'{self.__class__.__name__}[{self.rule_id}] ValidationError: {e} \n data = {data}'
-            )
+            raise ValueError(self.get_error_message(f'{e} \n data = {data}'))
         try:
             self.get_message_uk(data).format(**data)
             self.get_message_en(data).format(**data)
         except KeyError:
-            raise ValueError(f'{self.__class__.__name__}[{self.rule_id}]: `data` dont have keys for render messages')
+            raise ValueError(self.get_error_message(f'`data` dont have keys for render messages'))
 
     def validate_weight(self, weight) -> None:
         assert type(weight) in (int, float)
