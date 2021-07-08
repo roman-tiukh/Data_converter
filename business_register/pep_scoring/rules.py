@@ -5,6 +5,8 @@ from django.utils import timezone
 from rest_framework import serializers
 from typing import Tuple, Union
 
+from rest_framework.exceptions import ValidationError
+
 from business_register.models.declaration_models import (
     Declaration,
     Property,
@@ -83,7 +85,12 @@ class BaseScoringRule(ABC):
         return cls.message_en
 
     def validate_data(self, data) -> None:
-        self.DataSerializer(data=data).is_valid(raise_exception=True)
+        try:
+            self.DataSerializer(data=data).is_valid(raise_exception=True)
+        except ValidationError as e:
+            raise ValidationError(
+                f'{self.__class__.__name__}[{self.rule_id}] ValidationError: {e} \n data = {data}'
+            )
         try:
             self.get_message_uk(data).format(**data)
             self.get_message_en(data).format(**data)
