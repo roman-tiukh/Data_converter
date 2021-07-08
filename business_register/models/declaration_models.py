@@ -1494,7 +1494,8 @@ class PepScoring(DataOceanModel):
         rule = ALL_RULES.get(self.rule_id, None)
         if self.score == 0 or not rule:
             return ''
-        message = getattr(rule, f'message_{locale}', '')
+        message = getattr(rule, f'get_message_{locale}')(self.data)
+        message = message.replace('{', '<strong>{').replace('}', '}</strong>')
         try:
             message = message.format(**self.data)
         except KeyError:
