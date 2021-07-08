@@ -22,6 +22,7 @@ from business_register.pep_scoring.rules_registry import register_rule, ScoringR
 from location_register.models.ratu_models import RatuCity
 
 SPOUSE_TYPES = ['дружина', 'чоловік']
+GIFT_TYPES = [Income.GIFT_IN_CASH, Income.GIFT]
 
 
 class BaseScoringRule(ABC):
@@ -97,7 +98,7 @@ class BaseScoringRule(ABC):
 class IsSpouseDeclared(BaseScoringRule):
     """
     Rule 1 - PEP01
-    weight - 0.1
+    weight - 0.1, 0.7
     Asset declaration does not indicate PEP’s spouse, while pep.org.ua register has information on them
     """
 
@@ -299,37 +300,43 @@ class IsRoyaltyPart(BaseScoringRule):
 
 
 @register_rule
-class IsCostlyPresents(BaseScoringRule):
+class IsGiftExpensive(BaseScoringRule):
     """
     Rule 15 - PEP15
-    weight - 0.8
-    Declared presents amounting to more than 100 000 UAH
+    weight - 0.8, 1
+    Declared gift amounting to more than 300 000 UAH
     """
     rule_id = ScoringRuleEnum.PEP15
+    message_uk = (
+        "Загальна вартість задекларованих порадунків перевищує 300 тисяч гривень - {total_valuation}"
+    )
+    message_en = 'Total valuation of declared gifts exceeds UAH 300 000 - {total_valuation}'
 
     class DataSerializer(serializers.Serializer):
-        presents_price_UAH = serializers.DecimalField(
-            max_digits=12, decimal_places=2,
-            min_value=0, required=True,
+        total_valuation = serializers.DecimalField(
+            max_digits=12, decimal_places=2, min_value=0, required=True
         )
 
     def calculate_weight(self) -> Tuple[Union[int, float], dict]:
-        presents_max_amount = 100000
-        presents_price_UAH = 0
-        incomes = Income.objects.filter(
+        first_limit = 300000
+        second_limit = 1000000
+        total_valuation = 0
+
+        gifts_valuation = Income.objects.filter(
             declaration_id=self.declaration.id,
+            type__in=GIFT_TYPES,
             amount__isnull=False,
-        ).values_list('amount', 'type')[::1]
-        for income in incomes:
-            if income[1] in (Income.GIFT_IN_CASH, Income.GIFT):
-                presents_price_UAH += income[0]
-        if presents_price_UAH > presents_max_amount:
+        ).values_list('amount', flat=True)
+        for valuation in gifts_valuation:
+            total_valuation += valuation
+        if total_valuation > first_limit:
             weight = 0.8
-            data = {
-                "presents_price_UAH": presents_price_UAH,
-            }
+            data = {'total_valuation': total_valuation}
+            if total_valuation > second_limit:
+                weight = 1
             return weight, data
-        return 0, {}
+        else:
+            return 0, {}
 
 
 @register_rule
@@ -351,10 +358,10 @@ class IsRentManyRE(BaseScoringRule):
     def calculate_weight(self) -> Tuple[Union[int, float], dict]:
         property_types = [Property.SUMMER_HOUSE, Property.HOUSE, Property.APARTMENT, Property.ROOM]
         bigger_area = PropertyRight.objects.filter(
-                property__declaration_id=self.declaration.id,
-                property__type__in=property_types,
-                type=PropertyRight.RENT,
-                property__area__gt=300,
+            property__declaration_id=self.declaration.id,
+            property__type__in=property_types,
+            type=PropertyRight.RENT,
+            property__area__gt=300,
         ).all().count()
         if bigger_area > 0:
             weight = 0.3
