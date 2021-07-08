@@ -50,11 +50,13 @@ class BaseScoringRule(ABC):
         self.weight = None
         self.data = None
 
-    def get_message_uk(self, data: dict) -> str:
-        return self.message_uk
+    @classmethod
+    def get_message_uk(cls, data: dict) -> str:
+        return cls.message_uk
 
-    def get_message_en(self, data: dict) -> str:
-        return self.message_en
+    @classmethod
+    def get_message_en(cls, data: dict) -> str:
+        return cls.message_en
 
     def validate_data(self, data) -> None:
         self.DataSerializer(data=data).is_valid(raise_exception=True)
