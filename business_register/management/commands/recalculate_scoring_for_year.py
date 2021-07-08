@@ -10,5 +10,13 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         year = options['year'][0]
-        for declaration in Declaration.objects.filter(year=year):
+        qs = Declaration.objects.filter(year=year)
+        count = qs.count()
+        i = 0
+        for declaration in qs:
+            i += 1
+            self.stdout.write(f'\r Process {i} of {count}', ending='')
             declaration.recalculate_scoring()
+
+        self.stdout.write()
+        self.stdout.write('>>> Done!')

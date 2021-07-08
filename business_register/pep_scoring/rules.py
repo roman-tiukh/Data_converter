@@ -113,7 +113,7 @@ class IsSpouseDeclared(BaseScoringRule):
     class DataSerializer(serializers.Serializer):
         relationship_type = serializers.CharField(required=True)
         spouse_full_name = serializers.CharField(required=True)
-        spouse_foreign_companies_info = serializers.CharField(required=True)
+        spouse_foreign_companies_info = serializers.CharField(allow_blank=True)
 
     def calculate_weight(self) -> Tuple[Union[int, float], dict]:
         link_to_spouse_from_antac_db = RelatedPersonsLink.objects.filter(

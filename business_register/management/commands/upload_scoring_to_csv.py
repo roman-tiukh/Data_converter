@@ -15,10 +15,12 @@ class Command(BaseExportCommand):
         parser.add_argument('rule_id', type=str, choices=[rule.value for rule in ScoringRuleEnum], nargs=1)
         parser.add_argument('-y', '--year', dest='year', nargs='?', type=int)
         parser.add_argument('-s', '--s3', dest='s3', action='store_true')
+        parser.add_argument('-a', '--all', dest='all', action='store_true')
 
     def handle(self, *args, **options):
         rule_id = options['rule_id'][0]
         year = options['year']
+        upload_all = options['all']
         export_to_s3 = options['s3']
 
         stream = io.StringIO()
@@ -37,7 +39,14 @@ class Command(BaseExportCommand):
         qs = PepScoring.objects.filter(rule_id=rule_id)
         if year:
             qs = qs.filter(declaration__year=year)
+        if not upload_all:
+            qs = qs.filter(score__gt=0)
+
+        i = 0
+        count = qs.count()
         for ps in qs.order_by('pep_id'):
+            i += 1
+            self.stdout.write(f'\r Process {i} of {count}', ending='')
             writer.writerow([
                 ps.declaration.nacp_url,
                 ps.declaration.year,
@@ -49,6 +58,9 @@ class Command(BaseExportCommand):
                 ps.score,
                 json.dumps(ps.data, ensure_ascii=False),
             ])
+
+        self.stdout.write()
+        self.stdout.write('Start saving file')
 
         data = stream.getvalue()
         now_str = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
@@ -62,5 +74,5 @@ class Command(BaseExportCommand):
         else:
             url = self.save_to_file(file_name, data)
 
-        self.print('Success!', success=True)
+        self.print('Done!', success=True)
         self.print(url, success=True)
