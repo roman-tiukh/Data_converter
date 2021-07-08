@@ -223,7 +223,9 @@ class DeclarationConverter(BusinessConverter):
         rights_data = corporate_rights_data.get('rights')
         if rights_data:
             for right_data in rights_data:
-                type = TYPES.get(right_data.get('ownershipType'))
+                if not isinstance(right_data, dict):
+                    continue
+                ownership_type = TYPES.get(right_data.get('ownershipType'))
                 additional_info = right_data.get('otherOwnership', '')
                 share = self.to_float(right_data.get('percent-ownership'), right_data)
                 owner_info = right_data.get('rightBelongs')
@@ -248,7 +250,7 @@ class DeclarationConverter(BusinessConverter):
                         if property._meta.model_name == key:
                             field_dict = {
                                 first_field: property,
-                                'type': type,
+                                'type': ownership_type,
                                 'additional_info': additional_info,
                                 'acquisition_date': acquisition_date,
                                 'share': share,
@@ -598,7 +600,11 @@ class DeclarationConverter(BusinessConverter):
                 guarantee_info = guarantee_info[0]
                 guarantee = guarantee_info.get('realty_objectType', '')
                 guarantee_amount = self.to_float(guarantee_info.get('realty_cost'), data)
-                guarantee_registration = self.find_city(guarantee_info.get('realty_ua_cityType'))
+                guarantee_registration = guarantee_info.get('realty_ua_cityType')
+                if guarantee_registration:
+                    guarantee_registration = self.find_city(guarantee_registration)
+                else:
+                    guarantee_registration = None
 
             creditor_from_info = data.get('emitent_citizen', '')
             creditor_full_name = data.get('emitent_ukr_fullname', '')
