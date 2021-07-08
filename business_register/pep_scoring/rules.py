@@ -366,6 +366,53 @@ class IsGiftExpensive(BaseScoringRule):
 
 
 @register_rule
+class IsBigPrize(BaseScoringRule):
+    """
+    Rule 16 - PEP16
+    weight - 1.0
+    Declared lottery winning or prize with a price of more than 300 000 UAH
+    """
+
+    rule_id = ScoringRuleEnum.PEP16
+    message_uk = (
+        "Задекларовано {total_prizes} виграші в лотерею або призи вартістю більше 300000 гривень - "
+        "{total_prizes_amount}"
+    )
+    message_en = (
+        "Declared amounting of {total_prizes} lottery wins or prizes exceed UAH 300000 - "
+        "{total_prizes_amount}"
+    )
+
+    class DataSerializer(serializers.Serializer):
+        total_prizes = serializers.IntegerField(
+            min_value=0, required=True
+        )
+        total_prizes_amount = serializers.DecimalField(
+            max_digits=12, decimal_places=2, min_value=0, required=True
+        )
+
+    def calculate_weight(self) -> Tuple[Union[int, float], dict]:
+        limit = 300000
+        prizes_amount = Income.objects.filter(
+            declaration_id=self.declaration.id,
+            amount__isnull=False,
+            type=Income.PRIZE,
+        ).values_list('amount', flat=True)
+        if prizes_amount:
+            total_prizes_amount = 0
+            for amount in prizes_amount:
+                total_prizes_amount += amount
+
+            if total_prizes_amount > limit:
+                return 1.0, {
+                    'total_prizes': prizes_amount.count(),
+                    'total_prizes_amount': total_prizes_amount
+                }
+        else:
+            return 0, {}
+
+
+@register_rule
 class IsCarUnderestimated(BaseScoringRule):
     """
     Rule 17 - PEP17
@@ -471,7 +518,7 @@ class IsMoneyFromNowhere(BaseScoringRule):
             pep_id=self.pep.id,
             type=Declaration.ANNUAL,
             year=year - 1
-            ).first()
+        ).first()
         if not previous_declaration:
             return 0, {}
         previous_money_data = Money.objects.filter(
@@ -484,7 +531,7 @@ class IsMoneyFromNowhere(BaseScoringRule):
             amount__isnull=False,
             currency__isnull=False
         ).values_list('currency', 'amount')
-        previous_total_money_USD = get_total_in_USD(previous_money_data, year-1)
+        previous_total_money_USD = get_total_in_USD(previous_money_data, year - 1)
         total_money_USD = get_total_in_USD(money_data, year)
         total_income_USD = convert_to_usd(UAH, float(count_total_income(self.declaration.id)), year)
         declared_assets_USD = total_income_USD + previous_total_money_USD
