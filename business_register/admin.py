@@ -237,11 +237,13 @@ class LuxuryCarAdmin(RegisterModelAdmin):
         'id',
         'brand',
         'model',
-        'from_year',
-        'to_year',
+        'after_year',
+        'document_year',
+        'volume',
+        'fuel',
     )
     ordering = (
-        'to_year',
+        'document_year',
     )
     search_fields = (
         'brand',

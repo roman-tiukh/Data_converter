@@ -1108,27 +1108,7 @@ class Securities(DataOceanModel):
     )
 
 
-class BaseVehicle(DataOceanModel):
-    brand = models.CharField(
-        'brand',
-        max_length=80,
-        blank=True,
-        default='',
-        help_text='brand'
-    )
-    model = models.CharField(
-        'model',
-        max_length=140,
-        blank=True,
-        default='',
-        help_text='model'
-    )
-
-    class Meta:
-        abstract = True
-
-
-class Vehicle(BaseVehicle):
+class Vehicle(DataOceanModel):
     CAR = 1
     TRUCK = 2
     MOTORBIKE = 3
@@ -1170,6 +1150,20 @@ class Vehicle(BaseVehicle):
         blank=True,
         help_text='year of manufacture'
     )
+    brand = models.CharField(
+        'brand',
+        max_length=80,
+        blank=True,
+        default='',
+        help_text='brand'
+    )
+    model = models.CharField(
+        'model',
+        max_length=140,
+        blank=True,
+        default='',
+        help_text='model'
+    )
     is_luxury = models.BooleanField(
         'is luxury',
         null=True,
@@ -1185,14 +1179,49 @@ class Vehicle(BaseVehicle):
     )
 
 
-class LuxuryCar(BaseVehicle):
-    from_year = models.PositiveSmallIntegerField(
-        'from year',
-        help_text='from year of manufacture'
+class LuxuryCar(DataOceanModel):
+    PETROL = 1
+    DIESEL = 2
+    ELECTRIC = 3
+    HYBRID = 4
+    FUEL_TYPE = (
+        (PETROL, 'Petrol'),
+        (DIESEL, 'Diesel'),
+        (ELECTRIC, 'Electric'),
+        (HYBRID, 'Hybrid (Petrol + Electric)'),
     )
-    to_year = models.PositiveSmallIntegerField(
-        'to year',
-        help_text='to year of manufacture'
+    brand = models.CharField(
+        'brand',
+        max_length=80,
+        help_text='brand',
+    )
+    model = models.CharField(
+        'model',
+        max_length=140,
+        help_text='model',
+    )
+    after_year = models.PositiveSmallIntegerField(
+        'after year',
+        help_text='year of manufacture of the car after which the car is considered luxury',
+    )
+    document_year = models.PositiveSmallIntegerField(
+        'document year',
+        help_text='year of the document in which the car is indicated',
+    )
+    volume = models.DecimalField(
+        'volume',
+        max_digits=2,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        help_text='engine cylinder volume'
+    )
+    fuel = models.SmallIntegerField(
+        'fuel',
+        choices=FUEL_TYPE,
+        null=True,
+        blank=True,
+        help_text='fuel type',
     )
 
 
