@@ -1190,42 +1190,28 @@ class LuxuryCar(DataOceanModel):
         (ELECTRIC, 'Electric'),
         (HYBRID, 'Hybrid (Petrol + Electric)'),
     )
-    brand = models.CharField(
-        'brand',
-        max_length=80,
-        help_text='brand',
-    )
-    model = models.CharField(
-        'model',
-        max_length=140,
-        help_text='model',
-    )
+    brand = models.CharField(max_length=80)
+    model = models.CharField(max_length=140)
     after_year = models.PositiveSmallIntegerField(
-        'after year',
         help_text='year of manufacture of the car after which the car is considered luxury',
     )
     document_year = models.PositiveSmallIntegerField(
-        'document year',
         help_text='year of the document in which the car is indicated',
     )
     volume = models.DecimalField(
-        'volume',
         max_digits=2,
         decimal_places=1,
         null=True,
         blank=True,
-        help_text='engine cylinder volume'
     )
     fuel = models.SmallIntegerField(
-        'fuel',
         choices=FUEL_TYPE,
         null=True,
         blank=True,
-        help_text='fuel type',
     )
 
     class Meta:
-        unique_together = (('brand', 'model', 'after_year'),)
+        unique_together = (('brand', 'model', 'document_year'),)
 
 
 class LuxuryItem(DataOceanModel):
