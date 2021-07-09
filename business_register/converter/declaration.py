@@ -1376,7 +1376,7 @@ class DeclarationConverter(BusinessConverter):
                 year = None
             valuation = data.get('costDate')
             if valuation not in self.NO_DATA:
-                valuation = int(valuation)
+                valuation = int(float(valuation))
             else:
                 valuation = None
             is_luxury = self.is_vehicle_luxury(brand, model, year)
