@@ -282,7 +282,7 @@ class IsAutoWithoutValue(BaseScoringRule):
 
 
 @register_rule
-class IsRoyaltyPart(BaseScoringRule):
+class IsBigRoyalty(BaseScoringRule):
     """
     Rule 11 - PEP11
     weight - 0.2
@@ -290,37 +290,36 @@ class IsRoyaltyPart(BaseScoringRule):
     """
 
     rule_id = ScoringRuleEnum.PEP11
-    message_uk = 'Роялті {royalty_UAH} перевищує 20% від загального доходу {assets_UAH}, зазначеного в декларації'
-    message_en = 'Royalty {royalty_UAH} exceeds 20% of the total income {assets_UAH} indicated in the declaration'
+    message_uk = 'Роялті - {total_royalty} складають більше 20% задекларованих доходів {total_income}'
+    message_en = 'Royalty - {total_royalty} exceeds 20% of the total income {total_income}'
 
     class DataSerializer(serializers.Serializer):
-        royalty_UAH = serializers.DecimalField(
+        total_royalty = serializers.DecimalField(
             max_digits=12, decimal_places=2,
             min_value=0, required=True,
         )
-        assets_UAH = serializers.DecimalField(
+        total_income = serializers.DecimalField(
             max_digits=12, decimal_places=2,
             min_value=0, required=True,
         )
 
     def calculate_weight(self) -> Tuple[Union[int, float], dict]:
-        assets_UAH = 0
-        royalty_UAH = 0
+        total_royalty = 0
+        total_income = 0
         incomes = Income.objects.filter(
             declaration_id=self.declaration.id,
             amount__isnull=False,
         ).values_list('amount', 'type')[::1]
-        for income in incomes:
-            assets_UAH += income[0]
-            if income[1] == Income.DIVIDENDS:
-                royalty_UAH += income[0]
-        if royalty_UAH * 5 > assets_UAH:
-            weight = 0.2
-            data = {
-                "royalty_UAH": royalty_UAH,
-                "assets_UAH": assets_UAH,
-            }
-            return weight, data
+        if incomes:
+            for income in incomes:
+                total_income += income[0]
+                if income[1] == Income.ROYALTY:
+                    total_royalty += income[0]
+            if total_royalty * 5 > total_income:
+                return 0.2, {
+                    'total_royalty': total_royalty,
+                    'total_income': total_income,
+                }
         return 0, {}
 
 
@@ -559,10 +558,10 @@ class IsRentManyRE(BaseScoringRule):
         bigger_area_counter = serializers.IntegerField(min_value=0, required=True)
 
     def calculate_weight(self) -> Tuple[Union[int, float], dict]:
-        property_types = [Property.SUMMER_HOUSE, Property.HOUSE, Property.APARTMENT, Property.ROOM]
+        living_property_types = [Property.SUMMER_HOUSE, Property.HOUSE, Property.APARTMENT, Property.ROOM]
         bigger_area = PropertyRight.objects.filter(
             property__declaration_id=self.declaration.id,
-            property__type__in=property_types,
+            property__type__in=living_property_types,
             type=PropertyRight.RENT,
             property__area__gt=300,
         ).all().count()
