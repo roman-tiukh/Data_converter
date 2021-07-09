@@ -48,6 +48,7 @@ class Command(BaseExportCommand):
         for ps in qs.order_by('pep_id'):
             i += 1
             self.stdout.write(f'\r Process {i} of {count}', ending='')
+            self.stdout.flush()
             writer.writerow([
                 ps.declaration.nacp_url,
                 ps.declaration.year,
