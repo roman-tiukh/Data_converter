@@ -22,6 +22,7 @@ class Command(BaseCommand):
         for declaration in qs:
             i += 1
             self.stdout.write(f'\r Process {i} of {count}', ending='')
+            self.stdout.flush()
             declaration.recalculate_scoring(rules)
 
         self.stdout.write()
