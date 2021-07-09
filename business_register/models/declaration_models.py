@@ -1323,6 +1323,58 @@ class Property(DataOceanModel):
     )
 
 
+class MonetaryAsset(DataOceanModel):
+    NATURAL_RESOURCES = 1
+    TRADEMARK = 2
+    CRYPTOCURRENCY = 3
+    USEFUL_MODEL = 4
+    COPYRIGHT = 5
+    INVENTION = 6
+    INDUSTRIAL_DESIGN = 7
+    OTHER = 8
+    ASSET_TYPES = (
+        (NATURAL_RESOURCES, 'The right to use subsoil or other natural resources'),
+        (TRADEMARK, 'Trademark or trade name'),
+        (CRYPTOCURRENCY, 'Cryptocurrency'),
+        (USEFUL_MODEL, 'Useful model'),
+        (COPYRIGHT, 'Copyright'),
+        (INVENTION, 'Invention'),
+        (INDUSTRIAL_DESIGN, 'Industrial design'),
+        (OTHER, 'Other')
+    )
+    declaration = models.ForeignKey(
+        Declaration,
+        on_delete=models.CASCADE,
+        related_name='monetary_assets',
+    )
+    valuation = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        blank=True,
+        null=True,
+        help_text='valuation of the asset'
+    )
+    quantity = models.FloatField(
+        blank=True,
+        null=True,
+        help_text='quantity of monetary assets'
+    )
+    type = models.PositiveSmallIntegerField(
+        choices=ASSET_TYPES,
+        help_text='type of monetary asset.'
+    )
+    additional_info = models.TextField(
+        blank=True,
+        default='',
+        help_text='additional info about monetary asset'
+    )
+    description = models.TextField(
+        blank=True,
+        default='',
+        help_text='description of the monetary asset'
+    )
+
+
 # abstract model for establishing specific ManyToOne rights
 class BaseRight(DataOceanModel):
     OWNERSHIP = 1
@@ -1481,6 +1533,16 @@ class PropertyRight(BaseRight):
         related_name='rights',
         verbose_name='property_right',
         help_text='right to the property'
+    )
+
+
+class MonetaryAssetRight(BaseRight):
+    monetary_assets = models.ForeignKey(
+        MonetaryAsset,
+        on_delete=models.CASCADE,
+        related_name='rights',
+        verbose_name='monetary_asset_right',
+        help_text='right to the monetary asset'
     )
 
 
