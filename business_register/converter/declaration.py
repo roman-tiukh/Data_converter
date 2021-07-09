@@ -1,4 +1,5 @@
 import logging
+from typing import Union
 
 from dateutil.parser import isoparse
 import requests
@@ -82,14 +83,18 @@ class DeclarationConverter(BusinessConverter):
     def log_error(self, message):
         logger.warning(f'Declaration id {self.current_declaration.nacp_declaration_id} : {message}')
 
-    def to_float(self, value, data):
+    def to_float(self, value, data) -> Union[int, float, None]:
         if value not in self.NO_DATA:
-            value = value.replace(',', '.').strip('.,')
-            if len(value.split('.')[0]) <= 10:
-                return float(value)
+            if type(value) in (int, float):
+                return value
+            elif type(value) == str:
+                value = value.replace(',', '.').strip('.,')
+                if len(value.split('.')[0]) <= 10:
+                    return float(value)
+                else:
+                    self.log_error(f'Too many value for valuation = {value}. Check data ({data})')
             else:
-                self.log_error(f'Too many value for valuation = {value}. Check data ({data})')
-        return
+                self.log_error(f'Wrong type for float value = {value}. Check data ({data})')
 
     def find_value(self, dictionary: dict, set_of_keys: set, default_value):
         counter = 0
@@ -228,7 +233,7 @@ class DeclarationConverter(BusinessConverter):
                 ownership_type = TYPES.get(right_data.get('ownershipType'))
                 additional_info = right_data.get('otherOwnership', '')
                 share = right_data.get('percent-ownership')
-                if share.strip() == '1/1':
+                if type(share) == str and share.strip() == '1/1':
                     self.log_error('percent-ownership = 1/1')
                     share = 100
                 else:
@@ -1381,7 +1386,7 @@ class DeclarationConverter(BusinessConverter):
                 year = None
             valuation = data.get('costDate')
             if valuation not in self.NO_DATA:
-                valuation = int(valuation)
+                valuation = int(self.to_float(valuation, data))
             else:
                 valuation = None
             is_luxury = self.is_vehicle_luxury(brand, model, year)
