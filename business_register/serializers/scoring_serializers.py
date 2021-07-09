@@ -5,7 +5,7 @@ from business_register.serializers.company_and_pep_serializers import PepShortSe
 
 
 class DeclarationSerializer(serializers.ModelSerializer):
-    type_display = serializers.CharField(source='get_type_display')
+    # type_display = serializers.CharField(source='get_type_display')
 
     class Meta:
         model = Declaration
