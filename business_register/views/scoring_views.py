@@ -33,7 +33,9 @@ class PepScoringDetailView(ListAPIView):
         ).order_by('-submission_date').first()
         if not last_declaration:
             raise Http404
-        return PepScoring.objects.filter(
+        return PepScoring.objects.select_related(
+            'declaration'
+        ).filter(
             declaration_id=last_declaration.id,
             score__gt=0,
         ).order_by('-score')
