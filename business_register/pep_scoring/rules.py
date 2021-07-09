@@ -1,4 +1,6 @@
 import decimal
+from django.db.models import Sum
+
 from abc import ABC, abstractmethod
 
 from django.utils import timezone
@@ -15,6 +17,7 @@ from business_register.models.declaration_models import (
     Income,
     Money,
     PropertyRight,
+    BaseRight,
     PepScoring,
 )
 from business_register.models.pep_models import CompanyLinkWithPep
@@ -26,10 +29,20 @@ from data_ocean.utils import convert_to_usd
 
 SPOUSE_TYPES = ['дружина', 'чоловік']
 GIFT_TYPES = [Income.GIFT_IN_CASH, Income.GIFT]
+OWNERSHIP_TYPES = [BaseRight.OWNERSHIP, BaseRight.COMMON_PROPERTY, BaseRight.JOINT_OWNERSHIP]
 UAH = 'UAH'
 
 
-def count_total_income(declaration_id):
+def get_total_USD(data, year):
+    total_USD = 0
+
+    if data:
+        for currency, amount in data:
+            total_USD += convert_to_usd(currency, float(amount), year)
+    return total_USD
+
+
+def get_total_income(declaration_id):
     total_income = 0
 
     incomes_amount = Income.objects.filter(
@@ -42,13 +55,15 @@ def count_total_income(declaration_id):
     return total_income
 
 
-def get_total_in_USD(data, year):
-    total_USD = 0
-
-    if data:
-        for currency, amount in data:
-            total_USD += convert_to_usd(currency, float(amount), year)
-    return total_USD
+def get_total_money_USD(declaration):
+    money_data = Money.objects.filter(
+        declaration=declaration.id,
+        amount__isnull=False,
+        currency__isnull=False
+    ).values_list('currency', 'amount')
+    if money_data:
+        return get_total_USD(money_data, declaration.year)
+    return 0
 
 
 class BaseScoringRule(ABC):
@@ -171,6 +186,73 @@ class IsSpouseDeclared(BaseScoringRule):
                     'spouse_foreign_companies_info': spouse_foreign_companies_info
                 }
 
+        return 0, {}
+
+
+@register_rule
+class IsSmallIncome(BaseScoringRule):
+    """
+    Rule 2 - PEP02
+    weight - 0.2, 0.5, 1
+    The overall value of the property and assets exceeds income 10 or more times
+    """
+
+    rule_id = ScoringRuleEnum.PEP02
+    message_uk = (
+        "Задекларована вартість нерухомості та авто - {total_assets} гривень "
+        "перевищує задекларовані доходи - {total_incomes} гривень у десять та більше разів"
+    )
+    message_en = (
+        "Declared value of property and cars - {total_assets} UAH exceed "
+        "declared income - {total_incomes} UAH in 10 times and more"
+    )
+
+    # we can use this later
+    # message_uk = (
+    #     "Задекларована вартість нерухомості, авто та грошових активів - {total_assets} гривень "
+    #     "перевищує задекларовані доходи - {total_incomes} гривень у десять та більше разів"
+    # )
+    # message_en = (
+    #     "Declared value of property, cars and monetary assets - {total_assets} UAH exceed "
+    #     "declared income - {total_incomes} UAH in 10 times and more"
+    # )
+
+    class DataSerializer(serializers.Serializer):
+        total_assets = serializers.FloatField(min_value=0, required=True)
+        total_incomes = serializers.FloatField(min_value=0, required=True)
+
+    def calculate_weight(self) -> Tuple[Union[int, float], dict]:
+        first_limit = 10
+        second_limit = 50
+        third_limit = 100
+
+        total_assets = 0
+        total_incomes = get_total_income(self.declaration.id)
+
+        # we can use this later
+        # total_money = get_total_money_USD(self.declaration)
+        total_properties_valuation = PropertyRight.objects.filter(
+            property__declaration_id=self.declaration.id,
+            type__in=OWNERSHIP_TYPES,
+            property__valuation__isnull=False,
+        ).aggregate(Sum('property__valuation')).get('property__valuation__sum', 0)
+        total_cars_valuation = VehicleRight.objects.filter(
+            car__declaration_id=self.declaration.id,
+            car__valuation__isnull=False,
+        ).aggregate(Sum('car__valuation')).get('car__valuation__sum', 0)
+        total_assets = total_properties_valuation + total_cars_valuation
+
+        result = total_assets / total_incomes
+        if result > first_limit:
+            weight = 0.2
+            if result > second_limit:
+                weight = 0.5
+                if result > third_limit:
+                    weight = 1
+            return weight, {
+                "total_assets": total_assets,
+                "total_incomes": total_incomes
+            }
         return 0, {}
 
 
@@ -479,6 +561,7 @@ class IsManyCars(BaseScoringRule):
             return 0.5, {'total_cars': total_cars}
         return 0, {}
 
+
 @register_rule
 class IsMuchCash(BaseScoringRule):
     """
@@ -509,7 +592,7 @@ class IsMuchCash(BaseScoringRule):
             amount__isnull=False
         ).values_list('currency', 'amount')
         if cash_data:
-            total_cash_USD = get_total_in_USD(cash_data, self.declaration.year)
+            total_cash_USD = get_total_USD(cash_data, self.declaration.year)
             if total_cash_USD > limit:
                 return 0.8, {
                     "total_cash_USD": round(total_cash_USD, 2),
@@ -555,19 +638,9 @@ class IsMoneyFromNowhere(BaseScoringRule):
         ).first()
         if not previous_declaration:
             return 0, {}
-        previous_money_data = Money.objects.filter(
-            declaration=previous_declaration.id,
-            amount__isnull=False,
-            currency__isnull=False
-        ).values_list('currency', 'amount')
-        money_data = Money.objects.filter(
-            declaration=self.declaration.id,
-            amount__isnull=False,
-            currency__isnull=False
-        ).values_list('currency', 'amount')
-        previous_total_money_USD = get_total_in_USD(previous_money_data, year - 1)
-        total_money_USD = get_total_in_USD(money_data, year)
-        total_income_USD = convert_to_usd(UAH, float(count_total_income(self.declaration.id)), year)
+        previous_total_money_USD = get_total_money_USD(previous_declaration)
+        total_money_USD = get_total_money_USD(self.declaration)
+        total_income_USD = convert_to_usd(UAH, float(get_total_income(self.declaration.id)), year)
         declared_assets_USD = total_income_USD + previous_total_money_USD
 
         if total_money_USD > declared_assets_USD:
