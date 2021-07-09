@@ -228,7 +228,7 @@ class DeclarationConverter(BusinessConverter):
                 ownership_type = TYPES.get(right_data.get('ownershipType'))
                 additional_info = right_data.get('otherOwnership', '')
                 share = right_data.get('percent-ownership')
-                if share.strip() == '1/1':
+                if type(share) == str and share.strip() == '1/1':
                     self.log_error('percent-ownership = 1/1')
                     share = 100
                 else:
