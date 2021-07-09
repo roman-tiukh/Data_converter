@@ -29,10 +29,15 @@ class BaseExportCommand(BaseCommand):
         else:
             self.stdout.write(f'> {message}')
 
+    @staticmethod
+    def get_export_dir():
+        path = os.path.join(settings.BASE_DIR, 'export')
+        os.makedirs(path, exist_ok=True)
+        return path
+
     def save_to_file(self, file_name, data):
         self.print(f'Write to file - "export/{file_name}"')
-        file_dir = os.path.join(settings.BASE_DIR, 'export')
-        os.makedirs(file_dir, exist_ok=True)
+        file_dir = self.get_export_dir()
         with open(os.path.join(file_dir, file_name), 'w') as file:
             file.write(data)
         return f'export/{file_name}'

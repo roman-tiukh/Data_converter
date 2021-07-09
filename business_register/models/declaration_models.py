@@ -107,8 +107,10 @@ class Declaration(DataOceanModel):
         help_text='spouse of the declarant'
     )
 
-    def recalculate_scoring(self):
+    def recalculate_scoring(self, rules: [str] = None):
         for rule_id, RuleClass in ALL_RULES.items():
+            if rules and rule_id not in rules:
+                continue
             rule = RuleClass(self)
             rule.calculate_with_validation()
             rule.save_to_db()
