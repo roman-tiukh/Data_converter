@@ -479,6 +479,43 @@ class IsManyCars(BaseScoringRule):
             return 0.5, {'total_cars': total_cars}
         return 0, {}
 
+@register_rule
+class IsMuchCash(BaseScoringRule):
+    """
+    Rule 20 - PEP20
+    weight - 0.8
+    The overall amount of declared hard cash owned by PEP and members of the family exceeds USD 50000
+    """
+
+    rule_id = ScoringRuleEnum.PEP20
+    message_uk = (
+        "Задекларована сума грошей у готівці - еквівалент {total_cash_USD} USD перевищує USD 50000"
+    )
+    message_en = (
+        "Declared hard cash - USD {total_cash_USD} exceeds USD 50000"
+    )
+
+    class DataSerializer(serializers.Serializer):
+        total_cash_USD = serializers.DecimalField(
+            max_digits=12, decimal_places=2, min_value=0, required=True
+        )
+
+    def calculate_weight(self) -> Tuple[Union[int, float], dict]:
+        limit = 50000
+        total_cash_USD = 0
+        cash_data = Money.objects.filter(
+            declaration_id=self.declaration.id,
+            type=Money.CASH,
+            amount__isnull=False
+        ).values_list('currency', 'amount')
+        if cash_data:
+            total_cash_USD = get_total_in_USD(cash_data, self.declaration.year)
+            if total_cash_USD > limit:
+                return 0.8, {
+                    "total_cash_USD": round(total_cash_USD, 2),
+                }
+        return 0, {}
+
 
 @register_rule
 class IsMoneyFromNowhere(BaseScoringRule):
