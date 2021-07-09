@@ -1323,7 +1323,7 @@ class Property(DataOceanModel):
     )
 
 
-class MonetaryAsset(DataOceanModel):
+class IntangibleAsset(DataOceanModel):
     NATURAL_RESOURCES = 1
     TRADEMARK = 2
     CRYPTOCURRENCY = 3
@@ -1342,36 +1342,68 @@ class MonetaryAsset(DataOceanModel):
         (INDUSTRIAL_DESIGN, 'Industrial design'),
         (OTHER, 'Other')
     )
+    BITCOIN = 1
+    ETHERIUM = 2
+    RIPPLE = 3
+    NXT = 4
+    LITECOIN = 5
+    RAVENCOIN = 6
+    USDT = 7
+    ZILLIQA = 8
+    SYNTROPY = 9
+    SWISSBORG = 10
+    EOS = 11
+    UTRUST = 12
+    CRYPTOCURRENCY_TYPES = (
+        (BITCOIN, 'Bitcoin'),
+        (ETHERIUM, 'ETHERIUM'),
+        (RIPPLE, 'Ripple'),
+        (NXT, 'NXT'),
+        (LITECOIN, 'Litecoin'),
+        (RAVENCOIN, 'Ravencoin'),
+        (USDT, 'USDT'),
+        (ZILLIQA, 'Zilliqa'),
+        (SYNTROPY, 'Syntropy'),
+        (SWISSBORG, 'Swissborg'),
+        (EOS, 'EOS'),
+        (UTRUST, 'Utrust')
+    )
     declaration = models.ForeignKey(
         Declaration,
         on_delete=models.CASCADE,
-        related_name='monetary_assets',
+        related_name='intangible_assets',
     )
     valuation = models.DecimalField(
         max_digits=12,
         decimal_places=2,
         blank=True,
         null=True,
-        help_text='valuation of the asset'
+        help_text='valuation of the intangible asset'
     )
     quantity = models.FloatField(
         blank=True,
         null=True,
-        help_text='quantity of monetary assets'
+        help_text='quantity of intangible assets'
     )
     type = models.PositiveSmallIntegerField(
         choices=ASSET_TYPES,
-        help_text='type of monetary asset.'
+        help_text='type of intangible asset.'
     )
     additional_info = models.TextField(
         blank=True,
         default='',
-        help_text='additional info about monetary asset'
+        help_text='additional info about intangible asset'
     )
     description = models.TextField(
         blank=True,
         default='',
-        help_text='description of the monetary asset'
+        help_text='description of the intangible asset'
+    )
+    cryptocurrency_type = models.PositiveSmallIntegerField(
+        choices=CRYPTOCURRENCY_TYPES,
+        null=True,
+        blank=True,
+        help_text='the name of the cryptocurrency'
     )
 
 
@@ -1536,13 +1568,13 @@ class PropertyRight(BaseRight):
     )
 
 
-class MonetaryAssetRight(BaseRight):
-    monetary_assets = models.ForeignKey(
-        MonetaryAsset,
+class IntangibleAssetRight(BaseRight):
+    intangible_assets = models.ForeignKey(
+        IntangibleAsset,
         on_delete=models.CASCADE,
         related_name='rights',
-        verbose_name='monetary_asset_right',
-        help_text='right to the monetary asset'
+        verbose_name='intangible_asset_right',
+        help_text='right to the intangible asset'
     )
 
 
