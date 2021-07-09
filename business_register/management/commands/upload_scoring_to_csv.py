@@ -45,6 +45,9 @@ class Command(BaseExportCommand):
 
         i = 0
         count = qs.count()
+        if count == 0:
+            self.stdout.write('No data for saving')
+            return
         for ps in qs.order_by('pep_id'):
             i += 1
             self.stdout.write(f'\r Process {i} of {count}', ending='')
