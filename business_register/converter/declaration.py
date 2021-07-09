@@ -23,7 +23,8 @@ from business_register.models.declaration_models import (Declaration,
                                                          Transaction,
                                                          PartTimeJob,
                                                          NgoParticipation,
-                                                         BaseRight
+                                                         BaseRight,
+                                                         MonetaryAsset
                                                          )
 from business_register.models.pep_models import Pep, RelatedPersonsLink
 from location_register.models.address_models import Country
@@ -188,7 +189,7 @@ class DeclarationConverter(BusinessConverter):
     def save_right(self, property, corporate_rights_data):
         if (
                 not corporate_rights_data.get('rights')
-                or corporate_rights_data.get('person') in self.NO_DATA
+                and corporate_rights_data.get('person') in self.NO_DATA
         ):
             return
         TYPES = {
@@ -219,6 +220,7 @@ class DeclarationConverter(BusinessConverter):
             'luxuryitem': ('LuxuryItemRight', 'luxury_item'),
             'vehicle': ('VehicleRight', 'car'),
             'securities': ('SecuritiesRight', 'securities'),
+            'monetaryasset': ('MonetaryAssetRight', 'monetary_assets'),
         }
         rights_data = corporate_rights_data.get('rights')
         if rights_data:
@@ -228,7 +230,7 @@ class DeclarationConverter(BusinessConverter):
                 ownership_type = TYPES.get(right_data.get('ownershipType'))
                 additional_info = right_data.get('otherOwnership', '')
                 share = right_data.get('percent-ownership')
-                if share.strip() == '1/1':
+                if share and share.strip() == '1/1':
                     self.log_error('percent-ownership = 1/1')
                     share = 100
                 else:
@@ -305,6 +307,36 @@ class DeclarationConverter(BusinessConverter):
                         apps.get_model('business_register', model_name).objects.create(
                             **field_dict
                         )
+
+    def save_monetary_assets(self, monetary_assets_data, declaration):
+        types = {
+            'Право на використання надр чи інших природних ресурсів': MonetaryAsset.NATURAL_RESOURCES,
+            'Торгова марка чи комерційне найменування': MonetaryAsset.TRADEMARK,
+            'Криптовалюта': MonetaryAsset.CRYPTOCURRENCY,
+            'Корисна модель': MonetaryAsset.USEFUL_MODEL,
+            'Авторське право': MonetaryAsset.COPYRIGHT,
+            'Винахід': MonetaryAsset.INVENTION,
+            'Промисловий зразок': MonetaryAsset.INDUSTRIAL_DESIGN,
+            'Інше': MonetaryAsset.OTHER,
+        }
+        for data in monetary_assets_data:
+            valuation = data.get('costDateOrigin') if data.get('costDateOrigin') not in self.NO_DATA else None
+            quantity = self.to_float(data.get('countObject'), data)
+            type = types.get(data.get('objectType'))
+            if not type:
+                self.log_error(f'Unknown type of monetary assets. Check data ({data})')
+                continue
+            additional_info = data.get('otherObjectType') if data.get('otherObjectType') not in self.NO_DATA else ''
+            description = data.get('descriptionObject') if data.get('descriptionObject') not in self.NO_DATA else ''
+            monetary_assets = MonetaryAsset.objects.create(
+                declaration=declaration,
+                type=type,
+                valuation=valuation,
+                quantity=quantity,
+                additional_info=additional_info,
+                description=description,
+            )
+            self.save_right(monetary_assets, data)
 
     def create_ngo_participation(self, data, participation_type, declaration):
         ngo_types = {
@@ -1706,6 +1738,10 @@ class DeclarationConverter(BusinessConverter):
         # 'Step_9' - companies where declarant`s family`s members are beneficiaries
         if has_step_data('step_9'):
             self.save_beneficiary_of(data['step_9']['data'], declaration)
+
+        # Step_10 - declarant`s family`s monetary assets
+        if has_step_data('step_10'):
+            self.save_monetary_assets(data['step_10']['data'], declaration)
 
         # 'Step_11' - declarant`s family`s incomes
         if has_step_data('step_11'):
