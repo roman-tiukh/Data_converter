@@ -12,18 +12,19 @@ class DeclarationSerializer(serializers.ModelSerializer):
         fields = (
             'id',
             'nacp_declaration_id',
-            'nacp_declarant_id',
             'year',
             'submission_date',
-            'type',
-            'type_display',
-            'last_job_title',
-            'last_employer',
+            'nacp_url',
+            # 'nacp_declarant_id',
+            # 'type',
+            # 'type_display',
+            # 'last_job_title',
+            # 'last_employer',
         )
 
 
 class PepScoringSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
-    # declaration = DeclarationSerializer()
+    declaration = DeclarationSerializer()
     # pep = PepShortSerializer()
 
     class Meta:
@@ -36,7 +37,7 @@ class PepScoringSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
             'data',
             'message_uk',
             'message_en',
-            # 'declaration',
+            'declaration',
             # 'pep',
             'updated_at',
             'created_at',
