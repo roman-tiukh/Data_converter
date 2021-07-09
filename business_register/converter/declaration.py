@@ -227,7 +227,12 @@ class DeclarationConverter(BusinessConverter):
                     continue
                 ownership_type = TYPES.get(right_data.get('ownershipType'))
                 additional_info = right_data.get('otherOwnership', '')
-                share = self.to_float(right_data.get('percent-ownership'), right_data)
+                share = right_data.get('percent-ownership')
+                if share.strip() == '1/1':
+                    self.log_error('percent-ownership = 1/1')
+                    share = 100
+                else:
+                    share = self.to_float(share, right_data)
                 owner_info = right_data.get('rightBelongs')
                 if owner_info not in self.NO_DATA:
                     if owner_info == self.DECLARANT:
