@@ -1362,6 +1362,90 @@ class Property(DataOceanModel):
     )
 
 
+class IntangibleAsset(DataOceanModel):
+    NATURAL_RESOURCES = 1
+    TRADEMARK = 2
+    CRYPTOCURRENCY = 3
+    USEFUL_MODEL = 4
+    COPYRIGHT = 5
+    INVENTION = 6
+    INDUSTRIAL_DESIGN = 7
+    OTHER = 8
+    ASSET_TYPES = (
+        (NATURAL_RESOURCES, 'The right to use subsoil or other natural resources'),
+        (TRADEMARK, 'Trademark or trade name'),
+        (CRYPTOCURRENCY, 'Cryptocurrency'),
+        (USEFUL_MODEL, 'Useful model'),
+        (COPYRIGHT, 'Copyright'),
+        (INVENTION, 'Invention'),
+        (INDUSTRIAL_DESIGN, 'Industrial design'),
+        (OTHER, 'Other')
+    )
+    BITCOIN = 1
+    ETHERIUM = 2
+    RIPPLE = 3
+    NXT = 4
+    LITECOIN = 5
+    RAVENCOIN = 6
+    USDT = 7
+    ZILLIQA = 8
+    SYNTROPY = 9
+    SWISSBORG = 10
+    EOS = 11
+    UTRUST = 12
+    CRYPTOCURRENCY_TYPES = (
+        (BITCOIN, 'Bitcoin'),
+        (ETHERIUM, 'ETHERIUM'),
+        (RIPPLE, 'Ripple'),
+        (NXT, 'NXT'),
+        (LITECOIN, 'Litecoin'),
+        (RAVENCOIN, 'Ravencoin'),
+        (USDT, 'USDT'),
+        (ZILLIQA, 'Zilliqa'),
+        (SYNTROPY, 'Syntropy'),
+        (SWISSBORG, 'Swissborg'),
+        (EOS, 'EOS'),
+        (UTRUST, 'Utrust')
+    )
+    declaration = models.ForeignKey(
+        Declaration,
+        on_delete=models.CASCADE,
+        related_name='intangible_assets',
+    )
+    valuation = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        blank=True,
+        null=True,
+        help_text='valuation of the intangible asset'
+    )
+    quantity = models.FloatField(
+        blank=True,
+        null=True,
+        help_text='quantity of intangible assets'
+    )
+    type = models.PositiveSmallIntegerField(
+        choices=ASSET_TYPES,
+        help_text='type of intangible asset.'
+    )
+    additional_info = models.TextField(
+        blank=True,
+        default='',
+        help_text='additional info about intangible asset'
+    )
+    description = models.TextField(
+        blank=True,
+        default='',
+        help_text='description of the intangible asset'
+    )
+    cryptocurrency_type = models.PositiveSmallIntegerField(
+        choices=CRYPTOCURRENCY_TYPES,
+        null=True,
+        blank=True,
+        help_text='the name of the cryptocurrency'
+    )
+
+
 # abstract model for establishing specific ManyToOne rights
 class BaseRight(DataOceanModel):
     OWNERSHIP = 1
@@ -1521,6 +1605,16 @@ class PropertyRight(BaseRight):
         related_name='rights',
         verbose_name='property_right',
         help_text='right to the property'
+    )
+
+
+class IntangibleAssetRight(BaseRight):
+    intangible_assets = models.ForeignKey(
+        IntangibleAsset,
+        on_delete=models.CASCADE,
+        related_name='rights',
+        verbose_name='intangible_asset_right',
+        help_text='right to the intangible asset'
     )
 
 
