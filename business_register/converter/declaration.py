@@ -52,6 +52,7 @@ class DeclarationConverter(BusinessConverter):
             '[Не застосовується]',
             '[Не відомо]',
             "[Член сім'ї не надав інформацію]",
+            'Член сім\'ї не надав інформацію',
             '[Конфіденційна інформація]',
             'Не визначено',
             'невідомо',
@@ -193,7 +194,7 @@ class DeclarationConverter(BusinessConverter):
     def save_right(self, property, corporate_rights_data):
         if (
                 not corporate_rights_data.get('rights')
-                or corporate_rights_data.get('person') in self.NO_DATA
+                and corporate_rights_data.get('person') in self.NO_DATA
         ):
             return
         TYPES = {
