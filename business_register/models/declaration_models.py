@@ -1146,6 +1146,12 @@ class Vehicle(DataOceanModel):
         default='',
         help_text='additional info about the vehicle'
     )
+    year = models.PositiveSmallIntegerField(
+        'year of manufacture',
+        null=True,
+        blank=True,
+        help_text='year of manufacture'
+    )
     brand = models.CharField(
         'brand',
         max_length=80,
@@ -1160,12 +1166,6 @@ class Vehicle(DataOceanModel):
         default='',
         help_text='model'
     )
-    year = models.PositiveSmallIntegerField(
-        'year of manufacture',
-        null=True,
-        blank=True,
-        help_text='year of manufacture'
-    )
     is_luxury = models.BooleanField(
         'is luxury',
         null=True,
@@ -1179,6 +1179,45 @@ class Vehicle(DataOceanModel):
         blank=True,
         help_text='valuation'
     )
+
+
+class LuxuryCar(DataOceanModel):
+    PETROL = 1
+    DIESEL = 2
+    ELECTRIC = 3
+    HYBRID = 4
+    DIESEL_ELECTRIC = 5
+    PETROL_ELECTRIC = 6
+    FUEL_TYPE = (
+        (PETROL, 'Petrol'),
+        (DIESEL, 'Diesel'),
+        (ELECTRIC, 'Electric'),
+        (HYBRID, 'Hybrid'),
+        (DIESEL_ELECTRIC, 'Diesel + electric'),
+        (PETROL_ELECTRIC, 'Petrol + electric')
+    )
+    brand = models.CharField(max_length=80)
+    model = models.CharField(max_length=140)
+    after_year = models.PositiveSmallIntegerField(
+        help_text='year of manufacture of the car after which the car is considered luxury',
+    )
+    document_year = models.PositiveSmallIntegerField(
+        help_text='year of the document in which the car is indicated',
+    )
+    volume = models.DecimalField(
+        max_digits=2,
+        decimal_places=1,
+        null=True,
+        blank=True,
+    )
+    fuel = models.SmallIntegerField(
+        choices=FUEL_TYPE,
+        null=True,
+        blank=True,
+    )
+
+    class Meta:
+        unique_together = (('brand', 'model', 'document_year'),)
 
 
 class LuxuryItem(DataOceanModel):
@@ -1539,6 +1578,7 @@ class SecuritiesRight(BaseRight):
 
 
 class VehicleRight(BaseRight):
+    # actually, here can be any vehicle, not only car
     car = models.ForeignKey(
         Vehicle,
         on_delete=models.CASCADE,
