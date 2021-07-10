@@ -27,11 +27,13 @@ from business_register.pep_scoring.rules_registry import register_rule, ScoringR
 from location_register.models.ratu_models import RatuCity
 from data_ocean.utils import convert_to_usd
 
+RESULT_FALSE = 0, {}
+UAH = 'UAH'
+FIRST_DECLARING_YEAR = 2015
+
 SPOUSE_TYPES = ['дружина', 'чоловік']
 GIFT_TYPES = [Income.GIFT_IN_CASH, Income.GIFT]
 OWNERSHIP_TYPES = [BaseRight.OWNERSHIP, BaseRight.COMMON_PROPERTY, BaseRight.JOINT_OWNERSHIP]
-UAH = 'UAH'
-FIRST_DECLARING_YEAR = 2015
 
 
 def get_total_USD(data, year):
@@ -64,6 +66,17 @@ def get_total_money_USD(declaration):
     ).values_list('currency', 'amount')
     if money_data:
         return get_total_USD(money_data, declaration.year)
+    return 0
+
+
+def get_total_cash_USD(declaration):
+    cash_data = Money.objects.filter(
+        declaration_id=declaration.id,
+        type=Money.CASH,
+        amount__isnull=False
+    ).values_list('currency', 'amount')
+    if cash_data:
+        return get_total_USD(cash_data, declaration.year)
     return 0
 
 
@@ -187,7 +200,7 @@ class IsSpouseDeclared(BaseScoringRule):
                     'spouse_foreign_companies_info': spouse_foreign_companies_info
                 }
 
-        return 0, {}
+        return RESULT_FALSE
 
 
 @register_rule
@@ -254,7 +267,7 @@ class IsSmallIncome(BaseScoringRule):
                 "total_assets": total_assets,
                 "total_incomes": total_incomes
             }
-        return 0, {}
+        return RESULT_FALSE
 
 
 @register_rule
@@ -275,7 +288,6 @@ class IsNoRealEstateValue(BaseScoringRule):
         "Declared no amounting of {total_real_estate} real estate owned by PEP or family members "
         "since 2015 or later"
     )
-
 
     class DataSerializer(serializers.Serializer):
         total_real_estate = serializers.IntegerField(
@@ -303,7 +315,8 @@ class IsNoRealEstateValue(BaseScoringRule):
             return 0.4, {
                 'total_real_estate': real_estate_without_valuation.count()
             }
-        return 0, {}
+        return RESULT_FALSE
+
 
 @register_rule
 class IsNoAutoValue(BaseScoringRule):
@@ -340,7 +353,7 @@ class IsNoAutoValue(BaseScoringRule):
             return 0.1, {
                 'total_cars': cars_without_valuation.count()
             }
-        return 0, {}
+        return RESULT_FALSE
 
 
 @register_rule
@@ -382,7 +395,7 @@ class IsBigRoyalty(BaseScoringRule):
                     'total_royalty': total_royalty,
                     'total_income': total_income,
                 }
-        return 0, {}
+        return RESULT_FALSE
 
 
 @register_rule
@@ -421,7 +434,7 @@ class IsGiftExpensive(BaseScoringRule):
             if total_valuation > second_limit:
                 weight = 1
             return weight, data
-        return 0, {}
+        return RESULT_FALSE
 
 
 @register_rule
@@ -467,7 +480,7 @@ class IsBigPrize(BaseScoringRule):
                     'total_prizes': prizes_amount.count(),
                     'total_prizes_amount': total_prizes_amount
                 }
-        return 0, {}
+        return RESULT_FALSE
 
 
 @register_rule
@@ -510,7 +523,7 @@ class IsCarUnderestimated(BaseScoringRule):
                 'manufacture_year_limit': manufacture_year_limit,
                 'total_underestimated_cars': total_underestimated_cars
             }
-        return 0, {}
+        return RESULT_FALSE
 
 
 @register_rule
@@ -539,7 +552,7 @@ class IsManyCars(BaseScoringRule):
         ).count()
         if total_cars > limit:
             return 0.5, {'total_cars': total_cars}
-        return 0, {}
+        return RESULT_FALSE
 
 
 @register_rule
@@ -565,19 +578,13 @@ class IsMuchCash(BaseScoringRule):
 
     def calculate_weight(self) -> Tuple[Union[int, float], dict]:
         limit = 50000
-        total_cash_USD = 0
-        cash_data = Money.objects.filter(
-            declaration_id=self.declaration.id,
-            type=Money.CASH,
-            amount__isnull=False
-        ).values_list('currency', 'amount')
-        if cash_data:
-            total_cash_USD = get_total_USD(cash_data, self.declaration.year)
-            if total_cash_USD > limit:
-                return 0.8, {
-                    "total_cash_USD": round(total_cash_USD, 2),
-                }
-        return 0, {}
+        total_cash_USD = get_total_cash_USD(self.declaration)
+
+        if total_cash_USD > limit:
+            return 0.8, {
+                "total_cash_USD": round(total_cash_USD, 2),
+            }
+        return RESULT_FALSE
 
 
 @register_rule
@@ -617,7 +624,7 @@ class IsMoneyFromNowhere(BaseScoringRule):
             year=year - 1
         ).first()
         if not previous_declaration:
-            return 0, {}
+            return RESULT_FALSE
         previous_total_money_USD = get_total_money_USD(previous_declaration)
         total_money_USD = get_total_money_USD(self.declaration)
         total_income_USD = convert_to_usd(UAH, float(get_total_income(self.declaration.id)), year)
@@ -628,7 +635,82 @@ class IsMoneyFromNowhere(BaseScoringRule):
                 "total_money_USD": round(total_money_USD, 2),
                 "declared_assets_USD": round(declared_assets_USD, 2)
             }
-        return 0, {}
+        return RESULT_FALSE
+
+
+@register_rule
+class IsCashTrick(BaseScoringRule):
+    """
+    Rule 22 - PEP22
+    weight - 0.5, 0.8, 1
+    Hard cash declared in the very first electronic asset declaration available in
+    the system exceeds in 5 or more times income declared for the corresponding year
+    """
+
+    rule_id = ScoringRuleEnum.PEP22
+    message_uk = (
+        "готівкові кошти в першій електронній декларації - {cash_USD} USD, "
+        "що перевищує в {times} разів декларований дохід за відповідний рік - "
+        "USD {income_USD}"
+    )
+    message_en = (
+        "cash declared in the very first electronic asset declaration available in the system "
+        "is USD {cash_USD}, that in {times} times exceeds income - USD {income_USD}"
+    )
+
+    class DataSerializer(serializers.Serializer):
+        cash_USD = serializers.DecimalField(
+            max_digits=12, decimal_places=2,
+            min_value=0, required=True
+        )
+        income_USD = serializers.DecimalField(
+            max_digits=12, decimal_places=2,
+            min_value=0, required=True
+        )
+        times = serializers.DecimalField(
+            max_digits=12, decimal_places=1,
+            min_value=0, required=True
+        )
+
+    def calculate_weight(self) -> Tuple[Union[int, float], dict]:
+        limit_times = 5
+        first_limit_cash = 50000
+        second_limit_cash = 100000
+        third_limit_cash = 500000
+
+        pep_declarations = Declaration.objects.filter(
+            pep_id=self.pep.id,
+        ).order_by('submission_date')
+        if pep_declarations.count() == 1:
+            # TODO: predict escaping PEP20 if there is only one declaration and this rule returns weight
+            # ('Якщо декларація одна тобі треба шоб правило працювало або з PEP20 почерговість:
+            # спочатку PEP22 і якщо False тоді PEP20')
+            pass
+        if pep_declarations:
+            first_declaration = pep_declarations[0]
+            cash_USD = get_total_cash_USD(first_declaration)
+            if cash_USD < first_limit_cash:
+                return RESULT_FALSE
+            income_USD = convert_to_usd(
+                UAH,
+                float(get_total_income(first_declaration.id)),
+                first_declaration.year
+            )
+            if income_USD:
+                times = cash_USD / income_USD
+                if times > limit_times:
+                    if cash_USD > first_limit_cash:
+                        weight = 0.5
+                        if cash_USD > second_limit_cash:
+                            weight = 0.8
+                            if cash_USD > third_limit_cash:
+                                weight = 1
+                        return weight, {
+                            'cash_USD': round(cash_USD, 2),
+                            'income_USD': round(income_USD, 2),
+                            'times': round(times, 1),
+                        }
+        return RESULT_FALSE
 
 
 @register_rule
@@ -648,6 +730,8 @@ class IsRentManyRealEstate(BaseScoringRule):
         bigger_area_counter = serializers.IntegerField(min_value=0, required=True)
 
     def calculate_weight(self) -> Tuple[Union[int, float], dict]:
+        limit = 300
+
         living_property_types = [
             Property.SUMMER_HOUSE,
             Property.HOUSE,
@@ -659,12 +743,10 @@ class IsRentManyRealEstate(BaseScoringRule):
             property__declaration_id=self.declaration.id,
             property__type__in=living_property_types,
             type=PropertyRight.RENT,
-            property__area__gt=300,
+            property__area__gt=limit,
         ).all().count()
         if bigger_area > 0:
-            weight = 0.3
-            data = {
+            return 0.3, {
                 "bigger_area_counter": bigger_area,
             }
-            return weight, data
-        return 0, {}
+        return RESULT_FALSE
