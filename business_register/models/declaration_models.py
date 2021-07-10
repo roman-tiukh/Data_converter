@@ -1455,7 +1455,7 @@ class SecuritiesRight(BaseRight):
 
 
 class VehicleRight(BaseRight):
-    #TODO: rename car to vehicle
+    # actually, here can be any vehicle, not only car
     car = models.ForeignKey(
         Vehicle,
         on_delete=models.CASCADE,

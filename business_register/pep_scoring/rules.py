@@ -31,6 +31,7 @@ SPOUSE_TYPES = ['дружина', 'чоловік']
 GIFT_TYPES = [Income.GIFT_IN_CASH, Income.GIFT]
 OWNERSHIP_TYPES = [BaseRight.OWNERSHIP, BaseRight.COMMON_PROPERTY, BaseRight.JOINT_OWNERSHIP]
 UAH = 'UAH'
+FIRST_DECLARING_YEAR = 2015
 
 
 def get_total_USD(data, year):
@@ -231,7 +232,7 @@ class IsSmallIncome(BaseScoringRule):
 
         # we can use this later
         # total_money = get_total_money_USD(self.declaration)
-        total_properties_valuation = PropertyRight.objects.filter(
+        total_property_valuation = PropertyRight.objects.filter(
             property__declaration_id=self.declaration.id,
             type__in=OWNERSHIP_TYPES,
             property__valuation__isnull=False,
@@ -240,7 +241,7 @@ class IsSmallIncome(BaseScoringRule):
             car__declaration_id=self.declaration.id,
             car__valuation__isnull=False,
         ).aggregate(Sum('car__valuation')).get('car__valuation__sum', 0)
-        total_assets = total_properties_valuation + total_cars_valuation
+        total_assets = total_property_valuation + total_cars_valuation
 
         result = total_assets / total_incomes
         if result > first_limit:
@@ -256,8 +257,8 @@ class IsSmallIncome(BaseScoringRule):
         return 0, {}
 
 
-# @register_rule
-class IsRealEstateWithoutValue(BaseScoringRule):
+@register_rule
+class IsNoRealEstateValue(BaseScoringRule):
     """
     Rule 3.1 - PEP03_home
     weight - 0.4
@@ -266,100 +267,79 @@ class IsRealEstateWithoutValue(BaseScoringRule):
     """
 
     rule_id = ScoringRuleEnum.PEP03_home
+    message_uk = (
+        "Не зазначена вартість {total_real_estate} нерухомості, якою декларант або його родина володіє "
+        "з 2015 року та пізніше"
+    )
+    message_en = (
+        "Declared no amounting of {total_real_estate} real estate owned by PEP or family members "
+        "since 2015 or later"
+    )
+
 
     class DataSerializer(serializers.Serializer):
-        property_id = serializers.IntegerField(min_value=0, required=True)
-        declaration_id = serializers.IntegerField(min_value=0, required=True)
+        total_real_estate = serializers.IntegerField(
+            min_value=0, required=True
+        )
 
     def calculate_weight(self) -> Tuple[Union[int, float], dict]:
-        family_ids = self.pep.related_persons.filter(
-            to_person_links__category=RelatedPersonsLink.FAMILY,
-        ).values_list('id', flat=True)[::1]
-        family_ids.append(self.pep.id)
-        have_weight = PropertyRight.objects.filter(
-            pep_id__in=family_ids,
+        real_estate_types = [
+            Property.SUMMER_HOUSE,
+            Property.HOUSE,
+            Property.APARTMENT,
+            Property.ROOM,
+            Property.UNFINISHED_CONSTRUCTION,
+            Property.OFFICE
+        ]
+
+        real_estate_without_valuation = PropertyRight.objects.filter(
+            property__declaration_id=self.declaration.id,
             property__valuation__isnull=True,
-            type=Property.SUMMER_HOUSE,
-            acquisition_date__year__gte=2015,
-        ).values_list('property_id', 'property__declaration_id')[::1]
-        if have_weight:
-            weight = 0.4
-            data = {
-                "property_id": have_weight[0][0],
-                "declaration_id": have_weight[0][1],
+            property__type__in=real_estate_types,
+            type__in=OWNERSHIP_TYPES,
+            acquisition_date__year__gte=FIRST_DECLARING_YEAR,
+        ).values_list('property_id', flat=True).distinct()
+        if real_estate_without_valuation:
+            return 0.4, {
+                'total_real_estate': real_estate_without_valuation.count()
             }
-            return weight, data
         return 0, {}
 
-
-# @register_rule
-class IsLandWithoutValue(BaseScoringRule):
-    """
-    Rule 3.2 - PEP03_land
-    weight - 0.1
-    There is no information on the value of the land owned by PEP or
-    family members since 2015
-    """
-
-    rule_id = ScoringRuleEnum.PEP03_land
-
-    class DataSerializer(serializers.Serializer):
-        property_id = serializers.IntegerField(min_value=0, required=True)
-        declaration_id = serializers.IntegerField(min_value=0, required=True)
-
-    def calculate_weight(self) -> Tuple[Union[int, float], dict]:
-        family_ids = self.pep.related_persons.filter(
-            to_person_links__category=RelatedPersonsLink.FAMILY,
-        ).values_list('id', flat=True)[::1]
-        family_ids.append(self.pep.id)
-        have_weight = PropertyRight.objects.filter(
-            pep_id__in=family_ids,
-            property__valuation__isnull=True,
-            type=Property.LAND,
-            acquisition_date__year__gte=2015,
-        ).values_list('property_id', 'property__declaration_id')[::1]
-        if have_weight:
-            weight = 0.1
-            data = {
-                "property_id": have_weight[0][0],
-                "declaration_id": have_weight[0][1],
-            }
-            return weight, data
-        return 0, {}
-
-
-# @register_rule
-class IsAutoWithoutValue(BaseScoringRule):
+@register_rule
+class IsNoAutoValue(BaseScoringRule):
     """
     Rule 3.3 - PEP03_car
-    weight - 0.4
-    There is no information on the value of the vehicle owned by PEP or
+    weight - 0.1
+    There is no information on the value of the declared car owned or used by PEP or
     family members since 2015
     """
 
     rule_id = ScoringRuleEnum.PEP03_car
+    message_uk = (
+        "Не зазначена вартість {total_cars} авто, якими декларант або його родина володіє "
+        "чи користується з 2015 року чи пізніше"
+    )
+    message_en = (
+        "Declared no amounting of {total_cars} cars owned or used by PEP or family members "
+        "since 2015 or later"
+    )
 
     class DataSerializer(serializers.Serializer):
-        vehicle_id = serializers.IntegerField(min_value=0, required=True)
-        declaration_id = serializers.IntegerField(min_value=0, required=True)
+        total_cars = serializers.IntegerField(
+            min_value=0, required=True
+        )
 
     def calculate_weight(self) -> Tuple[Union[int, float], dict]:
-        family_ids = self.pep.related_persons.filter(
-            to_person_links__category=RelatedPersonsLink.FAMILY,
-        ).values_list('id', flat=True)[::1]
-        family_ids.append(self.pep.id)
-        have_weight = VehicleRight.objects.filter(
-            pep_id__in=family_ids,
+        cars_without_valuation = VehicleRight.objects.filter(
+            car__declaration_id=self.declaration.id,
             car__valuation__isnull=True,
-            acquisition_date__year__gte=2015,
-        ).values_list('car_id', 'car__declaration_id')[::1]
-        if have_weight:
-            weight = 0.4
-            data = {
-                "vehicle_id": have_weight[0][0],
-                "declaration_id": have_weight[0][1],
+            car__type=Vehicle.CAR,
+            acquisition_date__year__gte=FIRST_DECLARING_YEAR,
+        ).values_list('car_id', flat=True).distinct()
+        if cars_without_valuation:
+            return 0.1, {
+                'total_cars': cars_without_valuation.count()
             }
-            return weight, data
         return 0, {}
 
 
@@ -652,7 +632,7 @@ class IsMoneyFromNowhere(BaseScoringRule):
 
 
 @register_rule
-class IsRentManyRE(BaseScoringRule):
+class IsRentManyRealEstate(BaseScoringRule):
     """
     Rule 27 - PEP27
     weight - 0.3
@@ -668,7 +648,13 @@ class IsRentManyRE(BaseScoringRule):
         bigger_area_counter = serializers.IntegerField(min_value=0, required=True)
 
     def calculate_weight(self) -> Tuple[Union[int, float], dict]:
-        living_property_types = [Property.SUMMER_HOUSE, Property.HOUSE, Property.APARTMENT, Property.ROOM]
+        living_property_types = [
+            Property.SUMMER_HOUSE,
+            Property.HOUSE,
+            Property.APARTMENT,
+            Property.ROOM,
+            Property.UNFINISHED_CONSTRUCTION
+        ]
         bigger_area = PropertyRight.objects.filter(
             property__declaration_id=self.declaration.id,
             property__type__in=living_property_types,
