@@ -1,4 +1,4 @@
-import decimal
+from decimal import Decimal
 from django.db.models import Sum
 
 from abc import ABC, abstractmethod
@@ -352,6 +352,55 @@ class IsNoAutoValue(BaseScoringRule):
         if cars_without_valuation:
             return 0.1, {
                 'total_cars': cars_without_valuation.count()
+            }
+        return RESULT_FALSE
+
+
+@register_rule
+class IsMuchPartTimeJob(BaseScoringRule):
+    """
+    Rule 10 - PEP10
+    weight - 0.2
+    Income from the teaching and creative activities, as well as part-time work,
+    exceeds 30% of the total income indicated in the declaration
+    """
+
+    rule_id = ScoringRuleEnum.PEP10
+    message_uk = (
+        "Задекларовані доходи від роботи за сумісництвом - {part_time_job_incomes} гривень "
+        "складають більше 30% від усіх доходів - {total_incomes} гривень"
+    )
+    message_en = (
+        "Declared income from part-time job - UAH {part_time_job_incomes} exceeds "
+        "more than 30% of total income - UAH {total_incomes}"
+    )
+
+    class DataSerializer(serializers.Serializer):
+        part_time_job_incomes = serializers.DecimalField(
+            max_digits=12, decimal_places=2,
+            min_value=0, required=True
+        )
+        total_incomes = serializers.DecimalField(
+            max_digits=12, decimal_places=2,
+            min_value=0, required=True
+        )
+
+    def calculate_weight(self) -> Tuple[Union[int, float], dict]:
+        share_limit = Decimal('.3')
+        declaration_id = self.declaration.id
+
+        part_time_job_incomes = Income.objects.filter(
+            declaration=declaration_id,
+            type=Income.PART_TIME_SALARY,
+            amount__isnull=False
+        ).aggregate(Sum('amount')).get('amount__sum')
+        if not part_time_job_incomes:
+            return RESULT_FALSE
+        total_incomes = get_total_income(declaration_id)
+        if part_time_job_incomes > total_incomes * share_limit:
+            return 1.0, {
+                'part_time_job_incomes': part_time_job_incomes,
+                'total_incomes': total_incomes
             }
         return RESULT_FALSE
 
