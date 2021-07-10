@@ -1184,11 +1184,15 @@ class LuxuryCar(DataOceanModel):
     DIESEL = 2
     ELECTRIC = 3
     HYBRID = 4
+    DIESEL_ELECTRIC = 5
+    PETROL_ELECTRIC = 6
     FUEL_TYPE = (
         (PETROL, 'Petrol'),
         (DIESEL, 'Diesel'),
         (ELECTRIC, 'Electric'),
-        (HYBRID, 'Hybrid (Petrol + Electric)'),
+        (HYBRID, 'Hybrid'),
+        (DIESEL_ELECTRIC, 'Diesel + electric'),
+        (PETROL_ELECTRIC, 'Petrol + electric')
     )
     brand = models.CharField(max_length=80)
     model = models.CharField(max_length=140)
