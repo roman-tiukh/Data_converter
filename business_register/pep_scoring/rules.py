@@ -295,6 +295,8 @@ class IsSmallIncome(BaseScoringRule):
             car__valuation__isnull=False,
         ).aggregate(Sum('car__valuation')).get('car__valuation__sum', 0)
         total_assets = total_property_valuation + total_cars_valuation
+        if not total_assets:
+            return RESULT_FALSE
 
         result = total_assets / total_incomes
         if result > first_limit:
