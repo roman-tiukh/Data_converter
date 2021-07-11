@@ -20,7 +20,8 @@ from business_register.models.declaration_models import (
     BaseRight,
     PepScoring,
     IntangibleAsset,
-    Transaction
+    Transaction,
+    Beneficiary
 )
 from business_register.models.pep_models import CompanyLinkWithPep
 from business_register.models.company_models import Company
@@ -36,6 +37,16 @@ FIRST_DECLARING_YEAR = 2015
 SPOUSE_TYPES = ['дружина', 'чоловік']
 GIFT_TYPES = [Income.GIFT_IN_CASH, Income.GIFT]
 OWNERSHIP_TYPES = [BaseRight.OWNERSHIP, BaseRight.COMMON_PROPERTY, BaseRight.JOINT_OWNERSHIP]
+ANTAC_BENEFICIARY_TYPES = {
+    "Колишній директор, Бенефіціарний власник",
+    "Бенефіціарний власник",
+    "Колишній засновник, бенефіціар",
+    "Бенефіціарний власник",
+    "Бенефіціарний власник, Голова наглядової ради",
+    "Бенефіціарний власник/співзасновник",
+    "Засновник, бенефіціар",
+    "бенефіціарний власник",
+}
 
 
 def get_total_USD(data, year):
@@ -363,8 +374,7 @@ class IsMuchPartTimeJob(BaseScoringRule):
     """
     Rule 10 - PEP10
     weight - 0.2
-    Income from the teaching and creative activities, as well as part-time work,
-    exceeds 30% of the total income indicated in the declaration
+    Income from the part-time job exceeds 30% of the total income
     """
 
     rule_id = ScoringRuleEnum.PEP10
@@ -412,7 +422,7 @@ class IsBigRoyalty(BaseScoringRule):
     """
     Rule 11 - PEP11
     weight - 0.2
-    Royalty exceeds 20% of the total income indicated in the declaration
+    Royalty exceeds 20% of the total income
     """
 
     rule_id = ScoringRuleEnum.PEP11
@@ -430,6 +440,8 @@ class IsBigRoyalty(BaseScoringRule):
         )
 
     def calculate_weight(self) -> Tuple[Union[int, float], dict]:
+        limit_times = 5
+
         total_royalty = 0
         total_income = 0
         incomes = Income.objects.filter(
@@ -441,7 +453,7 @@ class IsBigRoyalty(BaseScoringRule):
                 total_income += income[0]
                 if income[1] == Income.ROYALTY:
                     total_royalty += income[0]
-            if total_royalty * 5 > total_income:
+            if total_royalty * limit_times > total_income:
                 return 0.2, {
                     'total_royalty': total_royalty,
                     'total_income': total_income,
@@ -508,14 +520,12 @@ class IsMuchSpending(BaseScoringRule):
         return RESULT_FALSE
 
 
-
-
 @register_rule
 class IsGiftExpensive(BaseScoringRule):
     """
     Rule 15 - PEP15
     weight - 0.8, 1
-    Declared gift amounting to more than 300 000 UAH
+    Declared gifts amounting to more than 300 000 UAH
     """
     rule_id = ScoringRuleEnum.PEP15
     message_uk = (
@@ -554,7 +564,7 @@ class IsBigPrize(BaseScoringRule):
     """
     Rule 16 - PEP16
     weight - 1.0
-    Declared lottery winning or prize with a price of more than 300 000 UAH
+    Declared lottery winning or prizes with a price of more than 300 000 UAH
     """
 
     rule_id = ScoringRuleEnum.PEP16
@@ -704,7 +714,7 @@ class IsMoneyFromNowhere(BaseScoringRule):
     """
     Rule 21 - PEP21
     weight - 0.8
-    Monetary assets declared this year exceed the sum of
+    Monetary assets declared this year exceed the sum of this year`s
     income and amount of monetary assets of the previous year
     """
 
@@ -822,6 +832,53 @@ class IsCashTrick(BaseScoringRule):
                             'income_USD': round(income_USD, 2),
                             'times': round(times, 1),
                         }
+        return RESULT_FALSE
+
+
+@register_rule
+class IsHiddenBeneficiary(BaseScoringRule):
+    """
+    Rule 24 - PEP24
+    weight - 1
+    Asset declaration does not indicate companies, whose beneficiary is the declarant
+    """
+
+    rule_id = ScoringRuleEnum.PEP24
+    message_uk = (
+        "У декларації не вказані {total_not_declared_companies} компаній, бенефіціаріями яких, "
+        "за даними реєстру pep.org.ua, є декларант"
+    )
+    message_en = (
+        "Asset declaration does not indicate {total_not_declared_companies} companies, "
+        "whose beneficiary is, according to the pep.org.ua data, the declarant"
+    )
+
+    class DataSerializer(serializers.Serializer):
+        total_not_declared_companies = serializers.IntegerField(min_value=0, required=True)
+
+    def calculate_weight(self) -> Tuple[Union[int, float], dict]:
+        pep_id = self.pep.id
+
+        data_from_antac = CompanyLinkWithPep.objects.filter(
+            pep_id=pep_id,
+            relationship_type__in=ANTAC_BENEFICIARY_TYPES,
+            end_date__isnull=True,
+            category=CompanyLinkWithPep.OWNER
+        ).values_list('company_id', 'company__source')
+        if not data_from_antac:
+            return RESULT_FALSE
+        # TODO: test if we should add here companies declared in CorporateRights
+        declared_data = Beneficiary.objects.filter(
+            declaration=self.declaration.id,
+        ).values_list('company_id', 'company__source')
+        # TODO: discuss other parameteres for comparing
+        antac_companies_id_source = set(data_from_antac)
+        declared_companies_id_source = set(declared_data)
+        total_not_declared_companies = antac_companies_id_source - declared_companies_id_source
+        if total_not_declared_companies:
+            return 1, {
+                'total_not_declared_companies': len(total_not_declared_companies)
+            }
         return RESULT_FALSE
 
 
