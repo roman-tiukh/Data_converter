@@ -851,8 +851,13 @@ class IsLuxuryCar(BaseScoringRule):
     or brand vehicle, which is considered to be a luxury car
     """
     rule_id = ScoringRuleEnum.PEP18
-    message_en = 'amount of luxury cars - {amount_luxury_cars}'
-    message_uk = 'кількість люксових авто - {amount_luxury_cars}'
+    link_to_list = 'https://www.me.gov.ua/vehicles/CalculatePrice'
+    message_en = 'The declaration states {amount_luxury_cars} cars, the price of which is more than 800 thousand ' \
+                 'hryvnias or is included in the list of cars subject to transport tax and approved by ' \
+                 f'the Ministry of Economy {link_to_list}?lang=en-GB'
+    message_uk = 'У декларації зазначено {amount_luxury_cars} автомобілів, ціна яких більше 800 тисяч гривень ' \
+                 'або входять в перелік автомобілів, які підлягають оподаткуванню транспортним податком ' \
+                 f'і затверджений Міністерством економіки {link_to_list}?lang=uk-UA'
 
     class DataSerializer(serializers.Serializer):
         amount_luxury_cars = serializers.IntegerField(min_value=0, required=True)
