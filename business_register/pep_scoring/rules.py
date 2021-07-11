@@ -19,7 +19,8 @@ from business_register.models.declaration_models import (
     PropertyRight,
     BaseRight,
     PepScoring,
-    IntangibleAsset
+    IntangibleAsset,
+    Transaction
 )
 from business_register.models.pep_models import CompanyLinkWithPep
 from business_register.models.company_models import Company
@@ -70,7 +71,7 @@ def get_total_money_USD(declaration):
     return 0
 
 
-def get_total_cash_USD(declaration):
+def get_total_hard_cash_USD(declaration):
     cash_data = Money.objects.filter(
         declaration_id=declaration.id,
         type=Money.CASH,
@@ -449,6 +450,67 @@ class IsBigRoyalty(BaseScoringRule):
 
 
 @register_rule
+class IsMuchSpending(BaseScoringRule):
+    """
+    Rule 13 - PEP13
+    weight - 0.7
+    The overall amount of income and monetary assets indicated in the declaration
+    is smaller or equal to the expenditures indicated in the declaration
+    """
+
+    rule_id = ScoringRuleEnum.PEP13
+    message_uk = (
+        "Задекларовані витрати - еквівалент {total_expenditures_USD} USD перевищують суму "
+        "задекларованих доходів та грошових активів на кінець попереднього року - "
+        "еквівалент {declared_assets_USD} USD"
+    )
+    message_en = (
+        "Declared expenditures - USD {total_expenditures_USD} exceed the sum of income "
+        "and amount of monetary assets of the previous year - USD {declared_assets_USD}"
+    )
+
+    class DataSerializer(serializers.Serializer):
+        total_expenditures_USD = serializers.DecimalField(
+            max_digits=12, decimal_places=2, min_value=0, required=True
+        )
+        declared_assets_USD = serializers.DecimalField(
+            max_digits=12, decimal_places=2, min_value=0, required=True
+        )
+
+    def calculate_weight(self) -> Tuple[Union[int, float], dict]:
+        year = self.declaration.year
+        declaration_id = self.declaration.id
+
+        total_expenditures = Transaction.objects.filter(
+            declaration=declaration_id,
+            is_money_spent=True,
+            amount__isnull=False
+        ).aggregate(Sum('amount')).get('amount__sum')
+        if not total_expenditures:
+            return RESULT_FALSE
+        total_expenditures_USD = convert_to_usd(UAH, float(total_expenditures), year)
+        previous_declaration = Declaration.objects.filter(
+            pep_id=self.pep.id,
+            type=Declaration.ANNUAL,
+            year=year - 1
+        ).first()
+        if not previous_declaration:
+            previous_total_money_USD = 0
+        else:
+            previous_total_money_USD = get_total_money_USD(previous_declaration)
+        total_income_USD = convert_to_usd(UAH, float(get_total_income(declaration_id)), year)
+        declared_money_USD = total_income_USD + previous_total_money_USD
+        if total_expenditures_USD > declared_money_USD:
+            return 0.7, {
+                "total_expenditures_USD": round(total_expenditures_USD, 2),
+                "declared_money_USD": round(declared_money_USD, 2)
+            }
+        return RESULT_FALSE
+
+
+
+
+@register_rule
 class IsGiftExpensive(BaseScoringRule):
     """
     Rule 15 - PEP15
@@ -628,7 +690,7 @@ class IsMuchCash(BaseScoringRule):
 
     def calculate_weight(self) -> Tuple[Union[int, float], dict]:
         limit = 50000
-        total_cash_USD = get_total_cash_USD(self.declaration)
+        total_cash_USD = get_total_hard_cash_USD(self.declaration)
 
         if total_cash_USD > limit:
             return 0.8, {
@@ -650,24 +712,25 @@ class IsMoneyFromNowhere(BaseScoringRule):
     message_uk = (
         "Задекларовані грошові активи - еквівалент {total_money_USD} USD перевищують суму "
         "задекларованих доходів та грошових активів на кінець попереднього року - "
-        "еквівалент {declared_assets_USD} USD"
+        "еквівалент {declared_money_USD} USD"
     )
     message_en = (
         "Monetary assets declared this year - USD {total_money_USD} exceed the sum of income "
         "and amount of monetary assets of the previous year - "
-        "USD {declared_assets_USD}"
+        "USD {declared_money_USD}"
     )
 
     class DataSerializer(serializers.Serializer):
         total_money_USD = serializers.DecimalField(
             max_digits=12, decimal_places=2, min_value=0, required=True
         )
-        declared_assets_USD = serializers.DecimalField(
+        declared_money_USD = serializers.DecimalField(
             max_digits=12, decimal_places=2, min_value=0, required=True
         )
 
     def calculate_weight(self) -> Tuple[Union[int, float], dict]:
         year = self.declaration.year
+
         previous_declaration = Declaration.objects.filter(
             pep_id=self.pep.id,
             type=Declaration.ANNUAL,
@@ -676,14 +739,13 @@ class IsMoneyFromNowhere(BaseScoringRule):
         if not previous_declaration:
             return RESULT_FALSE
         previous_total_money_USD = get_total_money_USD(previous_declaration)
-        total_money_USD = get_total_money_USD(self.declaration)
         total_income_USD = convert_to_usd(UAH, float(get_total_income(self.declaration.id)), year)
-        declared_assets_USD = total_income_USD + previous_total_money_USD
-
-        if total_money_USD > declared_assets_USD:
+        declared_money_USD = total_income_USD + previous_total_money_USD
+        total_money_USD = get_total_money_USD(self.declaration)
+        if total_money_USD > declared_money_USD:
             return 0.8, {
                 "total_money_USD": round(total_money_USD, 2),
-                "declared_assets_USD": round(declared_assets_USD, 2)
+                "declared_money_USD": round(declared_money_USD, 2)
             }
         return RESULT_FALSE
 
@@ -738,7 +800,7 @@ class IsCashTrick(BaseScoringRule):
             pass
         if pep_declarations:
             first_declaration = pep_declarations[0]
-            cash_USD = get_total_cash_USD(first_declaration)
+            cash_USD = get_total_hard_cash_USD(first_declaration)
             if cash_USD < first_limit_cash:
                 return RESULT_FALSE
             income_USD = convert_to_usd(
