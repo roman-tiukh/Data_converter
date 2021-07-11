@@ -840,3 +840,31 @@ class IsRentManyRealEstate(BaseScoringRule):
                 "bigger_area_counter": bigger_area,
             }
         return RESULT_FALSE
+
+
+@register_rule
+class IsLuxuryCar(BaseScoringRule):
+    """
+    Rule 18 - PEP18
+    weight - 0.4, 0.1
+    Declared ownership and/or right of use of a business class car, or car with a price exceeding 800 000 UAH
+    or brand vehicle, which is considered to be a luxury car
+    """
+    rule_id = ScoringRuleEnum.PEP18
+    message_en = 'amount of luxury cars - {amount_luxury_cars}'
+    message_uk = 'кількість люксових авто - {amount_luxury_cars}'
+
+    class DataSerializer(serializers.Serializer):
+        amount_luxury_cars = serializers.IntegerField(min_value=0, required=True)
+
+    def calculate_weight(self) -> Tuple[Union[int, float], dict]:
+        amount_luxury_cars = Vehicle.objects.filter(
+            declaration=self.declaration.id,
+            is_luxury=True,
+        ).all().count()
+        if amount_luxury_cars:
+            weight = 0.4 + (amount_luxury_cars - 1) * 0.1
+            return weight, {
+                'amount_luxury_cars': amount_luxury_cars
+            }
+        return RESULT_FALSE

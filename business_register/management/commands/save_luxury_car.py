@@ -69,6 +69,7 @@ class Command(BaseCommand):
                             fuel=fuel,
                         )
                         all_car.append(current_car)
+                        # TODO explore whether it is possible to normalize data from the 5th column
                     else:
                         continue
                 os.remove(f'{self.LOCAL_PATH}')

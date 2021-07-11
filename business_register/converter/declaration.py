@@ -1416,73 +1416,82 @@ class DeclarationConverter(BusinessConverter):
             self.save_right(securities, data)
 
     # TODO: implement
-    def is_vehicle_luxury(self, brand, model, year, valuation):
-        normalized_model = {
-            'мдх': 'mdx',
-            'каєн': 'cayenne',
-            'кайен': 'cayenne',
-            'кайєн с дизель': 'cayenne',
-            'макан': 'macan',
-            'турбо 911': '911 turbo',
-            'діскавері': 'discovery',
-            'дискавери 4': 'discovery',
-            'рендж ровер евок': 'range rover evoque cabrio',
-            'рендж ровер': 'range rover',
-            'івок': 'range rover evoque cabrio',
-            'вог': 'range rover vogue',
-            'одісей': 'odyssey',
-            'таурег': 'touareg',
-            'туарег': 'touareg',
-            'мультивен': 'multivan',
-            'мультиван': 'multivan',
-            'едж (edge)': 'edge',
-            'едж': 'edge',
-        }
-        normalized_brand = {
-            'тойота': 'toyota',
-            'ягуар': 'jaguar',
-            'хюндай': 'hyundai',
-            'хьюндай': 'hyundai',
-            'хундай': 'hyundai',
-            'мерседес': 'mercedes-benz',
-            'мерседец-бенц': 'mercedes-benz',
-            'мерседес бенц': 'mercedes-benz',
-            'таета': 'toyota',
-            'акура': 'acura',
-            'бмв': 'bmw',
-            'порше': 'porsche',
-            'ленд ровер': 'land rover',
-            'ленд ровер - рейндж ровер': 'land rover',
-            'лендровер': 'land rover',
-            'лр': 'land rover',
-            'линкольн': 'lincoln',
-            'вольво': 'volvo',
-            'лексус': 'lexus',
-            'хонда': 'honda',
-            'ніссан': 'nissan',
-            'нісан': 'nissan',
-            'ниссан': 'nissan',
-            'нисан': 'nissan',
-            'фольцваген': 'volkswagen',
-            'фольксваген': 'volkswagen',
-            'форд': 'ford',
-        }
-        if brand and model and year:
-            brand = brand.lower()
-            model = model.lower()
-            if brand in normalized_brand.keys():
-                brand = normalized_brand[brand]
-            if model in normalized_brand.keys():
-                model = normalized_model[model]
-            luxury_car = LuxuryCar.objects.filter(
-                brand=brand,
-                model__contains=model,
-                after_year__lte=year,
-                document_year=self.current_declaration.year
-            ).first()
+    def is_vehicle_luxury(self, vehicle):
+        if vehicle.valuation and vehicle.valuation >= 800000:
+            return True
         else:
-            luxury_car = None
-        return bool(valuation and valuation >= 800000 or luxury_car)
+            if (
+                    vehicle.brand not in self.NO_DATA
+                    and vehicle.model not in self.NO_DATA
+                    and vehicle.year not in self.NO_DATA
+            ):
+                normalized_model = {
+                    'мдх': 'mdx',
+                    'каєн': 'cayenne',
+                    'кайен': 'cayenne',
+                    'кайєн с дизель': 'cayenne',
+                    'макан': 'macan',
+                    'турбо 911': '911 turbo',
+                    'діскавері': 'discovery',
+                    'дискавери 4': 'discovery',
+                    'рендж ровер евок': 'range rover evoque cabrio',
+                    'рендж ровер': 'range rover',
+                    'івок': 'range rover evoque cabrio',
+                    'вог': 'range rover vogue',
+                    'одісей': 'odyssey',
+                    'таурег': 'touareg',
+                    'туарег': 'touareg',
+                    'мультивен': 'multivan',
+                    'мультиван': 'multivan',
+                    'едж (edge)': 'edge',
+                    'едж': 'edge',
+                }
+                normalized_brand = {
+                    'тойота': 'toyota',
+                    'ягуар': 'jaguar',
+                    'хюндай': 'hyundai',
+                    'хьюндай': 'hyundai',
+                    'хундай': 'hyundai',
+                    'мерседес': 'mercedes-benz',
+                    'мерседец-бенц': 'mercedes-benz',
+                    'мерседес бенц': 'mercedes-benz',
+                    'таета': 'toyota',
+                    'акура': 'acura',
+                    'бмв': 'bmw',
+                    'порше': 'porsche',
+                    'ленд ровер': 'land rover',
+                    'ленд ровер - рейндж ровер': 'land rover',
+                    'лендровер': 'land rover',
+                    'лр': 'land rover',
+                    'линкольн': 'lincoln',
+                    'вольво': 'volvo',
+                    'лексус': 'lexus',
+                    'хонда': 'honda',
+                    'ніссан': 'nissan',
+                    'нісан': 'nissan',
+                    'ниссан': 'nissan',
+                    'нисан': 'nissan',
+                    'фольцваген': 'volkswagen',
+                    'фольксваген': 'volkswagen',
+                    'форд': 'ford',
+                }
+                brand = vehicle.brand.lower()
+                model = vehicle.model.lower()
+                if brand in normalized_brand.keys():
+                    brand = normalized_brand[brand]
+                if model in normalized_brand.keys():
+                    model = normalized_model[model]
+                luxury_car = LuxuryCar.objects.filter(
+                    brand=brand,
+                    model__contains=model,
+                    after_year__lte=vehicle.year,
+                    document_year=self.current_declaration.year
+                ).first()
+                return bool(luxury_car)
+            else:
+                self.log_error(f'No data about the model ({vehicle.model}) or brand ({vehicle.brand}) '
+                               f'or the year of manufacture ({vehicle.year})')
+                return None
 
     # possible_keys = {
     #     'object_identificationNumber', 'brand', 'owningDate_extendedstatus', 'model_extendedstatus',
@@ -1504,9 +1513,9 @@ class DeclarationConverter(BusinessConverter):
         for data in vehicles_data:
             vehicle_type = types.get(data.get('objectType'))
             additional_info = data.get('otherObjectType', '')
-            brand = data.get('brand') if data.get('brand') not in self.NO_DATA else ''
-            model = data.get('model') if data.get('model') not in self.NO_DATA else ''
-            year = data.get('graduationYear') if data.get('graduationYear') not in self.NO_DATA else None
+            brand = data.get('brand')
+            model = data.get('model')
+            year = data.get('graduationYear')
             if year in self.NO_DATA:
                 year = None
             valuation = data.get('costDate')
@@ -1514,10 +1523,6 @@ class DeclarationConverter(BusinessConverter):
                 valuation = int(self.to_float(valuation, data))
             else:
                 valuation = None
-            if vehicle_type == Vehicle.CAR:
-                is_luxury = self.is_vehicle_luxury(brand, model, year, valuation)
-            else:
-                is_luxury = None
             vehicle = Vehicle.objects.create(
                 declaration=declaration,
                 type=vehicle_type,
@@ -1525,9 +1530,11 @@ class DeclarationConverter(BusinessConverter):
                 brand=brand,
                 model=model,
                 year=year,
-                is_luxury=is_luxury,
                 valuation=valuation,
             )
+            if vehicle_type == Vehicle.CAR:
+                vehicle.is_luxury = self.is_vehicle_luxury(vehicle)
+                vehicle.save()
             self.save_right(vehicle, data)
 
     # possible_keys = {
