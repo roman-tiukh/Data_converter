@@ -290,14 +290,17 @@ class IsSmallIncome(BaseScoringRule):
             type__in=OWNERSHIP_TYPES,
             property__valuation__isnull=False,
         ).aggregate(Sum('property__valuation')).get('property__valuation__sum', 0)
+        if not total_property_valuation:
+            total_property_valuation = 0
         total_cars_valuation = VehicleRight.objects.filter(
             car__declaration_id=self.declaration.id,
             car__valuation__isnull=False,
         ).aggregate(Sum('car__valuation')).get('car__valuation__sum', 0)
+        if not total_cars_valuation:
+            total_cars_valuation = 0
         total_assets = total_property_valuation + total_cars_valuation
         if not total_assets:
             return RESULT_FALSE
-
         result = total_assets / total_incomes
         if result > first_limit:
             weight = 0.2
