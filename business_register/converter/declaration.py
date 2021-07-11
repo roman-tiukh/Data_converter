@@ -1379,8 +1379,8 @@ class DeclarationConverter(BusinessConverter):
         for data in vehicles_data:
             vehicle_type = types.get(data.get('objectType'))
             additional_info = data.get('otherObjectType', '')
-            brand = data.get('brand')
-            model = data.get('model')
+            brand = data.get('brand', '')
+            model = data.get('model', '')
             year = data.get('graduationYear')
             if year in self.NO_DATA:
                 year = None
