@@ -1,4 +1,5 @@
 import logging
+from typing import Union
 
 from dateutil.parser import isoparse
 import requests
@@ -24,6 +25,7 @@ from business_register.models.declaration_models import (Declaration,
                                                          PartTimeJob,
                                                          NgoParticipation,
                                                          BaseRight,
+                                                         IntangibleAsset,
                                                          LuxuryCar,
                                                          )
 from business_register.models.pep_models import Pep, RelatedPersonsLink
@@ -52,6 +54,7 @@ class DeclarationConverter(BusinessConverter):
             '[Не застосовується]',
             '[Не відомо]',
             "[Член сім'ї не надав інформацію]",
+            'Член сім\'ї не надав інформацію',
             '[Конфіденційна інформація]',
             'Не визначено',
             'невідомо',
@@ -81,16 +84,20 @@ class DeclarationConverter(BusinessConverter):
         self.relatives_data = None
 
     def log_error(self, message):
-        logger.error(f'Declaration id {self.current_declaration.nacp_declaration_id} : {message}')
+        logger.warning(f'Declaration id {self.current_declaration.nacp_declaration_id} : {message}')
 
-    def to_float(self, value, data):
+    def to_float(self, value, data) -> Union[int, float, None]:
         if value not in self.NO_DATA:
-            value = value.replace(',', '.').strip('.,')
-            if len(value.split('.')[0]) <= 10:
-                return float(value)
+            if type(value) in (int, float):
+                return value
+            elif type(value) == str:
+                value = value.replace(',', '.').strip('.,')
+                if len(value.split('.')[0]) <= 10:
+                    return float(value)
+                else:
+                    self.log_error(f'Too many value for valuation = {value}. Check data ({data})')
             else:
-                self.log_error(f'Too many value for valuation = {value}. Check data ({data})')
-        return
+                self.log_error(f'Wrong type for float value = {value}. Check data ({data})')
 
     def find_value(self, dictionary: dict, set_of_keys: set, default_value):
         counter = 0
@@ -189,7 +196,7 @@ class DeclarationConverter(BusinessConverter):
     def save_right(self, property, corporate_rights_data):
         if (
                 not corporate_rights_data.get('rights')
-                or corporate_rights_data.get('person') in self.NO_DATA
+                and corporate_rights_data.get('person') in self.NO_DATA
         ):
             return
         TYPES = {
@@ -220,6 +227,7 @@ class DeclarationConverter(BusinessConverter):
             'luxuryitem': ('LuxuryItemRight', 'luxury_item'),
             'vehicle': ('VehicleRight', 'car'),
             'securities': ('SecuritiesRight', 'securities'),
+            'intangibleasset': ('IntangibleAssetRight', 'intangible_assets'),
         }
         rights_data = corporate_rights_data.get('rights')
         if rights_data:
@@ -228,7 +236,12 @@ class DeclarationConverter(BusinessConverter):
                     continue
                 ownership_type = TYPES.get(right_data.get('ownershipType'))
                 additional_info = right_data.get('otherOwnership', '')
-                share = self.to_float(right_data.get('percent-ownership'), right_data)
+                share = right_data.get('percent-ownership')
+                if type(share) == str and share.strip() == '1/1':
+                    self.log_error('percent-ownership = 1/1')
+                    share = 100
+                else:
+                    share = self.to_float(share, right_data)
                 owner_info = right_data.get('rightBelongs')
                 if owner_info not in self.NO_DATA:
                     if owner_info == self.DECLARANT:
@@ -301,6 +314,62 @@ class DeclarationConverter(BusinessConverter):
                         apps.get_model('business_register', model_name).objects.create(
                             **field_dict
                         )
+
+    def save_intangible_assets(self, intangible_assets_data, declaration):
+        types = {
+            'Право на використання надр чи інших природних ресурсів': IntangibleAsset.NATURAL_RESOURCES,
+            'Торгова марка чи комерційне найменування': IntangibleAsset.TRADEMARK,
+            'Криптовалюта': IntangibleAsset.CRYPTOCURRENCY,
+            'Корисна модель': IntangibleAsset.USEFUL_MODEL,
+            'Авторське право': IntangibleAsset.COPYRIGHT,
+            'Винахід': IntangibleAsset.INVENTION,
+            'Промисловий зразок': IntangibleAsset.INDUSTRIAL_DESIGN,
+            'Інше': IntangibleAsset.OTHER,
+        }
+        cryptocurrency_types = {
+            'біткоін': IntangibleAsset.BITCOIN,
+            'btc': IntangibleAsset.BITCOIN,
+            'bitcoin': IntangibleAsset.BITCOIN,
+            'utrust': IntangibleAsset.UTRUST,
+            'syntropy': IntangibleAsset.SYNTROPY,
+            'zilliqa': IntangibleAsset.ZILLIQA,
+            'usdt': IntangibleAsset.USDT,
+            'ravencoin': IntangibleAsset.RAVENCOIN,
+            'ethereum': IntangibleAsset.ETHERIUM,
+            'etherium': IntangibleAsset.ETHERIUM,
+            'ефіріум': IntangibleAsset.ETHERIUM,
+            'лайткоін': IntangibleAsset.LITECOIN,
+            'litecoin': IntangibleAsset.LITECOIN,
+            'swissborg': IntangibleAsset.SWISSBORG,
+            'eos': IntangibleAsset.EOS,
+            'nxt': IntangibleAsset.NXT,
+            'ripple': IntangibleAsset.RIPPLE,
+        }
+        for data in intangible_assets_data:
+            valuation = data.get('costDateOrigin') if data.get('costDateOrigin') not in self.NO_DATA else None
+            quantity = self.to_float(data.get('countObject'), data)
+            type_asset = types.get(data.get('objectType'))
+            if not type_asset:
+                self.log_error(f'Unknown type of monetary assets. Check data ({data})')
+                continue
+            if type_asset == IntangibleAsset.CRYPTOCURRENCY and data.get('descriptionObject'):
+                cryptocurrency = cryptocurrency_types.get(data.get('descriptionObject').lower())
+                if not cryptocurrency:
+                    self.log_error(f'New type of cryptocurrency {data.get("descriptionObject")}')
+            else:
+                cryptocurrency = None
+            additional_info = data.get('otherObjectType') if data.get('otherObjectType') not in self.NO_DATA else ''
+            description = data.get('descriptionObject') if data.get('descriptionObject') not in self.NO_DATA else ''
+            intangible_assets = IntangibleAsset.objects.create(
+                declaration=declaration,
+                type=type_asset,
+                valuation=valuation,
+                quantity=quantity,
+                additional_info=additional_info,
+                description=description,
+                cryptocurrency_type=cryptocurrency,
+            )
+            self.save_right(intangible_assets, data)
 
     def create_ngo_participation(self, data, participation_type, declaration):
         ngo_types = {
@@ -1406,11 +1475,11 @@ class DeclarationConverter(BusinessConverter):
             if model in normalized_brand.keys():
                 model = normalized_model[model]
             luxury_car = LuxuryCar.objects.filter(
-                    brand=brand,
-                    model__contains=model,
-                    after_year__lte=year,
-                    document_year=self.current_declaration.year
-                ).first()
+                brand=brand,
+                model__contains=model,
+                after_year__lte=year,
+                document_year=self.current_declaration.year
+            ).first()
         else:
             luxury_car = None
         return bool(valuation and valuation >= 800000 or luxury_car)
@@ -1442,7 +1511,7 @@ class DeclarationConverter(BusinessConverter):
                 year = None
             valuation = data.get('costDate')
             if valuation not in self.NO_DATA:
-                valuation = int(valuation)
+                valuation = int(self.to_float(valuation, data))
             else:
                 valuation = None
             if vehicle_type == Vehicle.CAR:
@@ -1771,6 +1840,10 @@ class DeclarationConverter(BusinessConverter):
         if has_step_data('step_9'):
             self.save_beneficiary_of(data['step_9']['data'], declaration)
 
+        # Step_10 - declarant`s family`s intangible assets
+        if has_step_data('step_10'):
+            self.save_intangible_assets(data['step_10']['data'], declaration)
+
         # 'Step_11' - declarant`s family`s incomes
         if has_step_data('step_11'):
             self.save_income(data['step_11']['data'], declaration)
@@ -1800,57 +1873,60 @@ class DeclarationConverter(BusinessConverter):
         if has_step_data('step_17'):
             self.save_bank_account(data['step_17']['data'], declaration, pep)
 
+    def save_declarations_for_pep(self, nacp_declarant_id):
+        # getting general info including declaration id
+        response = requests.get(
+            f'{settings.NACP_DECLARATION_LIST}?user_declarant_id={nacp_declarant_id}'
+        )
+        declarations_data = response.json().get('data')
+        if response.status_code != 200 or not declarations_data:
+            logger.warning(
+                f'cannot find declarations of the PEP with nacp_declarant_id: {nacp_declarant_id}'
+            )
+            return
+
+        pep = self.only_peps[nacp_declarant_id]
+        for declaration_data in declarations_data:
+            # possible_keys = {
+            #     'post_type', 'corruption_affected', 'id', 'options', 'type', 'declaration_type',
+            #     'responsible_position', 'declaration_year', 'schema_version', 'data', 'post_category',
+            #     'date', 'user_declarant_id'
+            # }
+            declaration_type = declaration_data['declaration_type']
+            # TODO: predict storing changes from the declarant
+            if declaration_type not in [1, 2, 3, 4]:
+                continue
+            declaration_id = declaration_data['id']
+            declaration = self.all_declarations.get(declaration_id)
+            if declaration:
+                continue
+            # TODO: add date to the model and here
+            else:
+                submission_date = isoparse(declaration_data['date']).date()
+                declaration = Declaration.objects.create(
+                    type=declaration_type,
+                    year=declaration_data['declaration_year'],
+                    submission_date=submission_date,
+                    nacp_declaration_id=declaration_id,
+                    nacp_declarant_id=nacp_declarant_id,
+                    pep=pep,
+                )
+            self.current_declaration = declaration
+            try:
+                # getting full declaration data
+                response = requests.get(settings.NACP_DECLARATION_RETRIEVE + declaration_id)
+                if response.status_code != 200:
+                    declaration.destroy()
+                    self.log_error('cannot find declarations')
+                    continue
+                self.save_all_steps(response.json()['data'], pep, declaration)
+            except (Exception, KeyboardInterrupt) as e:
+                message = f'Error at declaration {declaration.nacp_declaration_id}: {e}'
+                print(message)
+                logger.error(message)
+                declaration.destroy()
+                raise
+
     def save_declaration(self):
         for nacp_declarant_id in self.only_peps:
-            # getting general info including declaration id
-            response = requests.get(
-                f'{settings.NACP_DECLARATION_LIST}?user_declarant_id={nacp_declarant_id}'
-            )
-            declarations_data = response.json().get('data')
-            if response.status_code != 200 or not declarations_data:
-                logger.error(
-                    f'cannot find declarations of the PEP with nacp_declarant_id: {nacp_declarant_id}'
-                )
-                continue
-
-            pep = self.only_peps[nacp_declarant_id]
-            for declaration_data in declarations_data:
-                # possible_keys = {
-                #     'post_type', 'corruption_affected', 'id', 'options', 'type', 'declaration_type',
-                #     'responsible_position', 'declaration_year', 'schema_version', 'data', 'post_category',
-                #     'date', 'user_declarant_id'
-                # }
-                declaration_type = declaration_data['declaration_type']
-                # TODO: predict storing changes from the declarant
-                if declaration_type not in [1, 2, 3, 4]:
-                    continue
-                declaration_id = declaration_data['id']
-                declaration = self.all_declarations.get(declaration_id)
-                if declaration:
-                    continue
-                # TODO: add date to the model and here
-                else:
-                    submission_date = isoparse(declaration_data['date']).date()
-                    declaration = Declaration.objects.create(
-                        type=declaration_type,
-                        year=declaration_data['declaration_year'],
-                        submission_date=submission_date,
-                        nacp_declaration_id=declaration_id,
-                        nacp_declarant_id=nacp_declarant_id,
-                        pep=pep,
-                    )
-                self.current_declaration = declaration
-                try:
-                    # getting full declaration data
-                    response = requests.get(settings.NACP_DECLARATION_RETRIEVE + declaration_id)
-                    if response.status_code != 200:
-                        declaration.destroy()
-                        self.log_error('cannot find declarations')
-                        continue
-                    self.save_all_steps(response.json()['data'], pep, declaration)
-                except Exception as e:
-                    message = f'Error at declaration {declaration.nacp_declaration_id}: {e}'
-                    print(message)
-                    logger.error(message)
-                    declaration.destroy()
-                    raise
+            self.save_declarations_for_pep(nacp_declarant_id)

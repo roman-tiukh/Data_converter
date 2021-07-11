@@ -398,6 +398,14 @@ class PersonSanctionFilterSet(BaseSanctionFilter):
         lookup_expr='icontains',
         help_text='Filter by countries of citizenship of person. Type: case insensitive string contains',
     )
+    o = filters.OrderingFilter(
+        fields=(
+            ('full_name', 'full_name'),
+            ('start_date', 'start_date'),
+            ('end_date', 'end_date'),
+        ),
+        help_text='Sort by fields: full_name, start_date, end_date.'
+    )
 
     class Meta:
         model = PersonSanction

@@ -1,5 +1,6 @@
 import io
 import json
+import os
 from datetime import datetime
 import csv
 from business_register.management.commands._base_export_command import BaseExportCommand
@@ -44,9 +45,13 @@ class Command(BaseExportCommand):
 
         i = 0
         count = qs.count()
+        if count == 0:
+            self.stdout.write('No data for saving')
+            return
         for ps in qs.order_by('pep_id'):
             i += 1
             self.stdout.write(f'\r Process {i} of {count}', ending='')
+            self.stdout.flush()
             writer.writerow([
                 ps.declaration.nacp_url,
                 ps.declaration.year,
@@ -73,6 +78,9 @@ class Command(BaseExportCommand):
             url = s3bucket.save_file(f'scoring/{file_name}', data)
         else:
             url = self.save_to_file(file_name, data)
+
+        with open(os.path.join(self.get_export_dir(), 'scoring_urls.txt'), 'a') as file:
+            file.write(f'{url}\n')
 
         self.print('Done!', success=True)
         self.print(url, success=True)

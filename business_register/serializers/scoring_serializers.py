@@ -5,25 +5,26 @@ from business_register.serializers.company_and_pep_serializers import PepShortSe
 
 
 class DeclarationSerializer(serializers.ModelSerializer):
-    type_display = serializers.CharField(source='get_type_display')
+    # type_display = serializers.CharField(source='get_type_display')
 
     class Meta:
         model = Declaration
         fields = (
             'id',
             'nacp_declaration_id',
-            'nacp_declarant_id',
             'year',
             'submission_date',
-            'type',
-            'type_display',
-            'last_job_title',
-            'last_employer',
+            'nacp_url',
+            # 'nacp_declarant_id',
+            # 'type',
+            # 'type_display',
+            # 'last_job_title',
+            # 'last_employer',
         )
 
 
 class PepScoringSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
-    # declaration = DeclarationSerializer()
+    declaration = DeclarationSerializer()
     # pep = PepShortSerializer()
 
     class Meta:
@@ -36,7 +37,7 @@ class PepScoringSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
             'data',
             'message_uk',
             'message_en',
-            # 'declaration',
+            'declaration',
             # 'pep',
             'updated_at',
             'created_at',
