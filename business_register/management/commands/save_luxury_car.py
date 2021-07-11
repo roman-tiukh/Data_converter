@@ -56,7 +56,7 @@ class Command(BaseCommand):
                     if current_car not in all_car:
                         doc_year = year
                         after_year = int(year) - int(row[2].split(' ')[1])
-                        volume = float(row[3]) if row[3] and row[3] and row[3] != 'н/д' and int(row[3]) < 10 else None
+                        volume = float(row[3]) if row[3] and row[3] != 'н/д' and int(row[3]) < 10 else None
                         fuel = FUEL_TYPES.get(row[4].lower().strip()) if row[4] else None
                         if row[4] and not fuel:
                             self.stdout.write(f'New type of fuel {row[4]}')
