@@ -280,22 +280,22 @@ class IsSmallIncome(BaseScoringRule):
         second_limit = 50
         third_limit = 100
 
-        total_assets = 0
         total_incomes = get_total_income(self.declaration.id)
+        # TODO: investigate cases with zero incomes
+        if not total_incomes:
+            return RESULT_FALSE
 
-        # we can use this later
-        # total_money = get_total_money_USD(self.declaration)
         total_property_valuation = PropertyRight.objects.filter(
             property__declaration_id=self.declaration.id,
             type__in=OWNERSHIP_TYPES,
             property__valuation__isnull=False,
-        ).aggregate(Sum('property__valuation')).get('property__valuation__sum', 0)
+        ).aggregate(Sum('property__valuation')).get('property__valuation__sum')
         if not total_property_valuation:
             total_property_valuation = 0
         total_cars_valuation = VehicleRight.objects.filter(
             car__declaration_id=self.declaration.id,
             car__valuation__isnull=False,
-        ).aggregate(Sum('car__valuation')).get('car__valuation__sum', 0)
+        ).aggregate(Sum('car__valuation')).get('car__valuation__sum')
         if not total_cars_valuation:
             total_cars_valuation = 0
         total_assets = total_property_valuation + total_cars_valuation
