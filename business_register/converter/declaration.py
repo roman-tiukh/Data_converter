@@ -24,7 +24,8 @@ from business_register.models.declaration_models import (Declaration,
                                                          Transaction,
                                                          PartTimeJob,
                                                          NgoParticipation,
-                                                         BaseRight
+                                                         BaseRight,
+                                                         IntangibleAsset
                                                          )
 from business_register.models.pep_models import Pep, RelatedPersonsLink
 from location_register.models.address_models import Country
@@ -52,6 +53,7 @@ class DeclarationConverter(BusinessConverter):
             '[Не застосовується]',
             '[Не відомо]',
             "[Член сім'ї не надав інформацію]",
+            'Член сім\'ї не надав інформацію',
             '[Конфіденційна інформація]',
             'Не визначено',
             'невідомо',
@@ -60,6 +62,8 @@ class DeclarationConverter(BusinessConverter):
         self.BOOLEAN_VALUES = {
             '1': True,
             '0': False,
+            1: True,
+            0: False,
             "Майно набуто ДО ПОЧАТКУ ПЕРІОДУ здійснення суб'єктом декларування діяльності із "
             "виконання функцій держави або місцевого самоврядування": True,
             "Майно набуто У ПЕРІОД здійснення суб'єктом декларування діяльності із виконання "
@@ -193,7 +197,7 @@ class DeclarationConverter(BusinessConverter):
     def save_right(self, property, corporate_rights_data):
         if (
                 not corporate_rights_data.get('rights')
-                or corporate_rights_data.get('person') in self.NO_DATA
+                and corporate_rights_data.get('person') in self.NO_DATA
         ):
             return
         TYPES = {
@@ -224,6 +228,7 @@ class DeclarationConverter(BusinessConverter):
             'luxuryitem': ('LuxuryItemRight', 'luxury_item'),
             'vehicle': ('VehicleRight', 'car'),
             'securities': ('SecuritiesRight', 'securities'),
+            'intangibleasset': ('IntangibleAssetRight', 'intangible_assets'),
         }
         rights_data = corporate_rights_data.get('rights')
         if rights_data:
@@ -310,6 +315,62 @@ class DeclarationConverter(BusinessConverter):
                         apps.get_model('business_register', model_name).objects.create(
                             **field_dict
                         )
+
+    def save_intangible_assets(self, intangible_assets_data, declaration):
+        types = {
+            'Право на використання надр чи інших природних ресурсів': IntangibleAsset.NATURAL_RESOURCES,
+            'Торгова марка чи комерційне найменування': IntangibleAsset.TRADEMARK,
+            'Криптовалюта': IntangibleAsset.CRYPTOCURRENCY,
+            'Корисна модель': IntangibleAsset.USEFUL_MODEL,
+            'Авторське право': IntangibleAsset.COPYRIGHT,
+            'Винахід': IntangibleAsset.INVENTION,
+            'Промисловий зразок': IntangibleAsset.INDUSTRIAL_DESIGN,
+            'Інше': IntangibleAsset.OTHER,
+        }
+        cryptocurrency_types = {
+            'біткоін': IntangibleAsset.BITCOIN,
+            'btc': IntangibleAsset.BITCOIN,
+            'bitcoin': IntangibleAsset.BITCOIN,
+            'utrust': IntangibleAsset.UTRUST,
+            'syntropy': IntangibleAsset.SYNTROPY,
+            'zilliqa': IntangibleAsset.ZILLIQA,
+            'usdt': IntangibleAsset.USDT,
+            'ravencoin': IntangibleAsset.RAVENCOIN,
+            'ethereum': IntangibleAsset.ETHERIUM,
+            'etherium': IntangibleAsset.ETHERIUM,
+            'ефіріум': IntangibleAsset.ETHERIUM,
+            'лайткоін': IntangibleAsset.LITECOIN,
+            'litecoin': IntangibleAsset.LITECOIN,
+            'swissborg': IntangibleAsset.SWISSBORG,
+            'eos': IntangibleAsset.EOS,
+            'nxt': IntangibleAsset.NXT,
+            'ripple': IntangibleAsset.RIPPLE,
+        }
+        for data in intangible_assets_data:
+            valuation = data.get('costDateOrigin') if data.get('costDateOrigin') not in self.NO_DATA else None
+            quantity = self.to_float(data.get('countObject'), data)
+            type_asset = types.get(data.get('objectType'))
+            if not type_asset:
+                self.log_error(f'Unknown type of monetary assets. Check data ({data})')
+                continue
+            if type_asset == IntangibleAsset.CRYPTOCURRENCY and data.get('descriptionObject'):
+                cryptocurrency = cryptocurrency_types.get(data.get('descriptionObject').lower())
+                if not cryptocurrency:
+                    self.log_error(f'New type of cryptocurrency {data.get("descriptionObject")}')
+            else:
+                cryptocurrency = None
+            additional_info = data.get('otherObjectType') if data.get('otherObjectType') not in self.NO_DATA else ''
+            description = data.get('descriptionObject') if data.get('descriptionObject') not in self.NO_DATA else ''
+            intangible_assets = IntangibleAsset.objects.create(
+                declaration=declaration,
+                type=type_asset,
+                valuation=valuation,
+                quantity=quantity,
+                additional_info=additional_info,
+                description=description,
+                cryptocurrency_type=cryptocurrency,
+            )
+            self.save_right(intangible_assets, data)
 
     def create_ngo_participation(self, data, participation_type, declaration):
         ngo_types = {
@@ -448,9 +509,8 @@ class DeclarationConverter(BusinessConverter):
     #     'specExpensesSubject', 'specExpensesRealtySubject', 'type'
     # }
     def save_transaction(self, transactions_data, declaration):
-        is_money_spent_booleans = {'1': True, '2': False}
         for data in transactions_data:
-            is_money_spent = is_money_spent_booleans.get(data.get('type'))
+            is_money_spent = self.BOOLEAN_VALUES.get(data.get('type'))
             amount = self.to_float(data.get('costAmount'), data)
             transaction_object_type = data.get('specExpensesSubject', '')
             transaction_result = ''
@@ -1711,6 +1771,10 @@ class DeclarationConverter(BusinessConverter):
         # 'Step_9' - companies where declarant`s family`s members are beneficiaries
         if has_step_data('step_9'):
             self.save_beneficiary_of(data['step_9']['data'], declaration)
+
+        # Step_10 - declarant`s family`s intangible assets
+        if has_step_data('step_10'):
+            self.save_intangible_assets(data['step_10']['data'], declaration)
 
         # 'Step_11' - declarant`s family`s incomes
         if has_step_data('step_11'):
