@@ -19,6 +19,7 @@ from business_register.models.declaration_models import (
     PropertyRight,
     BaseRight,
     PepScoring,
+    IntangibleAsset
 )
 from business_register.models.pep_models import CompanyLinkWithPep
 from business_register.models.company_models import Company
@@ -760,6 +761,46 @@ class IsCashTrick(BaseScoringRule):
                             'times': round(times, 1),
                         }
         return RESULT_FALSE
+
+
+@register_rule
+class IsCryptocurrency(BaseScoringRule):
+    """
+    Rule 26 - PEP26
+    weight - 0.5, 0.8, 1
+    Declared cryptocurrency
+    """
+
+    rule_id = ScoringRuleEnum.PEP26
+    # TODO: define how to change messages here and in the PEP01
+    message_uk = "Задекларовано криптовалюту {no_cryptocurrency_amount}"
+    message_en = "Declared cryptocurrency"
+
+    class DataSerializer(serializers.Serializer):
+        # parameter for upgrading this rule later
+        # total_cryptocurrency_USD = serializers.DecimalField(
+        #     max_digits=12, decimal_places=2,
+        #     min_value=0, required=True
+        # )
+        no_cryptocurrency = serializers.CharField(allow_blank=True)
+
+    def calculate_weight(self) -> Tuple[Union[int, float], dict]:
+        cryptocurrency = IntangibleAsset.objects.filter(
+            declaration_id=self.declaration.id,
+            type=IntangibleAsset.CRYPTOCURRENCY
+        ).values_list('quantity', 'cryptocurrency_type')
+        if cryptocurrency:
+            weight = 0.5
+            for quantity, cryptocurrency_type in cryptocurrency:
+                if quantity is None or cryptocurrency_type is None:
+                    return 1.0, {
+                        'no_cryptocurrency_amount': 'без вказання інформації про кількість або назву'
+                    }
+            return weight, {
+                'no_cryptocurrency_amount': ''
+            }
+        return RESULT_FALSE
+        # TODO: convert cryptocurrency with quantity to USD and assess the total result
 
 
 @register_rule
