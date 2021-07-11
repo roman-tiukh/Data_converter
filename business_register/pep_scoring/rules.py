@@ -1,5 +1,5 @@
 from decimal import Decimal
-from django.db.models import Sum
+from django.db.models import Sum, Q
 
 from abc import ABC, abstractmethod
 
@@ -165,7 +165,7 @@ class BaseScoringRule(ABC):
 class IsSpouseDeclared(BaseScoringRule):
     """
     Rule 1 - PEP01
-    weight - 0.1, 0.7
+    weight - 0.1, 0.3, 0.5, 0.7
     Asset declaration does not indicate PEP’s spouse, while pep.org.ua register has information on them
     """
 
@@ -173,44 +173,71 @@ class IsSpouseDeclared(BaseScoringRule):
     message_uk = (
         'У декларації про майно немає даних про члена родини, '
         'тоді як у реєстрі pep.org.ua є {relationship_type} {spouse_full_name} '
-        '{spouse_foreign_companies_info}. '
+        '{spouse_companies_info}. '
     )
     message_en = 'Asset declaration does not indicate PEP\'s spouse'
 
     class DataSerializer(serializers.Serializer):
         relationship_type = serializers.CharField(required=True)
         spouse_full_name = serializers.CharField(required=True)
-        spouse_foreign_companies_info = serializers.CharField(allow_blank=True)
+        spouse_companies_info = serializers.CharField(allow_blank=True)
 
     def calculate_weight(self) -> Tuple[Union[int, float], dict]:
+        declarant = self.pep
+
         link_to_spouse_from_antac_db = RelatedPersonsLink.objects.filter(
-            from_person=self.pep,
+            Q(from_person=declarant) | Q(to_person=declarant),
             to_person_relationship_type__in=SPOUSE_TYPES
         ).first()
         if link_to_spouse_from_antac_db:
             is_spouse_declared = self.declaration.spouse
             if not is_spouse_declared:
-                spouse_from_antac_db = link_to_spouse_from_antac_db.to_person
+                weight = 0.1
+                spouse_companies_info = ''
 
-                spouse_foreign_companies_links = CompanyLinkWithPep.objects.filter(
+                spouse_from_antac_db = None
+                relationship_type = None
+                if link_to_spouse_from_antac_db.to_person == declarant:
+                    spouse_from_antac_db = link_to_spouse_from_antac_db.from_person
+                    relationship_type = link_to_spouse_from_antac_db.from_person_relationship_type
+                else:
+                    spouse_from_antac_db = link_to_spouse_from_antac_db.to_person
+                    relationship_type = link_to_spouse_from_antac_db.to_person_relationship_type
+
+                spouse_companies_links = CompanyLinkWithPep.objects.filter(
                     pep=spouse_from_antac_db,
                     category=CompanyLinkWithPep.OWNER,
-                    # looking for only foreign companies
-                    # TODO: check if Company.ANTAC stores only foreign companies
-                    company__source=Company.ANTAC
-                )
-                if spouse_foreign_companies_links:
-                    weight = 0.7
-                    spouse_foreign_companies_info = (f'з кількістю компаній, зареєстрованих за кордоном - '
-                                                     f'{spouse_foreign_companies_links.count()}')
-                else:
-                    weight = 0.1
-                    spouse_foreign_companies_info = ''
+                ).values_list('company__source', flat=True)
+                if spouse_companies_links:
+                    total_foreign_companies = 0
+                    total_ukrainian_companies = 0
+                    for source in spouse_companies_links:
+                        # TODO: check if Company.ANTAC stores only foreign companies
+                        if source == Company.ANTAC:
+                            total_foreign_companies += 1
+                        elif source == Company.UKRAINE_REGISTER:
+                            total_ukrainian_companies += 1
+
+                    if total_foreign_companies:
+                        return 0.7, {
+                            'relationship_type': relationship_type,
+                            'spouse_full_name': spouse_from_antac_db.fullname.title(),
+                            'spouse_companies_info': (
+                                f'з кількістю компаній у власності, зареєстрованих за кордоном - '
+                                f'{total_foreign_companies}')
+                        }
+                    if total_ukrainian_companies:
+                        weight = 0.3
+                        spouse_companies_info = (f'з кількістю компаній у власності, '
+                                                 f'{total_ukrainian_companies}')
+                        limit = 10
+                        if total_ukrainian_companies > limit:
+                            weight = 0.5
 
                 return weight, {
-                    'relationship_type': link_to_spouse_from_antac_db.to_person_relationship_type,
+                    'relationship_type': relationship_type,
                     'spouse_full_name': spouse_from_antac_db.fullname.title(),
-                    'spouse_foreign_companies_info': spouse_foreign_companies_info
+                    'spouse_companies_info': spouse_companies_info
                 }
 
         return RESULT_FALSE
