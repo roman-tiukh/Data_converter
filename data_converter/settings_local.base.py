@@ -172,15 +172,6 @@ PEP_SOURCE_PASSWORD = ''
 
 REDIS_PASSWORD = 'You_Redis_Password'
 
-FILE_ID_DICT = {
-    '2017': '3065cd92-94f0-4ba1-8fc6-efe3adc578c9',
-    '2018': '68423827-ba65-4263-a1da-60978524fd83',
-    '2019': '20189aee-fd1a-473b-a7ab-b3a57ab8e8b0',
-    '2020': '43745be7-00e1-4c98-9367-0c4940e8d8b6',
-    '2021': 'f7ff0fab-baf0-4c3c-9018-9de599c6e2a5',
-}
-LUXURY_CAR_URL = f'https://www.me.gov.ua/Files/GetFile?lang=uk-UA&fileId='
-
 
 CACHES = {
     'default': {
