@@ -19,11 +19,16 @@ class Command(BaseExportCommand):
         parser.add_argument('-z', '--with_zero', dest='with_zero', action='store_true')
         parser.add_argument(
             '-r', '--rules', type=str, action='extend',
-            choices=[rule.value for rule in ScoringRuleEnum] + ['all'], nargs='+'
+            choices=[rule.value for rule in ScoringRuleEnum], nargs='*'
+        )
+        parser.add_argument(
+            '-e', '--exclude', type=str, action='extend',
+            choices=[rule.value for rule in ScoringRuleEnum], nargs='*'
         )
 
     def handle(self, *args, **options):
         rules = options['rules']
+        exclude = options['exclude']
         year = options['year']
         upload_scoring_with_zero = options['with_zero']
         export_to_s3 = options['s3']
@@ -43,8 +48,10 @@ class Command(BaseExportCommand):
             'Додаткові дані',
         ])
         qs = PepScoring.objects.filter(declaration__type=Declaration.ANNUAL)
-        if rules[0] != 'all':
+        if rules:
             qs = qs.filter(rule_id__in=rules)
+        elif exclude:
+            qs = qs.exclude(rule_id__in=exclude)
         qs = qs.select_related(
             'declaration', 'pep'
         ).order_by(
