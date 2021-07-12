@@ -13,7 +13,7 @@ from data_converter.filter import DODjangoFilterBackend
 @method_decorator(name='list', decorator=swagger_auto_schema(auto_schema=None))
 class PepScoringListView(ListAPIView):
     permission_classes = [PepServerToken]
-    queryset = PepScoring.objects.order_by('-pep_id', '-score')
+    queryset = PepScoring.objects.filter(declaration__type=Declaration.ANNUAL).order_by('-pep_id', '-score')
     serializer_class = PepScoringSerializer
     filter_backends = (DODjangoFilterBackend,)
     filterset_class = PepScoringFilterSet
@@ -29,7 +29,8 @@ class PepScoringDetailView(ListAPIView):
 
     def get_queryset(self):
         last_declaration = Declaration.objects.filter(
-            pep__source_id=self.kwargs['source_id']
+            pep__source_id=self.kwargs['source_id'],
+            type=Declaration.ANNUAL,
         ).order_by('-submission_date').first()
         if not last_declaration:
             raise Http404

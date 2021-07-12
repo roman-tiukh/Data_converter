@@ -506,18 +506,18 @@ class IsMuchSpending(BaseScoringRule):
     message_uk = (
         "Задекларовані витрати - еквівалент {total_expenditures_USD} USD перевищують суму "
         "задекларованих доходів та грошових активів на кінець попереднього року - "
-        "еквівалент {declared_assets_USD} USD"
+        "еквівалент {declared_money_USD} USD"
     )
     message_en = (
         "Declared expenditures - USD {total_expenditures_USD} exceed the sum of income "
-        "and amount of monetary assets of the previous year - USD {declared_assets_USD}"
+        "and amount of monetary assets of the previous year - USD {declared_money_USD}"
     )
 
     class DataSerializer(serializers.Serializer):
         total_expenditures_USD = serializers.DecimalField(
             max_digits=12, decimal_places=2, min_value=0, required=True
         )
-        declared_assets_USD = serializers.DecimalField(
+        declared_money_USD = serializers.DecimalField(
             max_digits=12, decimal_places=2, min_value=0, required=True
         )
 
@@ -933,7 +933,7 @@ class IsCryptocurrency(BaseScoringRule):
         #     max_digits=12, decimal_places=2,
         #     min_value=0, required=True
         # )
-        no_cryptocurrency = serializers.CharField(allow_blank=True)
+        no_cryptocurrency_amount = serializers.CharField(allow_blank=True)
 
     def calculate_weight(self) -> Tuple[Union[int, float], dict]:
         cryptocurrency = IntangibleAsset.objects.filter(
