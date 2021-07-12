@@ -53,13 +53,13 @@ class Command(BaseExportCommand):
         elif exclude:
             qs = qs.exclude(rule_id__in=exclude)
         qs = qs.select_related(
-            'declaration', 'pep'
+            'declaration', 'pep',
         ).order_by(
+            'rule_id',
             '-declaration__year',
             '-pep_id',
             '-declaration__submission_date',
-            'rule_id',
-        ).distinct('declaration__year', 'pep_id')
+        ).distinct('rule_id', 'declaration__year', 'pep_id')
         if year:
             qs = qs.filter(declaration__year=year)
         if not upload_scoring_with_zero:
