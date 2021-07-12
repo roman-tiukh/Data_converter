@@ -263,6 +263,9 @@ class DeclarationConverter(BusinessConverter):
 
                     for key, (model_name, first_field) in model_dict.items():
                         if property._meta.model_name == key:
+                            if 'Особа не надала згоду на обробку персональних даних' in full_name:
+                                full_name = 'Особа не надала згоду на обробку персональних даних'
+                                owner_type = BaseRight.NO_INFO_FROM_FAMILY_MEMBER
                             field_dict = {
                                 first_field: property,
                                 'type': ownership_type,
@@ -300,6 +303,9 @@ class DeclarationConverter(BusinessConverter):
                     return
                 for key, (model_name, first_field) in model_dict.items():
                     if property._meta.model_name == key:
+                        if 'Особа не надала згоду на обробку персональних даних' in full_name:
+                            full_name = 'Особа не надала згоду на обробку персональних даних'
+                            owner_type = BaseRight.NO_INFO_FROM_FAMILY_MEMBER
                         field_dict = {
                             first_field: property,
                             'type': None,
