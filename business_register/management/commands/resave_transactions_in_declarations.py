@@ -16,7 +16,13 @@ class Command(BaseCommand):
         pass
 
     def handle(self, *args, **options):
-        for declaration in Declaration.objects.all():
+        i = 0
+        qs = Declaration.objects.all()
+        count = qs.count()
+        for declaration in qs:
+            i += 1
+            self.stdout.write(f'\rProgress: {i} of {count}', ending='')
+            self.stdout.flush()
             if self.savepoint.has(declaration.nacp_declaration_id):
                 continue
             self.converter.current_declaration = declaration
@@ -28,3 +34,5 @@ class Command(BaseCommand):
             self.converter.save_transaction(data, declaration)
             self.savepoint.add(declaration.nacp_declaration_id)
         self.savepoint.close()
+        self.stdout.write()
+        self.stdout.write('Done!')

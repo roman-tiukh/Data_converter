@@ -37,7 +37,15 @@ class Command(BaseExportCommand):
             'Вирахувана вага',
             'Додаткові дані',
         ])
-        qs = PepScoring.objects.filter(rule_id=rule_id, type=Declaration.ANNUAL)
+        qs = PepScoring.objects.filter(
+            rule_id=rule_id, declaration__type=Declaration.ANNUAL
+        ).select_related(
+            'declaration', 'pep'
+        ).order_by(
+            '-declaration__year',
+            '-pep_id',
+            '-declaration__submission_date',
+        ).distinct('declaration__year', 'pep_id')
         if year:
             qs = qs.filter(declaration__year=year)
         if not upload_scoring_with_zero:
@@ -48,7 +56,7 @@ class Command(BaseExportCommand):
         if count == 0:
             self.stdout.write('No data for saving')
             return
-        for ps in qs.order_by('pep_id'):
+        for ps in qs:
             i += 1
             self.stdout.write(f'\r Process {i} of {count}', ending='')
             self.stdout.flush()
