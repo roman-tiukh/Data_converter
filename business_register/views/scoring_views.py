@@ -13,7 +13,7 @@ from data_converter.filter import DODjangoFilterBackend
 @method_decorator(name='list', decorator=swagger_auto_schema(auto_schema=None))
 class PepScoringListView(ListAPIView):
     permission_classes = [PepServerToken]
-    queryset = PepScoring.objects.filter(type=Declaration.ANNUAL).order_by('-pep_id', '-score')
+    queryset = PepScoring.objects.filter(declaration__type=Declaration.ANNUAL).order_by('-pep_id', '-score')
     serializer_class = PepScoringSerializer
     filter_backends = (DODjangoFilterBackend,)
     filterset_class = PepScoringFilterSet
