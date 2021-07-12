@@ -933,7 +933,7 @@ class IsCryptocurrency(BaseScoringRule):
         #     max_digits=12, decimal_places=2,
         #     min_value=0, required=True
         # )
-        no_cryptocurrency = serializers.CharField(allow_blank=True)
+        no_cryptocurrency_amount = serializers.CharField(allow_blank=True)
 
     def calculate_weight(self) -> Tuple[Union[int, float], dict]:
         cryptocurrency = IntangibleAsset.objects.filter(
