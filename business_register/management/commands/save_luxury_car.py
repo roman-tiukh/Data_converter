@@ -35,12 +35,9 @@ class Command(BaseCommand):
                 continue
             wb = load_workbook(FILE_PATH + FILE_DICT[year])
             ws = wb[wb.sheetnames[0]]
-            start_row = 2
             all_car = []
-            for i, row in enumerate(ws):
-                if i < start_row:
-                    continue
-                car = [cell.value for cell in row]
+            for i in range(3, ws.max_row+1):
+                car = [cell.value for cell in ws[i]]
                 if not car[0]:
                     continue
                 brand = car[0].strip().lower()
