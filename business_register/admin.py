@@ -5,6 +5,7 @@ from django.forms import TextInput
 from rangefilter.filter import DateRangeFilter
 
 from business_register.models.company_models import Company
+from business_register.models.declaration_models import LuxuryCar
 from business_register.models.fop_models import Fop
 from business_register.models.kved_models import Kved
 from business_register.models.pep_models import Pep
@@ -228,3 +229,29 @@ class KvedAdmin(RegisterModelAdmin):
     search_fields = ('name', 'code')
     ordering = ('updated_at',)
     list_filter = ('is_valid',)
+
+
+@admin.register(LuxuryCar)
+class LuxuryCarAdmin(RegisterModelAdmin):
+    list_display = (
+        'id',
+        'brand',
+        'model',
+        'after_year',
+        'document_year',
+        'volume',
+        'fuel',
+    )
+    ordering = (
+        'document_year',
+    )
+    search_fields = (
+        'brand',
+        'model',
+    )
+
+    def has_change_permission(self, request, obj=None):
+        return self.has_module_permission(request)
+
+    def has_add_permission(self, request, obj=None):
+        return self.has_module_permission(request)
