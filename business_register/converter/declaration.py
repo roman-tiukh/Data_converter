@@ -537,12 +537,13 @@ class DeclarationConverter(BusinessConverter):
     #     'specExpensesSubject', 'specExpensesRealtySubject', 'type'
     # }
     def save_transaction(self, declaration_data, declaration):
+        transaction_type_boolean_values = {1: True, 2: False}
+
         transactions_data = self.get_step_data('step_14', declaration_data)
         if not transactions_data:
             return
-
         for data in transactions_data:
-            is_money_spent = self.BOOLEAN_VALUES.get(data.get('type'))
+            is_money_spent = transaction_type_boolean_values.get(data.get('type'))
             amount = self.to_float(data.get('costAmount'), data)
             transaction_object_type = data.get('specExpensesSubject', '')
             transaction_result = ''
