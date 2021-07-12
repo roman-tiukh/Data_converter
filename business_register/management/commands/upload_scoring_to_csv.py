@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 import csv
 from business_register.management.commands._base_export_command import BaseExportCommand
-from business_register.models.declaration_models import PepScoring
+from business_register.models.declaration_models import PepScoring, Declaration
 from business_register.pep_scoring.rules_registry import ScoringRuleEnum
 from data_ocean import s3bucket
 
@@ -16,12 +16,12 @@ class Command(BaseExportCommand):
         parser.add_argument('rule_id', type=str, choices=[rule.value for rule in ScoringRuleEnum], nargs=1)
         parser.add_argument('-y', '--year', dest='year', nargs='?', type=int)
         parser.add_argument('-s', '--s3', dest='s3', action='store_true')
-        parser.add_argument('-a', '--all', dest='all', action='store_true')
+        parser.add_argument('-z', '--with_zero', dest='with_zero', action='store_true')
 
     def handle(self, *args, **options):
         rule_id = options['rule_id'][0]
         year = options['year']
-        upload_all = options['all']
+        upload_scoring_with_zero = options['with_zero']
         export_to_s3 = options['s3']
 
         stream = io.StringIO()
@@ -37,10 +37,10 @@ class Command(BaseExportCommand):
             'Вирахувана вага',
             'Додаткові дані',
         ])
-        qs = PepScoring.objects.filter(rule_id=rule_id)
+        qs = PepScoring.objects.filter(rule_id=rule_id, type=Declaration.ANNUAL)
         if year:
             qs = qs.filter(declaration__year=year)
-        if not upload_all:
+        if not upload_scoring_with_zero:
             qs = qs.filter(score__gt=0)
 
         i = 0
