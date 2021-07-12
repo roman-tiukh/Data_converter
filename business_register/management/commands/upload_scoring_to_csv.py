@@ -92,10 +92,12 @@ class Command(BaseExportCommand):
 
         data = stream.getvalue()
         now_str = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+        file_name = 'pep_scoring_'
         if year:
-            file_name = f'pep_scoring_{year}_{rule_id}_{now_str}.csv'
-        else:
-            file_name = f'pep_scoring_{rule_id}_{now_str}.csv'
+            file_name += f'{year}_'
+        if rules:
+            file_name += f'{"_".join(rules)}_'
+        file_name += f'{now_str}.csv'
 
         if export_to_s3:
             url = s3bucket.save_file(f'scoring/{file_name}', data)
