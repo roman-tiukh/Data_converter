@@ -13,13 +13,17 @@ class Command(BaseExportCommand):
     help = '---'
 
     def add_arguments(self, parser):
-        parser.add_argument('rule_id', type=str, choices=[rule.value for rule in ScoringRuleEnum], nargs=1)
+        # parser.add_argument('rule_id', type=str, choices=[rule.value for rule in ScoringRuleEnum], nargs=1)
         parser.add_argument('-y', '--year', dest='year', nargs='?', type=int)
         parser.add_argument('-s', '--s3', dest='s3', action='store_true')
         parser.add_argument('-z', '--with_zero', dest='with_zero', action='store_true')
+        parser.add_argument(
+            '-r', '--rules', type=str, action='extend',
+            choices=[rule.value for rule in ScoringRuleEnum] + ['all'], nargs='+'
+        )
 
     def handle(self, *args, **options):
-        rule_id = options['rule_id'][0]
+        rules = options['rules']
         year = options['year']
         upload_scoring_with_zero = options['with_zero']
         export_to_s3 = options['s3']
@@ -29,6 +33,7 @@ class Command(BaseExportCommand):
         writer.writerow([
             'Посилання на декларацію',
             'Рік декларації',
+            'Дата подання декларації',
             'PEP ID (pep.org.ua)',
             'PEP ID (dataocean)',
             'Посилання на PEP',
@@ -37,14 +42,16 @@ class Command(BaseExportCommand):
             'Вирахувана вага',
             'Додаткові дані',
         ])
-        qs = PepScoring.objects.filter(
-            rule_id=rule_id, declaration__type=Declaration.ANNUAL
-        ).select_related(
+        qs = PepScoring.objects.filter(declaration__type=Declaration.ANNUAL)
+        if rules[0] != 'all':
+            qs = qs.filter(rule_id__in=rules)
+        qs = qs.select_related(
             'declaration', 'pep'
         ).order_by(
             '-declaration__year',
             '-pep_id',
             '-declaration__submission_date',
+            'rule_id',
         ).distinct('declaration__year', 'pep_id')
         if year:
             qs = qs.filter(declaration__year=year)
@@ -58,11 +65,12 @@ class Command(BaseExportCommand):
             return
         for ps in qs:
             i += 1
-            self.stdout.write(f'\r Process {i} of {count}', ending='')
+            self.stdout.write(f'\rProgress: {i} of {count}', ending='')
             self.stdout.flush()
             writer.writerow([
                 ps.declaration.nacp_url,
                 ps.declaration.year,
+                ps.declaration.submission_date.strftime('%d.%m.%Y'),
                 ps.pep.source_id,
                 ps.pep.id,
                 ps.pep.pep_org_ua_link,
