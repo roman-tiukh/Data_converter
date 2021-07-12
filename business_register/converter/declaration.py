@@ -5,6 +5,8 @@ from dateutil.parser import isoparse
 import requests
 from django.conf import settings
 from django.apps import apps
+from django.db.models import Q
+
 from business_register.converter.business_converter import BusinessConverter
 from business_register.models.declaration_models import (Declaration,
                                                          Property,
@@ -1668,12 +1670,14 @@ class DeclarationConverter(BusinessConverter):
                 continue
             to_person_relationship_type = relative_data.get('subjectRelation')
             related_person_links = RelatedPersonsLink.objects.filter(
-                from_person=pep,
-                to_person_relationship_type=to_person_relationship_type
+                Q(from_person=pep,
+                  to_person_relationship_type=to_person_relationship_type) |
+                Q(to_person=pep,
+                  from_person_relationship_type=to_person_relationship_type)
             )
             # TODO: decide should we store new Pep here
             for link in related_person_links:
-                related_person = link.to_person
+                related_person = link.to_person if link.to_person != pep else link.from_person
                 related_person_nacp_id = relative_data.get('id')
                 try:
                     if not is_same_full_name(relative_data, related_person):
