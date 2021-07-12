@@ -15,7 +15,7 @@ class Savepoint:
         self.saved_objects = set()
         with open(self.file_path, 'r') as file:
             for line in file:
-                self.saved_objects.add(self.cast(line))
+                self.saved_objects.add(self.cast(line.strip()))
         self.file = open(self.file_path, 'a')
 
     def has(self, nacp_declarant_id):
