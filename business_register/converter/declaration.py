@@ -85,6 +85,21 @@ class DeclarationConverter(BusinessConverter):
         self.current_declaration = None
         self.relatives_data = None
 
+    @staticmethod
+    def download_declaration(nacp_declaration_id: str):
+        response = requests.get(settings.NACP_DECLARATION_RETRIEVE + nacp_declaration_id)
+        if response.status_code == 200:
+            return response.json()['data']
+
+    def has_step_data(self, step_name, declaration_data):
+        if not declaration_data.get(step_name):
+            return False
+        return not bool(declaration_data[step_name].get('isNotApplicable'))
+
+    def get_step_data(self, step_name, declaration_data):
+        if self.has_step_data(step_name, declaration_data):
+            return declaration_data[step_name]['data']
+
     def log_error(self, message):
         logger.warning(f'Declaration id {self.current_declaration.nacp_declaration_id} : {message}')
 
@@ -317,7 +332,11 @@ class DeclarationConverter(BusinessConverter):
                             **field_dict
                         )
 
-    def save_intangible_assets(self, intangible_assets_data, declaration):
+    def save_intangible_assets(self, declaration_data, declaration):
+        intangible_assets_data = self.get_step_data('step_10', declaration_data)
+        if not intangible_assets_data:
+            return
+
         types = {
             'Право на використання надр чи інших природних ресурсів': IntangibleAsset.NATURAL_RESOURCES,
             'Торгова марка чи комерційне найменування': IntangibleAsset.TRADEMARK,
@@ -415,7 +434,11 @@ class DeclarationConverter(BusinessConverter):
             pep=declaration.pep
         )
 
-    def save_ngo_participation(self, ngo_data, declaration):
+    def save_ngo_participation(self, declaration_data, declaration):
+        ngo_data = self.get_step_data('step_16', declaration_data)
+        if not ngo_data:
+            return
+
         # possible_keys = {'iteration', 'objectType', 'subObjectType', 'objectName', 'reestrCode'}
         membership_data = ngo_data.get('org')
         if membership_data:
@@ -437,7 +460,11 @@ class DeclarationConverter(BusinessConverter):
     #     'emitent_ua_firstname', 'emitent_ua_lastname', 'emitent_ua_middlename'
     # }
 
-    def save_part_time_job(self, part_time_job_data, declaration):
+    def save_part_time_job(self, declaration_data, declaration):
+        part_time_job_data = self.get_step_data('step_15', declaration_data)
+        if not part_time_job_data:
+            return
+
         is_paid_booleans = {'Оплачувана': True, 'Не оплачувана': False}
         for data in part_time_job_data:
             is_paid = is_paid_booleans.get(data.get('paid'))
@@ -509,7 +536,11 @@ class DeclarationConverter(BusinessConverter):
     #     'specExpensesOtherMovableSubject', 'iteration', 'person', 'costAmount', 'specResultExpenses',
     #     'specExpensesSubject', 'specExpensesRealtySubject', 'type'
     # }
-    def save_transaction(self, transactions_data, declaration):
+    def save_transaction(self, declaration_data, declaration):
+        transactions_data = self.get_step_data('step_14', declaration_data)
+        if not transactions_data:
+            return
+
         for data in transactions_data:
             is_money_spent = self.BOOLEAN_VALUES.get(data.get('type'))
             amount = self.to_float(data.get('costAmount'), data)
@@ -585,7 +616,11 @@ class DeclarationConverter(BusinessConverter):
     #     'credit_percent_paid', 'emitent_ua_company_name', 'emitent_ua_regAddress', 'emitent_eng_taxNumber',
     #     'emitent_ua_actualAddress_extendedstatus', 'emitent_eng_regAddress_extendedstatus', 'objectType'
     # }
-    def save_liability(self, liabilities_data, declaration):
+    def save_liability(self, declaration_data, declaration):
+        liabilities_data = self.get_step_data('step_13', declaration_data)
+        if not liabilities_data:
+            return
+
         types = {
             'Отримані кредити': Liability.LOAN,
             'Отримані позики': Liability.LOAN,
@@ -732,7 +767,11 @@ class DeclarationConverter(BusinessConverter):
                     owner=owner
                 )
 
-    def save_bank_account(self, account_data, declaration, pep):
+    def save_bank_account(self, declaration_data, declaration, pep):
+        account_data = self.get_step_data('step_17', declaration_data)
+        if not account_data:
+            return
+
         all_banks = list(Money.objects.filter(declaration__pep=pep, type=Money.BANK_ACCOUNT).values_list(
             'bank_registration_number',
             flat=True))
@@ -818,7 +857,11 @@ class DeclarationConverter(BusinessConverter):
     #     'organization_type2_extendedstatus', 'debtor_ua_taxNumber', 'organization_type',
     #     'organization_eng_company_address_extendedstatus'
     # }
-    def save_money(self, money_data, declaration):
+    def save_money(self, declaration_data, declaration):
+        money_data = self.get_step_data('step_12', declaration_data)
+        if not money_data:
+            return
+
         types = {
             'Готівкові кошти': Money.CASH,
             'Кошти, розміщені на банківських рахунках': Money.BANK_ACCOUNT,
@@ -948,7 +991,11 @@ class DeclarationConverter(BusinessConverter):
     #     'source_ua_birthday_extendedstatus', 'source_ukr_firstname', 'source_citizen_extendedstatus',
     #     'source_ukr_company_name', 'person'
     # }
-    def save_income(self, incomes_data, declaration):
+    def save_income(self, declaration_data, declaration):
+        incomes_data = self.get_step_data('step_11', declaration_data)
+        if not incomes_data:
+            return
+
         types = {
             'Дохід від зайняття підприємницькою діяльністю': Income.BUSINESS,
             'Подарунок у грошовій формі': Income.GIFT_IN_CASH,
@@ -1101,7 +1148,11 @@ class DeclarationConverter(BusinessConverter):
     #     'person_who_care', 'iteration', 'mail_extendedstatus', 'ua_company_code_beneficial_owner',
     #     'ua_company_name_beneficial_owner', 'beneficial_owner_company_code', 'company_name_beneficial_owner', 'name'
     # }
-    def save_beneficiary_of(self, beneficiary_data, declaration):
+    def save_beneficiary_of(self, declaration_data, declaration):
+        beneficiary_data = self.get_step_data('step_9', declaration_data)
+        if not beneficiary_data:
+            return
+
         for data in beneficiary_data:
 
             company_name = data.get('company_name_beneficial_owner')
@@ -1203,7 +1254,11 @@ class DeclarationConverter(BusinessConverter):
     #     'cost_extendedstatus', 'country_extendedstatus', 'name_extendedstatus', 'owningDate',
     #     'regNumber_extendedstatus', 'legalForm_extendedstatus', 'legalForm', 'iteration', 'name'
     # }
-    def save_corporate_rights(self, companies_data, declaration):
+    def save_corporate_rights(self, declaration_data, declaration):
+        companies_data = self.get_step_data('step_8', declaration_data)
+        if not companies_data:
+            return
+
         # possible_values of is_transferred == {
         #     "[Член сім'ї не надав інформацію]", 'Не передано', 'Передано', None
         # }
@@ -1284,7 +1339,11 @@ class DeclarationConverter(BusinessConverter):
     #     'amount', 'emitent', 'persons', 'persons_date_extendedstatus', 'persons_eng_company_code_extendedstatus',
     #     'persons_ua_company_code', 'amount_extendedstatus', 'emitent_extendedstatus'
     # }
-    def save_securities(self, securities_data, declaration):
+    def save_securities(self, declaration_data, declaration):
+        securities_data = self.get_step_data('step_7', declaration_data)
+        if not securities_data:
+            return
+
         types = {
             'Іпотечні цінні папери': Securities.MORTGAGE_SECURITIES,
             'Інше': Securities.OTHER,
@@ -1501,7 +1560,10 @@ class DeclarationConverter(BusinessConverter):
     #     'otherObjectType_extendedstatus', 'costDate_extendedstatus', 'rights', 'otherObjectType',
     #     'costDate', 'owningDate'
     # }
-    def save_vehicle(self, vehicles_data, declaration):
+    def save_vehicle(self, declaration_data, declaration):
+        vehicles_data = self.get_step_data('step_6', declaration_data)
+        if not vehicles_data:
+            return
         types = {
             'Автомобіль легковий': Vehicle.CAR,
             'Автомобіль вантажний': Vehicle.TRUCK,
@@ -1544,7 +1606,11 @@ class DeclarationConverter(BusinessConverter):
     #     'acqPeriod', 'objectType', 'rights', 'trademark_extendedstatus', 'trademark', 'costDateUse',
     #     'acqBeforeFD', 'person', 'iteration', 'propertyDescr', 'otherObjectType_extendedstatus'
     # }
-    def save_luxury_item(self, luxuries_data, declaration):
+    def save_luxury_item(self, declaration_data, declaration):
+        luxuries_data = self.get_step_data('step_5', declaration_data)
+        if not luxuries_data:
+            return
+
         types = {
             'Твір мистецтва (картина тощо)': LuxuryItem.ART,
             'Персональні або домашні електронні пристрої': LuxuryItem.ELECTRONIC_DEVICES,
@@ -1581,7 +1647,11 @@ class DeclarationConverter(BusinessConverter):
             self.save_right(luxury_item, data)
 
     # TODO: implement as save_property()
-    def save_unfinished_construction(self, unfinished_construction_data, declaration):
+    def save_unfinished_construction(self, declaration_data, declaration):
+        unfinished_construction_data = self.get_step_data('step_4', declaration_data)
+        if not unfinished_construction_data:
+            return
+
         for data in unfinished_construction_data:
             additional_info = data.get('objectType')
             # TODO: add country
@@ -1628,7 +1698,10 @@ class DeclarationConverter(BusinessConverter):
     #     'ua_houseNum',
     #     'city_extendedstatus', 'ua_streetType_extendedstatus', 'region', 'totalArea_extendedstatus'
     # ]
-    def save_property(self, property_data, declaration):
+    def save_property(self, declaration_data, declaration):
+        property_data = self.get_step_data('step_3', declaration_data)
+        if not property_data:
+            return
         TYPES = {
             'Інше': Property.OTHER,
             'Земельна ділянка': Property.LAND,
@@ -1737,6 +1810,9 @@ class DeclarationConverter(BusinessConverter):
     # ]
     # TODO: maybe we should simplify spouse to CharField with full name
     def save_related_person(self, pep, declaration):
+        if not self.relatives_data:
+            return
+
         SPOUSE_TYPES = ['дружина', 'чоловік']
         for relative_data in self.relatives_data:
             if type(relative_data) != dict:
@@ -1784,7 +1860,9 @@ class DeclarationConverter(BusinessConverter):
     #     'public_person_extendedstatus', 'actual_streetType_extendedstatus', 'eng_actualPostCode',
     #     'corruptionAffected', 'eng_actualAddress', 'streetType_extendedstatus',
     #     'postCategory_extendedstatus'
-    def save_declarant_data(self, declarant_data, pep, declaration):
+    def save_declarant_data(self, declaration_data, declaration):
+        declarant_data = declaration_data['step_1']['data']
+
         declaration.last_employer = declarant_data.get('workPlace')
         city_of_registration_data = declarant_data.get('cityType')
         city_of_residence_data = declarant_data.get('actual_cityType')
@@ -1803,83 +1881,66 @@ class DeclarationConverter(BusinessConverter):
         declaration.last_job_title = declarant_data.get('workPost')
         declaration.save()
 
-    def save_all_steps(self, data: dict, pep: Pep, declaration: Declaration):
-        # 'Step_1' - declarant`s personal data
-        self.save_declarant_data(data['step_1']['data'], pep, declaration)
-
-        def has_step_data(step_name):
-            if not data.get(step_name):
-                return False
-            return not bool(data[step_name].get('isNotApplicable'))
-
-        # TODO: predict updating
-        # 'Step_2' - declarant`s family
-        if not declaration.spouse and has_step_data('step_2'):
+    def save_relatives_data(self, data, declaration):
+        if not declaration.spouse and self.has_step_data('step_2', data):
             self.relatives_data = data['step_2']['data']
-            self.save_related_person(pep, declaration)
         else:
             self.relatives_data = None
 
+    def save_all_steps(self, data: dict, pep: Pep, declaration: Declaration):
+        # 'Step_1' - declarant`s personal data
+        self.save_declarant_data(data, declaration)
+
+        # TODO: predict updating
+        # 'Step_2' - declarant`s family
+        self.save_relatives_data(data, declaration)
+        self.save_related_person(pep, declaration)
+
         # 'Step_3' - declarant`s family`s properties
-        if has_step_data('step_3'):
-            self.save_property(data['step_3']['data'], declaration)
+        self.save_property(data, declaration)
 
         # 'Step_4' - declarant`s family`s unfinished construction
-        if has_step_data('step_4'):
-            self.save_unfinished_construction(data['step_4']['data'], declaration)
+        self.save_unfinished_construction(data, declaration)
 
         # 'Step_5' - declarant`s family`s luxury items
-        if has_step_data('step_5'):
-            self.save_luxury_item(data['step_5']['data'], declaration)
+        self.save_luxury_item(data, declaration)
 
         # 'Step_6' - declarant`s family`s vehicles
-        if has_step_data('step_6'):
-            self.save_vehicle(data['step_6']['data'], declaration)
+        self.save_vehicle(data, declaration)
 
         # 'Step_7' - declarant`s family`s securities
-        if has_step_data('step_7'):
-            self.save_securities(data['step_7']['data'], declaration)
+        self.save_securities(data, declaration)
 
         # 'Step_8' - declarant`s family`s corporate rights
-        if has_step_data('step_8'):
-            self.save_corporate_rights(data['step_8']['data'], declaration)
+        self.save_corporate_rights(data, declaration)
 
         # 'Step_9' - companies where declarant`s family`s members are beneficiaries
-        if has_step_data('step_9'):
-            self.save_beneficiary_of(data['step_9']['data'], declaration)
+        self.save_beneficiary_of(data, declaration)
 
         # Step_10 - declarant`s family`s intangible assets
-        if has_step_data('step_10'):
-            self.save_intangible_assets(data['step_10']['data'], declaration)
+        self.save_intangible_assets(data, declaration)
 
         # 'Step_11' - declarant`s family`s incomes
-        if has_step_data('step_11'):
-            self.save_income(data['step_11']['data'], declaration)
+        self.save_income(data, declaration)
 
         # 'Step_12' - declarant`s family`s money
-        if has_step_data('step_12'):
-            self.save_money(data['step_12']['data'], declaration)
+        self.save_money(data, declaration)
 
         # 'Step_13' - declarant`s family`s liabilities
-        if has_step_data('step_13'):
-            self.save_liability(data['step_13']['data'], declaration)
+        self.save_liability(data, declaration)
 
         # 'Step_14' - declarant`s family`s transactions
-        if has_step_data('step_14'):
-            self.save_transaction(data['step_14']['data'], declaration)
+        self.save_transaction(data, declaration)
 
         # 'Step_15' - declarant`s part-time job info
-        if has_step_data('step_15'):
-            self.save_part_time_job(data['step_15']['data'], declaration)
+        self.save_part_time_job(data, declaration)
 
         # 'Step_16' - declarant`s membership in NGOs
-        if has_step_data('step_16'):
-            self.save_ngo_participation(data['step_16']['data'], declaration)
+        self.save_ngo_participation(data, declaration)
 
         # 'Step_17' Banks and other financial institutions in which the accounts of
         # the declarant or declarant't family are opened
-        if has_step_data('step_17'):
-            self.save_bank_account(data['step_17']['data'], declaration, pep)
+        self.save_bank_account(data, declaration, pep)
 
     def save_declarations_for_pep(self, nacp_declarant_id):
         # getting general info including declaration id
@@ -1909,25 +1970,24 @@ class DeclarationConverter(BusinessConverter):
             if declaration:
                 continue
             # TODO: add date to the model and here
-            else:
-                submission_date = isoparse(declaration_data['date']).date()
-                declaration = Declaration.objects.create(
-                    type=declaration_type,
-                    year=declaration_data['declaration_year'],
-                    submission_date=submission_date,
-                    nacp_declaration_id=declaration_id,
-                    nacp_declarant_id=nacp_declarant_id,
-                    pep=pep,
-                )
+            submission_date = isoparse(declaration_data['date']).date()
+            declaration = Declaration.objects.create(
+                type=declaration_type,
+                year=declaration_data['declaration_year'],
+                submission_date=submission_date,
+                nacp_declaration_id=declaration_id,
+                nacp_declarant_id=nacp_declarant_id,
+                pep=pep,
+            )
             self.current_declaration = declaration
             try:
                 # getting full declaration data
-                response = requests.get(settings.NACP_DECLARATION_RETRIEVE + declaration_id)
-                if response.status_code != 200:
+                declaration_data = self.download_declaration(declaration_id)
+                if not declaration_data:
                     declaration.destroy()
                     self.log_error('cannot find declarations')
                     continue
-                self.save_all_steps(response.json()['data'], pep, declaration)
+                self.save_all_steps(declaration_data, pep, declaration)
             except (Exception, KeyboardInterrupt) as e:
                 message = f'Error at declaration {declaration.nacp_declaration_id}: {e}'
                 print(message)
