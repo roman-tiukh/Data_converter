@@ -210,6 +210,7 @@ class DeclarationConverter(BusinessConverter):
             ('Право власності третьої особи, але наявні ознаки відповідно до частини 3 статті 46 '
              'ЗУ «Про запобігання корупції»'): BaseRight.BENEFICIAL_OWNERSHIP,
             "[Член сім'ї не надав інформацію]": BaseRight.NO_INFO_FROM_FAMILY_MEMBER,
+            "Особа не надала згоду на обробку персональних даних": BaseRight.NO_RIGHTS_FROM_FAMILY_MEMBER,
         }
         acquisition_date = corporate_rights_data.get('owningDate') if corporate_rights_data.get(
             'owningDate') not in self.NO_DATA else None
@@ -263,9 +264,9 @@ class DeclarationConverter(BusinessConverter):
 
                     for key, (model_name, first_field) in model_dict.items():
                         if property._meta.model_name == key:
-                            if 'Особа не надала згоду на обробку персональних даних' in full_name:
-                                full_name = 'Особа не надала згоду на обробку персональних даних'
-                                owner_type = BaseRight.NO_INFO_FROM_FAMILY_MEMBER
+                            if "Особа не надала згоду на обробку персональних даних" in full_name:
+                                full_name = "Особа не надала згоду на обробку персональних даних"
+                                owner_type = BaseRight.NO_RIGHTS_FROM_FAMILY_MEMBER
                             field_dict = {
                                 first_field: property,
                                 'type': ownership_type,
@@ -303,9 +304,9 @@ class DeclarationConverter(BusinessConverter):
                     return
                 for key, (model_name, first_field) in model_dict.items():
                     if property._meta.model_name == key:
-                        if 'Особа не надала згоду на обробку персональних даних' in full_name:
-                            full_name = 'Особа не надала згоду на обробку персональних даних'
-                            owner_type = BaseRight.NO_INFO_FROM_FAMILY_MEMBER
+                        if "Особа не надала згоду на обробку персональних даних" in full_name:
+                            full_name = "Особа не надала згоду на обробку персональних даних"
+                            owner_type = BaseRight.NO_RIGHTS_FROM_FAMILY_MEMBER
                         field_dict = {
                             first_field: property,
                             'type': None,
