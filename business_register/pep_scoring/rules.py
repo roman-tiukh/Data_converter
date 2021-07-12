@@ -443,8 +443,8 @@ class IsAssetsJumped(BaseScoringRule):
 
     rule_id = ScoringRuleEnum.PEP05
     message_uk = (
-        "Задекларовані нерухомість, авто та готівка - разом на еквівалент {total_assets_USD} USD "
-        "зросли більш ніж у п'ять разів порівнено з попереднім роком - {previous_total_assets_USD} USD, "
+        "Сума задекларованих нерухомості, авто та готівки - разом еквівалент {total_assets_USD} USD "
+        "зросла більш ніж у п'ять разів порівнено з попереднім роком - {previous_total_assets_USD} USD, "
         "у той час як зобов'язання змінилися з {total_liabilities_USD} USD до "
         "{previous_total_liabilities_USD} USD"
     )
@@ -476,11 +476,11 @@ class IsAssetsJumped(BaseScoringRule):
 
         def get_total_assets_USD(declaration):
             total_cash_USD = get_total_hard_cash_USD(declaration)
-            total_property = get_total_property_valuation(declaration.id)
+            total_property_valuation = get_total_property_valuation(declaration.id)
             total_cars_valuation = get_total_cars_valuation(declaration.id)
             total_property_cars_USD = convert_to_usd(
                 UAH,
-                (total_property + total_cars_valuation),
+                (total_property_valuation + total_cars_valuation),
                 declaration.year
             )
             return total_cash_USD + total_property_cars_USD
