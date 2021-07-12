@@ -18,11 +18,11 @@ class Command(BaseExportCommand):
         parser.add_argument('-s', '--s3', dest='s3', action='store_true')
         parser.add_argument('-z', '--with_zero', dest='with_zero', action='store_true')
         parser.add_argument(
-            '-r', '--rules', type=str, action='extend',
+            '-r', '--rules', type=str, action='append',
             choices=[rule.value for rule in ScoringRuleEnum], nargs='*'
         )
         parser.add_argument(
-            '-e', '--exclude', type=str, action='extend',
+            '-e', '--exclude', type=str, action='append',
             choices=[rule.value for rule in ScoringRuleEnum], nargs='*'
         )
 
