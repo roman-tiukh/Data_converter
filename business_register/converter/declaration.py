@@ -63,6 +63,8 @@ class DeclarationConverter(BusinessConverter):
         self.BOOLEAN_VALUES = {
             '1': True,
             '0': False,
+            1: True,
+            0: False,
             "Майно набуто ДО ПОЧАТКУ ПЕРІОДУ здійснення суб'єктом декларування діяльності із "
             "виконання функцій держави або місцевого самоврядування": True,
             "Майно набуто У ПЕРІОД здійснення суб'єктом декларування діяльності із виконання "
@@ -508,9 +510,8 @@ class DeclarationConverter(BusinessConverter):
     #     'specExpensesSubject', 'specExpensesRealtySubject', 'type'
     # }
     def save_transaction(self, transactions_data, declaration):
-        is_money_spent_booleans = {'1': True, '2': False}
         for data in transactions_data:
-            is_money_spent = is_money_spent_booleans.get(data.get('type'))
+            is_money_spent = self.BOOLEAN_VALUES.get(data.get('type'))
             amount = self.to_float(data.get('costAmount'), data)
             transaction_object_type = data.get('specExpensesSubject', '')
             transaction_result = ''
@@ -1513,8 +1514,8 @@ class DeclarationConverter(BusinessConverter):
         for data in vehicles_data:
             vehicle_type = types.get(data.get('objectType'))
             additional_info = data.get('otherObjectType', '')
-            brand = data.get('brand')
-            model = data.get('model')
+            brand = data.get('brand', '')
+            model = data.get('model', '')
             year = data.get('graduationYear')
             if year in self.NO_DATA:
                 year = None
