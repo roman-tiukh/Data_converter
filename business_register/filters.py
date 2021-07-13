@@ -392,7 +392,7 @@ class PersonSanctionFilterSet(BaseSanctionFilter):
         lookup_expr='icontains',
         help_text='Filter by taxpayer number of person. Type: case insensitive string contains',
     )
-    countries_of_citizenship = filters.CharFilter(
+    country_of_citizenship = filters.CharFilter(
         method='filter_two_country_of_sitizenship_fields',
         lookup_expr='icontains',
         help_text='Filter by countries of citizenship of person in English and Ukrainian.'
