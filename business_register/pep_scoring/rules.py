@@ -21,7 +21,8 @@ from business_register.models.declaration_models import (
     PepScoring,
     IntangibleAsset,
     Transaction,
-    Beneficiary
+    Beneficiary,
+    Liability
 )
 from business_register.models.pep_models import CompanyLinkWithPep
 from business_register.models.company_models import Company
@@ -82,6 +83,38 @@ def get_total_money_USD(declaration):
     return 0
 
 
+def get_total_liabilities_USD(declaration):
+    liabilities_data = Liability.objects.filter(
+        declaration=declaration.id,
+        amount__isnull=False,
+        currency__isnull=False
+    ).values_list('currency', 'amount')
+    if liabilities_data:
+        return get_total_USD(liabilities_data, declaration.year)
+    return 0
+
+
+def get_total_property_valuation(declaration_id):
+    total_property_valuation = PropertyRight.objects.filter(
+        property__declaration_id=declaration_id,
+        type__in=OWNERSHIP_TYPES,
+        property__valuation__isnull=False,
+    ).aggregate(Sum('property__valuation')).get('property__valuation__sum')
+    if not total_property_valuation:
+        total_property_valuation = 0
+    return total_property_valuation
+
+
+def get_total_cars_valuation(declaration_id):
+    total_cars_valuation = VehicleRight.objects.filter(
+        car__declaration_id=declaration_id,
+        car__valuation__isnull=False,
+    ).aggregate(Sum('car__valuation')).get('car__valuation__sum')
+    if not total_cars_valuation:
+        total_cars_valuation = 0
+    return total_cars_valuation
+
+
 def get_total_hard_cash_USD(declaration):
     cash_data = Money.objects.filter(
         declaration_id=declaration.id,
@@ -91,6 +124,14 @@ def get_total_hard_cash_USD(declaration):
     if cash_data:
         return get_total_USD(cash_data, declaration.year)
     return 0
+
+
+def get_prevoius_declaration(pep_id, year):
+    return Declaration.objects.filter(
+        pep_id=pep_id,
+        type=Declaration.ANNUAL,
+        year=year - 1
+    ).first()
 
 
 class BaseScoringRule(ABC):
@@ -276,6 +317,7 @@ class IsSmallIncome(BaseScoringRule):
         total_incomes = serializers.FloatField(min_value=0, required=True)
 
     def calculate_weight(self) -> Tuple[Union[int, float], dict]:
+        declaration_id = self.declaration.id
         first_limit = 10
         second_limit = 50
         third_limit = 100
@@ -285,19 +327,8 @@ class IsSmallIncome(BaseScoringRule):
         if not total_incomes:
             return RESULT_FALSE
 
-        total_property_valuation = PropertyRight.objects.filter(
-            property__declaration_id=self.declaration.id,
-            type__in=OWNERSHIP_TYPES,
-            property__valuation__isnull=False,
-        ).aggregate(Sum('property__valuation')).get('property__valuation__sum')
-        if not total_property_valuation:
-            total_property_valuation = 0
-        total_cars_valuation = VehicleRight.objects.filter(
-            car__declaration_id=self.declaration.id,
-            car__valuation__isnull=False,
-        ).aggregate(Sum('car__valuation')).get('car__valuation__sum')
-        if not total_cars_valuation:
-            total_cars_valuation = 0
+        total_property_valuation = get_total_property_valuation(declaration_id)
+        total_cars_valuation = get_total_cars_valuation(declaration_id)
         total_assets = total_property_valuation + total_cars_valuation
         if not total_assets:
             return RESULT_FALSE
@@ -397,6 +428,79 @@ class IsNoAutoValue(BaseScoringRule):
         if cars_without_valuation:
             return 0.1, {
                 'total_cars': cars_without_valuation.count()
+            }
+        return RESULT_FALSE
+
+
+@register_rule
+class IsAssetsJumped(BaseScoringRule):
+    """
+    Rule 05 - PEP05
+    weight - 0.5
+    PEP declared that the overall value of the movable and immovable property
+    and hard cash increased 5 times compared to the declaration for the previous year
+    """
+
+    rule_id = ScoringRuleEnum.PEP05
+    message_uk = (
+        "Сума задекларованих нерухомості, авто та готівки - разом еквівалент {total_assets_USD} USD "
+        "зросла більш ніж у п'ять разів порівнено з попереднім роком - {previous_total_assets_USD} USD, "
+        "у той час як зобов'язання змінилися з {total_liabilities_USD} USD до "
+        "{previous_total_liabilities_USD} USD"
+    )
+    message_en = (
+        "Amounting of declared property, cars and hard cash - {total_assets_USD} USD "
+        "increased more than five times from previous year - {previous_total_assets_USD} USD, "
+        "and in the same time liabilities changed from {total_liabilities_USD} USD to "
+        "{previous_total_liabilities_USD} USD"
+    )
+
+    class DataSerializer(serializers.Serializer):
+        total_assets_USD = serializers.DecimalField(
+            max_digits=12, decimal_places=2, min_value=0, required=True
+        )
+        previous_total_assets_USD = serializers.DecimalField(
+            max_digits=12, decimal_places=2, min_value=0, required=True
+        )
+        total_liabilities_USD = serializers.DecimalField(
+            max_digits=12, decimal_places=2, min_value=0, required=True
+        )
+        previous_total_liabilities_USD = serializers.DecimalField(
+            max_digits=12, decimal_places=2, min_value=0, required=True
+        )
+
+    def calculate_weight(self) -> Tuple[Union[int, float], dict]:
+        pep_id = self.pep.id
+        year = self.declaration.year
+        times_limit = 5
+
+        def get_total_assets_USD(declaration):
+            total_cash_USD = get_total_hard_cash_USD(declaration)
+            total_property_valuation = get_total_property_valuation(declaration.id)
+            total_cars_valuation = get_total_cars_valuation(declaration.id)
+            total_property_cars_USD = convert_to_usd(
+                UAH,
+                (total_property_valuation + total_cars_valuation),
+                declaration.year
+            )
+            return total_cash_USD + total_property_cars_USD
+
+        previous_declaration = get_prevoius_declaration(pep_id, year)
+        if not previous_declaration:
+            return RESULT_FALSE
+        declaration = self.declaration
+        previous_total_assets_USD = get_total_assets_USD(previous_declaration)
+        total_assets_USD = get_total_assets_USD(declaration)
+        if total_assets_USD > previous_total_assets_USD * times_limit:
+            return 0.5, {
+                "total_assets_USD":
+                    round(total_assets_USD, 2),
+                "previous_total_assets_USD":
+                    round(previous_total_assets_USD, 2),
+                'total_liabilities_USD':
+                    round(get_total_liabilities_USD(declaration), 2),
+                'previous_total_liabilities_USD':
+                    round(get_total_liabilities_USD(previous_declaration), 2)
             }
         return RESULT_FALSE
 
