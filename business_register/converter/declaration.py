@@ -367,9 +367,14 @@ class DeclarationConverter(BusinessConverter):
             'eos': IntangibleAsset.EOS,
             'nxt': IntangibleAsset.NXT,
             'ripple': IntangibleAsset.RIPPLE,
+            'біткоїн': IntangibleAsset.BITCOIN,
+            'etherium classic': IntangibleAsset.ETHERIUM_CLASSIC,
+            'eth': IntangibleAsset.ETHERIUM,
+            'xrp': IntangibleAsset.XRP,
+            'bnb': IntangibleAsset.BNB
         }
         for data in intangible_assets_data:
-            valuation = data.get('costDateOrigin') if data.get('costDateOrigin') not in self.NO_DATA else None
+            valuation = self.to_float(data.get('costDateOrigin'), data)
             quantity = self.to_float(data.get('countObject'), data)
             type_asset = types.get(data.get('objectType'))
             if not type_asset:
