@@ -504,6 +504,7 @@ class IsAssetsJumped(BaseScoringRule):
             }
         return RESULT_FALSE
 
+
 @register_rule
 class IsAssetsSaleTrick(BaseScoringRule):
     """
@@ -515,16 +516,27 @@ class IsAssetsSaleTrick(BaseScoringRule):
 
     rule_id = ScoringRuleEnum.PEP09
     message_uk = (
-        "Задекларовані доходи від продажу нерухомості та/або авто - {total_sales_incomes} гривень "
+        "Задекларовані доходи від продажу нерухомості - {total_sales_incomes} гривень "
         "більш ніж утричі перевищують задекларовану роком раніше оцінку цих активів - "
         "{previous_valuation} гривень"
     )
     message_en = (
-        "Declared income from sale of property and/or cars - {total_sales_incomes} UAH exceed "
-        "more than three times the valuation of these assets that was declared in the previous year"
+        "Declared income from sale of property - {total_sales_incomes} UAH exceed "
+        "more than three times the valuation of these property that was declared in the previous year"
         " - {previous_valuation} UAH"
     )
 
+    # for next iteration
+    # message_uk = (
+    #     "Задекларовані доходи від продажу нерухомості та/або авто - {total_sales_incomes} гривень "
+    #     "більш ніж утричі перевищують задекларовану роком раніше оцінку цих активів - "
+    #     "{previous_valuation} гривень"
+    # )
+    # message_en = (
+    #     "Declared income from sale of property and/or cars - {total_sales_incomes} UAH exceed "
+    #     "more than three times the valuation of these assets that was declared in the previous year"
+    #     " - {previous_valuation} UAH"
+    # )
 
     class DataSerializer(serializers.Serializer):
         total_sales_incomes = serializers.DecimalField(
@@ -536,10 +548,9 @@ class IsAssetsSaleTrick(BaseScoringRule):
             min_value=0, required=True
         )
 
-
     def calculate_weight(self) -> Tuple[Union[int, float], dict]:
         # ANTAC wants to add sales of cars
-        sales_type = [Income.SALE_OF_PROPERTY, Income.SALE_OF_MOVABLES]
+        sales_type = [Income.SALE_OF_PROPERTY, ]  # later we should add here Income.SALE_OF_MOVABLES
         declaration_id = self.declaration.id
         pep_id = self.pep.id
         year = self.declaration.year
@@ -575,7 +586,7 @@ class IsAssetsSaleTrick(BaseScoringRule):
                 previous_valuation += data[1]
                 sold_property_id += data[2]
         if not previous_valuation:
-            #TODO: discuss logging for ANTAC in such case
+            # TODO: discuss logging for ANTAC in such case
             return RESULT_FALSE
         if total_sales_incomes > previous_valuation * times_limit:
             return 0.5, {
@@ -583,6 +594,7 @@ class IsAssetsSaleTrick(BaseScoringRule):
                 "previous_valuation": previous_valuation
             }
         return RESULT_FALSE
+
 
 @register_rule
 class IsMuchPartTimeJob(BaseScoringRule):
