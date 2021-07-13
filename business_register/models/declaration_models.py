@@ -1394,9 +1394,12 @@ class IntangibleAsset(DataOceanModel):
     SWISSBORG = 10
     EOS = 11
     UTRUST = 12
+    ETHERIUM_CLASSIC = 13
+    XRP = 14
+    BNB = 15
     CRYPTOCURRENCY_TYPES = (
         (BITCOIN, 'Bitcoin'),
-        (ETHERIUM, 'ETHERIUM'),
+        (ETHERIUM, 'Etherium'),
         (RIPPLE, 'Ripple'),
         (NXT, 'NXT'),
         (LITECOIN, 'Litecoin'),
@@ -1406,7 +1409,10 @@ class IntangibleAsset(DataOceanModel):
         (SYNTROPY, 'Syntropy'),
         (SWISSBORG, 'Swissborg'),
         (EOS, 'EOS'),
-        (UTRUST, 'Utrust')
+        (UTRUST, 'Utrust'),
+        (ETHERIUM, 'Etherium classic'),
+        (XRP, 'XRP'),
+        (BNB, 'BNB')
     )
     declaration = models.ForeignKey(
         Declaration,
