@@ -708,7 +708,7 @@ class Income(DataOceanModel):
     SALE_OF_PROPERTY = 17
     LEGACY = 18
     PART_TIME_SALARY = 19
-    SALE_OF_LUXURIES = 20
+    SALE_OF_MOVABLES = 20
     SELF_EMPLOYMENT = 21
     ROYALTY = 22
 
@@ -731,7 +731,8 @@ class Income(DataOceanModel):
         (SALE_OF_PROPERTY, 'Sale of property'),
         (LEGACY, 'Legacy'),
         (PART_TIME_SALARY, 'Salary from part-time job'),
-        (SALE_OF_LUXURIES, 'Sale of luxuries'),
+        # actually, sale of any movable property. Maybe, better to rename
+        (SALE_OF_MOVABLES, 'Sale of movables'),
         (SELF_EMPLOYMENT, 'Self-employment'),
         (ROYALTY, 'Royalty'),
     )
