@@ -109,7 +109,14 @@ class Command(BaseCommand):
 
         with connection.cursor() as cursor:
             cursor.execute(self.PEP_QUERY)
-            for pep_data in cursor.fetchall():
+            i = 0
+            rows = cursor.fetchall()
+            count = len(rows)
+            for pep_data in rows:
+                i += 1
+                self.stdout.write(f'\rProgress: {i} of {count}', ending='')
+                self.stdout.flush()
+
                 pep = self.all_peps.get(pep_data[0])
                 if not pep:
                     self.stdout.write(f'No PEP from ANTAC`s DB with id={pep_data[0]} in our database')
@@ -147,3 +154,6 @@ class Command(BaseCommand):
                 #         f'PEP data from our DB with id {pep.id}: {pep.last_name} {pep.first_name}, '
                 #         f'from declaration: {last_name} {first_name}')
                 #     continue
+
+        self.stdout.write()
+        self.stdout.write('Done!')
