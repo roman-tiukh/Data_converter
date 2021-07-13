@@ -16,10 +16,17 @@ class Command(BaseCommand):
         parser.add_argument('--pep_id', nargs='?', type=int)
 
     def is_luxury_cars(self, cars):
+        i = 0
+        count = cars.count()
         for car in cars:
+            i += 1
+            self.stdout.write(f'\rProgress: {i} of {count}', ending='')
+            self.stdout.flush()
             self.converter.current_declaration = car.declaration
             car.is_luxury = self.converter.is_vehicle_luxury(car)
             car.save()
+        self.stdout.write()
+        self.stdout.write('Done!')
 
     def handle(self, *args, **options):
         declaration_nacp_id = options['declaration_nacp_id']
@@ -28,7 +35,10 @@ class Command(BaseCommand):
             cars = Vehicle.objects.filter(type=Vehicle.CAR, declaration__pep_id=pep_id)
             self.is_luxury_cars(cars)
         elif declaration_nacp_id:
-            cars = Vehicle.objects.filter(type=Vehicle.CAR, declaration__nacp_declaration_id=declaration_nacp_id)
+            cars = Vehicle.objects.filter(
+                type=Vehicle.CAR,
+                declaration__nacp_declaration_id=declaration_nacp_id,
+            )
             self.is_luxury_cars(cars)
         else:
             all_cars = Vehicle.objects.filter(type=Vehicle.CAR)
