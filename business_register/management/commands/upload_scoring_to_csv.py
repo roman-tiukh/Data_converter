@@ -19,11 +19,11 @@ class Command(BaseExportCommand):
         parser.add_argument('-z', '--with_zero', dest='with_zero', action='store_true')
         parser.add_argument(
             '-r', '--rules', type=str, action='append',
-            choices=[rule.value for rule in ScoringRuleEnum], nargs='*'
+            choices=[rule.value for rule in ScoringRuleEnum]
         )
         parser.add_argument(
             '-e', '--exclude', type=str, action='append',
-            choices=[rule.value for rule in ScoringRuleEnum], nargs='*'
+            choices=[rule.value for rule in ScoringRuleEnum]
         )
 
     def handle(self, *args, **options):
