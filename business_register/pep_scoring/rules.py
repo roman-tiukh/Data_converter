@@ -583,7 +583,8 @@ class IsAssetsSaleTrick(BaseScoringRule):
         for data in previous_property_data:
             if data[0] not in property_area_now:
                 previous_valuation += data[1]
-                sold_property_id += data[2]
+                # TODO: discuss logging that data for ANTAC
+                sold_property_id.append(data[2])
         if not previous_valuation:
             # TODO: discuss logging for ANTAC in such case
             return RESULT_FALSE
