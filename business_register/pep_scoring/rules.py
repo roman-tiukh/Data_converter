@@ -823,7 +823,7 @@ class IsManyCars(BaseScoringRule):
 class IsMuchCash(BaseScoringRule):
     """
     Rule 20 - PEP20
-    weight - 0.8
+    weight - 0.5, 0.8, 1
     The overall amount of declared hard cash owned by PEP and members of the family exceeds USD 50000
     """
 
@@ -863,7 +863,7 @@ class IsMuchCash(BaseScoringRule):
 class IsMoneyFromNowhere(BaseScoringRule):
     """
     Rule 21 - PEP21
-    weight - 0.5, 0.8, 1
+    weight - 0.8
     Monetary assets declared this year exceed the sum of this year`s
     income and amount of monetary assets of the previous year
     """
