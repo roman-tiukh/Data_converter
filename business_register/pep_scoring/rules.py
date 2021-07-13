@@ -724,7 +724,7 @@ class IsMuchSpending(BaseScoringRule):
             pep_id=self.pep.id,
             type=Declaration.ANNUAL,
             year=year - 1
-        ).first()
+        ).order_by('-submission_date').first()
         if not previous_declaration:
             return RESULT_FALSE
         total_expenditures = Transaction.objects.filter(
