@@ -1,6 +1,7 @@
 import json
 import psycopg2
 import requests
+import sshtunnel
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
@@ -95,10 +96,11 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         pass
 
-    def handle(self, *args, **options):
-        host = self.host
-        port = self.port
+    def process(self, host=None, port=None):
+        host = host or self.host
+        port = port or self.port
 
+        self.stdout.write(f'business_pep: psycopg2 connect to {host}:{port}...')
         connection = psycopg2.connect(
             host=host,
             port=port,
@@ -106,54 +108,79 @@ class Command(BaseCommand):
             user=self.user,
             password=self.password
         )
+        cursor = connection.cursor()
+        cursor.execute(self.PEP_QUERY)
+        i = 0
+        rows = cursor.fetchall()
+        count = len(rows)
+        for pep_data in rows:
+            i += 1
+            self.stdout.write(f'\rProgress: {i} of {count}', ending='')
+            self.stdout.flush()
 
-        with connection.cursor() as cursor:
-            cursor.execute(self.PEP_QUERY)
-            i = 0
-            rows = cursor.fetchall()
-            count = len(rows)
-            for pep_data in rows:
-                i += 1
-                self.stdout.write(f'\rProgress: {i} of {count}', ending='')
-                self.stdout.flush()
+            pep = self.all_peps.get(pep_data[0])
+            if not pep:
+                self.stdout.write(f'No PEP from ANTAC`s DB with id={pep_data[0]} in our database')
+                continue
+            declaration_id = pep_data[1].replace('nacp_', '')
+            response = requests.get(settings.NACP_DECLARATION_RETRIEVE + declaration_id)
+            if response.status_code != 200:
+                self.stdout.write(f'cannot find the declaration with id: {declaration_id}')
+                continue
+            declaration_data = json.loads(response.text)
 
-                pep = self.all_peps.get(pep_data[0])
-                if not pep:
-                    self.stdout.write(f'No PEP from ANTAC`s DB with id={pep_data[0]} in our database')
-                    continue
-                declaration_id = pep_data[1].replace('nacp_', '')
-                response = requests.get(settings.NACP_DECLARATION_RETRIEVE + declaration_id)
-                if response.status_code != 200:
-                    self.stdout.write(f'cannot find the declaration with id: {declaration_id}')
-                    continue
-                declaration_data = json.loads(response.text)
+            # storing PEP nacp_id from declarations list
+            pep_nacp_id = declaration_data.get('user_declarant_id')
+            if not isinstance(pep_nacp_id, int) or not pep_nacp_id:
+                self.stdout.write(f'Check invalid declarant NACP id ({pep_nacp_id}) from declaration '
+                                  f'with NACP id {declaration_id}')
+                continue
+            elif pep_nacp_id in pep.nacp_id:
+                continue
+            else:
+                pep.nacp_id.append(pep_nacp_id)
+                pep.save()
 
-                # storing PEP nacp_id from declarations list
-                pep_nacp_id = declaration_data.get('user_declarant_id')
-                if not isinstance(pep_nacp_id, int) or not pep_nacp_id:
-                    self.stdout.write(f'Check invalid declarant NACP id ({pep_nacp_id}) from declaration '
-                                      f'with NACP id {declaration_id}')
-                    continue
-                elif pep_nacp_id in pep.nacp_id:
-                    continue
-                else:
-                    pep.nacp_id.append(pep_nacp_id)
-                    pep.save()
-
-                # additional check of matching PEP`s last_name and first_name
-                # last_name = declaration_data['data']['step_1']['data'].get('lastname')
-                # first_name = declaration_data['data']['step_1']['data'].get('firstname')
-                # if (
-                #         pep.last_name != last_name.lower()
-                #         or pep.first_name != first_name.lower()
-                # ):
-                #     self.stdout.write(
-                #         f'PEP data from our DB with id {pep.id}: {pep.last_name} {pep.first_name}, '
-                #         f'from declaration: {last_name} {first_name}')
-                #     self.check_peps.append(
-                #         f'PEP data from our DB with id {pep.id}: {pep.last_name} {pep.first_name}, '
-                #         f'from declaration: {last_name} {first_name}')
-                #     continue
+            # additional check of matching PEP`s last_name and first_name
+            # last_name = declaration_data['data']['step_1']['data'].get('lastname')
+            # first_name = declaration_data['data']['step_1']['data'].get('firstname')
+            # if (
+            #         pep.last_name != last_name.lower()
+            #         or pep.first_name != first_name.lower()
+            # ):
+            #     self.stdout.write(
+            #         f'PEP data from our DB with id {pep.id}: {pep.last_name} {pep.first_name}, '
+            #         f'from declaration: {last_name} {first_name}')
+            #     self.check_peps.append(
+            #         f'PEP data from our DB with id {pep.id}: {pep.last_name} {pep.first_name}, '
+            #         f'from declaration: {last_name} {first_name}')
+            #     continue
 
         self.stdout.write()
         self.stdout.write('Done!')
+
+    def handle(self, *args, **options):
+        self.stdout.write(f'business_pep: use SSH tunnel: {settings.PEP_SOURCE_USE_SSH}')
+
+        if not settings.PEP_SOURCE_USE_SSH:
+            self.process()
+            return
+
+        sshtunnel.TUNNEL_TIMEOUT = settings.PEP_TUNNEL_TIMEOUT
+        sshtunnel.SSH_TIMEOUT = settings.PEP_SSH_TIMEOUT
+        with sshtunnel.SSHTunnelForwarder(
+                (settings.PEP_SSH_SERVER_IP, settings.PEP_SSH_SERVER_PORT),
+                ssh_username=settings.PEP_SSH_USERNAME,
+                ssh_pkey=settings.PEP_SSH_PKEY,
+                remote_bind_address=(self.host, self.port),
+                # local_bind_address=(settings.PEP_LOCAL_SOURCE_HOST, settings.PEP_LOCAL_SOURCE_PORT)
+        ) as tunnel:
+            self.stdout.write(
+                f'business_pep: tunnel is active: {tunnel.is_active} on '
+                f'{tunnel.local_bind_host}:{tunnel.local_bind_port}'
+            )
+            self.process(
+                host=tunnel.local_bind_host,
+                port=tunnel.local_bind_port,
+            )
+
