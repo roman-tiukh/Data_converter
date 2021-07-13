@@ -22,6 +22,9 @@ from business_register.models.pep_models import Pep
 #  'identificationCode', 'no_taxNumber', 'region_extendedstatus', 'street', 'birthday', 'streetType',
 #  'middlename', 'previous_eng_middlename', 'subjectRelation', 'citizenship', 'city', 'streetType_extendedstatus',
 #  'postCode', 'passport_extendedstatus']
+from data_ocean.savepoint import Savepoint
+
+
 class InvalidRelativeData(Exception):
     def __init__(self, relative_data):
         self.relative_data = relative_data
@@ -68,6 +71,7 @@ class Command(BaseCommand):
     help = 'fetch and store Peps id from the National agency on corruption prevention'
 
     def __init__(self, *args, **kwargs):
+        self.savepoint = Savepoint('peps_nacp_ids')
         self.host = settings.PEP_SOURCE_HOST
         self.port = settings.PEP_SOURCE_PORT
         self.database = settings.PEP_SOURCE_DATABASE
@@ -117,15 +121,19 @@ class Command(BaseCommand):
             i += 1
             self.stdout.write(f'\rProgress: {i} of {count}', ending='')
             self.stdout.flush()
-
-            pep = self.all_peps.get(pep_data[0])
+            pep_source_id = pep_data[0]
+            if self.savepoint.has(pep_source_id):
+                continue
+            pep = self.all_peps.get(pep_source_id)
             if not pep:
                 self.stdout.write(f'No PEP from ANTAC`s DB with id={pep_data[0]} in our database')
+                self.savepoint.add(pep_source_id)
                 continue
             declaration_id = pep_data[1].replace('nacp_', '')
             response = requests.get(settings.NACP_DECLARATION_RETRIEVE + declaration_id)
             if response.status_code != 200:
                 self.stdout.write(f'cannot find the declaration with id: {declaration_id}')
+                self.savepoint.add(pep_source_id)
                 continue
             declaration_data = json.loads(response.text)
 
@@ -134,12 +142,12 @@ class Command(BaseCommand):
             if not isinstance(pep_nacp_id, int) or not pep_nacp_id:
                 self.stdout.write(f'Check invalid declarant NACP id ({pep_nacp_id}) from declaration '
                                   f'with NACP id {declaration_id}')
+                self.savepoint.add(pep_source_id)
                 continue
-            elif pep_nacp_id in pep.nacp_id:
-                continue
-            else:
+            elif pep_nacp_id not in pep.nacp_id:
                 pep.nacp_id.append(pep_nacp_id)
                 pep.save()
+            self.savepoint.add(pep_source_id)
 
             # additional check of matching PEP`s last_name and first_name
             # last_name = declaration_data['data']['step_1']['data'].get('lastname')
@@ -156,6 +164,7 @@ class Command(BaseCommand):
             #         f'from declaration: {last_name} {first_name}')
             #     continue
 
+        self.savepoint.close()
         self.stdout.write()
         self.stdout.write('Done!')
 
