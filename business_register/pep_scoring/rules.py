@@ -515,12 +515,12 @@ class IsMuchPartTimeJob(BaseScoringRule):
 
     rule_id = ScoringRuleEnum.PEP10
     message_uk = (
-        "Задекларовані доходи від роботи за сумісництвом - {part_time_job_incomes} гривень "
-        "складають більше 30% від усіх доходів - {total_incomes} гривень"
+        "Задекларовані доходи декларанта від роботи  за сумісництвом - {part_time_job_incomes} гривень "
+        "складають більше 30% від усіх доходів - {pep_incomes} гривень"
     )
     message_en = (
-        "Declared income from part-time job - UAH {part_time_job_incomes} exceeds "
-        "more than 30% of total income - UAH {total_incomes}"
+        "Declared PEP`s income from part-time job - UAH {part_time_job_incomes} exceeds "
+        "more than 30% of total income - UAH {pep_incomes}"
     )
 
     class DataSerializer(serializers.Serializer):
@@ -528,7 +528,7 @@ class IsMuchPartTimeJob(BaseScoringRule):
             max_digits=12, decimal_places=2,
             min_value=0, required=True
         )
-        total_incomes = serializers.DecimalField(
+        pep_incomes = serializers.DecimalField(
             max_digits=12, decimal_places=2,
             min_value=0, required=True
         )
@@ -536,19 +536,25 @@ class IsMuchPartTimeJob(BaseScoringRule):
     def calculate_weight(self) -> Tuple[Union[int, float], dict]:
         share_limit = Decimal('.3')
         declaration_id = self.declaration.id
+        pep_id = self.pep.id
 
         part_time_job_incomes = Income.objects.filter(
             declaration=declaration_id,
+            recipient=pep_id,
             type=Income.PART_TIME_SALARY,
             amount__isnull=False
         ).aggregate(Sum('amount')).get('amount__sum')
         if not part_time_job_incomes:
             return RESULT_FALSE
-        total_incomes = get_total_income(declaration_id)
-        if part_time_job_incomes > total_incomes * share_limit:
-            return 1.0, {
+        pep_incomes = Income.objects.filter(
+            declaration=declaration_id,
+            recipient=pep_id,
+            amount__isnull=False
+        ).aggregate(Sum('amount')).get('amount__sum')
+        if part_time_job_incomes > pep_incomes * share_limit:
+            return 0.2, {
                 'part_time_job_incomes': part_time_job_incomes,
-                'total_incomes': total_incomes
+                'pep_incomes': pep_incomes
             }
         return RESULT_FALSE
 
@@ -817,7 +823,7 @@ class IsManyCars(BaseScoringRule):
 class IsMuchCash(BaseScoringRule):
     """
     Rule 20 - PEP20
-    weight - 0.8
+    weight - 0.5, 0.8, 1
     The overall amount of declared hard cash owned by PEP and members of the family exceeds USD 50000
     """
 
@@ -835,11 +841,19 @@ class IsMuchCash(BaseScoringRule):
         )
 
     def calculate_weight(self) -> Tuple[Union[int, float], dict]:
-        limit = 50000
+        first_limit_cash = 50000
+        second_limit_cash = 100000
+        third_limit_cash = 500000
+
         total_cash_USD = get_total_hard_cash_USD(self.declaration)
 
-        if total_cash_USD > limit:
-            return 0.8, {
+        if total_cash_USD > first_limit_cash:
+            weight = 0.5
+            if total_cash_USD > second_limit_cash:
+                weight = 0.8
+                if total_cash_USD > third_limit_cash:
+                    weight = 1
+            return weight, {
                 "total_cash_USD": round(total_cash_USD, 2),
             }
         return RESULT_FALSE
