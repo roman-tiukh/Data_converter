@@ -422,7 +422,6 @@ class IsNoAutoValue(BaseScoringRule):
         cars_without_valuation = VehicleRight.objects.filter(
             car__declaration_id=self.declaration.id,
             car__valuation__isnull=True,
-            car__type=Vehicle.CAR,
             acquisition_date__year__gte=FIRST_DECLARING_YEAR,
         ).values_list('car_id', flat=True).distinct()
         if cars_without_valuation:
