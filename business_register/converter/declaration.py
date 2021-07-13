@@ -1020,9 +1020,9 @@ class DeclarationConverter(BusinessConverter):
             'Спадщина': Income.LEGACY,
             'Заробітна плата отримана за сумісництвом': Income.PART_TIME_SALARY,
             'Дохід від відчуження рухомого майна ( крім цінних паперів та корпоративних прав)':
-                Income.SALE_OF_LUXURIES,
+                Income.SALE_OF_MOVABLES,
             'Дохід від відчуження рухомого майна (крім цінних паперів та корпоративних прав)':
-                Income.SALE_OF_LUXURIES,
+                Income.SALE_OF_MOVABLES,
             'Заробітна плата отримана за основним місцем роботи': Income.SALARY,
             'Дохід від зайняття незалежною професійною діяльністю': Income.SELF_EMPLOYMENT,
             'Дивіденди': Income.DIVIDENDS,

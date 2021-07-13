@@ -422,7 +422,6 @@ class IsNoAutoValue(BaseScoringRule):
         cars_without_valuation = VehicleRight.objects.filter(
             car__declaration_id=self.declaration.id,
             car__valuation__isnull=True,
-            car__type=Vehicle.CAR,
             acquisition_date__year__gte=FIRST_DECLARING_YEAR,
         ).values_list('car_id', flat=True).distinct()
         if cars_without_valuation:
@@ -480,7 +479,7 @@ class IsAssetsJumped(BaseScoringRule):
             total_cars_valuation = get_total_cars_valuation(declaration.id)
             total_property_cars_USD = convert_to_usd(
                 UAH,
-                (total_property_valuation + total_cars_valuation),
+                float(total_property_valuation + total_cars_valuation),
                 declaration.year
             )
             return total_cash_USD + total_property_cars_USD
@@ -501,6 +500,97 @@ class IsAssetsJumped(BaseScoringRule):
                     round(get_total_liabilities_USD(declaration), 2),
                 'previous_total_liabilities_USD':
                     round(get_total_liabilities_USD(previous_declaration), 2)
+            }
+        return RESULT_FALSE
+
+
+@register_rule
+class IsAssetsSaleTrick(BaseScoringRule):
+    """
+    Rule 9 - PEP09
+    weight - 0.5
+    Income from the sale of  assets or property or cars times exceeds in 3 or more times
+    the declared value of those sold assets in the declaration for the previous year
+    """
+
+    rule_id = ScoringRuleEnum.PEP09
+    message_uk = (
+        "Задекларовані доходи від продажу нерухомості - {total_sales_incomes} гривень "
+        "більш ніж утричі перевищують задекларовану роком раніше оцінку цих активів - "
+        "{previous_valuation} гривень"
+    )
+    message_en = (
+        "Declared income from sale of property - {total_sales_incomes} UAH exceed "
+        "more than three times the valuation of these property that was declared in the previous year"
+        " - {previous_valuation} UAH"
+    )
+
+    # for next iteration
+    # message_uk = (
+    #     "Задекларовані доходи від продажу нерухомості та/або авто - {total_sales_incomes} гривень "
+    #     "більш ніж утричі перевищують задекларовану роком раніше оцінку цих активів - "
+    #     "{previous_valuation} гривень"
+    # )
+    # message_en = (
+    #     "Declared income from sale of property and/or cars - {total_sales_incomes} UAH exceed "
+    #     "more than three times the valuation of these assets that was declared in the previous year"
+    #     " - {previous_valuation} UAH"
+    # )
+
+    class DataSerializer(serializers.Serializer):
+        total_sales_incomes = serializers.DecimalField(
+            max_digits=12, decimal_places=2,
+            min_value=0, required=True
+        )
+        previous_valuation = serializers.DecimalField(
+            max_digits=12, decimal_places=2,
+            min_value=0, required=True
+        )
+
+    def calculate_weight(self) -> Tuple[Union[int, float], dict]:
+        # ANTAC wants to add sales of cars
+        sales_type = [Income.SALE_OF_PROPERTY, ]  # later we should add here Income.SALE_OF_MOVABLES
+        declaration_id = self.declaration.id
+        pep_id = self.pep.id
+        year = self.declaration.year
+        times_limit = 3
+
+        total_sales_incomes = Income.objects.filter(
+            declaration=declaration_id,
+            type__in=sales_type,
+            amount__isnull=False
+        ).aggregate(Sum('amount')).get('amount__sum')
+        if not total_sales_incomes:
+            return RESULT_FALSE
+
+        previous_declaration = get_prevoius_declaration(pep_id, year)
+        if not previous_declaration:
+            return RESULT_FALSE
+        previous_property_data = PropertyRight.objects.filter(
+            property__declaration=previous_declaration,
+            type__in=OWNERSHIP_TYPES,
+            property__valuation__isnull=False
+        ).values_list('property__area', 'property__valuation', 'property').distinct()
+        if not previous_property_data:
+            return RESULT_FALSE
+        # getting last declaration`s property area data to find sold property
+        property_area_now = PropertyRight.objects.filter(
+            property__declaration=declaration_id,
+            type__in=OWNERSHIP_TYPES
+        ).values_list('property__area', flat=True).distinct()
+        previous_valuation = 0
+        sold_property_id = []
+        for data in previous_property_data:
+            if data[0] not in property_area_now:
+                previous_valuation += data[1]
+                sold_property_id += data[2]
+        if not previous_valuation:
+            # TODO: discuss logging for ANTAC in such case
+            return RESULT_FALSE
+        if total_sales_incomes > previous_valuation * times_limit:
+            return 0.5, {
+                "total_sales_incomes": total_sales_incomes,
+                "previous_valuation": previous_valuation
             }
         return RESULT_FALSE
 
@@ -635,6 +725,13 @@ class IsMuchSpending(BaseScoringRule):
         year = self.declaration.year
         declaration_id = self.declaration.id
 
+        previous_declaration = Declaration.objects.filter(
+            pep_id=self.pep.id,
+            type=Declaration.ANNUAL,
+            year=year - 1
+        ).order_by('-submission_date').first()
+        if not previous_declaration:
+            return RESULT_FALSE
         total_expenditures = Transaction.objects.filter(
             declaration=declaration_id,
             is_money_spent=True,
@@ -643,15 +740,8 @@ class IsMuchSpending(BaseScoringRule):
         if not total_expenditures:
             return RESULT_FALSE
         total_expenditures_USD = convert_to_usd(UAH, float(total_expenditures), year)
-        previous_declaration = Declaration.objects.filter(
-            pep_id=self.pep.id,
-            type=Declaration.ANNUAL,
-            year=year - 1
-        ).first()
-        if not previous_declaration:
-            previous_total_money_USD = 0
-        else:
-            previous_total_money_USD = get_total_money_USD(previous_declaration)
+
+        previous_total_money_USD = get_total_money_USD(previous_declaration)
         total_income_USD = convert_to_usd(UAH, float(get_total_income(declaration_id)), year)
         declared_money_USD = total_income_USD + previous_total_money_USD
         if total_expenditures_USD > declared_money_USD:

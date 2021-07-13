@@ -394,9 +394,10 @@ class PersonSanctionFilterSet(BaseSanctionFilter):
         help_text='Filter by taxpayer number of person. Type: case insensitive string contains',
     )
     country_of_citizenship = filters.CharFilter(
-        field_name='countries_of_citizenship__name',
+        method='filter_two_country_of_sitizenship_fields',
         lookup_expr='icontains',
-        help_text='Filter by countries of citizenship of person. Type: case insensitive string contains',
+        help_text='Filter by countries of citizenship of person in English and Ukrainian.'
+                  'Type: case insensitive string contains',
     )
     o = filters.OrderingFilter(
         fields=(
@@ -406,6 +407,11 @@ class PersonSanctionFilterSet(BaseSanctionFilter):
         ),
         help_text='Sort by fields: full_name, start_date, end_date.'
     )
+
+    def filter_two_country_of_sitizenship_fields(self, queryset, name, value):
+        return queryset.filter(
+            Q(countries_of_citizenship__name__icontains=value) | Q(countries_of_citizenship__name_uk__icontains=value)
+        )
 
     class Meta:
         model = PersonSanction
