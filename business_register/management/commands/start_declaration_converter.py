@@ -24,9 +24,10 @@ class Command(BaseCommand):
 
     def load_all(self):
         i = 0
+        count = len(self.converter.only_peps)
         for nacp_declarant_id in self.converter.only_peps:
             i += 1
-            self.stdout.write(f'\rStart process for pep #{i}', ending='')
+            self.stdout.write(f'\rProgress: {i} of {count}', ending='')
             self.stdout.flush()
             if not self.savepoint.has(nacp_declarant_id):
                 self.converter.save_declarations_for_pep(nacp_declarant_id=nacp_declarant_id)
