@@ -172,4 +172,4 @@ def convert_to_usd(currency: str, amount: float, year: int):
 
     year_rates = rates_to_usd.get(year)
     rate = year_rates.get(currency)
-    return round(amount/rate, 2)
+    return round(float(amount) / rate, 2)
