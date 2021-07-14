@@ -1772,26 +1772,51 @@ class DeclarationConverter(BusinessConverter):
             self.log_error(f'Invalid value for country: {property_country_data}')
 
     def split_address_data(self, address_data):
-        parts = address_data.lower().split(' / ')
         region = district = city = ''
-        country = parts[len(parts) - 1]
-        parts = parts[:-1]
         city_region = ['київ', 'севастополь']
-        for part in parts:
-            if '/' in part:
-                part = part.split('/')[0]
-            if 'район' in part:
-                district = part
-            elif 'область' in part or 'автономна республіка крим' in part:
-                region = part
-            elif part in city_region:
-                city = region = part
+        if '/' in address_data:
+            parts = address_data.lower().split(' / ')
+            parts = parts[:-1]
+            for part in parts:
+                if '/' in part:
+                    part = part.split('/')[0]
+                if 'район' in part:
+                    district = part
+                elif 'область' in part or 'автономна республіка крим' in part:
+                    region = part
+                elif part in city_region:
+                    city = region = part
+                else:
+                    city = part
+        else:
+            parts = address_data.lower().strip().split(' ')
+            if len(parts) == 1 and parts[0] != 'україна':
+                city = parts[0]
             else:
-                city = part
+                types_city = ['село', 'місто', 'селище']
+                types_region = ['область', 'області']
+                types_district = ['район', 'району']
+                for i in range(0, len(parts)):
+                    if parts[i] in types_city:
+                        city = parts[i + 1]
+                    elif parts[i] in types_district:
+                        district_name = parts[i-1]
+                        if 'ого' == district_name[-3:]:
+                            district_name = f'{district_name[:-3]}ий'
+                        district = f'{district_name} {types_district[0]}'
+                    elif parts[i] in types_region:
+                        name_region = parts[i-1]
+                        if 'ої' == name_region[-2:]:
+                            name_region = f'{name_region[:-2]}а'
+                        region = f'{name_region} {types_region[0]}'
         return city, region, district
 
     def find_city(self, address_data):
         city, region, district = self.split_address_data(address_data)
+        if city and not region and not district:
+            city_of_registration = RatuCity.objects.filter(name=city)
+            if city_of_registration.count() == 1:
+                return city_of_registration.first()
         ratu_region = RatuRegion.objects.filter(name=region).first()
         ratu_district = RatuDistrict.objects.filter(name=district, region=ratu_region).first()
         if region and not ratu_region:
@@ -1805,7 +1830,7 @@ class DeclarationConverter(BusinessConverter):
                 district=ratu_district
             ).first()
             return city_of_registration
-        self.log_error(f'Cannot find city')
+        self.log_error(f'Cannot find city. Check address data {address_data}')
 
     # possible_keys = [
     #     'previous_eng_middlename_extendedstatus', 'street_extendedstatus', 'eng_full_address',
