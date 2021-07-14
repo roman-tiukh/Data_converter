@@ -38,6 +38,14 @@ FIRST_DECLARING_YEAR = 2015
 SPOUSE_TYPES = ['дружина', 'чоловік']
 GIFT_TYPES = [Income.GIFT_IN_CASH, Income.GIFT]
 OWNERSHIP_TYPES = [BaseRight.OWNERSHIP, BaseRight.COMMON_PROPERTY, BaseRight.JOINT_OWNERSHIP]
+REAL_ESTATE_TYPES = [
+    Property.SUMMER_HOUSE,
+    Property.HOUSE,
+    Property.APARTMENT,
+    Property.ROOM,
+    Property.UNFINISHED_CONSTRUCTION
+]
+
 ANTAC_BENEFICIARY_TYPES = {
     "Колишній директор, Бенефіціарний власник",
     "Бенефіціарний власник",
@@ -126,12 +134,12 @@ def get_total_hard_cash_USD(declaration):
     return 0
 
 
-def get_prevoius_declaration(pep_id, year):
+def get_previous_declaration(pep_id, year):
     return Declaration.objects.filter(
         pep_id=pep_id,
         type=Declaration.ANNUAL,
         year=year - 1
-    ).first()
+    ).order_by('-submission_date').first()
 
 
 class BaseScoringRule(ABC):
@@ -432,6 +440,50 @@ class IsNoAutoValue(BaseScoringRule):
 
 
 @register_rule
+class IsResidenceHidden(BaseScoringRule):
+    """
+    Rule 4 - PEP04
+    weight - 0.7
+    There is no information on the real estate in the region where PEP declares place of residence
+    """
+
+    rule_id = ScoringRuleEnum.PEP04
+    message_uk = (
+        "Не зазначена нерухомість в регіоні, де публічний діяч задекларував місце проживання - "
+        "{residence_region}"
+    )
+    message_en = (
+        "Declared no real-estate in the region, where place of residence we declared"
+    )
+
+    class DataSerializer(serializers.Serializer):
+        residence_region = serializers.CharField(required=True)
+
+    def calculate_weight(self) -> Tuple[Union[int, float], dict]:
+        city_of_residence = self.declaration.city_of_residence
+
+        if not city_of_residence:
+            return RESULT_FALSE
+        residence_region = str(city_of_residence.region)
+        result_true = 0.7, {'residence_region': residence_region.capitalize()}
+        property_regions = Property.objects.filter(
+            declaration=self.declaration.id,
+            type__in=REAL_ESTATE_TYPES,
+        ).values_list('city__region__name', flat=True)[::1]
+        if not property_regions:
+            return result_true
+        is_found = False
+        for region_name in property_regions:
+            # check if 'київ' in 'київ' and 'київська'
+            if residence_region in region_name:
+                is_found = True
+        if is_found:
+            return RESULT_FALSE
+        else:
+            return result_true
+
+
+@register_rule
 class IsAssetsJumped(BaseScoringRule):
     """
     Rule 05 - PEP05
@@ -484,7 +536,7 @@ class IsAssetsJumped(BaseScoringRule):
             )
             return total_cash_USD + total_property_cars_USD
 
-        previous_declaration = get_prevoius_declaration(pep_id, year)
+        previous_declaration = get_previous_declaration(pep_id, year)
         if not previous_declaration:
             return RESULT_FALSE
         declaration = self.declaration
@@ -563,7 +615,7 @@ class IsAssetsSaleTrick(BaseScoringRule):
         if not total_sales_incomes:
             return RESULT_FALSE
 
-        previous_declaration = get_prevoius_declaration(pep_id, year)
+        previous_declaration = get_previous_declaration(pep_id, year)
         if not previous_declaration:
             return RESULT_FALSE
         previous_property_data = PropertyRight.objects.filter(
@@ -726,11 +778,7 @@ class IsMuchSpending(BaseScoringRule):
         year = self.declaration.year
         declaration_id = self.declaration.id
 
-        previous_declaration = Declaration.objects.filter(
-            pep_id=self.pep.id,
-            type=Declaration.ANNUAL,
-            year=year - 1
-        ).order_by('-submission_date').first()
+        previous_declaration = get_previous_declaration(self.pep.id, year)
         if not previous_declaration:
             return RESULT_FALSE
         total_expenditures = Transaction.objects.filter(
@@ -982,11 +1030,7 @@ class IsMoneyFromNowhere(BaseScoringRule):
     def calculate_weight(self) -> Tuple[Union[int, float], dict]:
         year = self.declaration.year
 
-        previous_declaration = Declaration.objects.filter(
-            pep_id=self.pep.id,
-            type=Declaration.ANNUAL,
-            year=year - 1
-        ).first()
+        previous_declaration = get_previous_declaration(self.pep.id, year)
         if not previous_declaration:
             return RESULT_FALSE
         previous_total_money_USD = get_total_money_USD(previous_declaration)
@@ -1182,16 +1226,9 @@ class IsRentManyRealEstate(BaseScoringRule):
     def calculate_weight(self) -> Tuple[Union[int, float], dict]:
         limit = 300
 
-        living_property_types = [
-            Property.SUMMER_HOUSE,
-            Property.HOUSE,
-            Property.APARTMENT,
-            Property.ROOM,
-            Property.UNFINISHED_CONSTRUCTION
-        ]
         bigger_area = PropertyRight.objects.filter(
             property__declaration_id=self.declaration.id,
-            property__type__in=living_property_types,
+            property__type__in=REAL_ESTATE_TYPES,
             type=PropertyRight.RENT,
             property__area__gt=limit,
         ).all().count()
