@@ -1231,15 +1231,15 @@ class IsRentManyRealEstate(BaseScoringRule):
     def calculate_weight(self) -> Tuple[Union[int, float], dict]:
         limit = 300
 
-        bigger_area = PropertyRight.objects.filter(
+        counter_property_with_bigger_area = PropertyRight.objects.filter(
             property__declaration_id=self.declaration.id,
             property__type__in=REAL_ESTATE_TYPES,
             type=PropertyRight.RENT,
             property__area__gt=limit,
-        ).all().count()
-        if bigger_area > 0:
+        ).values_list('property', 'property__area').distinct().count()
+        if counter_property_with_bigger_area:
             return 0.3, {
-                "bigger_area_counter": bigger_area,
+                "bigger_area_counter": counter_property_with_bigger_area,
             }
         return RESULT_FALSE
 
