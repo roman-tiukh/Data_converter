@@ -137,7 +137,7 @@ def get_total_hard_cash_USD(declaration):
         return get_total_USD(cash_data, declaration.year)
     return 0
 
-
+# from first to last
 def get_pep_declarations(pep_id):
     return Declaration.objects.filter(
         pep_id=pep_id,
@@ -1078,6 +1078,8 @@ class IsCashTrick(BaseScoringRule):
     """
 
     rule_id = ScoringRuleEnum.PEP22
+    # Has to be prior to PEP20
+    priority = 1
     message_uk = (
         "готівкові кошти в першій електронній декларації - {cash_USD} USD, "
         "що перевищує в {times} разів декларований дохід за відповідний рік - "
