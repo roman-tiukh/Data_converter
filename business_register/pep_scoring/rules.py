@@ -138,6 +138,11 @@ def get_total_hard_cash_USD(declaration):
     return 0
 
 
+def get_pep_declarations(pep_id):
+    return Declaration.objects.filter(
+        pep_id=pep_id,
+    ).order_by('submission_date')
+
 def get_previous_declaration(pep_id, year):
     return Declaration.objects.filter(
         pep_id=pep_id,
@@ -986,11 +991,23 @@ class IsMuchCash(BaseScoringRule):
         )
 
     def calculate_weight(self) -> Tuple[Union[int, float], dict]:
+        declaration = self.declaration
+        # check if rule22 has not been applied for the first declaration
+        # FROM ANTAC: 'Якщо декларація одна тобі треба шоб спочатку працювало PEP22.
+        # Якщо False - тоді PEP20'
+        if get_pep_declarations(self.pep.id).count() == 1:
+            if PepScoring.objects.filter(
+                declaration=declaration.id,
+                rule_id=ScoringRuleEnum.PEP22.name,
+                score__gt=0
+            ).first():
+                return RESULT_FALSE
+
         first_limit_cash = 50000
         second_limit_cash = 100000
         third_limit_cash = 500000
 
-        total_cash_USD = get_total_hard_cash_USD(self.declaration)
+        total_cash_USD = get_total_hard_cash_USD(declaration)
 
         if total_cash_USD > first_limit_cash:
             weight = 0.5
@@ -1093,13 +1110,9 @@ class IsCashTrick(BaseScoringRule):
         third_limit_cash = 500000
 
         pep_declarations = Declaration.objects.filter(
-            pep_id=self.pep.id,
-        ).order_by('submission_date')
-        if pep_declarations.count() == 1:
-            # TODO: predict escaping PEP20 if there is only one declaration and this rule returns weight
-            # ('Якщо декларація одна тобі треба шоб правило працювало або з PEP20 почерговість:
-            # спочатку PEP22 і якщо False тоді PEP20')
-            pass
+        pep_id=self.pep.id,
+    ).order_by('submission_date')
+
         if pep_declarations:
             first_declaration = pep_declarations[0]
             cash_USD = get_total_hard_cash_USD(first_declaration)
