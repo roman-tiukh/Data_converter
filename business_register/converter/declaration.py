@@ -1801,8 +1801,6 @@ class DeclarationConverter(BusinessConverter):
                 for i in range(0, len(parts)):
                     if parts[i] in types_city:
                         city = parts[i + 1].replace('м.', '')
-                        if city in city_region:
-                            region = city
                     elif parts[i] in types_district:
                         district_name = parts[i - 1]
                         if 'ого' == district_name[-3:]:
@@ -1813,6 +1811,8 @@ class DeclarationConverter(BusinessConverter):
                         if 'ої' == name_region[-2:]:
                             name_region = f'{name_region[:-2]}а'
                         region = f'{name_region} {types_region[0]}'
+            if city in city_region:
+                region = city
         return city, region, district
 
     def find_city(self, address_data):
