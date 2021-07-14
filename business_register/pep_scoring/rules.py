@@ -469,6 +469,7 @@ class IsResidenceHidden(BaseScoringRule):
         property_regions = Property.objects.filter(
             declaration=self.declaration.id,
             type__in=REAL_ESTATE_TYPES,
+            city__isnull=False,
         ).values_list('city__region__name', flat=True)[::1]
         if not property_regions:
             return result_true
