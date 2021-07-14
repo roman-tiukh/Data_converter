@@ -1215,7 +1215,7 @@ class IsCryptocurrency(BaseScoringRule):
         cryptocurrency = IntangibleAsset.objects.filter(
             declaration_id=self.declaration.id,
             type=IntangibleAsset.CRYPTOCURRENCY
-        ).values_list('valuation')
+        ).values_list('valuation', flat=True)
         # ).values_list('quantity', 'cryptocurrency_type')
         if cryptocurrency:
             weight = 0.5
