@@ -34,8 +34,14 @@ class ScoringRuleEnum(Enum):
 ALL_RULES = {}
 
 
-def register_rule(class_):
+def register_rule(rule_class):
     global ALL_RULES
-    ALL_RULES[class_.rule_id.value] = class_
-    ALL_RULES = {rule.rule_id.value: rule for rule in sorted(ALL_RULES.values(), key=lambda rule: rule.priority)}
-    return class_
+    ALL_RULES[rule_class.rule_id.value] = rule_class
+    all_rules_copy = ALL_RULES.copy()
+    ALL_RULES.clear()
+    ALL_RULES.update({
+        rule.rule_id.value: rule for rule in sorted(
+            all_rules_copy.values(), key=lambda rule: rule.priority
+        )
+    })
+    return rule_class
