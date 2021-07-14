@@ -1780,6 +1780,8 @@ class DeclarationConverter(BusinessConverter):
             for part in parts:
                 if '/' in part:
                     part = part.split('/')[0]
+                if 'м.' in part:
+                    part = part.replace('м.', '')
                 if 'район' in part:
                     district = part
                 elif 'область' in part or 'автономна республіка крим' in part:
@@ -1791,21 +1793,23 @@ class DeclarationConverter(BusinessConverter):
         else:
             parts = address_data.lower().strip().split(' ')
             if len(parts) == 1 and parts[0] != 'україна':
-                city = parts[0]
+                city = parts[0].replace('м.', '')
             else:
-                types_city = ['село', 'місто', 'селище']
+                types_city = ['село', 'місто', 'селище', 'c.']
                 types_region = ['область', 'області']
                 types_district = ['район', 'району']
                 for i in range(0, len(parts)):
                     if parts[i] in types_city:
-                        city = parts[i + 1]
+                        city = parts[i + 1].replace('м.', '')
+                        if city in city_region:
+                            region = city
                     elif parts[i] in types_district:
-                        district_name = parts[i-1]
+                        district_name = parts[i - 1]
                         if 'ого' == district_name[-3:]:
                             district_name = f'{district_name[:-3]}ий'
                         district = f'{district_name} {types_district[0]}'
                     elif parts[i] in types_region:
-                        name_region = parts[i-1]
+                        name_region = parts[i - 1]
                         if 'ої' == name_region[-2:]:
                             name_region = f'{name_region[:-2]}а'
                         region = f'{name_region} {types_region[0]}'
@@ -1817,6 +1821,11 @@ class DeclarationConverter(BusinessConverter):
             city_of_registration = RatuCity.objects.filter(name=city)
             if city_of_registration.count() == 1:
                 return city_of_registration.first()
+            else:
+                self.log_error(
+                    'There is information about the city, but not about the region and district. '
+                    f'Check address data {address_data}'
+                )
         ratu_region = RatuRegion.objects.filter(name=region).first()
         ratu_district = RatuDistrict.objects.filter(name=district, region=ratu_region).first()
         if region and not ratu_region:
