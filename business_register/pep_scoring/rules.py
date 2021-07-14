@@ -103,23 +103,27 @@ def get_total_liabilities_USD(declaration):
 
 
 def get_total_property_valuation(declaration_id):
-    total_property_valuation = PropertyRight.objects.filter(
+    total_property_valuation = 0
+    distinct_property_data = PropertyRight.objects.filter(
         property__declaration_id=declaration_id,
         type__in=OWNERSHIP_TYPES,
         property__valuation__isnull=False,
-    ).aggregate(Sum('property__valuation')).get('property__valuation__sum')
-    if not total_property_valuation:
-        total_property_valuation = 0
-    return total_property_valuation
+    ).values_list('property', 'property__valuation').distinct()
+    if distinct_property_data:
+        for data in distinct_property_data:
+            total_property_valuation += data[1]
+    return round(total_property_valuation, 2)
 
 
 def get_total_cars_valuation(declaration_id):
-    total_cars_valuation = VehicleRight.objects.filter(
+    total_cars_valuation = 0
+    distinct_cars_data = VehicleRight.objects.filter(
         car__declaration_id=declaration_id,
         car__valuation__isnull=False,
-    ).aggregate(Sum('car__valuation')).get('car__valuation__sum')
-    if not total_cars_valuation:
-        total_cars_valuation = 0
+    ).values_list('car', 'car__valuation').distinct()
+    if distinct_cars_data:
+        for data in distinct_cars_data:
+            total_cars_valuation += data[1]
     return total_cars_valuation
 
 
