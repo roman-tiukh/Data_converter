@@ -146,6 +146,7 @@ class BaseScoringRule(ABC):
     rule_id = None
     message_uk = ''
     message_en = ''
+    priority = 10  # priority = 1 - calculated first, priority = 2 calculated second
 
     class DataSerializer(serializers.Serializer):
         """ Overwrite this class in child classes """
