@@ -1078,6 +1078,7 @@ class IsCashTrick(BaseScoringRule):
             max_digits=12, decimal_places=1,
             min_value=0, required=True
         )
+        first_declaration = serializers.UUIDField(required=True)
 
     def calculate_weight(self) -> Tuple[Union[int, float], dict]:
         limit_times = 5
@@ -1116,6 +1117,7 @@ class IsCashTrick(BaseScoringRule):
                             'cash_USD': round(cash_USD, 2),
                             'income_USD': round(income_USD, 2),
                             'times': round(times, 1),
+                            'first_declaration': str(first_declaration.nacp_declaration_id),
                         }
         return RESULT_FALSE
 
