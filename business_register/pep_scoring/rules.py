@@ -1215,13 +1215,17 @@ class IsCryptocurrency(BaseScoringRule):
         cryptocurrency = IntangibleAsset.objects.filter(
             declaration_id=self.declaration.id,
             type=IntangibleAsset.CRYPTOCURRENCY
-        ).values_list('quantity', 'cryptocurrency_type')
+        ).values_list('valuation')
+        # ).values_list('quantity', 'cryptocurrency_type')
         if cryptocurrency:
             weight = 0.5
-            for quantity, cryptocurrency_type in cryptocurrency:
-                if quantity is None or cryptocurrency_type is None:
+            # for quantity, cryptocurrency_type in cryptocurrency:
+            #     if quantity is None or cryptocurrency_type is None:
+            for valuation in cryptocurrency:
+                if not valuation:
                     return 1.0, {
-                        'no_cryptocurrency_amount': 'без вказання інформації про кількість або назву'
+                        # 'no_cryptocurrency_amount': 'без вказання інформації про кількість або назву'
+                        'no_cryptocurrency_amount': 'без вказання інформації про вартість'
                     }
             return weight, {
                 'no_cryptocurrency_amount': ''
