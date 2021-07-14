@@ -1,6 +1,7 @@
 import logging
 from typing import Union
 
+import math
 from dateutil.parser import isoparse
 import requests
 from django.conf import settings
@@ -1960,12 +1961,8 @@ class DeclarationConverter(BusinessConverter):
         self.save_bank_account(data, declaration, pep)
 
     def save_declarations_for_pep(self, nacp_declarant_id):
-        # getting general info including declaration id
-        response = requests.get(
-            f'{settings.NACP_DECLARATION_LIST}?user_declarant_id={nacp_declarant_id}'
-        )
-        declarations_data = response.json().get('data')
-        if response.status_code != 200 or not declarations_data:
+        declarations_data = self.get_declarations_data(nacp_declarant_id)
+        if not declarations_data:
             logger.warning(
                 f'cannot find declarations of the PEP with nacp_declarant_id: {nacp_declarant_id}'
             )
@@ -2011,6 +2008,27 @@ class DeclarationConverter(BusinessConverter):
                 logger.error(message)
                 declaration.destroy()
                 raise
+
+    def get_declarations_data(self, nacp_declarant_id):
+        all_declarations_data = []
+        page = 1
+        while True:
+            response = requests.get(
+                f'{settings.NACP_DECLARATION_LIST}?user_declarant_id={nacp_declarant_id}&page={page}'
+            )
+            response_data = response.json()
+            declarations_data = response_data.get('data')
+            if response.status_code != 200 or not declarations_data:
+                return
+
+            all_declarations_data += declarations_data
+            pages_count = math.ceil(response_data['count'] / 100)
+            if pages_count > page:
+                page += 1
+                continue
+            else:
+                break
+        return all_declarations_data
 
     def save_declaration(self):
         for nacp_declarant_id in self.only_peps:
