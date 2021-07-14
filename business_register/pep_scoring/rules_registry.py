@@ -35,5 +35,7 @@ ALL_RULES = {}
 
 
 def register_rule(class_):
+    global ALL_RULES
     ALL_RULES[class_.rule_id.value] = class_
+    ALL_RULES = {rule.rule_id.value: rule for rule in sorted(ALL_RULES.values(), key=lambda rule: rule.priority)}
     return class_
