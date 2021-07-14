@@ -447,7 +447,7 @@ class IsResidenceHidden(BaseScoringRule):
     There is no information on the real estate in the region where PEP declares place of residence
     """
 
-    rule_id = ScoringRuleEnum.PEP04
+    rule_id = ScoringRuleEnum.PEP04_reg
     message_uk = (
         "Не зазначена нерухомість в регіоні, де публічний діяч задекларував місце проживання - "
         "{residence_region}"
