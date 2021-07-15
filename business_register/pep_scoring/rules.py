@@ -523,7 +523,7 @@ class IsAssetsJumped(BaseScoringRule):
     rule_id = ScoringRuleEnum.PEP05
     message_uk = (
         "Сума задекларованих нерухомості, авто та готівки - разом еквівалент {total_assets_USD} USD "
-        "зросла більш ніж у п'ять разів порівнено з попереднім роком - {previous_total_assets_USD} USD, "
+        "зросла більш ніж у п'ять разів порівняно з попереднім роком - {previous_total_assets_USD} USD, "
         "у той час як зобов'язання змінилися з {total_liabilities_USD} USD до "
         "{previous_total_liabilities_USD} USD"
     )
@@ -848,7 +848,7 @@ class IsGiftExpensive(BaseScoringRule):
     """
     rule_id = ScoringRuleEnum.PEP15
     message_uk = (
-        "Загальна вартість задекларованих порадунків перевищує 300 тисяч гривень - {total_valuation}"
+        "Загальна вартість задекларованих подарунків перевищує 300 тисяч гривень - {total_valuation}"
     )
     message_en = 'Total valuation of declared gifts exceeds UAH 300 000 - {total_valuation}'
 
@@ -1312,8 +1312,8 @@ class IsLuxuryCar(BaseScoringRule):
                  'hryvnias or is included in the list of cars subject to transport tax and approved by ' \
                  f'the Ministry of Economy {link_to_list}?lang=en-GB'
     message_uk = 'У декларації зазначено {amount_luxury_cars} автомобілів, ціна яких більше 800 тисяч гривень ' \
-                 'або входять в перелік автомобілів, які підлягають оподаткуванню транспортним податком ' \
-                 f'і затверджений Міністерством економіки {link_to_list}?lang=uk-UA'
+                 'або що входять в перелік автомобілів, які підлягають оподаткуванню транспортним податком ' \
+                 f'і затверджені Міністерством економіки {link_to_list}?lang=uk-UA'
 
     class DataSerializer(serializers.Serializer):
         amount_luxury_cars = serializers.IntegerField(min_value=0, required=True)
