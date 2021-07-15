@@ -137,11 +137,13 @@ def get_total_hard_cash_USD(declaration):
         return get_total_USD(cash_data, declaration.year)
     return 0
 
+
 # from first to last
 def get_pep_declarations(pep_id):
     return Declaration.objects.filter(
         pep_id=pep_id,
     ).order_by('submission_date')
+
 
 def get_previous_declaration(pep_id, year):
     return Declaration.objects.filter(
@@ -470,6 +472,14 @@ class IsResidenceHidden(BaseScoringRule):
         residence_region = serializers.CharField(required=True)
 
     def calculate_weight(self) -> Tuple[Union[int, float], dict]:
+        living_types = [
+            Property.SUMMER_HOUSE,
+            Property.HOUSE,
+            Property.APARTMENT,
+            Property.ROOM,
+            Property.UNFINISHED_CONSTRUCTION,
+            Property.OTHER
+        ]
         city_of_residence = self.declaration.city_of_residence
 
         if not city_of_residence:
@@ -478,7 +488,7 @@ class IsResidenceHidden(BaseScoringRule):
         result_true = 0.7, {'residence_region': residence_region.capitalize()}
         property_regions = Property.objects.filter(
             declaration=self.declaration.id,
-            type__in=REAL_ESTATE_TYPES,
+            type__in=living_types,
             city__isnull=False,
         ).values_list('city__region__name', flat=True)[::1]
         if not property_regions:
@@ -997,9 +1007,9 @@ class IsMuchCash(BaseScoringRule):
         # Якщо False - тоді PEP20'
         if get_pep_declarations(self.pep.id).count() == 1:
             if PepScoring.objects.filter(
-                declaration=declaration.id,
-                rule_id=ScoringRuleEnum.PEP22.name,
-                score__gt=0
+                    declaration=declaration.id,
+                    rule_id=ScoringRuleEnum.PEP22.name,
+                    score__gt=0
             ).first():
                 return RESULT_FALSE
 
@@ -1112,8 +1122,8 @@ class IsCashTrick(BaseScoringRule):
         third_limit_cash = 500000
 
         pep_declarations = Declaration.objects.filter(
-        pep_id=self.pep.id,
-    ).order_by('submission_date')
+            pep_id=self.pep.id,
+        ).order_by('submission_date')
 
         if pep_declarations:
             first_declaration = pep_declarations[0]
