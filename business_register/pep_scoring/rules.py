@@ -229,12 +229,19 @@ class IsSpouseDeclared(BaseScoringRule):
     """
 
     rule_id = ScoringRuleEnum.PEP01
-    message_uk = (
-        'У декларації про майно немає даних про члена родини, '
-        'тоді як у реєстрі pep.org.ua є {relationship_type} {spouse_full_name} '
-        '{spouse_companies_info}. '
-    )
     message_en = 'Asset declaration does not indicate PEP\'s spouse'
+
+    @classmethod
+    def get_message_uk(cls, data: dict) -> str:
+        if data.get('spouse_companies_info'):
+            return (
+                'У декларації про майно немає даних про члена родини, тоді як у реєстрі pep.org.ua '
+                'є {relationship_type} {spouse_full_name} {spouse_companies_info}'
+            )
+        return (
+            'У декларації про майно немає даних про члена родини, тоді як у реєстрі pep.org.ua '
+            'є {relationship_type} {spouse_full_name}'
+        )
 
     class DataSerializer(serializers.Serializer):
         relationship_type = serializers.CharField(required=True)
@@ -1200,8 +1207,13 @@ class IsCryptocurrency(BaseScoringRule):
 
     rule_id = ScoringRuleEnum.PEP26
     # TODO: define how to change messages here and in the PEP01
-    message_uk = "Задекларовано криптовалюту {no_cryptocurrency_amount}"
     message_en = "Declared cryptocurrency"
+
+    @classmethod
+    def get_message_uk(cls, data: dict) -> str:
+        if data.get('no_cryptocurrency_amount'):
+            return 'Задекларовано криптовалюту {no_cryptocurrency_amount}'
+        return 'Задекларовано криптовалюту'
 
     class DataSerializer(serializers.Serializer):
         # parameter for upgrading this rule later
