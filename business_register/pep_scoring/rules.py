@@ -545,6 +545,7 @@ class IsAssetsJumped(BaseScoringRule):
         pep_id = self.pep.id
         year = self.declaration.year
         times_limit = 5
+        difference_limit = 30000
 
         def get_total_assets_USD(declaration):
             total_cash_USD = get_total_hard_cash_USD(declaration)
@@ -561,8 +562,17 @@ class IsAssetsJumped(BaseScoringRule):
         if not previous_declaration:
             return RESULT_FALSE
         declaration = self.declaration
+        # Marriage can bring new assets, not only happiness)
+        # TODO: store Declaration.spouse that is not already in the PEP DB
+        if not previous_declaration.spouse and declaration.spouse:
+            return RESULT_FALSE
+
         previous_total_assets_USD = get_total_assets_USD(previous_declaration)
         total_assets_USD = get_total_assets_USD(declaration)
+
+        if total_assets_USD - previous_total_assets_USD < difference_limit:
+            return RESULT_FALSE
+
         if total_assets_USD > previous_total_assets_USD * times_limit:
             return 0.5, {
                 "total_assets_USD":
