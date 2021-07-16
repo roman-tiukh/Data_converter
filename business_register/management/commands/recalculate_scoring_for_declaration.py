@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from business_register.models.declaration_models import Declaration
+from business_register.models.declaration_models import Declaration, PepScoring
 
 
 class Command(BaseCommand):
@@ -16,3 +16,5 @@ class Command(BaseCommand):
         else:
             declaration = Declaration.objects.get(nacp_declaration_id=declaration_id)
         declaration.recalculate_scoring()
+        PepScoring.refresh_coefficient()
+        self.stdout.write('Done. Scoring coefficient refreshed.')
