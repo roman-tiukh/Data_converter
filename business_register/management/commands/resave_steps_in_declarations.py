@@ -59,9 +59,9 @@ class Command(BaseCommand):
             data = self.converter.download_declaration(str(declaration.nacp_declaration_id))
             if not data:
                 raise Exception(f'No data for declaration {declaration.nacp_declaration_id}')
-            self.converter.save_relatives_data(data, declaration)
+            self.converter.save_relatives_data(data['data'], declaration)
             self.process_declaration(
-                data=data,
+                data=data['data'],
                 declaration=declaration
             )
             self.savepoint.add(declaration.nacp_declaration_id)

@@ -92,7 +92,7 @@ class DeclarationConverter(BusinessConverter):
     def download_declaration(nacp_declaration_id: str):
         response = requests.get(settings.NACP_DECLARATION_RETRIEVE + nacp_declaration_id)
         if response.status_code == 200:
-            return response.json()['data']
+            return response.json()
 
     def has_step_data(self, step_name, declaration_data):
         if not declaration_data.get(step_name):
@@ -2002,11 +2002,11 @@ class DeclarationConverter(BusinessConverter):
         try:
             # getting full declaration data
             declaration_data = self.download_declaration(declaration_id)
+            pep = self.only_peps[declaration_data['user_declarant_id']]
             if not declaration_data:
                 logger.warning(f'cannot find declaration {declaration_id}')
                 return
 
-            pep = self.only_peps[declaration_data['user_declarant_id']]
             # TODO: add date to the model and here
             submission_date = isoparse(declaration_data['date']).date()
             declaration = Declaration.objects.create(
@@ -2018,7 +2018,7 @@ class DeclarationConverter(BusinessConverter):
                 pep=pep,
             )
             self.current_declaration = declaration
-            self.save_all_steps(declaration_data, pep, declaration)
+            self.save_all_steps(declaration_data['data'], pep, declaration)
         except (Exception, KeyboardInterrupt) as e:
             message = f'Error at declaration {declaration_id}: {e}'
             print(message)
