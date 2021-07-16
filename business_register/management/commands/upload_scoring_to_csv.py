@@ -5,7 +5,7 @@ from datetime import datetime
 import csv
 from business_register.management.commands._base_export_command import BaseExportCommand
 from business_register.models.declaration_models import PepScoring, Declaration
-from business_register.pep_scoring.rules_registry import ScoringRuleEnum
+from business_register.pep_scoring.rules_registry import ALL_RULES
 from data_ocean import s3bucket
 
 
@@ -19,11 +19,11 @@ class Command(BaseExportCommand):
         parser.add_argument('-z', '--with_zero', dest='with_zero', action='store_true')
         parser.add_argument(
             '-r', '--rule', dest='rules', type=str, action='append',
-            choices=[rule.value for rule in ScoringRuleEnum]
+            choices=[rule for rule in ALL_RULES.keys()]
         )
         parser.add_argument(
             '-e', '--exclude', type=str, action='append',
-            choices=[rule.value for rule in ScoringRuleEnum]
+            choices=[rule for rule in ALL_RULES.keys()]
         )
 
     def handle(self, *args, **options):

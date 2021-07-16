@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand, CommandError
 from business_register.models.declaration_models import Declaration, PepScoring
-from business_register.pep_scoring.rules_registry import ALL_RULES, ScoringRuleEnum
+from business_register.pep_scoring.rules_registry import ALL_RULES
 
 
 class Command(BaseCommand):
@@ -12,7 +12,7 @@ class Command(BaseCommand):
         parser.add_argument('--declaration_id', nargs='?', type=str)
         parser.add_argument(
             '-r', '--rule', dest='rules', type=str, action='append',
-            choices=[rule.value for rule in ScoringRuleEnum]
+            choices=[rule for rule in ALL_RULES.keys()]
         )
 
     def handle(self, *args, **options):
