@@ -10,13 +10,13 @@ from business_register.serializers.scoring_serializers import PepScoringSerializ
 from data_converter.filter import DODjangoFilterBackend
 
 
-@method_decorator(name='list', decorator=swagger_auto_schema(auto_schema=None))
-class PepScoringListView(ListAPIView):
-    permission_classes = [PepServerToken]
-    queryset = PepScoring.objects.filter(declaration__type=Declaration.ANNUAL).order_by('-pep_id', '-score')
-    serializer_class = PepScoringSerializer
-    filter_backends = (DODjangoFilterBackend,)
-    filterset_class = PepScoringFilterSet
+# @method_decorator(name='list', decorator=swagger_auto_schema(auto_schema=None))
+# class PepScoringListView(ListAPIView):
+#     permission_classes = [PepServerToken]
+#     queryset = PepScoring.objects.filter(declaration__type=Declaration.ANNUAL).order_by('-pep_id', '-score')
+#     serializer_class = PepScoringSerializer
+#     filter_backends = (DODjangoFilterBackend,)
+#     filterset_class = PepScoringFilterSet
 
 
 @method_decorator(name='list', decorator=swagger_auto_schema(auto_schema=None))
@@ -34,9 +34,13 @@ class PepScoringDetailView(ListAPIView):
         ).order_by('-submission_date').first()
         if not last_declaration:
             raise Http404
+        coefficient = PepScoring.get_coefficient()
         return PepScoring.objects.select_related(
             'declaration'
         ).filter(
             declaration_id=last_declaration.id,
             score__gt=0,
+        ).extra(
+            select={'coefficient': coefficient, 'relative_score': 'score * %s'},
+            select_params=(coefficient,)
         ).order_by('-score')
