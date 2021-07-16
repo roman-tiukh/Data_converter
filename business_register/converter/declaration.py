@@ -1963,6 +1963,8 @@ class DeclarationConverter(BusinessConverter):
     def save_one_declaration(self, declaration_id: str):
         if declaration_id in self.all_declarations:
             return
+
+        declaration = None
         try:
             # getting full declaration data
             declaration_data = self.download_declaration(declaration_id)
@@ -1984,10 +1986,11 @@ class DeclarationConverter(BusinessConverter):
             self.current_declaration = declaration
             self.save_all_steps(declaration_data, pep, declaration)
         except (Exception, KeyboardInterrupt) as e:
-            message = f'Error at declaration {declaration.nacp_declaration_id}: {e}'
+            message = f'Error at declaration {declaration_id}: {e}'
             print(message)
             logger.error(message)
-            declaration.destroy()
+            if declaration:
+                declaration.destroy()
             raise
 
     def save_declarations_for_pep(self, nacp_declarant_id):
