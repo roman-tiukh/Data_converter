@@ -2,6 +2,7 @@ from django.core.management import BaseCommand
 
 from business_register.converter.declaration import DeclarationConverter
 from business_register.models.declaration_models import Vehicle
+from business_register.pep_scoring.declarations_fixes import DeclarationsFixSet
 
 
 class Command(BaseCommand):
@@ -43,3 +44,7 @@ class Command(BaseCommand):
         else:
             all_cars = Vehicle.objects.filter(type=Vehicle.CAR)
             self.is_luxury_cars(all_cars)
+
+        self.stdout.write('Resave done. Start running all fixes')
+        DeclarationsFixSet().run_all_fixes()
+        self.stdout.write('All fixes applied')

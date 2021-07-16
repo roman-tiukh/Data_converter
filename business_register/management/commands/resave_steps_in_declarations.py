@@ -1,5 +1,6 @@
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from business_register.converter.declaration import DeclarationConverter
+from business_register.pep_scoring.declarations_fixes import DeclarationsFixSet
 from data_ocean.savepoint import Savepoint
 from business_register.models.declaration_models import Declaration, Transaction, Liability, Property
 
@@ -58,7 +59,7 @@ class Command(BaseCommand):
             self.converter.current_declaration = declaration
             data = self.converter.download_declaration(str(declaration.nacp_declaration_id))
             if not data:
-                raise Exception(f'No data for declaration {declaration.nacp_declaration_id}')
+                raise CommandError(f'No data for declaration {declaration.nacp_declaration_id}')
             self.converter.save_relatives_data(data['data'], declaration)
             self.process_declaration(
                 data=data['data'],
@@ -67,4 +68,7 @@ class Command(BaseCommand):
             self.savepoint.add(declaration.nacp_declaration_id)
         self.savepoint.close()
         self.stdout.write()
-        self.stdout.write('Done!')
+
+        self.stdout.write('Resave done. Start running all fixes')
+        DeclarationsFixSet().run_all_fixes()
+        self.stdout.write('All fixes applied')

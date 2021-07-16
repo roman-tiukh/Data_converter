@@ -8,20 +8,30 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('-a', '--all', dest='all', action='store_true')
-        parser.add_argument('year', type=int, nargs=1)
+        parser.add_argument('--year', type=int, nargs='?')
+        parser.add_argument('--declaration_id', nargs='?', type=str)
         parser.add_argument(
-            '-r', '--rules', type=str, action='append',
+            '-r', '--rule', dest='rules', type=str, action='append',
             choices=[rule.value for rule in ScoringRuleEnum]
         )
 
     def handle(self, *args, **options):
-        year = options['year'][0]
+        year = options['year']
         rules = options['rules']
+        declaration_id = options['declaration_id']
         calculate_all_declarations = options['all']
 
-        qs = Declaration.objects.filter(year=year)
-        if not calculate_all_declarations:
-            qs = qs.filter(type=Declaration.ANNUAL)
+        params = (year, declaration_id)
+        if not any(params) or all(params):
+            raise CommandError('Pass --year or --declaration_id for this command')
+
+        if year:
+            qs = Declaration.objects.filter(year=year)
+            if not calculate_all_declarations:
+                qs = qs.filter(type=Declaration.ANNUAL)
+        else:
+            qs = Declaration.objects.filter(nacp_declaration_id=declaration_id)
+
         count = qs.count()
         i = 0
         for declaration in qs:

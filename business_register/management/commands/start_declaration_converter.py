@@ -1,6 +1,7 @@
 from django.core.management import BaseCommand
 from business_register.converter.declaration import DeclarationConverter
 from business_register.models.pep_models import Pep
+from business_register.pep_scoring.declarations_fixes import DeclarationsFixSet
 from data_ocean.savepoint import Savepoint
 
 
@@ -49,4 +50,7 @@ class Command(BaseCommand):
             self.load_declaration(declaration_id)
         else:
             self.load_all()
-        self.stdout.write('Done!')
+
+        self.stdout.write('Load done. Start running all fixes')
+        DeclarationsFixSet().run_all_fixes()
+        self.stdout.write('All fixes applied')

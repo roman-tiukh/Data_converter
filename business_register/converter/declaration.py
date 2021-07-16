@@ -2002,12 +2002,11 @@ class DeclarationConverter(BusinessConverter):
         try:
             # getting full declaration data
             declaration_data = self.download_declaration(declaration_id)
-            pep = self.only_peps[declaration_data['user_declarant_id']]
             if not declaration_data:
                 logger.warning(f'cannot find declaration {declaration_id}')
                 return
 
-            # TODO: add date to the model and here
+            pep = self.only_peps[declaration_data['user_declarant_id']]
             submission_date = isoparse(declaration_data['date']).date()
             declaration = Declaration.objects.create(
                 type=declaration_data['declaration_type'],

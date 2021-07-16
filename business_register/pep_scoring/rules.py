@@ -1170,7 +1170,8 @@ class IsCashTrick(BaseScoringRule):
         return RESULT_FALSE
 
 
-@register_rule
+# FIXME: temporary disabled rule
+# @register_rule
 class IsHiddenBeneficiary(BaseScoringRule):
     """
     Rule 24 - PEP24

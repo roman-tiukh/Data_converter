@@ -18,7 +18,7 @@ class Command(BaseExportCommand):
         parser.add_argument('-s', '--s3', dest='s3', action='store_true')
         parser.add_argument('-z', '--with_zero', dest='with_zero', action='store_true')
         parser.add_argument(
-            '-r', '--rules', type=str, action='append',
+            '-r', '--rule', dest='rules', type=str, action='append',
             choices=[rule.value for rule in ScoringRuleEnum]
         )
         parser.add_argument(
