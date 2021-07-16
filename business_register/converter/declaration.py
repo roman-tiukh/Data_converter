@@ -1994,6 +1994,36 @@ class DeclarationConverter(BusinessConverter):
         # the declarant or declarant't family are opened
         self.save_bank_account(data, declaration, pep)
 
+    def save_one_declaration(self, declaration_id: str):
+        if declaration_id in self.all_declarations:
+            return
+        try:
+            # getting full declaration data
+            declaration_data = self.download_declaration(declaration_id)
+            if not declaration_data:
+                logger.warning(f'cannot find declaration {declaration_id}')
+                return
+
+            pep = self.only_peps[declaration_data['user_declarant_id']]
+            # TODO: add date to the model and here
+            submission_date = isoparse(declaration_data['date']).date()
+            declaration = Declaration.objects.create(
+                type=declaration_data['declaration_type'],
+                year=declaration_data['declaration_year'],
+                submission_date=submission_date,
+                nacp_declaration_id=declaration_id,
+                nacp_declarant_id=declaration_data['user_declarant_id'],
+                pep=pep,
+            )
+            self.current_declaration = declaration
+            self.save_all_steps(declaration_data, pep, declaration)
+        except (Exception, KeyboardInterrupt) as e:
+            message = f'Error at declaration {declaration.nacp_declaration_id}: {e}'
+            print(message)
+            logger.error(message)
+            declaration.destroy()
+            raise
+
     def save_declarations_for_pep(self, nacp_declarant_id):
         declarations_data = self.get_declarations_data(nacp_declarant_id)
         if not declarations_data:
@@ -2002,46 +2032,16 @@ class DeclarationConverter(BusinessConverter):
             )
             return
 
-        pep = self.only_peps[nacp_declarant_id]
         for declaration_data in declarations_data:
             # possible_keys = {
             #     'post_type', 'corruption_affected', 'id', 'options', 'type', 'declaration_type',
             #     'responsible_position', 'declaration_year', 'schema_version', 'data', 'post_category',
             #     'date', 'user_declarant_id'
             # }
-            declaration_type = declaration_data['declaration_type']
             # TODO: predict storing changes from the declarant
-            if declaration_type not in [1, 2, 3, 4]:
+            if declaration_data['declaration_type'] not in (1, 2, 3, 4):
                 continue
-            declaration_id = declaration_data['id']
-            declaration = self.all_declarations.get(declaration_id)
-            if declaration:
-                continue
-            # TODO: add date to the model and here
-            submission_date = isoparse(declaration_data['date']).date()
-            declaration = Declaration.objects.create(
-                type=declaration_type,
-                year=declaration_data['declaration_year'],
-                submission_date=submission_date,
-                nacp_declaration_id=declaration_id,
-                nacp_declarant_id=nacp_declarant_id,
-                pep=pep,
-            )
-            self.current_declaration = declaration
-            try:
-                # getting full declaration data
-                declaration_data = self.download_declaration(declaration_id)
-                if not declaration_data:
-                    declaration.destroy()
-                    self.log_error('cannot find declarations')
-                    continue
-                self.save_all_steps(declaration_data, pep, declaration)
-            except (Exception, KeyboardInterrupt) as e:
-                message = f'Error at declaration {declaration.nacp_declaration_id}: {e}'
-                print(message)
-                logger.error(message)
-                declaration.destroy()
-                raise
+            self.save_one_declaration(declaration_data['id'])
 
     def get_declarations_data(self, nacp_declarant_id):
         all_declarations_data = []

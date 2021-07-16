@@ -15,12 +15,14 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('--pep_source_id', nargs='?', type=int)
         parser.add_argument('--pep_id', nargs='?', type=int)
+        parser.add_argument('--declaration_id', nargs='?', type=str)
 
     def load_one(self, pep: Pep):
         for nacp_id in pep.nacp_id:
-            if not self.savepoint.has(nacp_id):
-                self.converter.save_declarations_for_pep(nacp_declarant_id=nacp_id)
-                self.savepoint.add(nacp_id)
+            self.converter.save_declarations_for_pep(nacp_declarant_id=nacp_id)
+
+    def load_declaration(self, declaration_id: str):
+        self.converter.save_one_declaration(declaration_id=declaration_id)
 
     def load_all(self):
         i = 0
@@ -37,11 +39,14 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         pep_source_id = options['pep_source_id']
         pep_id = options['pep_id']
+        declaration_id = options['declaration_id']
 
         if pep_source_id:
             self.load_one(Pep.objects.get(source_id=pep_source_id))
         elif pep_id:
             self.load_one(Pep.objects.get(id=pep_id))
+        elif declaration_id:
+            self.load_declaration(declaration_id)
         else:
             self.load_all()
         self.stdout.write('Done!')
