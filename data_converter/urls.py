@@ -33,7 +33,7 @@ from business_register.views.pep_views import PepViewSet
 from business_register.views.sanction_views import (CountrySanctionViewSet,
                                                     PersonSanctionViewSet,
                                                     CompanySanctionViewSet)
-from business_register.views.scoring_views import PepScoringListView, PepScoringDetailView
+from business_register.views.scoring_views import PepScoringDetailView
 from data_ocean.views import RegisterView, SchemaView
 from location_register.views.drv_views import DrvBuildingViewSet
 from location_register.views.ratu_views import (RatuRegionView, RatuCityView, RatuStreetView,
@@ -130,7 +130,6 @@ urlpatterns = [
     ),
 
     path('api/pep/scoring/<int:source_id>/', PepScoringDetailView.as_view()),
-    path('api/pep/scoring/', PepScoringListView.as_view()),
     path('api/', include((router.urls, 'registers'), namespace='registers')),
 ]
 

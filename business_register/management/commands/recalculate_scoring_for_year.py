@@ -1,23 +1,24 @@
-from django.core.management.base import BaseCommand
-from business_register.models.declaration_models import Declaration
+from django.core.management.base import BaseCommand, CommandError
+from business_register.models.declaration_models import Declaration, PepScoring
+from business_register.pep_scoring.rules_registry import ALL_RULES, ScoringRuleEnum
 
 
 class Command(BaseCommand):
     help = '---'
 
     def add_arguments(self, parser):
-        parser.add_argument('-r', '--rules', type=str, nargs='?', help='Example: PEP01,PEP03,PEP15')
         parser.add_argument('-a', '--all', dest='all', action='store_true')
         parser.add_argument('year', type=int, nargs=1)
+        parser.add_argument(
+            '-r', '--rules', type=str, action='append',
+            choices=[rule.value for rule in ScoringRuleEnum]
+        )
 
     def handle(self, *args, **options):
         year = options['year'][0]
         rules = options['rules']
         calculate_all_declarations = options['all']
-        if rules:
-            rules = [rule.strip() for rule in rules.split(',')]
-        else:
-            rules = None
+
         qs = Declaration.objects.filter(year=year)
         if not calculate_all_declarations:
             qs = qs.filter(type=Declaration.ANNUAL)
@@ -29,5 +30,6 @@ class Command(BaseCommand):
             self.stdout.flush()
             declaration.recalculate_scoring(rules)
 
+        PepScoring.refresh_coefficient()
         self.stdout.write()
-        self.stdout.write('>>> Done!')
+        self.stdout.write('Done. Scoring coefficient refreshed.')

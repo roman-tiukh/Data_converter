@@ -1,5 +1,6 @@
 import uuid
 
+from django.core.cache import cache
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -1634,6 +1635,33 @@ class PepScoring(DataOceanModel):
     calculation_datetime = models.DateTimeField()
     score = models.FloatField()
     data = models.JSONField(encoder=DjangoJSONEncoder)
+
+    @staticmethod
+    def get_top_pep():
+        return Pep.objects.annotate(
+            last_declaration_score=models.Subquery(
+                queryset=Declaration.objects.annotate(
+                    score=models.Sum('scoring__score')
+                ).filter(
+                    score__gt=0, type=Declaration.ANNUAL, pep_id=models.OuterRef('pk')
+                ).order_by('-submission_date').values('score')[:1],
+                output_field=models.FloatField(),
+            ),
+        ).filter(last_declaration_score__gt=0).order_by('-last_declaration_score').first()
+
+    @classmethod
+    def refresh_coefficient(cls):
+        top_pep = cls.get_top_pep()
+        coefficient = 10 / top_pep.last_declaration_score
+        cache.set('pep_scoring_coefficient', coefficient, timeout=None)
+        return coefficient
+
+    @classmethod
+    def get_coefficient(cls):
+        coefficient = cache.get('pep_scoring_coefficient')
+        if coefficient is None:
+            coefficient = cls.refresh_coefficient()
+        return coefficient
 
     def get_message_for_locale(self, locale: str):
         rule = ALL_RULES.get(self.rule_id, None)
