@@ -1552,7 +1552,7 @@ class DeclarationConverter(BusinessConverter):
                     'форд': 'ford',
                 }
                 brand = vehicle.brand.lower()
-                model = vehicle.model.lower()
+                model = vehicle.model.lower().replace(brand, '').strip()
                 if brand in normalized_brand.keys():
                     brand = normalized_brand[brand]
                 if model in normalized_brand.keys():
