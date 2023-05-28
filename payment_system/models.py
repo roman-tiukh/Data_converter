@@ -223,13 +223,14 @@ class Project(DataOceanModel):
                 start_date=current_date,
                 is_grace_period=True,
             )
-            Invoice.objects.create(project_subscription=new_p2s)
             if invoice:
-                invoice.paid_at = timezone.localdate()
+                invoice.is_paid = True
                 invoice.project_subscription = new_p2s
                 invoice.project_subscription.is_grace_period = True
                 invoice.project_subscription.paid_up()
                 invoice.save()
+            else:
+                Invoice.objects.create(project_subscription=new_p2s)
         else:
             if current_p2s.is_grace_period:
                 raise ValidationError(_('Project have subscription on a grace period, can\'t add new subscription'))
